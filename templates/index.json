@@ -1,8 +1,9 @@
 {
   "sections": {
     "bush_hero": {
-  "type": "bush-hero",
-  "settings": {}
+      "type": "bush-hero",
+      "settings": {}
+    },
     "image_banner": {
       "type": "image-banner",
       "blocks": {
@@ -203,7 +204,7 @@
     }
   },
   "order": [
-    "bush_hero"
+    "bush_hero",
     "image_banner",
     "rich_text",
     "featured_collection",
