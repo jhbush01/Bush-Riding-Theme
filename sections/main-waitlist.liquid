@@ -180,39 +180,6 @@
     opacity: 0.75;
   }
 
-  /* ── Sketches (shown on success) ───────────────────────────────────────── */
-  .wl-sketches {
-    display: flex;
-    gap: 12px;
-    align-items: flex-end;
-    justify-content: center;
-    margin-top: 32px;
-  }
-
-  .wl-sketch {
-    max-height: 180px;
-    width: auto;
-    opacity: 0.85;
-  }
-
-  .wl-sketch:nth-child(1) {
-    transform: rotate(-6deg) translateY(8px);
-    animation: wl-fade-in 0.8s ease-out 0.1s both;
-  }
-  .wl-sketch:nth-child(2) {
-    transform: rotate(1deg);
-    animation: wl-fade-in 0.8s ease-out 0.3s both;
-  }
-  .wl-sketch:nth-child(3) {
-    transform: rotate(7deg) translateY(6px);
-    animation: wl-fade-in 0.8s ease-out 0.5s both;
-  }
-
-  @media (max-width: 767px) {
-    .wl-sketch { max-height: 110px; }
-    .wl-sketches { gap: 6px; }
-  }
-
   /* ── Mobile ────────────────────────────────────────────────────────────── */
   @media (max-width: 767px) {
     .wl-headline { font-size: clamp(40px, 11vw, 56px); }
@@ -231,6 +198,11 @@
   }
 </style>
 
+{%- assign posted = false -%}
+{%- if request.url contains 'customer_posted=true' -%}
+  {%- assign posted = true -%}
+{%- endif -%}
+
 <section class="wl-hero">
   <video class="wl-video" autoplay muted loop playsinline aria-hidden="true">
     <source src="https://cdn.shopify.com/videos/c/o/v/f0e0ccc583fc45589dc4a168fc145f35.mp4" type="video/mp4">
@@ -239,25 +211,21 @@
 
   <div class="wl-content">
 
-    <img
-      class="wl-brand-mark"
-      src="https://cdn.shopify.com/s/files/1/0838/6373/2480/files/IMG_0671-removebg-preview.png?v=1782476546"
-      alt="Bush Riding"
-    >
-
-    <div class="wl-headline-wrap">
-      <span class="wl-headline">Welcome to the Bush</span>
-    </div>
-    <p class="wl-subhead" style="margin-top:20px;">Early access to Bush Riding's first release.</p>
+    {%- unless posted -%}
+      <img
+        class="wl-brand-mark"
+        src="https://cdn.shopify.com/s/files/1/0838/6373/2480/files/IMG_0671-removebg-preview.png?v=1782476546"
+        alt="Bush Riding"
+      >
+      <div class="wl-headline-wrap">
+        <span class="wl-headline">Welcome to the Bush</span>
+      </div>
+      <p class="wl-subhead" style="margin-top:20px;">Early access to Bush Riding's first release.</p>
+    {%- endunless -%}
 
     {%- form 'customer', id: 'WaitlistForm' -%}
       {%- if form.posted_successfully? -%}
-        <p class="wl-success-msg">You're on the list — see you soon.</p>
-        <div class="wl-sketches" aria-hidden="true">
-          <img class="wl-sketch" src="https://cdn.shopify.com/s/files/1/0838/6373/2480/files/Cargo_Bib_-_MistRiverstoneEucalyptus-removebg-preview.png?v=1782482669" alt="">
-          <img class="wl-sketch" src="https://cdn.shopify.com/s/files/1/0838/6373/2480/files/Untitled_Artwork-removebg-preview_1.png?v=1782482669" alt="">
-          <img class="wl-sketch" src="https://cdn.shopify.com/s/files/1/0838/6373/2480/files/Bush_Riding_Shorts-removebg-preview.png?v=1782482669" alt="">
-        </div>
+        <p class="wl-success-msg">You're on the list — we will send you launch updates, ride stories and first access.</p>
       {%- else -%}
         <input type="hidden" name="customer[tags]" value="waitlist">
         <input type="hidden" name="customer[accepts_marketing]" value="1">
@@ -285,7 +253,9 @@
       {%- endif -%}
     {%- endform -%}
 
-    <p class="wl-micro">Join for launch updates, ride stories, and first access.</p>
+    {%- unless posted -%}
+      <p class="wl-micro">Join for launch updates, ride stories, and first access.</p>
+    {%- endunless -%}
 
   </div>
 </section>
