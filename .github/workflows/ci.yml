@@ -1,5 +1,13 @@
 name: CI
+
 on: [push]
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+  statuses: write
+
 jobs:
   lhci:
     name: Lighthouse
