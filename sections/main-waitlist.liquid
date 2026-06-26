@@ -79,10 +79,6 @@
   }
 
   /* ── Headline ──────────────────────────────────────────────────────────── */
-  .wl-headline-wrap {
-    overflow: hidden;
-  }
-
   .wl-headline {
     display: block;
     font-family: 'Instrument Serif', serif;
@@ -90,12 +86,12 @@
     font-weight: 400;
     line-height: 1.05;
     color: var(--ivory);
-    animation: wl-slide-up 0.8s ease-out both;
+    animation: wl-fade-in 2.8s ease-out both;
   }
 
-  @keyframes wl-slide-up {
-    from { transform: translateY(110%); }
-    to   { transform: translateY(0);    }
+  @keyframes wl-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -217,8 +213,6 @@
           width: 100,
           alt: logo_alt
       }}
-    {%- else -%}
-      <p class="wl-logo">{{ shop.name }}</p>
     {%- endif -%}
 
     <div class="wl-headline-wrap">
