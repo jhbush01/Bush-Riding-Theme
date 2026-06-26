@@ -2,7 +2,7 @@
   /* ── Design tokens ─────────────────────────────────────────────────────── */
   :root {
     --ivory:       #F5F0E8;
-    --lemon:       #C9C81A;
+    --lemon:       #F9C80E;
     --btn-text:    #2A2318;
     --overlay:     rgba(0, 0, 0, 0.05);
   }
@@ -58,24 +58,17 @@
     max-width: 700px;
   }
 
-  /* ── Logo ──────────────────────────────────────────────────────────────── */
-  .wl-logo {
-    font-family: 'General Sans', sans-serif;
-    font-size: 0.7rem;
-    font-weight: 500;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: var(--ivory);
-    opacity: 0.8;
-    margin-bottom: 36px;
-  }
-
-  .wl-logo-img {
-    max-height: 28px;
+  /* ── Brand mark ────────────────────────────────────────────────────────── */
+  .wl-brand-mark {
+    max-height: 140px;
     width: auto;
     display: block;
-    margin-bottom: 36px;
-    opacity: 0.9;
+    margin-bottom: 28px;
+    animation: wl-fade-in 2.8s ease-out both;
+  }
+
+  @media (max-width: 767px) {
+    .wl-brand-mark { max-height: 90px; }
   }
 
   /* ── Headline ──────────────────────────────────────────────────────────── */
@@ -85,7 +78,7 @@
     font-size: clamp(56px, 8vw, 96px);
     font-weight: 400;
     line-height: 1.05;
-    color: var(--ivory);
+    color: var(--lemon);
     animation: wl-fade-in 2.8s ease-out both;
   }
 
@@ -203,17 +196,11 @@
 
   <div class="wl-content">
 
-    {%- if settings.logo != blank -%}
-      {%- assign logo_alt = settings.logo.alt | default: shop.name | escape -%}
-      {{
-        settings.logo
-        | image_url: width: 200
-        | image_tag:
-          class: 'wl-logo-img',
-          width: 100,
-          alt: logo_alt
-      }}
-    {%- endif -%}
+    <img
+      class="wl-brand-mark"
+      src="https://cdn.shopify.com/s/files/1/0838/6373/2480/files/IMG_0671-removebg-preview.png?v=1782476546"
+      alt="Bush Riding"
+    >
 
     <div class="wl-headline-wrap">
       <span class="wl-headline">Welcome to the Bush</span>
