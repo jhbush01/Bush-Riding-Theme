@@ -198,11 +198,6 @@
   }
 </style>
 
-{%- assign posted = false -%}
-{%- if request.url contains 'customer_posted=true' -%}
-  {%- assign posted = true -%}
-{%- endif -%}
-
 <section class="wl-hero">
   <video class="wl-video" autoplay muted loop playsinline aria-hidden="true">
     <source src="https://cdn.shopify.com/videos/c/o/v/f0e0ccc583fc45589dc4a168fc145f35.mp4" type="video/mp4">
@@ -210,23 +205,23 @@
   <div class="wl-overlay" aria-hidden="true"></div>
 
   <div class="wl-content">
-
-    {%- unless posted -%}
-      <img
-        class="wl-brand-mark"
-        src="https://cdn.shopify.com/s/files/1/0838/6373/2480/files/IMG_0671-removebg-preview.png?v=1782476546"
-        alt="Bush Riding"
-      >
-      <div class="wl-headline-wrap">
-        <span class="wl-headline">Welcome to the Bush</span>
-      </div>
-      <p class="wl-subhead" style="margin-top:20px;">Early access to Bush Riding's first release.</p>
-    {%- endunless -%}
-
     {%- form 'customer', id: 'WaitlistForm' -%}
       {%- if form.posted_successfully? -%}
+
         <p class="wl-success-msg">You're on the list — we will send you launch updates, ride stories and first access.</p>
+
       {%- else -%}
+
+        <img
+          class="wl-brand-mark"
+          src="https://cdn.shopify.com/s/files/1/0838/6373/2480/files/IMG_0671-removebg-preview.png?v=1782476546"
+          alt="Bush Riding"
+        >
+        <div class="wl-headline-wrap">
+          <span class="wl-headline">Welcome to the Bush</span>
+        </div>
+        <p class="wl-subhead" style="margin-top:20px;">Early access to Bush Riding's first release.</p>
+
         <input type="hidden" name="customer[tags]" value="waitlist">
         <input type="hidden" name="customer[accepts_marketing]" value="1">
         <div class="wl-form">
@@ -250,13 +245,11 @@
             {%- endif -%}
           </p>
         {%- endif -%}
+
+        <p class="wl-micro">Join for launch updates, ride stories, and first access.</p>
+
       {%- endif -%}
     {%- endform -%}
-
-    {%- unless posted -%}
-      <p class="wl-micro">Join for launch updates, ride stories, and first access.</p>
-    {%- endunless -%}
-
   </div>
 </section>
 
