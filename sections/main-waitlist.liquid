@@ -209,18 +209,21 @@
     </div>
     <p class="wl-subhead" style="margin-top:20px;">Early access to Bush Riding's first release.</p>
 
-    <form class="wl-form" id="waitlist-form" novalidate>
-      <input
-        class="wl-form__input"
-        type="email"
-        name="email"
-        id="waitlist-email"
-        placeholder="your@email.com"
-        autocomplete="email"
-        required
-      >
-      <button class="wl-form__submit" type="submit">Join early access</button>
-    </form>
+    {%- form 'customer', id: 'WaitlistForm' -%}
+      <input type="hidden" name="contact[tags]" value="waitlist">
+      <div class="wl-form">
+        <input
+          class="wl-form__input"
+          type="email"
+          name="contact[email]"
+          id="waitlist-email"
+          placeholder="your@email.com"
+          autocomplete="email"
+          required
+        >
+        <button class="wl-form__submit" type="submit">Join early access</button>
+      </div>
+    {%- endform -%}
 
     <p class="wl-micro">Join for launch updates, ride stories, and first access.</p>
     <p class="wl-status" id="waitlist-status" role="status" aria-live="polite"></p>
@@ -230,12 +233,7 @@
 
 <script>
   (function () {
-    // ── Klaviyo config ── replace these two values ───────────────────────────
-    var KLAVIYO_PUBLIC_KEY = 'W9QAij';
-    var KLAVIYO_LIST_ID    = 'RgzXQa';
-    // ─────────────────────────────────────────────────────────────────────────
-
-    var form   = document.getElementById('waitlist-form');
+    var form   = document.getElementById('WaitlistForm');
     var status = document.getElementById('waitlist-status');
 
     form.addEventListener('submit', function (e) {
@@ -248,31 +246,21 @@
       btn.disabled = true;
       showStatus('', '');
 
-      fetch('https://a.klaviyo.com/client/subscriptions/?company_id=' + KLAVIYO_PUBLIC_KEY, {
+      fetch(form.action, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'revision': '2024-10-15' },
-        body: JSON.stringify({
-          data: {
-            type: 'subscription',
-            attributes: {
-              profile: { data: { type: 'profile', attributes: { email: email } } }
-            },
-            relationships: { list: { data: { type: 'list', id: KLAVIYO_LIST_ID } } }
-          }
-        })
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams(new FormData(form))
       })
       .then(function (res) {
-        if (res.status === 202) {
+        if (res.ok) {
           showStatus("You're on the list — we'll be in touch.", 'success');
-          form.reset();
+          document.getElementById('waitlist-email').value = '';
         } else {
-          return res.json().then(function (body) {
-            throw new Error((body.errors && body.errors[0] && body.errors[0].detail) || 'Something went wrong.');
-          });
+          throw new Error('Something went wrong.');
         }
       })
-      .catch(function (err) {
-        showStatus(err.message || 'Something went wrong. Please try again.', 'error');
+      .catch(function () {
+        showStatus('Something went wrong. Please try again.', 'error');
       })
       .finally(function () { btn.disabled = false; });
     });
