@@ -11,7 +11,8 @@ jobs:
         with:
           store: ${{ secrets.SHOP_STORE_OS2 }}
           password: ${{ secrets.SHOP_PASSWORD_OS2 }}
-          access_token: ${{ secrets.SHOP_ACCESS_TOKEN }}
+          client_id: ${{ secrets.SHOP_CLIENT_ID }}
+          client_secret: ${{ secrets.SHOP_CLIENT_SECRET }}
           collection_handle: all
           lhci_github_app_token: ${{ secrets.LHCI_GITHUB_TOKEN }}
           pull_theme: ${{ secrets.SHOP_PULL_THEME }}
