@@ -177,7 +177,7 @@
     font-size: 1rem;
     color: var(--ivory);
     text-shadow: 0 1px 6px rgba(0,0,0,0.55);
-    opacity: 0.9;
+    opacity: 0.75;
   }
 
   /* ── Mobile ────────────────────────────────────────────────────────────── */
@@ -219,7 +219,7 @@
 
     {%- form 'customer', id: 'WaitlistForm' -%}
       {%- if form.posted_successfully? -%}
-        <p class="wl-success-msg">You're on the list — we'll be in touch.</p>
+        <p class="wl-success-msg">You're on the list — see you soon.</p>
       {%- else -%}
         <input type="hidden" name="customer[tags]" value="waitlist">
         <input type="hidden" name="customer[accepts_marketing]" value="1">
