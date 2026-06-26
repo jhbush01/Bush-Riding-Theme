@@ -172,6 +172,14 @@
   .wl-status--error   { color: #ffb3ae; }
   .wl-status--success { color: #b9f6ca; }
 
+  .wl-success-msg {
+    font-family: 'General Sans', sans-serif;
+    font-size: 1rem;
+    color: var(--ivory);
+    text-shadow: 0 1px 6px rgba(0,0,0,0.55);
+    opacity: 0.9;
+  }
+
   /* ── Mobile ────────────────────────────────────────────────────────────── */
   @media (max-width: 767px) {
     .wl-headline { font-size: clamp(40px, 11vw, 56px); }
@@ -210,67 +218,39 @@
     <p class="wl-subhead" style="margin-top:20px;">Early access to Bush Riding's first release.</p>
 
     {%- form 'customer', id: 'WaitlistForm' -%}
-      <input type="hidden" name="contact[tags]" value="waitlist">
-      <div class="wl-form">
-        <input
-          class="wl-form__input"
-          type="email"
-          name="contact[email]"
-          id="waitlist-email"
-          placeholder="your@email.com"
-          autocomplete="email"
-          required
-        >
-        <button class="wl-form__submit" type="submit">Join early access</button>
-      </div>
+      {%- if form.posted_successfully? -%}
+        <p class="wl-success-msg">You're on the list — we'll be in touch.</p>
+      {%- else -%}
+        <input type="hidden" name="customer[tags]" value="waitlist">
+        <input type="hidden" name="customer[accepts_marketing]" value="1">
+        <div class="wl-form">
+          <input
+            class="wl-form__input"
+            type="email"
+            name="customer[email]"
+            id="waitlist-email"
+            placeholder="your@email.com"
+            autocomplete="email"
+            required
+          >
+          <button class="wl-form__submit" type="submit">Join early access</button>
+        </div>
+        {%- if form.errors -%}
+          <p class="wl-status wl-status--error">
+            {%- if form.errors contains 'email' -%}
+              Please enter a valid email address.
+            {%- else -%}
+              Something went wrong. Please try again.
+            {%- endif -%}
+          </p>
+        {%- endif -%}
+      {%- endif -%}
     {%- endform -%}
 
     <p class="wl-micro">Join for launch updates, ride stories, and first access.</p>
-    <p class="wl-status" id="waitlist-status" role="status" aria-live="polite"></p>
 
   </div>
 </section>
-
-<script>
-  (function () {
-    var form   = document.getElementById('WaitlistForm');
-    var status = document.getElementById('waitlist-status');
-
-    form.addEventListener('submit', function (e) {
-      e.preventDefault();
-
-      var email = document.getElementById('waitlist-email').value.trim();
-      if (!email) { showStatus('Please enter your email address.', 'error'); return; }
-
-      var btn = form.querySelector('.wl-form__submit');
-      btn.disabled = true;
-      showStatus('', '');
-
-      fetch(form.action, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams(new FormData(form))
-      })
-      .then(function (res) {
-        if (res.ok) {
-          showStatus("You're on the list — we'll be in touch.", 'success');
-          document.getElementById('waitlist-email').value = '';
-        } else {
-          throw new Error('Something went wrong.');
-        }
-      })
-      .catch(function () {
-        showStatus('Something went wrong. Please try again.', 'error');
-      })
-      .finally(function () { btn.disabled = false; });
-    });
-
-    function showStatus(msg, type) {
-      status.textContent = msg;
-      status.className = 'wl-status' + (type ? ' wl-status--' + type : '');
-    }
-  })();
-</script>
 
 {% schema %}
 {
