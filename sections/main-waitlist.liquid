@@ -1,179 +1,265 @@
-{%- comment -%}
-  ─── TUNABLE CONSTANTS ───────────────────────────────────────────────────────
-  KLAVIYO_PUBLIC_KEY  Your 6-character Klaviyo public/company API key
-  KLAVIYO_LIST_ID     The Klaviyo list ID to subscribe new emails to
-  ─────────────────────────────────────────────────────────────────────────────
-{%- endcomment -%}
-
 <style>
-  /* ── Design tokens ── swap these to restyle the whole page */
+  /* ── Design tokens ─────────────────────────────────────────────────────── */
   :root {
-    --text-color:   #F5F0E6;          /* cream wordmark + input placeholder */
-    --bush-lemon:   #C9CB52;          /* submit button fill + hairline rule  */
-    --scrim:        0.4;              /* dark overlay opacity (0–1)          */
-    --box-padding:  clamp(20px, 6vw, 50px);   /* logo box padding           */
-    --box-max-width: 520px;           /* max width of the logo box           */
-    --form-max-width: 420px;          /* max width of the email row          */
-    --bg-image: url('{{ 'bush-mountain.jpg' | asset_url }}');  /* swap asset here */
+    --ivory:       #F5F0E8;
+    --lemon:       #C9C81A;
+    --btn-text:    #2A2318;
+    --overlay:     rgba(0, 0, 0, 0.25);
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   body.waitlist {
-    min-height: 100dvh;
-    background: #ffffff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    padding: 40px 20px 60px;
+    background: #F5F0E8;
+    font-family: 'General Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    height: 100dvh;
+    overflow: hidden;
   }
 
-  /* ── Box logo ─────────────────────────────────────────────────────────────── */
-  .waitlist-logo {
+  /* ── Hero ──────────────────────────────────────────────────────────────── */
+  .wl-hero {
     position: relative;
     width: 100%;
-    max-width: var(--box-max-width);
+    height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #F5F0E8;
     overflow: hidden;
-    /* height driven by padding-top trick for square-ish proportions */
-    aspect-ratio: 1 / 1;
   }
 
-  .waitlist-logo__bg {
+  /* ── Video ─────────────────────────────────────────────────────────────── */
+  .wl-video {
     position: absolute;
     inset: 0;
-    background-image: var(--bg-image);
-    background-size: cover;
-    background-position: center;
-  }
-
-  .waitlist-logo__scrim {
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, var(--scrim));
-  }
-
-  .waitlist-logo__inner {
-    position: relative;      /* above bg + scrim */
+    width: 100%;
     height: 100%;
+    object-fit: cover;
+    z-index: 0;
+  }
+
+  .wl-overlay {
+    position: absolute;
+    inset: 0;
+    background: var(--overlay);
+    z-index: 1;
+  }
+
+  /* ── Content stack ─────────────────────────────────────────────────────── */
+  .wl-content {
+    position: relative;
+    z-index: 2;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: var(--box-padding);
-    gap: 0;
-  }
-
-  .waitlist-logo__wordmark {
-    font-family: "Times New Roman", Times, serif;
-    font-size: clamp(2rem, 8vw, 4.5rem);
-    font-weight: 400;
-    letter-spacing: 0.04em;
-    line-height: 1;
-    color: var(--text-color);
-    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
     text-align: center;
-    white-space: nowrap;
+    padding: 0 24px;
+    width: 100%;
+    max-width: 700px;
   }
 
-  .waitlist-logo__rule {
+  /* ── Logo ──────────────────────────────────────────────────────────────── */
+  .wl-logo {
+    font-family: 'General Sans', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ivory);
+    opacity: 0.8;
+    margin-bottom: 36px;
+  }
+
+  .wl-logo-img {
+    max-height: 28px;
+    width: auto;
+    display: block;
+    margin-bottom: 36px;
+    opacity: 0.9;
+  }
+
+  /* ── Headline ──────────────────────────────────────────────────────────── */
+  .wl-headline-wrap {
+    overflow: hidden;
+  }
+
+  .wl-headline {
+    display: block;
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(56px, 8vw, 96px);
+    font-weight: 400;
+    line-height: 1.05;
+    color: var(--ivory);
+    animation: wl-slide-up 0.8s ease-out both;
+  }
+
+  @keyframes wl-slide-up {
+    from { transform: translateY(110%); }
+    to   { transform: translateY(0);    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .wl-headline { animation: none; }
+  }
+
+  /* ── Lemon underline ───────────────────────────────────────────────────── */
+  .wl-rule {
     width: 100%;
-    height: 1px;
-    background: var(--bush-lemon);
-    margin-top: 12px;
+    height: 1.5px;
+    background: var(--lemon);
+    margin: 10px 0 28px;
     flex-shrink: 0;
   }
 
-  /* ── Email capture ─────────────────────────────────────────────────────────── */
-  .waitlist-form-wrap {
-    margin-top: 40px;
-    width: 100%;
-    max-width: var(--form-max-width);
-  }
-
-  .waitlist-form {
-    display: flex;
-    border: 1px solid #d0d0d0;
-    border-radius: 9999px;
-    overflow: hidden;
-    background: #fff;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-  }
-
-  .waitlist-form__input {
-    flex: 1;
-    border: none;
-    outline: none;
-    padding: 14px 20px;
+  /* ── Subhead ───────────────────────────────────────────────────────────── */
+  .wl-subhead {
+    font-family: 'General Sans', sans-serif;
     font-size: 0.95rem;
-    background: transparent;
-    color: #111;
+    font-weight: 400;
+    color: var(--ivory);
+    opacity: 0.75;
+    white-space: nowrap;
+    margin-bottom: 32px;
   }
 
-  .waitlist-form__input::placeholder { color: #999; }
+  /* ── Email form ────────────────────────────────────────────────────────── */
+  .wl-form {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    max-width: 480px;
+    margin-bottom: 14px;
+  }
 
-  .waitlist-form__submit {
+  .wl-form__input {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: 1px solid var(--ivory);
+    border-radius: 9999px;
+    padding: 13px 20px;
+    font-family: 'General Sans', sans-serif;
+    font-size: 0.9rem;
+    color: var(--ivory);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .wl-form__input::placeholder { color: rgba(245, 240, 232, 0.55); }
+  .wl-form__input:focus { border-color: var(--lemon); }
+
+  .wl-form__submit {
     flex-shrink: 0;
     border: none;
     outline: none;
     cursor: pointer;
-    background: var(--bush-lemon);
-    color: #1a1a00;
+    background: var(--lemon);
+    color: var(--btn-text);
+    font-family: 'General Sans', sans-serif;
     font-size: 0.85rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    padding: 14px 24px;
-    border-radius: 0 9999px 9999px 0;
-    transition: filter 0.15s ease;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    padding: 13px 22px;
+    border-radius: 9999px;
+    white-space: nowrap;
+    transition: opacity 0.15s;
   }
 
-  .waitlist-form__submit:hover { filter: brightness(1.08); }
+  .wl-form__submit:hover { opacity: 0.88; }
+  .wl-form__submit:disabled { opacity: 0.55; cursor: not-allowed; }
 
-  /* ── Status messages ─────────────────────────────────────────────────────── */
-  .waitlist-status {
-    margin-top: 14px;
-    font-size: 0.875rem;
-    text-align: center;
+  /* ── Microcopy ─────────────────────────────────────────────────────────── */
+  .wl-micro {
+    font-family: 'General Sans', sans-serif;
+    font-size: 0.72rem;
+    color: var(--ivory);
+    opacity: 0.6;
+  }
+
+  /* ── Status ────────────────────────────────────────────────────────────── */
+  .wl-status {
+    margin-top: 12px;
+    font-family: 'General Sans', sans-serif;
+    font-size: 0.85rem;
+    color: var(--ivory);
     min-height: 1.2em;
-    color: #444;
   }
 
-  .waitlist-status--error { color: #c0392b; }
-  .waitlist-status--success { color: #2d6a2d; }
+  .wl-status--error   { color: #ffb3ae; }
+  .wl-status--success { color: #b9f6ca; }
+
+  /* ── Mobile ────────────────────────────────────────────────────────────── */
+  @media (max-width: 767px) {
+    .wl-headline { font-size: clamp(40px, 11vw, 56px); }
+
+    .wl-subhead { white-space: normal; }
+
+    .wl-form {
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .wl-form__input,
+    .wl-form__submit {
+      width: 100%;
+    }
+  }
 </style>
 
-<div class="waitlist-logo" role="img" aria-label="{{ shop.name }}">
-  <div class="waitlist-logo__bg" aria-hidden="true"></div>
-  <div class="waitlist-logo__scrim" aria-hidden="true"></div>
-  <div class="waitlist-logo__inner">
-    <span class="waitlist-logo__wordmark">Bush Riding</span>
-    <div class="waitlist-logo__rule" aria-hidden="true"></div>
-  </div>
-</div>
+<section class="wl-hero">
+  <video class="wl-video" autoplay muted loop playsinline aria-hidden="true">
+    <source src="https://cdn.shopify.com/videos/c/o/v/a28565397d6b4a7d878537dd052bd970.mp4" type="video/mp4">
+  </video>
+  <div class="wl-overlay" aria-hidden="true"></div>
 
-<div class="waitlist-form-wrap">
-  <form class="waitlist-form" id="waitlist-form" novalidate>
-    <input
-      class="waitlist-form__input"
-      type="email"
-      name="email"
-      id="waitlist-email"
-      placeholder="your@email.com"
-      autocomplete="email"
-      required
-    >
-    <button class="waitlist-form__submit" type="submit">Notify me</button>
-  </form>
-  <p class="waitlist-status" id="waitlist-status" role="status" aria-live="polite"></p>
-</div>
+  <div class="wl-content">
+
+    {%- if settings.logo != blank -%}
+      {%- assign logo_alt = settings.logo.alt | default: shop.name | escape -%}
+      {{
+        settings.logo
+        | image_url: width: 200
+        | image_tag:
+          class: 'wl-logo-img',
+          width: 100,
+          alt: logo_alt
+      }}
+    {%- else -%}
+      <p class="wl-logo">{{ shop.name }}</p>
+    {%- endif -%}
+
+    <div class="wl-headline-wrap">
+      <span class="wl-headline">Welcome to the Bush</span>
+    </div>
+    <div class="wl-rule" aria-hidden="true"></div>
+
+    <p class="wl-subhead">Early access to Bush Riding's first release.</p>
+
+    <form class="wl-form" id="waitlist-form" novalidate>
+      <input
+        class="wl-form__input"
+        type="email"
+        name="email"
+        id="waitlist-email"
+        placeholder="your@email.com"
+        autocomplete="email"
+        required
+      >
+      <button class="wl-form__submit" type="submit">Join early access</button>
+    </form>
+
+    <p class="wl-micro">Join for launch updates, ride stories, and first access.</p>
+    <p class="wl-status" id="waitlist-status" role="status" aria-live="polite"></p>
+
+  </div>
+</section>
 
 <script>
   (function () {
-    // ── Klaviyo config ── replace these two values ──────────────────────────
-    var KLAVIYO_PUBLIC_KEY = 'REPLACE_ME';   // e.g. 'AbCdEf'
-    var KLAVIYO_LIST_ID    = 'REPLACE_ME';   // e.g. 'XyZ123'
-    // ────────────────────────────────────────────────────────────────────────
+    // ── Klaviyo config ── replace these two values ───────────────────────────
+    var KLAVIYO_PUBLIC_KEY = 'REPLACE_ME';   // your 6-char public key
+    var KLAVIYO_LIST_ID    = 'REPLACE_ME';   // your list ID
+    // ─────────────────────────────────────────────────────────────────────────
 
     var form   = document.getElementById('waitlist-form');
     var status = document.getElementById('waitlist-status');
@@ -182,38 +268,22 @@
       e.preventDefault();
 
       var email = document.getElementById('waitlist-email').value.trim();
+      if (!email) { showStatus('Please enter your email address.', 'error'); return; }
 
-      if (!email) {
-        showStatus('Please enter your email address.', 'error');
-        return;
-      }
-
-      var btn = form.querySelector('.waitlist-form__submit');
+      var btn = form.querySelector('.wl-form__submit');
       btn.disabled = true;
       showStatus('', '');
 
       fetch('https://a.klaviyo.com/client/subscriptions/?company_id=' + KLAVIYO_PUBLIC_KEY, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'revision': '2024-10-15'
-        },
+        headers: { 'Content-Type': 'application/json', 'revision': '2024-10-15' },
         body: JSON.stringify({
           data: {
             type: 'subscription',
             attributes: {
-              profile: {
-                data: {
-                  type: 'profile',
-                  attributes: { email: email }
-                }
-              }
+              profile: { data: { type: 'profile', attributes: { email: email } } }
             },
-            relationships: {
-              list: {
-                data: { type: 'list', id: KLAVIYO_LIST_ID }
-              }
-            }
+            relationships: { list: { data: { type: 'list', id: KLAVIYO_LIST_ID } } }
           }
         })
       })
@@ -230,14 +300,12 @@
       .catch(function (err) {
         showStatus(err.message || 'Something went wrong. Please try again.', 'error');
       })
-      .finally(function () {
-        btn.disabled = false;
-      });
+      .finally(function () { btn.disabled = false; });
     });
 
     function showStatus(msg, type) {
       status.textContent = msg;
-      status.className = 'waitlist-status' + (type ? ' waitlist-status--' + type : '');
+      status.className = 'wl-status' + (type ? ' wl-status--' + type : '');
     }
   })();
 </script>
