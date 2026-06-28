@@ -187,6 +187,27 @@
     opacity: 0.75;
   }
 
+  /* ── Feature photo (floating, placement WIP) ───────────────────────────── */
+  .wl-feature-photo {
+    position: absolute;
+    bottom: 24px;
+    right: 24px;
+    width: 25vw;
+    max-width: 340px;
+    height: auto;
+    z-index: 2;
+    pointer-events: none;
+    filter: drop-shadow(0 8px 24px rgba(0,0,0,0.35));
+  }
+
+  @media (max-width: 767px) {
+    .wl-feature-photo {
+      width: 42vw;
+      bottom: 16px;
+      right: 16px;
+    }
+  }
+
   /* ── Social links (liquid glass) ───────────────────────────────────────── */
   .wl-social {
     display: flex;
@@ -247,6 +268,12 @@
   </video>
   <div class="wl-overlay" aria-hidden="true"></div>
 
+  <img
+    class="wl-feature-photo"
+    src="https://cdn.shopify.com/s/files/1/0838/6373/2480/files/IMG_0683.png?v=1782641442"
+    alt="Bush Riding Shorts"
+  >
+
   <div class="wl-content">
     {%- form 'customer', id: 'WaitlistForm' -%}
       {%- if form.posted_successfully? -%}
@@ -255,15 +282,10 @@
 
       {%- else -%}
 
-        <img
-          class="wl-brand-mark"
-          src="https://cdn.shopify.com/s/files/1/0838/6373/2480/files/IMG_0671-removebg-preview.png?v=1782476546"
-          alt="Bush Riding"
-        >
         <div class="wl-headline-wrap">
           <span class="wl-headline">Welcome to the Bush</span>
         </div>
-        <p class="wl-subhead" style="margin-top:20px;">Early access to Bush Riding's first release.</p>
+        <p class="wl-subhead" style="margin-top:20px;">Get early access to Bush Riding's first release — the Bush Riding Shorts.</p>
 
         <input type="hidden" name="contact[tags]" value="waitlist">
         <div class="wl-form">
@@ -287,8 +309,6 @@
             {%- endif -%}
           </p>
         {%- endif -%}
-
-        <p class="wl-micro">Join for launch updates, ride stories, and first access.</p>
 
       {%- endif -%}
     {%- endform -%}
