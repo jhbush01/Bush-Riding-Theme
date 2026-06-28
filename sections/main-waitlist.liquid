@@ -187,25 +187,19 @@
     opacity: 0.75;
   }
 
-  /* ── Feature photo (floating, placement WIP) ───────────────────────────── */
+  /* ── Feature photo ─────────────────────────────────────────────────────── */
   .wl-feature-photo {
-    position: absolute;
-    bottom: 24px;
-    right: 24px;
-    width: 25vw;
-    max-width: 340px;
+    display: block;
+    width: 37.5vw;
+    max-width: 510px;
     height: auto;
-    z-index: 2;
-    pointer-events: none;
+    margin: 0 auto 28px;
     filter: drop-shadow(0 8px 24px rgba(0,0,0,0.35));
+    animation: wl-fade-in 2.8s ease-out both;
   }
 
   @media (max-width: 767px) {
-    .wl-feature-photo {
-      width: 42vw;
-      bottom: 16px;
-      right: 16px;
-    }
+    .wl-feature-photo { width: 63vw; }
   }
 
   /* ── Social links (liquid glass) ───────────────────────────────────────── */
@@ -268,12 +262,6 @@
   </video>
   <div class="wl-overlay" aria-hidden="true"></div>
 
-  <img
-    class="wl-feature-photo"
-    src="https://cdn.shopify.com/s/files/1/0838/6373/2480/files/IMG_0683.png?v=1782641442"
-    alt="Bush Riding Shorts"
-  >
-
   <div class="wl-content">
     {%- form 'customer', id: 'WaitlistForm' -%}
       {%- if form.posted_successfully? -%}
@@ -282,6 +270,11 @@
 
       {%- else -%}
 
+        <img
+          class="wl-feature-photo"
+          src="https://cdn.shopify.com/s/files/1/0838/6373/2480/files/IMG_0683.png?v=1782641442"
+          alt="Bush Riding Shorts"
+        >
         <div class="wl-headline-wrap">
           <span class="wl-headline">Welcome to the Bush</span>
         </div>
