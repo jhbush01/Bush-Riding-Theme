@@ -1,0 +1,3 @@
+# Canonicalise to the apex domain. Requires www.bushridingmap.com to be added
+# as a custom domain on the Pages project so requests reach Pages.
+https://www.bushridingmap.com/* https://bushridingmap.com/:splat 301!
