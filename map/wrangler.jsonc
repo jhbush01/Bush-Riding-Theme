@@ -1,0 +1,12 @@
+{
+  // Static-assets-only deploy. With no "main" worker script, `wrangler deploy`
+  // just uploads the asset directory and serves it (index.html at /).
+  // Used when Cloudflare deploys this as a Worker (the "wrangler deploy" flow).
+  // For a classic Cloudflare Pages project this file is ignored — Pages just
+  // needs Build output directory = the folder containing index.html.
+  "name": "bush-riding-map",
+  "compatibility_date": "2025-06-01",
+  "assets": {
+    "directory": "."
+  }
+}
