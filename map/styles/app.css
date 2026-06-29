@@ -12,6 +12,7 @@
   --lemon: #d7e04b; /* active/selected only */
   --water: #a7bfbd;
   --ui-font: "Archivo", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --head-font: "Instrument Serif", Georgia, "Times New Roman", serif;
 }
 
 * {
@@ -65,9 +66,11 @@ body {
 
 .sidebar__title {
   margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font-family: var(--head-font);
+  font-size: 28px;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 1.05;
 }
 
 .sidebar__sub {
@@ -272,8 +275,10 @@ body {
 
 .detail__name {
   margin: 0;
-  font-size: 19px;
-  font-weight: 600;
+  font-family: var(--head-font);
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 1.08;
 }
 
 .detail__region {
@@ -382,8 +387,10 @@ body {
 
 .gate__title {
   margin: 0 0 8px;
-  font-size: 20px;
-  font-weight: 600;
+  font-family: var(--head-font);
+  font-size: 30px;
+  font-weight: 400;
+  line-height: 1.05;
 }
 
 .gate__copy {

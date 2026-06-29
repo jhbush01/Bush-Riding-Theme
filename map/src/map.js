@@ -6,8 +6,10 @@ const CONFIG = window.BRM_CONFIG || {};
 // Single swappable line for the basemap tiles (set in index.html config block).
 const TILES_URL = CONFIG.tilesUrl;
 
-// Bush-lemon is reserved for the active pin/line only.
+// Bush-lemon highlights the selected pin; the route line is dark green for
+// legibility against the muted basemap.
 const LEMON = "#d7e04b";
+const ROUTE_LINE = "#234a25";
 const OLIVE = "#6f7c53";
 const SAGE = "#aeb995";
 
@@ -103,7 +105,7 @@ function onLoad() {
     type: "line",
     source: "selected-route",
     layout: { "line-cap": "round", "line-join": "round" },
-    paint: { "line-color": LEMON, "line-width": 2 },
+    paint: { "line-color": ROUTE_LINE, "line-width": 3 },
   });
 
   map.addLayer({
