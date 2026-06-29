@@ -12,15 +12,46 @@ const OLIVE = "#6f7c53";
 const SAGE = "#aeb995";
 
 let map;
+let mapReady = false;
 let routeFeatures = []; // full LineString features
 const routeById = new Map();
 let selectedId = null;
 let requestDownload; // from gate
-let prevHoverPointId = null;
 
 init();
 
 async function init() {
+  // Load the route data first and build the sidebar from it, so browsing and
+  // filtering work even if the map library or basemap tiles fail to load.
+  try {
+    const data = await fetch("data/routes.geojson").then((r) => r.json());
+    routeFeatures = data.features;
+    routeFeatures.forEach((f) => routeById.set(f.properties.id, f));
+  } catch (e) {
+    console.error("Could not load routes.geojson:", e);
+    return;
+  }
+
+  initUI();
+
+  // The map is an enhancement — if it throws, the list/filters still work.
+  try {
+    await initMap();
+  } catch (e) {
+    console.error("Map failed to initialise; routes are still browsable.", e);
+  }
+}
+
+// Wire everything that does NOT depend on the map being up.
+function initUI() {
+  requestDownload = setupGate();
+  setupFilters(routeFeatures, refresh);
+  setupDetailPanel();
+  setupSidebarToggle();
+  renderResults(applyFilters(routeFeatures));
+}
+
+async function initMap() {
   // Register the pmtiles:// protocol so MapLibre can range-request the world file.
   const protocol = new pmtiles.Protocol();
   maplibregl.addProtocol("pmtiles", protocol.tile);
@@ -41,10 +72,6 @@ async function init() {
   });
   map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom-right");
   map.touchZoomRotate.disableRotation();
-
-  const data = await fetch("data/routes.geojson").then((r) => r.json());
-  routeFeatures = data.features;
-  routeFeatures.forEach((f) => routeById.set(f.properties.id, f));
 
   map.on("load", onLoad);
 }
@@ -117,15 +144,14 @@ function onLoad() {
     },
   });
 
+  mapReady = true;
   fitToRoutes(routeFeatures, false);
   wireInteractions();
 
-  // Filters + list + gate
-  requestDownload = setupGate();
-  setupFilters(routeFeatures, refresh);
-  setupDetailPanel();
-  setupSidebarToggle();
+  // Sync pins to the current filter state, and (re)draw a selection made
+  // before the map finished loading.
   refresh();
+  if (selectedId) selectRoute(selectedId, false);
 }
 
 // Build a points FeatureCollection from each route's marker (or line start).
@@ -173,30 +199,34 @@ function selectRoute(id, fly) {
   const feature = routeById.get(id);
   if (!feature) return;
 
-  // Clear previous selected pin state.
-  if (selectedId) {
-    map.setFeatureState({ source: "routes-points", id: selectedId }, { selected: false });
+  if (mapReady) {
+    // Clear previous selected pin state.
+    if (selectedId) {
+      map.setFeatureState({ source: "routes-points", id: selectedId }, { selected: false });
+    }
+    map.setFeatureState({ source: "routes-points", id }, { selected: true });
+
+    // Draw the LineString.
+    map.getSource("selected-route").setData({
+      type: "FeatureCollection",
+      features: [{ type: "Feature", geometry: feature.geometry, properties: {} }],
+    });
+    if (fly) fitToRoutes([feature], true);
   }
+
   selectedId = id;
-  map.setFeatureState({ source: "routes-points", id }, { selected: true });
-
-  // Draw the LineString.
-  map.getSource("selected-route").setData({
-    type: "FeatureCollection",
-    features: [{ type: "Feature", geometry: feature.geometry, properties: {} }],
-  });
-
-  if (fly) fitToRoutes([feature], true);
   openDetail(feature);
   highlightResult(id);
 }
 
 function clearSelection() {
-  if (selectedId) {
-    map.setFeatureState({ source: "routes-points", id: selectedId }, { selected: false });
-    selectedId = null;
+  if (mapReady) {
+    if (selectedId) {
+      map.setFeatureState({ source: "routes-points", id: selectedId }, { selected: false });
+    }
+    map.getSource("selected-route").setData({ type: "FeatureCollection", features: [] });
   }
-  map.getSource("selected-route").setData({ type: "FeatureCollection", features: [] });
+  selectedId = null;
 }
 
 // ---- Bounds --------------------------------------------------------------
@@ -253,7 +283,7 @@ function openDetail(feature) {
 // ---- Results list + filter refresh --------------------------------------
 function refresh() {
   const filtered = applyFilters(routeFeatures);
-  map.getSource("routes-points").setData(pointsFC(filtered));
+  if (mapReady) map.getSource("routes-points").setData(pointsFC(filtered));
   renderResults(filtered);
   // If the selected route fell out of the filter, drop the selection.
   if (selectedId && !filtered.some((f) => f.properties.id === selectedId)) {
