@@ -187,21 +187,6 @@
     opacity: 0.75;
   }
 
-  /* ── Feature photo ─────────────────────────────────────────────────────── */
-  .wl-feature-photo {
-    display: block;
-    width: 37.5vw;
-    max-width: 510px;
-    height: auto;
-    margin: 0 auto 28px;
-    filter: drop-shadow(0 8px 24px rgba(0,0,0,0.35));
-    animation: wl-fade-in 2.8s ease-out both;
-  }
-
-  @media (max-width: 767px) {
-    .wl-feature-photo { width: 63vw; }
-  }
-
   /* ── Social links (liquid glass) ───────────────────────────────────────── */
   .wl-social {
     display: flex;
@@ -270,11 +255,6 @@
 
       {%- else -%}
 
-        <img
-          class="wl-feature-photo"
-          src="https://cdn.shopify.com/s/files/1/0838/6373/2480/files/IMG_0683.png?v=1782641442"
-          alt="Bush Riding Shorts"
-        >
         <div class="wl-headline-wrap">
           <span class="wl-headline">Welcome to the Bush</span>
         </div>
