@@ -3,13 +3,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Bush Riding Routes — Curated gravel</title>
+    <title>Bush Riding Map</title>
     <meta
       name="description"
-      content="Curated gravel routes across South East Queensland. Browse the map, take the track. Join the bush."
+      content="Curated gravel routes across South East Queensland. Browse the map, take the track."
     />
     <link rel="canonical" href="https://bushridingmap.com/" />
-    <meta name="theme-color" content="#E9E2D0" />
+    <meta name="theme-color" content="#2c2a24" />
 
     <!-- Icons -->
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
@@ -18,14 +18,14 @@
     <!-- Open Graph / Twitter -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Bush Riding" />
-    <meta property="og:title" content="Bush Riding Routes" />
+    <meta property="og:title" content="Bush Riding Map" />
     <meta property="og:description" content="Curated gravel routes. Browse the map, take the track." />
     <meta property="og:url" content="https://bushridingmap.com/" />
     <meta property="og:image" content="https://bushridingmap.com/public/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Bush Riding Routes" />
+    <meta name="twitter:title" content="Bush Riding Map" />
     <meta name="twitter:description" content="Curated gravel routes. Browse the map, take the track." />
     <meta name="twitter:image" content="https://bushridingmap.com/public/og-image.png" />
 
@@ -40,101 +40,12 @@
     <link rel="stylesheet" href="styles/app.css" />
     <link rel="stylesheet" href="styles/landing.css" />
   </head>
-  <body>
-    <!-- Hero -->
-    <header class="hero">
-      <div class="hero__inner wrap">
-        <p class="hero__eyebrow">Curated gravel · South East Queensland</p>
-        <h1 class="hero__title">Bush Riding<br />Routes</h1>
-        <p class="hero__intro">
-          Hand-ridden gravel routes through the bush. Browse the map, filter by distance and
-          terrain, and take the track with you.
-        </p>
-        <a class="button button--light" href="/map">Explore the routes</a>
+  <body class="landing">
+    <main class="hero">
+      <div class="hero__center">
+        <h1 class="hero__title">Bush Riding Map</h1>
+        <a class="button button--light hero__cta" href="/map">Explore now</a>
       </div>
-    </header>
-
-    <!-- Stats strip (filled from routes.geojson) -->
-    <section class="stats" aria-label="Route stats">
-      <div class="stats__inner wrap">
-        <div class="stat">
-          <div class="stat__num" id="stat-routes">—</div>
-          <div class="stat__label">Routes</div>
-        </div>
-        <div class="stat">
-          <div class="stat__num" id="stat-regions">—</div>
-          <div class="stat__label">Regions</div>
-        </div>
-        <div class="stat">
-          <div class="stat__num" id="stat-km">—</div>
-          <div class="stat__label">Total km</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Featured route (filled from routes.geojson) -->
-    <section class="featured wrap" aria-label="Featured route">
-      <h2 class="featured__head">Featured route</h2>
-      <p class="featured__sub">Where we'd send you first.</p>
-      <article class="route-card" id="featured-card" hidden>
-        <img class="route-card__photo" id="featured-photo" alt="" />
-        <div class="route-card__body">
-          <h3 class="route-card__name" id="featured-name"></h3>
-          <p class="route-card__region" id="featured-region"></p>
-          <dl class="route-card__stats">
-            <div><dt>Distance</dt><dd id="featured-distance"></dd></div>
-            <div><dt>Elevation</dt><dd id="featured-elevation"></dd></div>
-            <div><dt>Terrain</dt><dd id="featured-difficulty"></dd></div>
-          </dl>
-          <p class="route-card__desc" id="featured-desc"></p>
-          <a class="button route-card__cta" id="featured-cta" href="/map">View route</a>
-        </div>
-      </article>
-    </section>
-
-    <footer class="site-footer">
-      <div class="site-footer__inner wrap">
-        <span>© <span id="year"></span> Bush Riding</span>
-        <a href="/map">Open the map →</a>
-      </div>
-    </footer>
-
-    <script>
-      document.getElementById("year").textContent = new Date().getFullYear();
-
-      // Build the stats strip + featured card from the single source of truth.
-      fetch("data/routes.geojson")
-        .then((r) => r.json())
-        .then((fc) => {
-          const pub = fc.features.filter((f) => f.properties.status === "published");
-          const totalKm = pub.reduce((s, f) => s + (f.properties.distance_km || 0), 0);
-          const regions = new Set(pub.map((f) => f.properties.region));
-          document.getElementById("stat-routes").textContent = pub.length;
-          document.getElementById("stat-regions").textContent = regions.size;
-          document.getElementById("stat-km").textContent = Math.round(totalKm);
-
-          // Featured = most recently ridden published route.
-          if (!pub.length) return;
-          const feat = [...pub].sort((a, b) =>
-            (b.properties.last_ridden || "").localeCompare(a.properties.last_ridden || "")
-          )[0];
-          const p = feat.properties;
-          const card = document.getElementById("featured-card");
-          const photo = document.getElementById("featured-photo");
-          photo.onerror = () => (photo.style.display = "none");
-          photo.src = p.photo_url;
-          photo.alt = p.name;
-          document.getElementById("featured-name").textContent = p.name;
-          document.getElementById("featured-region").textContent = p.region;
-          document.getElementById("featured-distance").textContent = p.distance_km + " km";
-          document.getElementById("featured-elevation").textContent = p.elevation_gain_m + " m";
-          document.getElementById("featured-difficulty").textContent =
-            p.terrain_difficulty.charAt(0).toUpperCase() + p.terrain_difficulty.slice(1);
-          document.getElementById("featured-desc").textContent = p.description;
-          document.getElementById("featured-cta").href = "/map#" + p.id;
-          card.hidden = false;
-        })
-        .catch((e) => console.error("Could not load routes for landing page:", e));
-    </script>
+    </main>
   </body>
 </html>
