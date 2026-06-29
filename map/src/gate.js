@@ -46,6 +46,7 @@ async function subscribe(email) {
     data: {
       type: "subscription",
       attributes: {
+        custom_source: "Routes Map",
         profile: {
           data: {
             type: "profile",
