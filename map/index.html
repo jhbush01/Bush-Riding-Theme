@@ -29,10 +29,11 @@
          tilesUrl is the single swappable line for the basemap source. -->
     <script>
       window.BRM_CONFIG = {
-        // Day-one fast path: Protomaps' public demo PMTiles (Protomaps schema).
-        // Swap this single line for your R2 object once it's uploaded, e.g.
-        // "https://tiles.bushriding.au/planet.pmtiles".
-        tilesUrl: "https://demo-bucket.protomaps.com/v4.pmtiles",
+        // Basemap: styles/bush.json (OpenFreeMap / OpenMapTiles, no key) is used
+        // by default. tilesUrl only applies if you switch bush.json to the
+        // Protomaps schema (bush-protomaps.json) and self-host PMTiles on R2,
+        // e.g. "https://tiles.bushriding.au/planet.pmtiles". Leave empty otherwise.
+        tilesUrl: "",
         // Klaviyo client-side flow — match the landing page's values.
         klaviyoCompanyId: "REPLACE_COMPANY_ID",
         klaviyoListId: "REPLACE_LIST_ID",

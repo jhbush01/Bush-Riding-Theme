@@ -56,9 +56,11 @@ async function initMap() {
   const protocol = new pmtiles.Protocol();
   maplibregl.addProtocol("pmtiles", protocol.tile);
 
-  // Load the recoloured Protomaps style and inject the tile URL.
+  // Load the recoloured basemap style. Default is OpenFreeMap (OpenMapTiles
+  // schema, whole-planet, no key). To self-host Protomaps PMTiles later, point
+  // bush.json at bush-protomaps.json and set BRM_CONFIG.tilesUrl to the R2 URL.
   const style = await fetch("styles/bush.json").then((r) => r.json());
-  if (TILES_URL) {
+  if (TILES_URL && style.sources.protomaps) {
     style.sources.protomaps.url = "pmtiles://" + TILES_URL;
   }
 

@@ -37,16 +37,19 @@ Everything per-environment lives in one block in `index.html`:
 
 ```js
 window.BRM_CONFIG = {
-  tilesUrl: "https://demo-bucket.protomaps.com/v4.pmtiles", // <- single swappable line
+  tilesUrl: "", // only for the self-hosted Protomaps/R2 path (see below)
   klaviyoCompanyId: "REPLACE_COMPANY_ID",
   klaviyoListId: "REPLACE_LIST_ID",
 };
 ```
 
-- **`tilesUrl`** — the basemap source. Defaults to Protomaps' public demo PMTiles
-  so the map renders on day one. Swap for your own R2 object once uploaded, e.g.
-  `https://tiles.bushriding.au/planet.pmtiles`. `bush.json` targets the Protomaps
-  basemap **v4** tile schema, so the replacement must be a Protomaps-schema build.
+- **Basemap** — `styles/bush.json` is the active, brand-recoloured style on the
+  **OpenMapTiles** schema, served by **OpenFreeMap** (free, no key, whole planet).
+  It renders out of the box, no config needed.
+- **`tilesUrl`** — only used for the self-hosted path. To serve your own tiles,
+  swap `bush.json` for `bush-protomaps.json` (Protomaps v4 schema) and set
+  `tilesUrl` to your R2 PMTiles URL, e.g. `https://tiles.bushriding.au/planet.pmtiles`.
+  `map.js` injects it as the `pmtiles://` source automatically.
 - **`klaviyoCompanyId` / `klaviyoListId`** — match the values the landing page
   uses. The gate POSTs to the client-side subscriptions flow (revision
   `2024-10-15`) and tags profiles `source: routes_map`.

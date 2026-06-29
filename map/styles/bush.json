@@ -1,16 +1,14 @@
 {
   "version": 8,
-  "name": "Bush Riding — Documentary Light",
+  "name": "Bush Riding — Documentary Light (OpenFreeMap)",
   "metadata": {
-    "comment": "Recoloured Protomaps `light` flavor (CC0 base) to the Bush Riding palette. Almond-cream land, sage/olive greens, muted water. Bush-lemon is reserved for the active pin/line in map.js and is intentionally NOT used in the basemap.",
-    "tile-schema": "protomaps basemap v4"
+    "comment": "Brand-recoloured basemap on the OpenMapTiles schema, served by OpenFreeMap (free, no key, whole planet) — the brief's sanctioned day-one source. Almond-cream land, sage/olive greens, muted water. Bush-lemon is reserved for the active pin/line in map.js and is NOT used here. For the self-hosted Protomaps PMTiles path, see bush-protomaps.json."
   },
-  "glyphs": "https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf",
+  "glyphs": "https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf",
   "sources": {
-    "protomaps": {
+    "openmaptiles": {
       "type": "vector",
-      "attribution": "<a href=\"https://protomaps.com\">Protomaps</a> © <a href=\"https://openstreetmap.org\">OpenStreetMap</a>",
-      "url": "pmtiles://__TILES_URL__"
+      "url": "https://tiles.openfreemap.org/planet"
     }
   },
   "layers": [
@@ -20,108 +18,111 @@
       "paint": { "background-color": "#E9E2D0" }
     },
     {
-      "id": "earth",
+      "id": "landcover-wood",
       "type": "fill",
-      "source": "protomaps",
-      "source-layer": "earth",
-      "paint": { "fill-color": "#E9E2D0" }
-    },
-    {
-      "id": "landuse-park",
-      "type": "fill",
-      "source": "protomaps",
-      "source-layer": "landuse",
-      "filter": ["in", "kind", "park", "national_park", "nature_reserve", "protected_area", "forest", "wood", "recreation_ground", "grass", "meadow"],
-      "paint": { "fill-color": "#CBD4B3", "fill-opacity": 0.7 }
-    },
-    {
-      "id": "landcover-forest",
-      "type": "fill",
-      "source": "protomaps",
+      "source": "openmaptiles",
       "source-layer": "landcover",
-      "filter": ["in", "kind", "forest", "tree", "wood", "scrub"],
+      "filter": ["in", "class", "wood", "forest"],
       "paint": { "fill-color": "#AEB995", "fill-opacity": 0.55 }
     },
     {
       "id": "landcover-grass",
       "type": "fill",
-      "source": "protomaps",
+      "source": "openmaptiles",
       "source-layer": "landcover",
-      "filter": ["in", "kind", "grassland", "grass", "farmland", "crop"],
+      "filter": ["in", "class", "grass", "scrub", "heath", "farmland"],
       "paint": { "fill-color": "#DAE0C2", "fill-opacity": 0.5 }
+    },
+    {
+      "id": "park",
+      "type": "fill",
+      "source": "openmaptiles",
+      "source-layer": "park",
+      "paint": { "fill-color": "#CBD4B3", "fill-opacity": 0.55 }
     },
     {
       "id": "water",
       "type": "fill",
-      "source": "protomaps",
+      "source": "openmaptiles",
       "source-layer": "water",
+      "filter": ["==", "$type", "Polygon"],
       "paint": { "fill-color": "#A7BFBD" }
     },
     {
-      "id": "water-stream",
+      "id": "waterway",
       "type": "line",
-      "source": "protomaps",
-      "source-layer": "physical_line",
-      "filter": ["in", "kind", "river", "stream", "canal"],
+      "source": "openmaptiles",
+      "source-layer": "waterway",
       "paint": {
         "line-color": "#A7BFBD",
-        "line-width": ["interpolate", ["linear"], ["zoom"], 8, 0.4, 14, 1.4]
+        "line-width": ["interpolate", ["linear"], ["zoom"], 8, 0.5, 14, 1.6]
       }
     },
     {
-      "id": "roads-other",
+      "id": "road-minor",
       "type": "line",
-      "source": "protomaps",
-      "source-layer": "roads",
-      "filter": ["in", "kind", "minor_road", "path", "track"],
-      "minzoom": 11,
+      "source": "openmaptiles",
+      "source-layer": "transportation",
+      "filter": ["in", "class", "minor", "service", "track", "path"],
+      "minzoom": 12,
       "paint": {
         "line-color": "#F4EFE2",
-        "line-width": ["interpolate", ["linear"], ["zoom"], 11, 0.4, 16, 2]
+        "line-width": ["interpolate", ["linear"], ["zoom"], 12, 0.4, 16, 2]
       }
     },
     {
-      "id": "roads-medium",
+      "id": "road-secondary",
       "type": "line",
-      "source": "protomaps",
-      "source-layer": "roads",
-      "filter": ["in", "kind", "medium_road"],
+      "source": "openmaptiles",
+      "source-layer": "transportation",
+      "filter": ["in", "class", "secondary", "tertiary"],
       "paint": {
         "line-color": "#FBF8F0",
         "line-width": ["interpolate", ["linear"], ["zoom"], 8, 0.5, 16, 4]
       }
     },
     {
-      "id": "roads-major",
+      "id": "road-primary",
       "type": "line",
-      "source": "protomaps",
-      "source-layer": "roads",
-      "filter": ["in", "kind", "major_road", "highway"],
+      "source": "openmaptiles",
+      "source-layer": "transportation",
+      "filter": ["in", "class", "primary", "trunk"],
       "paint": {
         "line-color": "#F6EFD9",
-        "line-width": ["interpolate", ["linear"], ["zoom"], 5, 0.6, 16, 6]
+        "line-width": ["interpolate", ["linear"], ["zoom"], 6, 0.6, 16, 5]
       }
     },
     {
-      "id": "boundaries",
+      "id": "road-motorway",
       "type": "line",
-      "source": "protomaps",
-      "source-layer": "boundaries",
-      "filter": ["<=", "kind_detail", 4],
+      "source": "openmaptiles",
+      "source-layer": "transportation",
+      "filter": ["==", "class", "motorway"],
+      "paint": {
+        "line-color": "#EFE6C9",
+        "line-width": ["interpolate", ["linear"], ["zoom"], 5, 0.8, 16, 6]
+      }
+    },
+    {
+      "id": "boundary-country",
+      "type": "line",
+      "source": "openmaptiles",
+      "source-layer": "boundary",
+      "filter": ["<=", "admin_level", 2],
       "paint": {
         "line-color": "#B7AE97",
         "line-dasharray": [2, 1.5],
-        "line-width": ["interpolate", ["linear"], ["zoom"], 3, 0.5, 10, 1.2]
+        "line-width": ["interpolate", ["linear"], ["zoom"], 3, 0.6, 10, 1.4]
       }
     },
     {
-      "id": "places-locality",
+      "id": "place-town",
       "type": "symbol",
-      "source": "protomaps",
-      "source-layer": "places",
-      "filter": ["in", "kind", "locality", "city", "town", "village"],
+      "source": "openmaptiles",
+      "source-layer": "place",
+      "filter": ["in", "class", "city", "town", "village"],
       "layout": {
-        "text-field": ["get", "name"],
+        "text-field": ["coalesce", ["get", "name:en"], ["get", "name"]],
         "text-font": ["Noto Sans Regular"],
         "text-size": ["interpolate", ["linear"], ["zoom"], 6, 10, 12, 14],
         "text-max-width": 7,
@@ -134,15 +135,15 @@
       }
     },
     {
-      "id": "places-region",
+      "id": "place-state",
       "type": "symbol",
-      "source": "protomaps",
-      "source-layer": "places",
-      "filter": ["in", "kind", "region", "country"],
+      "source": "openmaptiles",
+      "source-layer": "place",
+      "filter": ["==", "class", "state"],
       "layout": {
-        "text-field": ["get", "name"],
+        "text-field": ["coalesce", ["get", "name:en"], ["get", "name"]],
         "text-font": ["Noto Sans Regular"],
-        "text-size": ["interpolate", ["linear"], ["zoom"], 3, 10, 8, 13],
+        "text-size": ["interpolate", ["linear"], ["zoom"], 4, 10, 8, 13],
         "text-transform": "uppercase",
         "text-letter-spacing": 0.12,
         "text-max-width": 8
