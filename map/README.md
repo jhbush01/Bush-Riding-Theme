@@ -100,9 +100,18 @@ to the line's start). Controlled vocab: `terrain_difficulty` ∈
 client-side). `vetted_by` and `status` exist now so future ambassador/public
 submissions slot into the same schema without a migration.
 
-> The current 3 routes ship with **representative** LineStrings/GPX in the correct
-> areas (Beerwah, Marburg/Glamorgan Vale, Mount Mee) for v1 wiring. Replace the
-> coordinates and `gpx/*.gpx` with surveyed GPS tracks before publishing.
+> **Published:** `pomona-weekend-gravel` is a real surveyed track (RideWithGPS
+> GPX + hero photo). The three original demo routes (Beerwah, Marburg/Glamorgan
+> Vale, Mount Mee) have **fabricated** geometry and are set to `status: "draft"`
+> so they're hidden from the live map — flip them back to `published` only after
+> replacing their `gpx/*.gpx` and coordinates with surveyed tracks.
+
+### Adding a route
+
+1. Drop the surveyed `gpx/<id>.gpx` in place.
+2. Add a `Feature` to `routes.geojson` (LineString geometry + the documented
+   properties). Distance/elevation can be computed from the GPX.
+3. Optimise the hero photo to ~1200 px / &lt;250 KB and save `public/<id>.jpg`.
 
 ## Out of scope for v1
 

@@ -16,13 +16,28 @@ const SUBSCRIBE_URL = `https://a.klaviyo.com/client/subscriptions/?company_id=${
 
 let pendingRoute = null;
 
-function startDownload(route) {
-  const a = document.createElement("a");
-  a.href = route.gpx_url;
-  a.download = route.id + ".gpx";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
+async function startDownload(route) {
+  // Fetch the GPX and download it via a blob URL. A plain <a download> to a
+  // same-origin file URL is ignored on iOS Safari, which then *navigates* to
+  // the file and traps the user on a preview screen with no way back to the
+  // map. A blob URL goes through the download manager and leaves the app put.
+  try {
+    const res = await fetch(route.gpx_url);
+    if (!res.ok) throw new Error("gpx fetch " + res.status);
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = route.id + ".gpx";
+    a.rel = "noopener";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  } catch (e) {
+    // Last resort: open in a new tab so the map isn't replaced.
+    window.open(route.gpx_url, "_blank", "noopener");
+  }
 }
 
 function alreadySubscribed() {
