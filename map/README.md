@@ -60,6 +60,21 @@ cd map && python3 -m http.server 8080
 # open http://localhost:8080
 ```
 
+## Syncing to the deploy repo (`bush-riding-map`)
+
+The app is developed here in `map/`, but Cloudflare Pages deploys a separate
+`bush-riding-map` repo where these files sit at the **root**. To create or update
+that repo, from a clone of this repo on the branch with your latest changes:
+
+```sh
+map/sync.sh
+```
+
+This splits `map/` into a root-level history and pushes it to
+`https://github.com/jhbush01/bush-riding-map.git` `main` (pass a different repo
+URL as `$1` to override). First run requires the target repo to already exist and
+be empty. Cloudflare Pages then auto-redeploys on the push.
+
 ## Deployment — Cloudflare Pages
 
 1. New Pages project connected to this repo.
