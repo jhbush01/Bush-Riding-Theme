@@ -51,6 +51,17 @@ function initUI() {
   setupDetailPanel();
   setupSidebarToggle();
   renderResults(applyFilters(routeFeatures));
+
+  // Deep link: /map#<route-id> (e.g. from the landing page's featured card)
+  // opens that route. Handled here so it works even if the basemap never
+  // loads; onLoad redraws the line once the map is ready.
+  selectFromHash();
+  window.addEventListener("hashchange", selectFromHash);
+}
+
+function selectFromHash() {
+  const id = decodeURIComponent(location.hash.replace(/^#/, ""));
+  if (id && routeById.has(id)) selectRoute(id, true);
 }
 
 async function initMap() {

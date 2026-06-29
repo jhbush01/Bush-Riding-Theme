@@ -2,11 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Bush Riding Routes — Curated gravel</title>
     <meta
       name="description"
-      content="Curated gravel routes. Browse, filter, and download the track. Join the bush."
+      content="Curated gravel routes across South East Queensland. Browse the map, take the track. Join the bush."
     />
     <link rel="canonical" href="https://bushridingmap.com/" />
     <meta name="theme-color" content="#E9E2D0" />
@@ -29,12 +29,6 @@
     <meta name="twitter:description" content="Curated gravel routes. Browse the map, take the track." />
     <meta name="twitter:image" content="https://bushridingmap.com/public/og-image.png" />
 
-    <!-- MapLibre GL JS v5.x -->
-    <link href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css" rel="stylesheet" />
-    <script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
-    <!-- PMTiles protocol for MapLibre (range-request reads of a single world .pmtiles) -->
-    <script src="https://unpkg.com/pmtiles@4.4.1/dist/pmtiles.js"></script>
-
     <!-- Archivo (UI text) + Instrument Serif (headings) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -44,124 +38,103 @@
     />
 
     <link rel="stylesheet" href="styles/app.css" />
-
-    <!-- Deployment config — the only place to set per-environment values.
-         tilesUrl is the single swappable line for the basemap source. -->
-    <script>
-      window.BRM_CONFIG = {
-        // Basemap: styles/bush.json (OpenFreeMap / OpenMapTiles, no key) is used
-        // by default. tilesUrl only applies if you switch bush.json to the
-        // Protomaps schema (bush-protomaps.json) and self-host PMTiles on R2,
-        // e.g. "https://tiles.bushriding.au/planet.pmtiles". Leave empty otherwise.
-        tilesUrl: "",
-        // Klaviyo client-side flow. companyId is the PUBLIC key (safe in
-        // client code); listId is the existing "bush riding map" list.
-        klaviyoCompanyId: "W9QAij",
-        klaviyoListId: "R3335d",
-      };
-    </script>
+    <link rel="stylesheet" href="styles/landing.css" />
   </head>
   <body>
-    <div id="map" aria-label="Map of curated gravel routes"></div>
-
-    <!-- Filter / list panel -->
-    <aside id="sidebar" class="sidebar" aria-label="Route filters and list">
-      <header class="sidebar__head">
-        <h1 class="sidebar__title">Bush Riding Routes</h1>
-        <p class="sidebar__sub">Curated gravel. Browse the map, take the track.</p>
-      </header>
-
-      <form id="filters" class="filters" aria-label="Filter routes">
-        <div class="filter">
-          <label class="filter__label" for="f-distance">
-            Distance <span id="f-distance-val" class="filter__val">any</span>
-          </label>
-          <input id="f-distance" class="filter__range" type="range" min="0" max="200" step="10" value="200" />
-        </div>
-
-        <div class="filter">
-          <label class="filter__label" for="f-region">Location</label>
-          <select id="f-region" class="filter__select">
-            <option value="">All regions</option>
-          </select>
-        </div>
-
-        <div class="filter">
-          <span class="filter__label">Terrain</span>
-          <div id="f-difficulty" class="toggle-group" role="group" aria-label="Terrain difficulty">
-            <button type="button" class="toggle" data-value="easy">Easy</button>
-            <button type="button" class="toggle" data-value="moderate">Moderate</button>
-            <button type="button" class="toggle" data-value="hard">Hard</button>
-          </div>
-        </div>
-
-        <div class="filter">
-          <span class="filter__label">Last ridden</span>
-          <div id="f-recency" class="toggle-group" role="group" aria-label="Time since last ridden">
-            <button type="button" class="toggle" data-value="1m">&lt; 1 mo</button>
-            <button type="button" class="toggle" data-value="6m">1–6 mo</button>
-            <button type="button" class="toggle" data-value="old">6+ mo</button>
-          </div>
-        </div>
-
-        <button type="button" id="f-reset" class="filter__reset">Reset filters</button>
-      </form>
-
-      <div class="results">
-        <p id="results-count" class="results__count"></p>
-        <ul id="results-list" class="results__list"></ul>
+    <!-- Hero -->
+    <header class="hero">
+      <div class="hero__inner wrap">
+        <p class="hero__eyebrow">Curated gravel · South East Queensland</p>
+        <h1 class="hero__title">Bush Riding<br />Routes</h1>
+        <p class="hero__intro">
+          Hand-ridden gravel routes through the bush. Browse the map, filter by distance and
+          terrain, and take the track with you.
+        </p>
+        <a class="button button--light" href="/map">Explore the routes</a>
       </div>
-    </aside>
+    </header>
 
-    <button id="sidebar-toggle" class="sidebar-toggle" aria-controls="sidebar" aria-expanded="true">
-      Filters
-    </button>
-
-    <!-- Selected-route detail panel -->
-    <section id="detail" class="detail" aria-hidden="true" aria-label="Route detail">
-      <button id="detail-close" class="detail__close" aria-label="Close">&times;</button>
-      <img id="detail-photo" class="detail__photo" alt="" hidden />
-      <div class="detail__body">
-        <h2 id="detail-name" class="detail__name"></h2>
-        <p id="detail-region" class="detail__region"></p>
-        <dl class="detail__stats">
-          <div><dt>Distance</dt><dd id="detail-distance"></dd></div>
-          <div><dt>Elevation</dt><dd id="detail-elevation"></dd></div>
-          <div><dt>Terrain</dt><dd id="detail-difficulty"></dd></div>
-          <div><dt>Surface</dt><dd id="detail-surface"></dd></div>
-          <div><dt>Last ridden</dt><dd id="detail-lastridden"></dd></div>
-          <div><dt>Vetted by</dt><dd id="detail-vetted"></dd></div>
-        </dl>
-        <p id="detail-description" class="detail__desc"></p>
-        <button id="detail-download" class="button button--primary">Download GPX</button>
+    <!-- Stats strip (filled from routes.geojson) -->
+    <section class="stats" aria-label="Route stats">
+      <div class="stats__inner wrap">
+        <div class="stat">
+          <div class="stat__num" id="stat-routes">—</div>
+          <div class="stat__label">Routes</div>
+        </div>
+        <div class="stat">
+          <div class="stat__num" id="stat-regions">—</div>
+          <div class="stat__label">Regions</div>
+        </div>
+        <div class="stat">
+          <div class="stat__num" id="stat-km">—</div>
+          <div class="stat__label">Total km</div>
+        </div>
       </div>
     </section>
 
-    <!-- Email gate modal -->
-    <div id="gate" class="gate" aria-hidden="true">
-      <div class="gate__backdrop" data-gate-close></div>
-      <div class="gate__dialog" role="dialog" aria-modal="true" aria-labelledby="gate-title">
-        <button class="gate__close" data-gate-close aria-label="Close">&times;</button>
-        <h2 id="gate-title" class="gate__title">Get the route. Join the bush.</h2>
-        <p class="gate__copy">
-          Drop your email and the GPX is yours. We send the occasional route, nothing else.
-        </p>
-        <form id="gate-form" class="gate__form">
-          <input
-            id="gate-email"
-            class="gate__input"
-            type="email"
-            required
-            autocomplete="email"
-            placeholder="you@email.com"
-            aria-label="Email address"
-          />
-          <button type="submit" class="button button--primary gate__submit">Get the route</button>
-          <p id="gate-error" class="gate__error" role="alert" hidden></p>
-        </form>
-      </div>
-    </div>
+    <!-- Featured route (filled from routes.geojson) -->
+    <section class="featured wrap" aria-label="Featured route">
+      <h2 class="featured__head">Featured route</h2>
+      <p class="featured__sub">Where we'd send you first.</p>
+      <article class="route-card" id="featured-card" hidden>
+        <img class="route-card__photo" id="featured-photo" alt="" />
+        <div class="route-card__body">
+          <h3 class="route-card__name" id="featured-name"></h3>
+          <p class="route-card__region" id="featured-region"></p>
+          <dl class="route-card__stats">
+            <div><dt>Distance</dt><dd id="featured-distance"></dd></div>
+            <div><dt>Elevation</dt><dd id="featured-elevation"></dd></div>
+            <div><dt>Terrain</dt><dd id="featured-difficulty"></dd></div>
+          </dl>
+          <p class="route-card__desc" id="featured-desc"></p>
+          <a class="button route-card__cta" id="featured-cta" href="/map">View route</a>
+        </div>
+      </article>
+    </section>
 
-    <script type="module" src="src/map.js"></script>
+    <footer class="site-footer">
+      <div class="site-footer__inner wrap">
+        <span>© <span id="year"></span> Bush Riding</span>
+        <a href="/map">Open the map →</a>
+      </div>
+    </footer>
+
+    <script>
+      document.getElementById("year").textContent = new Date().getFullYear();
+
+      // Build the stats strip + featured card from the single source of truth.
+      fetch("data/routes.geojson")
+        .then((r) => r.json())
+        .then((fc) => {
+          const pub = fc.features.filter((f) => f.properties.status === "published");
+          const totalKm = pub.reduce((s, f) => s + (f.properties.distance_km || 0), 0);
+          const regions = new Set(pub.map((f) => f.properties.region));
+          document.getElementById("stat-routes").textContent = pub.length;
+          document.getElementById("stat-regions").textContent = regions.size;
+          document.getElementById("stat-km").textContent = Math.round(totalKm);
+
+          // Featured = most recently ridden published route.
+          if (!pub.length) return;
+          const feat = [...pub].sort((a, b) =>
+            (b.properties.last_ridden || "").localeCompare(a.properties.last_ridden || "")
+          )[0];
+          const p = feat.properties;
+          const card = document.getElementById("featured-card");
+          const photo = document.getElementById("featured-photo");
+          photo.onerror = () => (photo.style.display = "none");
+          photo.src = p.photo_url;
+          photo.alt = p.name;
+          document.getElementById("featured-name").textContent = p.name;
+          document.getElementById("featured-region").textContent = p.region;
+          document.getElementById("featured-distance").textContent = p.distance_km + " km";
+          document.getElementById("featured-elevation").textContent = p.elevation_gain_m + " m";
+          document.getElementById("featured-difficulty").textContent =
+            p.terrain_difficulty.charAt(0).toUpperCase() + p.terrain_difficulty.slice(1);
+          document.getElementById("featured-desc").textContent = p.description;
+          document.getElementById("featured-cta").href = "/map#" + p.id;
+          card.hidden = false;
+        })
+        .catch((e) => console.error("Could not load routes for landing page:", e));
+    </script>
   </body>
 </html>

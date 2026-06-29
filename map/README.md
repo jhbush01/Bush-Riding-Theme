@@ -14,26 +14,35 @@ No backend, no database, no auth. Static site, MapLibre GL JS + Protomaps tiles.
 
 ```
 map/
-  index.html          # MapLibre container, filter UI, detail panel, gate modal, config block
+  index.html          # Landing page (/) — hero, stats strip, featured route, CTA
+  map.html            # Map app (/map) — MapLibre, filters, detail panel, gate, config block
   src/
-    map.js            # map init, sources/layers, clustering, selection, detail panel
+    map.js            # map init, sources/layers, clustering, selection, deep-link (#id)
     filters.js        # client-side filtering over the GeoJSON
-    gate.js           # email-capture modal -> Klaviyo -> GPX download
+    gate.js           # email-capture modal -> Klaviyo -> blob GPX download
   styles/
-    bush.json         # recoloured Protomaps basemap style (brand palette)
-    app.css           # minimal UI styling (Archivo)
+    bush.json         # active basemap style (OpenFreeMap/OpenMapTiles, brand palette)
+    bush-protomaps.json  # Protomaps-schema style for the future self-hosted R2 path
+    app.css           # shared UI styling (Archivo body, Instrument Serif headings)
+    landing.css       # landing-page styling
   data/
-    routes.geojson    # ALL routes — single source of truth
+    routes.geojson    # ALL routes — single source of truth (landing stats derive from this)
   gpx/<id>.gpx        # one track per route
-  public/<id>.jpg     # one hero photo per route (user-supplied)
+  public/<id>.jpg     # one hero photo per route
+  favicon.svg, _redirects
 ```
+
+Two pages, shared assets: `index.html` (`/`) is the landing page and `map.html`
+is served at `/map` (Cloudflare Pages clean URLs). `map.html` sets `<base href="/">`
+so the shared `src/`, `styles/`, `data/`, etc. resolve from the root. The landing
+page's "featured route" links to `/map#<route-id>`, which opens that route on the map.
 
 Tiles (`.pmtiles`) are **not** in the repo — they live in R2/hosted and are
 referenced by URL.
 
 ## Configuration
 
-Everything per-environment lives in one block in `index.html`:
+Everything per-environment lives in one block in `map.html`:
 
 ```js
 window.BRM_CONFIG = {
