@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>Bush Riding — Routes</title>
+    <meta
+      name="description"
+      content="Curated gravel routes. Browse, filter, and download the track. Join the bush."
+    />
+
+    <!-- MapLibre GL JS v5.x -->
+    <link href="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.css" rel="stylesheet" />
+    <script src="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.js"></script>
+    <!-- PMTiles protocol for MapLibre (range-request reads of a single world .pmtiles) -->
+    <script src="https://unpkg.com/pmtiles@4.4.0/dist/pmtiles.js"></script>
+
+    <!-- Archivo (UI text, matches brand) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="styles/app.css" />
+
+    <!-- Deployment config — the only place to set per-environment values.
+         tilesUrl is the single swappable line for the basemap source. -->
+    <script>
+      window.BRM_CONFIG = {
+        // Day-one fast path: Protomaps' public demo PMTiles (Protomaps schema).
+        // Swap this single line for your R2 object once it's uploaded, e.g.
+        // "https://tiles.bushriding.au/planet.pmtiles".
+        tilesUrl: "https://demo-bucket.protomaps.com/v4.pmtiles",
+        // Klaviyo client-side flow — match the landing page's values.
+        klaviyoCompanyId: "REPLACE_COMPANY_ID",
+        klaviyoListId: "REPLACE_LIST_ID",
+      };
+    </script>
+  </head>
+  <body>
+    <div id="map" aria-label="Map of curated gravel routes"></div>
+
+    <!-- Filter / list panel -->
+    <aside id="sidebar" class="sidebar" aria-label="Route filters and list">
+      <header class="sidebar__head">
+        <h1 class="sidebar__title">Bush Riding Routes</h1>
+        <p class="sidebar__sub">Curated gravel. Browse the map, take the track.</p>
+      </header>
+
+      <form id="filters" class="filters" aria-label="Filter routes">
+        <div class="filter">
+          <label class="filter__label" for="f-distance">
+            Distance <span id="f-distance-val" class="filter__val">any</span>
+          </label>
+          <input id="f-distance" class="filter__range" type="range" min="0" max="200" step="10" value="200" />
+        </div>
+
+        <div class="filter">
+          <label class="filter__label" for="f-region">Location</label>
+          <select id="f-region" class="filter__select">
+            <option value="">All regions</option>
+          </select>
+        </div>
+
+        <div class="filter">
+          <span class="filter__label">Terrain</span>
+          <div id="f-difficulty" class="toggle-group" role="group" aria-label="Terrain difficulty">
+            <button type="button" class="toggle" data-value="easy">Easy</button>
+            <button type="button" class="toggle" data-value="moderate">Moderate</button>
+            <button type="button" class="toggle" data-value="hard">Hard</button>
+          </div>
+        </div>
+
+        <div class="filter">
+          <span class="filter__label">Last ridden</span>
+          <div id="f-recency" class="toggle-group" role="group" aria-label="Time since last ridden">
+            <button type="button" class="toggle" data-value="1m">&lt; 1 mo</button>
+            <button type="button" class="toggle" data-value="6m">1–6 mo</button>
+            <button type="button" class="toggle" data-value="old">6+ mo</button>
+          </div>
+        </div>
+
+        <button type="button" id="f-reset" class="filter__reset">Reset filters</button>
+      </form>
+
+      <div class="results">
+        <p id="results-count" class="results__count"></p>
+        <ul id="results-list" class="results__list"></ul>
+      </div>
+    </aside>
+
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-controls="sidebar" aria-expanded="true">
+      Filters
+    </button>
+
+    <!-- Selected-route detail panel -->
+    <section id="detail" class="detail" aria-hidden="true" aria-label="Route detail">
+      <button id="detail-close" class="detail__close" aria-label="Close">&times;</button>
+      <img id="detail-photo" class="detail__photo" alt="" hidden />
+      <div class="detail__body">
+        <h2 id="detail-name" class="detail__name"></h2>
+        <p id="detail-region" class="detail__region"></p>
+        <dl class="detail__stats">
+          <div><dt>Distance</dt><dd id="detail-distance"></dd></div>
+          <div><dt>Elevation</dt><dd id="detail-elevation"></dd></div>
+          <div><dt>Terrain</dt><dd id="detail-difficulty"></dd></div>
+          <div><dt>Surface</dt><dd id="detail-surface"></dd></div>
+          <div><dt>Last ridden</dt><dd id="detail-lastridden"></dd></div>
+          <div><dt>Vetted by</dt><dd id="detail-vetted"></dd></div>
+        </dl>
+        <p id="detail-description" class="detail__desc"></p>
+        <button id="detail-download" class="button button--primary">Download GPX</button>
+      </div>
+    </section>
+
+    <!-- Email gate modal -->
+    <div id="gate" class="gate" aria-hidden="true">
+      <div class="gate__backdrop" data-gate-close></div>
+      <div class="gate__dialog" role="dialog" aria-modal="true" aria-labelledby="gate-title">
+        <button class="gate__close" data-gate-close aria-label="Close">&times;</button>
+        <h2 id="gate-title" class="gate__title">Get the route. Join the bush.</h2>
+        <p class="gate__copy">
+          Drop your email and the GPX is yours. We send the occasional route, nothing else.
+        </p>
+        <form id="gate-form" class="gate__form">
+          <input
+            id="gate-email"
+            class="gate__input"
+            type="email"
+            required
+            autocomplete="email"
+            placeholder="you@email.com"
+            aria-label="Email address"
+          />
+          <button type="submit" class="button button--primary gate__submit">Get the route</button>
+          <p id="gate-error" class="gate__error" role="alert" hidden></p>
+        </form>
+      </div>
+    </div>
+
+    <script type="module" src="src/map.js"></script>
+  </body>
+</html>

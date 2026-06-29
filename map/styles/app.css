@@ -1,0 +1,441 @@
+/* Bush Riding Routes — minimal UI.
+   Restraint is on-brand: flat surfaces, hairline borders, no drama shadows. */
+
+:root {
+  --cream: #e9e2d0;
+  --cream-panel: #f4efe2;
+  --ink: #2c2a24;
+  --ink-soft: #5a5346;
+  --line: #d8cfb8;
+  --olive: #6f7c53;
+  --sage: #aeb995;
+  --lemon: #d7e04b; /* active/selected only */
+  --water: #a7bfbd;
+  --ui-font: "Archivo", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  font-family: var(--ui-font);
+  color: var(--ink);
+  background: var(--cream);
+}
+
+#map {
+  position: absolute;
+  inset: 0;
+}
+
+.maplibregl-ctrl-attrib {
+  font-family: var(--ui-font);
+  font-size: 10px;
+}
+
+/* ---------- Sidebar ---------- */
+.sidebar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 320px;
+  max-width: 86vw;
+  background: var(--cream-panel);
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  z-index: 5;
+  transition: transform 0.25s ease;
+  overflow: hidden;
+}
+
+.sidebar.is-hidden {
+  transform: translateX(-100%);
+}
+
+.sidebar__head {
+  padding: 20px 20px 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.sidebar__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.sidebar__sub {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+/* ---------- Filters ---------- */
+.filters {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.filter {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter__label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+.filter__val {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+  color: var(--ink);
+}
+
+.filter__range {
+  width: 100%;
+  accent-color: var(--olive);
+}
+
+.filter__select {
+  font-family: var(--ui-font);
+  font-size: 13px;
+  padding: 7px 8px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  border-radius: 2px;
+}
+
+.toggle-group {
+  display: flex;
+  gap: 6px;
+}
+
+.toggle {
+  flex: 1;
+  font-family: var(--ui-font);
+  font-size: 12px;
+  padding: 7px 4px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink-soft);
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.toggle:hover {
+  border-color: var(--olive);
+}
+
+.toggle.is-active {
+  background: var(--olive);
+  border-color: var(--olive);
+  color: #fff;
+}
+
+.filter__reset {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--ui-font);
+  font-size: 12px;
+  color: var(--ink-soft);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ---------- Results list ---------- */
+.results {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 0;
+}
+
+.results__count {
+  margin: 0 20px 8px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+}
+
+.results__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.result {
+  padding: 12px 20px;
+  border-top: 1px solid var(--line);
+  cursor: pointer;
+}
+
+.result:hover,
+.result.is-active {
+  background: #ece5d2;
+}
+
+.result__name {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.result__meta {
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin: 3px 0 0;
+}
+
+/* ---------- Sidebar toggle (mobile) ---------- */
+.sidebar-toggle {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 6;
+  display: none;
+  font-family: var(--ui-font);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  background: var(--cream-panel);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+/* ---------- Detail panel ---------- */
+.detail {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 340px;
+  max-width: 90vw;
+  background: var(--cream-panel);
+  border-left: 1px solid var(--line);
+  z-index: 7;
+  transform: translateX(100%);
+  transition: transform 0.25s ease;
+  overflow-y: auto;
+}
+
+.detail.is-open {
+  transform: translateX(0);
+}
+
+.detail__close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: rgba(244, 239, 226, 0.85);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  width: 30px;
+  height: 30px;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--ink);
+  z-index: 1;
+}
+
+.detail__photo {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  display: block;
+  background: var(--sage);
+}
+
+.detail__body {
+  padding: 18px 20px 28px;
+}
+
+.detail__name {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 600;
+}
+
+.detail__region {
+  margin: 4px 0 16px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+}
+
+.detail__stats {
+  margin: 0 0 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 16px;
+}
+
+.detail__stats div {
+  margin: 0;
+}
+
+.detail__stats dt {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+}
+
+.detail__stats dd {
+  margin: 2px 0 0;
+  font-size: 14px;
+}
+
+.detail__desc {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  margin: 0 0 20px;
+}
+
+/* ---------- Buttons ---------- */
+.button {
+  font-family: var(--ui-font);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 11px 18px;
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  cursor: pointer;
+  background: none;
+  color: var(--ink);
+}
+
+.button--primary {
+  background: var(--ink);
+  color: var(--cream-panel);
+  width: 100%;
+}
+
+.button--primary:hover {
+  background: #000;
+}
+
+/* ---------- Email gate modal ---------- */
+.gate {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.gate.is-open {
+  display: flex;
+}
+
+.gate__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(28, 26, 21, 0.45);
+}
+
+.gate__dialog {
+  position: relative;
+  background: var(--cream-panel);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  width: 360px;
+  max-width: 90vw;
+  padding: 28px 26px 26px;
+}
+
+.gate__close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--ink-soft);
+}
+
+.gate__title {
+  margin: 0 0 8px;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.gate__copy {
+  margin: 0 0 18px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+.gate__form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.gate__input {
+  font-family: var(--ui-font);
+  font-size: 14px;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: #fff;
+}
+
+.gate__input:focus {
+  outline: none;
+  border-color: var(--olive);
+}
+
+.gate__error {
+  margin: 0;
+  font-size: 12px;
+  color: #9b3a2f;
+}
+
+/* ---------- Map pins / popups ---------- */
+.maplibregl-popup-content {
+  font-family: var(--ui-font);
+  border-radius: 2px;
+  padding: 8px 10px;
+  font-size: 12px;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 720px) {
+  .sidebar {
+    width: 300px;
+  }
+  .sidebar.is-hidden {
+    transform: translateX(-100%);
+  }
+  .sidebar-toggle {
+    display: block;
+  }
+}
