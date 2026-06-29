@@ -1,0 +1,413 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            153.00326,
+            -26.85728
+          ],
+          [
+            153.00801,
+            -26.84897
+          ],
+          [
+            152.9891,
+            -26.84495
+          ],
+          [
+            152.99136,
+            -26.8315
+          ],
+          [
+            152.98631,
+            -26.82831
+          ],
+          [
+            152.96976,
+            -26.83449
+          ],
+          [
+            152.96557,
+            -26.82416
+          ],
+          [
+            152.96011,
+            -26.83022
+          ],
+          [
+            152.95344,
+            -26.82312
+          ],
+          [
+            152.93378,
+            -26.82251
+          ],
+          [
+            152.93176,
+            -26.83562
+          ],
+          [
+            152.91407,
+            -26.84075
+          ],
+          [
+            152.91594,
+            -26.84797
+          ],
+          [
+            152.925,
+            -26.86251
+          ],
+          [
+            152.91928,
+            -26.8703
+          ],
+          [
+            152.9324,
+            -26.86643
+          ],
+          [
+            152.93304,
+            -26.88491
+          ],
+          [
+            152.94278,
+            -26.89279
+          ],
+          [
+            152.94145,
+            -26.89582
+          ],
+          [
+            152.96343,
+            -26.89806
+          ],
+          [
+            152.96548,
+            -26.89856
+          ],
+          [
+            152.97785,
+            -26.89415
+          ],
+          [
+            152.98317,
+            -26.88614
+          ],
+          [
+            152.9947,
+            -26.89177
+          ],
+          [
+            153.00245,
+            -26.88081
+          ],
+          [
+            152.99673,
+            -26.86149
+          ],
+          [
+            153.00326,
+            -26.85728
+          ]
+        ]
+      },
+      "properties": {
+        "id": "beerwah-state-forest-loop",
+        "name": "Beerwah State Forest Loop",
+        "marker": [
+          153.00326,
+          -26.85728
+        ],
+        "region": "Glass House Mountains, QLD",
+        "country": "Australia",
+        "distance_km": 62,
+        "elevation_gain_m": 740,
+        "terrain_difficulty": "moderate",
+        "surface": "85% gravel, 15% sealed",
+        "last_ridden": "2026-05-18",
+        "description": "Pine-forest fire roads under the volcanic plugs. Fast, rolling gravel with one sharp pinch out of Coochin Creek.",
+        "vetted_by": "Jarrod",
+        "gpx_url": "gpx/beerwah-state-forest-loop.gpx",
+        "photo_url": "public/beerwah-state-forest-loop.jpg",
+        "status": "published"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            152.62699,
+            -27.57469
+          ],
+          [
+            152.62962,
+            -27.56651
+          ],
+          [
+            152.61985,
+            -27.55777
+          ],
+          [
+            152.62113,
+            -27.54896
+          ],
+          [
+            152.61132,
+            -27.54827
+          ],
+          [
+            152.60309,
+            -27.55268
+          ],
+          [
+            152.59699,
+            -27.53784
+          ],
+          [
+            152.58776,
+            -27.54857
+          ],
+          [
+            152.5661,
+            -27.54611
+          ],
+          [
+            152.57089,
+            -27.5616
+          ],
+          [
+            152.56305,
+            -27.56356
+          ],
+          [
+            152.54953,
+            -27.56758
+          ],
+          [
+            152.55851,
+            -27.57947
+          ],
+          [
+            152.56403,
+            -27.58953
+          ],
+          [
+            152.5834,
+            -27.58413
+          ],
+          [
+            152.58543,
+            -27.59089
+          ],
+          [
+            152.59489,
+            -27.5965
+          ],
+          [
+            152.60506,
+            -27.59794
+          ],
+          [
+            152.61469,
+            -27.60292
+          ],
+          [
+            152.62075,
+            -27.59659
+          ],
+          [
+            152.61979,
+            -27.58091
+          ],
+          [
+            152.63848,
+            -27.58091
+          ],
+          [
+            152.62699,
+            -27.57469
+          ]
+        ]
+      },
+      "properties": {
+        "id": "marburg-glamorgan-vale-gravel",
+        "name": "Marburg & Glamorgan Vale Gravel",
+        "marker": [
+          152.62699,
+          -27.57469
+        ],
+        "region": "Marburg, QLD",
+        "country": "Australia",
+        "distance_km": 48,
+        "elevation_gain_m": 510,
+        "terrain_difficulty": "easy",
+        "surface": "70% gravel, 30% sealed",
+        "last_ridden": "2026-06-21",
+        "description": "Quiet dairy-country lanes and dry-weather farm tracks between Marburg and Glamorgan Vale. Gentle, sociable, pub at the finish.",
+        "vetted_by": "Jarrod",
+        "gpx_url": "gpx/marburg-glamorgan-vale-gravel.gpx",
+        "photo_url": "public/marburg-glamorgan-vale-gravel.jpg",
+        "status": "published"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            152.75856,
+            -27.07846
+          ],
+          [
+            152.73711,
+            -27.068
+          ],
+          [
+            152.73531,
+            -27.05925
+          ],
+          [
+            152.73727,
+            -27.05086
+          ],
+          [
+            152.7416,
+            -27.03419
+          ],
+          [
+            152.73115,
+            -27.04035
+          ],
+          [
+            152.73428,
+            -27.03147
+          ],
+          [
+            152.72557,
+            -27.04604
+          ],
+          [
+            152.71442,
+            -27.0225
+          ],
+          [
+            152.70904,
+            -27.02084
+          ],
+          [
+            152.70618,
+            -27.04786
+          ],
+          [
+            152.70716,
+            -27.04879
+          ],
+          [
+            152.69677,
+            -27.04656
+          ],
+          [
+            152.68921,
+            -27.0551
+          ],
+          [
+            152.68128,
+            -27.07113
+          ],
+          [
+            152.67643,
+            -27.08156
+          ],
+          [
+            152.68974,
+            -27.08444
+          ],
+          [
+            152.69775,
+            -27.1006
+          ],
+          [
+            152.68947,
+            -27.12142
+          ],
+          [
+            152.68934,
+            -27.12654
+          ],
+          [
+            152.70643,
+            -27.10209
+          ],
+          [
+            152.71095,
+            -27.12749
+          ],
+          [
+            152.71205,
+            -27.13698
+          ],
+          [
+            152.72531,
+            -27.13767
+          ],
+          [
+            152.7334,
+            -27.12437
+          ],
+          [
+            152.74384,
+            -27.13575
+          ],
+          [
+            152.73678,
+            -27.11052
+          ],
+          [
+            152.73601,
+            -27.0926
+          ],
+          [
+            152.74924,
+            -27.10331
+          ],
+          [
+            152.74419,
+            -27.09176
+          ],
+          [
+            152.75856,
+            -27.07846
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mount-mee-forest-run",
+        "name": "Mount Mee Forest Run",
+        "marker": [
+          152.75856,
+          -27.07846
+        ],
+        "region": "D'Aguilar Range, QLD",
+        "country": "Australia",
+        "distance_km": 78,
+        "elevation_gain_m": 1680,
+        "terrain_difficulty": "hard",
+        "surface": "92% gravel, 8% sealed",
+        "last_ridden": "2025-11-09",
+        "description": "A big day on the range. Sustained forestry climbs into Mount Mee, loose descents, and long views west over the Brisbane Valley.",
+        "vetted_by": "Jarrod",
+        "gpx_url": "gpx/mount-mee-forest-run.gpx",
+        "photo_url": "public/mount-mee-forest-run.jpg",
+        "status": "published"
+      }
+    }
+  ]
+}
