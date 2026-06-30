@@ -17,7 +17,10 @@ export default {
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
 
     try {
-      const p = url.pathname;
+      // Works whether reached directly (diary.bushridingmap.com/...) or via a
+      // /diary-api/* proxy or Worker Route on the Pages domain.
+      let p = url.pathname;
+      if (p.startsWith("/diary-api")) p = p.slice("/diary-api".length) || "/";
       const M = request.method;
       if (p === "/auth/register" && M === "POST") return register(request, env, cors);
       if (p === "/auth/login" && M === "POST") return login(request, env, cors);
