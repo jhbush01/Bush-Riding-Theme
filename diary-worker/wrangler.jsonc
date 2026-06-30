@@ -1,0 +1,33 @@
+{
+  // Bush Riding Map — personal ride diary Worker (authenticated).
+  // Deploy: create the D1 db + R2 bucket below, set JWT_SECRET, then deploy.
+  // See README.md.
+  "name": "bush-riding-diary-api",
+  "main": "src/index.js",
+  "compatibility_date": "2025-06-01",
+
+  "vars": {
+    // Origins allowed to call the diary API from the browser (credentialed).
+    "ALLOWED_ORIGINS": "https://bushridingmap.com,https://www.bushridingmap.com",
+    // This worker's own public URL (used to build photo_url for <img>).
+    "PUBLIC_URL": "https://diary.bushridingmap.com"
+  },
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "bush-riding-diary",
+      "database_id": "c085c28a-b84e-40a6-a379-fe1889b79df1"
+    }
+  ],
+
+  "r2_buckets": [
+    {
+      "binding": "BUCKET",
+      "bucket_name": "bush-riding-diary-files"
+    }
+  ]
+
+  // Secret (do NOT commit):
+  //   wrangler secret put JWT_SECRET    (a random 32+ char string)
+}
