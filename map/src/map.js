@@ -194,6 +194,12 @@ function onLoad() {
   // before the map finished loading.
   refresh();
   if (selectedId) selectRoute(selectedId, false);
+
+  // Non-invasive integration point for the optional diary layer (diary.js).
+  // Exposes the map + a ready signal; changes nothing about the map itself.
+  window.brmMap = map;
+  window.brmMapReady = true;
+  window.dispatchEvent(new CustomEvent("brm:mapready"));
 }
 
 // Build a points FeatureCollection from each route's marker (or line start).

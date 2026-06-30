@@ -62,6 +62,8 @@
         klaviyoListId: "R3335d",
         // Community routes Worker (approved submissions). Empty = curated only.
         communityApi: "https://api.bushridingmap.com",
+        // Personal ride diary Worker (authenticated).
+        diaryApi: "https://diary.bushridingmap.com",
       };
     </script>
   </head>
@@ -73,7 +75,10 @@
       <header class="sidebar__head">
         <h1 class="sidebar__title"><a href="/" class="sidebar__home">Bush Riding Routes</a></h1>
         <p class="sidebar__sub">Curated gravel. Browse the map, take the track.</p>
-        <a class="sidebar__submit" href="/submit">+ Submit a route</a>
+        <div class="sidebar__nav">
+          <a class="sidebar__submit" href="/submit">+ Submit a route</a>
+          <button type="button" id="my-rides-btn" class="sidebar__myrides">My Rides</button>
+        </div>
       </header>
 
       <form id="filters" class="filters" aria-label="Filter routes">
@@ -171,6 +176,113 @@
       </div>
     </div>
 
+    <!-- ============ Diary: auth modal ============ -->
+    <div id="auth-modal" class="modal" aria-hidden="true">
+      <div class="modal__backdrop" data-auth-close></div>
+      <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+        <button class="modal__close" data-auth-close aria-label="Close">&times;</button>
+        <h2 id="auth-title" class="modal__title">Your ride diary</h2>
+        <div class="tabs" role="tablist">
+          <button class="tab is-active" id="tab-login" data-auth-tab="login">Sign in</button>
+          <button class="tab" id="tab-register" data-auth-tab="register">Create account</button>
+        </div>
+        <form id="auth-form" class="modal__form">
+          <input id="auth-email" class="field-input" type="email" required autocomplete="email" placeholder="you@email.com" aria-label="Email" />
+          <input id="auth-password" class="field-input" type="password" required autocomplete="current-password" placeholder="Password" aria-label="Password" />
+          <button type="submit" class="button button--primary" id="auth-submit">Sign in</button>
+          <p id="auth-error" class="modal__error" role="alert" hidden></p>
+        </form>
+      </div>
+    </div>
+
+    <!-- ============ Diary: upload modal ============ -->
+    <div id="upload-modal" class="modal" aria-hidden="true">
+      <div class="modal__backdrop" data-upload-close></div>
+      <div class="modal__dialog modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="upload-title">
+        <button class="modal__close" data-upload-close aria-label="Close">&times;</button>
+        <h2 id="upload-title" class="modal__title">Ink a ride</h2>
+        <form id="upload-form" class="modal__form">
+          <label class="field"><span class="field__label">GPX file *</span>
+            <input id="upload-gpx" name="gpx" type="file" accept=".gpx,application/gpx+xml" required />
+          </label>
+          <label class="field"><span class="field__label">Ride name *</span>
+            <input id="upload-title-input" name="title" class="field-input" type="text" maxlength="120" required />
+          </label>
+          <label class="field"><span class="field__label">Note</span>
+            <textarea id="upload-note" name="note" class="field-input" rows="2" maxlength="2000" placeholder="How was it?"></textarea>
+          </label>
+          <div class="field">
+            <span class="field__label">Weather</span>
+            <div class="chips" data-chip-group="weather">
+              <button type="button" class="chip" data-chip="sunny">Sunny</button>
+              <button type="button" class="chip" data-chip="overcast">Overcast</button>
+              <button type="button" class="chip" data-chip="wet">Wet</button>
+            </div>
+          </div>
+          <div class="field">
+            <span class="field__label">Surface</span>
+            <div class="chips" data-chip-group="surface">
+              <button type="button" class="chip" data-chip="smooth">Smooth</button>
+              <button type="button" class="chip" data-chip="rough">Rough</button>
+              <button type="button" class="chip" data-chip="muddy">Muddy</button>
+            </div>
+          </div>
+          <div class="field">
+            <span class="field__label">Vibe</span>
+            <div class="chips" data-chip-group="vibe">
+              <button type="button" class="chip" data-chip="suffered">Suffered</button>
+              <button type="button" class="chip" data-chip="cruised">Cruised</button>
+              <button type="button" class="chip" data-chip="flew">Flew</button>
+            </div>
+          </div>
+          <label class="field"><span class="field__label">Rode with</span>
+            <input id="upload-companions" name="companions" class="field-input" type="text" maxlength="200" placeholder="Who joined you?" />
+          </label>
+          <label class="field"><span class="field__label">Photo</span>
+            <input id="upload-photo" name="photo" type="file" accept="image/*" />
+          </label>
+          <button type="submit" class="button button--primary" id="upload-submit">Ink the Map</button>
+          <p id="upload-error" class="modal__error" role="alert" hidden></p>
+        </form>
+      </div>
+    </div>
+
+    <!-- ============ Diary: rides panel ============ -->
+    <aside id="diary-panel" class="rpanel" aria-hidden="true" aria-label="My rides">
+      <header class="rpanel__head">
+        <h2 class="rpanel__title">My Rides</h2>
+        <div class="rpanel__head-actions">
+          <button id="diary-add" class="rpanel__add" aria-label="Ink a ride">+</button>
+          <button id="diary-close" class="rpanel__close" aria-label="Close">&times;</button>
+        </div>
+      </header>
+      <p id="diary-empty" class="rpanel__empty" hidden>No rides yet. Tap + to ink your first.</p>
+      <ul id="diary-list" class="rlist"></ul>
+      <button id="diary-signout" class="rpanel__signout">Sign out</button>
+    </aside>
+
+    <!-- ============ Diary: memory card ============ -->
+    <section id="memory-card" class="rpanel rpanel--card" aria-hidden="true" aria-label="Ride detail">
+      <button id="card-close" class="rpanel__close rpanel__close--float" aria-label="Close">&times;</button>
+      <img id="card-photo" class="card-photo" alt="" hidden />
+      <div class="rpanel__body">
+        <h2 id="card-title" class="card-title"></h2>
+        <p id="card-date" class="card-date"></p>
+        <dl class="card-stats">
+          <div><dt>Distance</dt><dd id="card-distance"></dd></div>
+          <div><dt>Elevation</dt><dd id="card-elevation"></dd></div>
+        </dl>
+        <div id="card-chips" class="card-chips"></div>
+        <p id="card-note" class="card-note"></p>
+        <p id="card-companions" class="card-companions"></p>
+        <div class="card-actions">
+          <button id="card-edit" class="button">Edit</button>
+          <button id="card-delete" class="button button--danger">Delete</button>
+        </div>
+      </div>
+    </section>
+
     <script type="module" src="src/map.js"></script>
+    <script type="module" src="src/diary.js"></script>
   </body>
 </html>

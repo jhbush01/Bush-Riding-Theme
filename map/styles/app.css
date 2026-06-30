@@ -473,3 +473,395 @@ body {
     display: block;
   }
 }
+
+/* ===================== Ride diary ===================== */
+
+/* Nav button in the sidebar header */
+.sidebar__nav {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 10px;
+}
+.sidebar__nav .sidebar__submit {
+  margin-top: 0;
+}
+.sidebar__myrides {
+  font-family: var(--ui-font);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border: 1px solid var(--olive);
+  background: none;
+  color: var(--olive);
+  border-radius: 2px;
+  cursor: pointer;
+}
+.sidebar__myrides:hover {
+  background: var(--olive);
+  color: #fff;
+}
+
+/* ---- generic form fields (used by the modals) ---- */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.field__label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-soft);
+}
+.field-input {
+  font-family: var(--ui-font);
+  font-size: 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: #fff;
+  color: var(--ink);
+}
+.field-input:focus {
+  outline: none;
+  border-color: var(--olive);
+}
+textarea.field-input {
+  resize: vertical;
+}
+
+/* ---- modals (auth, upload) ---- */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 22;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.modal.is-open {
+  display: flex;
+}
+.modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(28, 26, 21, 0.45);
+}
+.modal__dialog {
+  position: relative;
+  background: var(--cream-panel);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  width: 380px;
+  max-width: 92vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 26px 24px 24px;
+}
+.modal__dialog--wide {
+  width: 460px;
+}
+.modal__close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.modal__title {
+  font-family: var(--head-font);
+  font-weight: 400;
+  font-size: 26px;
+  margin: 0 0 14px;
+}
+.modal__form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.modal__error {
+  margin: 0;
+  font-size: 13px;
+  color: #9b3a2f;
+  background: #f3ddd8;
+  padding: 9px 11px;
+  border-radius: 2px;
+}
+
+/* auth tabs */
+.tabs {
+  display: flex;
+  gap: 18px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 16px;
+}
+.tab {
+  font-family: var(--ui-font);
+  font-size: 14px;
+  background: none;
+  border: none;
+  padding: 0 0 10px;
+  margin-bottom: -1px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+.tab.is-active {
+  color: var(--ink);
+  border-bottom-color: var(--olive);
+  font-weight: 600;
+}
+
+/* chips */
+.chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.chip {
+  font-family: var(--ui-font);
+  font-size: 13px;
+  padding: 7px 14px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink-soft);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.chip:hover {
+  border-color: var(--olive);
+}
+.chip.is-active {
+  background: var(--olive);
+  border-color: var(--olive);
+  color: #fff;
+}
+
+/* ---- right-hand panels (diary list + memory card) ---- */
+.rpanel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 340px;
+  max-width: 90vw;
+  background: var(--cream-panel);
+  border-left: 1px solid var(--line);
+  z-index: 12;
+  transform: translateX(100%);
+  transition: transform 0.25s ease;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.rpanel.is-open {
+  transform: translateX(0);
+}
+.rpanel--card {
+  z-index: 13;
+}
+.rpanel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.rpanel__title {
+  font-family: var(--head-font);
+  font-weight: 400;
+  font-size: 24px;
+  margin: 0;
+}
+.rpanel__head-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.rpanel__add {
+  width: 30px;
+  height: 30px;
+  font-size: 20px;
+  line-height: 1;
+  border: 1px solid var(--olive);
+  background: none;
+  color: var(--olive);
+  border-radius: 2px;
+  cursor: pointer;
+}
+.rpanel__add:hover {
+  background: var(--olive);
+  color: #fff;
+}
+.rpanel__close {
+  width: 30px;
+  height: 30px;
+  font-size: 20px;
+  line-height: 1;
+  border: 1px solid var(--line);
+  background: rgba(244, 239, 226, 0.85);
+  color: var(--ink);
+  border-radius: 2px;
+  cursor: pointer;
+}
+.rpanel__close--float {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  z-index: 1;
+}
+.rpanel__empty {
+  padding: 24px 20px;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+.rpanel__signout {
+  margin: auto 20px 20px;
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--ui-font);
+  font-size: 12px;
+  color: var(--ink-soft);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ride list */
+.rlist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+}
+.ritem {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+}
+.ritem:hover {
+  background: #ece5d2;
+}
+.ritem__date {
+  margin: 0;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+}
+.ritem__title {
+  margin: 3px 0 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+.ritem__meta {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+/* memory card */
+.card-photo {
+  width: 100%;
+  max-height: 240px;
+  object-fit: cover;
+  display: block;
+  background: var(--sage);
+}
+.rpanel__body {
+  padding: 20px 22px 28px;
+}
+.card-title {
+  font-family: var(--head-font);
+  font-weight: 400;
+  font-size: 26px;
+  line-height: 1.08;
+  margin: 0;
+}
+.card-date {
+  margin: 4px 0 16px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-soft);
+}
+.card-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 16px;
+  margin: 0 0 16px;
+}
+.card-stats dt {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-soft);
+}
+.card-stats dd {
+  margin: 2px 0 0;
+  font-size: 16px;
+}
+.card-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.card-chip {
+  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #e7ecd9;
+  color: #3a4a25;
+}
+.card-note {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink);
+  margin: 0 0 12px;
+}
+.card-companions {
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin: 0 0 20px;
+}
+.card-actions {
+  display: flex;
+  gap: 10px;
+}
+.button--danger {
+  border-color: #9b3a2f;
+  color: #9b3a2f;
+}
+.button--danger:hover {
+  background: #9b3a2f;
+  color: #fff;
+}
+
+/* toast */
+.brm-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--ink);
+  color: var(--cream-panel);
+  font-size: 13px;
+  padding: 11px 18px;
+  border-radius: 3px;
+  z-index: 40;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+}
+.brm-toast.is-show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
