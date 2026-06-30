@@ -26,6 +26,12 @@ body {
   font-family: var(--ui-font);
   color: var(--ink);
   background: var(--cream);
+  /* The app is a fixed full-screen map; the body must never scroll. Without
+     this the off-screen detail panel (translateX(100%)) extends the page's
+     scrollable width, so on iPad/desktop you could scroll right and see it.
+     `clip` (not `hidden`) creates no scroll container at all, so it can't be
+     reached by touch momentum, rubber-band, or programmatic scroll either. */
+  overflow: clip;
 }
 
 #map {
@@ -269,7 +275,10 @@ body {
 
 /* ---------- Detail panel ---------- */
 .detail {
-  position: absolute;
+  /* Fixed (not absolute) so that when it sits off-screen at translateX(100%)
+     it does NOT extend the document's scrollable width — otherwise you could
+     scroll right on iPad/desktop and reveal it. */
+  position: fixed;
   top: 0;
   right: 0;
   bottom: 0;

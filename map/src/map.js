@@ -104,14 +104,27 @@ async function initMap() {
     style.sources.protomaps.url = "pmtiles://" + TILES_URL;
   }
 
-  map = new maplibregl.Map({
+  // Open already framed on the pins (AU/NZ today, Hawaii soon) so the world
+  // view never flashes. Falls back to a wide Australasia view if there are no
+  // routes yet.
+  const startBounds = routesBounds(routeFeatures);
+  const mapOpts = {
     container: "map",
     style,
     hash: false,
     attributionControl: { compact: true },
     dragRotate: false,
     pitchWithRotate: false,
-  });
+  };
+  if (startBounds) {
+    mapOpts.bounds = startBounds;
+    mapOpts.fitBoundsOptions = { padding: fitPadding(), maxZoom: 13 };
+  } else {
+    mapOpts.center = [146, -28]; // eastern Australia
+    mapOpts.zoom = 3.4;
+  }
+
+  map = new maplibregl.Map(mapOpts);
   map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom-right");
   map.touchZoomRotate.disableRotation();
 
@@ -187,7 +200,8 @@ function onLoad() {
   });
 
   mapReady = true;
-  fitToRoutes(routeFeatures, false);
+  // The camera is already framed on the routes via the constructor's bounds;
+  // no need to re-fit here (which caused a visible jump on load).
   wireInteractions();
 
   // Sync pins to the current filter state, and (re)draw a selection made
@@ -278,13 +292,28 @@ function clearSelection() {
 }
 
 // ---- Bounds --------------------------------------------------------------
-function fitToRoutes(features, animate) {
+// Padding that keeps the framed routes clear of the side panels. On narrow
+// screens the panels overlay the map, so we don't reserve space for them.
+function fitPadding() {
+  const narrow = window.matchMedia("(max-width: 720px)").matches;
+  return narrow
+    ? { top: 50, bottom: 50, left: 30, right: 30 }
+    : { top: 60, bottom: 60, left: 360, right: 380 };
+}
+
+// LngLatBounds covering every route, or null if there are none.
+function routesBounds(features) {
   const bounds = new maplibregl.LngLatBounds();
   for (const f of features) {
     for (const c of f.geometry.coordinates) bounds.extend(c);
   }
-  if (bounds.isEmpty()) return;
-  map.fitBounds(bounds, { padding: { top: 60, bottom: 60, left: 360, right: 380 }, animate, maxZoom: 13 });
+  return bounds.isEmpty() ? null : bounds;
+}
+
+function fitToRoutes(features, animate) {
+  const bounds = routesBounds(features);
+  if (!bounds) return;
+  map.fitBounds(bounds, { padding: fitPadding(), animate, maxZoom: 13 });
 }
 
 // ---- Detail panel --------------------------------------------------------

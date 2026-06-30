@@ -331,11 +331,23 @@ async function submitUpload(e) {
   }
 }
 
-/* ---------------- ink animation (progressive draw-on) ---------------- */
+/* ---------------- ink animation (cinematic draw-on) ----------------
+   Reveal the ride slowly with line-trim-offset (GPU-smooth — no per-frame
+   expression recompile, which is what made the old gradient version glitch),
+   and ride the camera along the route as it inks so you relive the ride:
+   zoom to the start → follow the inking head → pull back to the whole route. */
 function inkAnimation(geometry, done) {
+  const finish = () => done && done();
   if (!map || !geometry || !geometry.coordinates || geometry.coordinates.length < 2) {
-    return done && done();
+    return finish();
   }
+  const coords = geometry.coordinates;
+
+  // Cumulative along-route distance, used to walk the camera at a steady pace.
+  const cum = [0];
+  for (let i = 1; i < coords.length; i++) cum.push(cum[i - 1] + segKm(coords[i - 1], coords[i]));
+  const totalKm = cum[cum.length - 1] || 0;
+
   const data = { type: "Feature", geometry, properties: {} };
   if (map.getSource("diary-ink")) map.getSource("diary-ink").setData(data);
   else map.addSource("diary-ink", { type: "geojson", data, lineMetrics: true });
@@ -349,43 +361,98 @@ function inkAnimation(geometry, done) {
         source: "diary-ink",
         layout: { "line-cap": "round", "line-join": "round" },
         paint: {
+          "line-color": OCHRE,
           "line-width": 3.5,
-          "line-gradient": ["step", ["line-progress"], OCHRE, 0, "rgba(0,0,0,0)"],
+          // [start, end] hides that fraction of the line; [t, 1] reveals 0..t.
+          "line-trim-offset": [0, 1],
         },
       },
       before
     );
   }
-  // Pan to the ride.
-  try {
-    const b = geometry.coordinates.reduce(
-      (acc, c) => [Math.min(acc[0], c[0]), Math.min(acc[1], c[1]), Math.max(acc[2], c[0]), Math.max(acc[3], c[1])],
-      [180, 90, -180, -90]
-    );
-    map.fitBounds([[b[0], b[1]], [b[2], b[3]]], { padding: 80, duration: 600, maxZoom: 13 });
-  } catch {
-    /* ignore */
-  }
 
-  const start = performance.now();
-  const DUR = 2000;
-  function frame(now) {
-    const t = Math.min(1, (now - start) / DUR);
-    map.setPaintProperty("diary-ink", "line-gradient", [
-      "step",
-      ["line-progress"],
-      OCHRE,
-      Math.max(0.0001, t),
-      "rgba(0,0,0,0)",
-    ]);
-    if (t < 1) requestAnimationFrame(frame);
-    else {
-      if (map.getLayer("diary-ink")) map.removeLayer("diary-ink");
-      if (map.getSource("diary-ink")) map.removeSource("diary-ink");
-      done && done();
+  const bounds = boundsOf(coords);
+  // Pace the reveal to the ride: longer rides take longer to ink. ~0.55s/km,
+  // clamped so a short loop still feels deliberate and an epic doesn't drag.
+  const DUR = Math.max(4500, Math.min(11000, 3500 + totalKm * 550));
+  // Follow a little closer than the whole-route framing so there's a sense of
+  // travel, but never so close we lose the thread on a big ride.
+  const fitZoom = (() => {
+    try {
+      return map.cameraForBounds(bounds, { padding: 60 }).zoom;
+    } catch {
+      return map.getZoom();
     }
+  })();
+  const followZoom = Math.max(9, Math.min(14, fitZoom + 1.2));
+
+  // Phase 1: glide to the start. Then phase 2 inks while the camera follows.
+  map.once("moveend", runInk);
+  map.easeTo({ center: coords[0], zoom: followZoom, duration: 900 });
+  // Safety net: if moveend never fires (interrupted move), start anyway.
+  const kick = setTimeout(runInk, 1100);
+
+  let started = false;
+  function runInk() {
+    if (started) return;
+    started = true;
+    clearTimeout(kick);
+    const start = performance.now();
+    (function frame(now) {
+      const lin = Math.min(1, (now - start) / DUR);
+      const t = easeInOut(lin);
+      map.setPaintProperty("diary-ink", "line-trim-offset", [t, 1]);
+      map.setCenter(pointAt(coords, cum, totalKm, t));
+      if (lin < 1) return requestAnimationFrame(frame);
+      // Phase 3: pull back to reveal the whole inked route, then hand off.
+      let ended = false;
+      const cleanup = () => {
+        if (ended) return;
+        ended = true;
+        if (map.getLayer("diary-ink")) map.removeLayer("diary-ink");
+        if (map.getSource("diary-ink")) map.removeSource("diary-ink");
+        finish();
+      };
+      // Whichever comes first — moveend, or a timeout in case fitBounds is a
+      // no-op and never fires moveend (otherwise the ride list wouldn't refresh).
+      map.once("moveend", cleanup);
+      setTimeout(cleanup, 1600);
+      map.fitBounds(bounds, { padding: 70, duration: 1300, maxZoom: 13 });
+    })(start);
   }
-  requestAnimationFrame(frame);
+}
+
+// Equirectangular segment length in km — plenty accurate for local pacing.
+function segKm(a, b) {
+  const R = 6371;
+  const dLat = ((b[1] - a[1]) * Math.PI) / 180;
+  const dLng = (((b[0] - a[0]) * Math.PI) / 180) * Math.cos(((a[1] + b[1]) / 2 * Math.PI) / 180);
+  return Math.sqrt(dLat * dLat + dLng * dLng) * R;
+}
+// Point at along-route fraction `frac` (0..1), interpolated between vertices.
+function pointAt(coords, cum, total, frac) {
+  if (!total) return coords[0];
+  const target = frac * total;
+  let i = 1;
+  while (i < cum.length && cum[i] < target) i++;
+  if (i >= cum.length) return coords[coords.length - 1];
+  const span = cum[i] - cum[i - 1] || 1e-9;
+  const r = (target - cum[i - 1]) / span;
+  const a = coords[i - 1], b = coords[i];
+  return [a[0] + (b[0] - a[0]) * r, a[1] + (b[1] - a[1]) * r];
+}
+function boundsOf(coords) {
+  let minX = 180, minY = 90, maxX = -180, maxY = -90;
+  for (const c of coords) {
+    minX = Math.min(minX, c[0]);
+    minY = Math.min(minY, c[1]);
+    maxX = Math.max(maxX, c[0]);
+    maxY = Math.max(maxY, c[1]);
+  }
+  return [[minX, minY], [maxX, maxY]];
+}
+function easeInOut(t) {
+  return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
 }
 
 /* ---------------- memory card ---------------- */
