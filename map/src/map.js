@@ -373,10 +373,16 @@ function highlightResult(id) {
 function setupSidebarToggle() {
   const sidebar = document.getElementById("sidebar");
   const toggle = document.getElementById("sidebar-toggle");
-  toggle.addEventListener("click", () => {
-    const hidden = sidebar.classList.toggle("is-hidden");
-    toggle.setAttribute("aria-expanded", String(!hidden));
-  });
+  const close = document.getElementById("sidebar-close");
+  // Mobile: the panel is closed by default (CSS) so the map shows first.
+  const setOpen = (open) => {
+    sidebar.classList.toggle("is-open", open);
+    toggle.setAttribute("aria-expanded", String(open));
+  };
+  toggle.addEventListener("click", () =>
+    setOpen(!sidebar.classList.contains("is-open"))
+  );
+  if (close) close.addEventListener("click", () => setOpen(false));
 }
 
 // ---- Helpers -------------------------------------------------------------

@@ -55,13 +55,28 @@ body {
   overflow: hidden;
 }
 
-.sidebar.is-hidden {
-  transform: translateX(-100%);
-}
-
 .sidebar__head {
+  position: relative;
   padding: 20px 20px 12px;
   border-bottom: 1px solid var(--line);
+}
+
+/* Mobile-only close (×) inside the panel header. */
+.sidebar__close {
+  display: none;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  font-size: 26px;
+  line-height: 1;
+  color: var(--ink-soft);
+  background: none;
+  border: none;
+  cursor: pointer;
 }
 
 .sidebar__title {
@@ -229,20 +244,27 @@ body {
 }
 
 /* ---------- Sidebar toggle (mobile) ---------- */
+/* Minimalist burger: no background, just the icon floated over the map. */
 .sidebar-toggle {
   position: absolute;
-  top: 12px;
-  left: 12px;
+  top: 10px;
+  left: 10px;
   z-index: 6;
   display: none;
-  font-family: var(--ui-font);
-  font-size: 13px;
-  font-weight: 600;
-  padding: 8px 14px;
-  background: var(--cream-panel);
-  border: 1px solid var(--line);
-  border-radius: 2px;
+  padding: 6px;
+  background: none;
+  border: none;
   cursor: pointer;
+  color: var(--ink);
+  -webkit-tap-highlight-color: transparent;
+}
+.sidebar-toggle svg {
+  display: block;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  /* Keep the icon legible over both light terrain and dark imagery. */
+  filter: drop-shadow(0 1px 2px rgba(255, 255, 255, 0.9));
 }
 
 /* ---------- Detail panel ---------- */
@@ -465,11 +487,20 @@ body {
 @media (max-width: 720px) {
   .sidebar {
     width: 300px;
-  }
-  .sidebar.is-hidden {
+    /* Closed by default on mobile — show the map and pins first. */
     transform: translateX(-100%);
   }
+  .sidebar.is-open {
+    transform: translateX(0);
+  }
   .sidebar-toggle {
+    display: block;
+  }
+  /* Hide the burger once the panel is open so it doesn't overlap the text. */
+  .sidebar.is-open ~ .sidebar-toggle {
+    display: none;
+  }
+  .sidebar__close {
     display: block;
   }
 }

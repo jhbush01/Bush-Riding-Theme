@@ -74,6 +74,7 @@
     <!-- Filter / list panel -->
     <aside id="sidebar" class="sidebar" aria-label="Route filters and list">
       <header class="sidebar__head">
+        <button type="button" id="sidebar-close" class="sidebar__close" aria-label="Close filters">&times;</button>
         <h1 class="sidebar__title"><a href="/" class="sidebar__home">Bush Riding Routes</a></h1>
         <p class="sidebar__sub">Curated gravel. Browse the map, take the track.</p>
         <div class="sidebar__nav">
@@ -124,8 +125,12 @@
       </div>
     </aside>
 
-    <button id="sidebar-toggle" class="sidebar-toggle" aria-controls="sidebar" aria-expanded="true">
-      Filters
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-controls="sidebar" aria-expanded="false" aria-label="Open filters and routes">
+      <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false">
+        <line x1="3" y1="6" x2="21" y2="6" />
+        <line x1="3" y1="12" x2="21" y2="12" />
+        <line x1="3" y1="18" x2="21" y2="18" />
+      </svg>
     </button>
 
     <!-- Selected-route detail panel -->
