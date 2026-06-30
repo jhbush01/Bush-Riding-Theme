@@ -1,0 +1,10 @@
+# Always revalidate the app code, styles and route data so new deploys and
+# approved routes propagate without anyone having to clear their cache.
+# (no-cache = the browser may keep a copy but must check with the server first;
+# unchanged files return a cheap 304, changed files download fresh.)
+/src/*
+  Cache-Control: no-cache
+/styles/*
+  Cache-Control: no-cache
+/data/*
+  Cache-Control: no-cache
