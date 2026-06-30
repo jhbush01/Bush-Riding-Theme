@@ -262,6 +262,11 @@
           <button id="diary-close" class="rpanel__close" aria-label="Close">&times;</button>
         </div>
       </header>
+      <dl id="diary-stats" class="rstats" hidden>
+        <div class="rstats__cell"><dt class="rstats__label">Rides</dt><dd id="stat-rides" class="rstats__val">0</dd></div>
+        <div class="rstats__cell"><dt class="rstats__label">Distance</dt><dd id="stat-distance" class="rstats__val">0 km</dd></div>
+        <div class="rstats__cell"><dt class="rstats__label">Climbed</dt><dd id="stat-elevation" class="rstats__val">0 m</dd></div>
+      </dl>
       <p id="diary-empty" class="rpanel__empty" hidden>No rides yet. Tap + to ink your first.</p>
       <ul id="diary-list" class="rlist"></ul>
       <button id="diary-signout" class="rpanel__signout">Sign out</button>

@@ -747,6 +747,34 @@ textarea.field-input {
   right: 12px;
   z-index: 1;
 }
+.rstats {
+  display: flex;
+  margin: 0;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.rstats__cell {
+  flex: 1;
+}
+.rstats__cell + .rstats__cell {
+  border-left: 1px solid var(--line);
+  padding-left: 14px;
+}
+.rstats__label {
+  margin: 0;
+  font-family: var(--ui-font);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.rstats__val {
+  margin: 2px 0 0;
+  font-family: var(--head-font);
+  font-size: 22px;
+  line-height: 1;
+  color: var(--ink);
+}
 .rpanel__empty {
   padding: 24px 20px;
   font-size: 13px;

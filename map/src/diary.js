@@ -182,6 +182,8 @@ function signOut() {
   setToken(null);
   currentEmail = null;
   if (map && map.getSource("diary-rides")) map.getSource("diary-rides").setData(EMPTY_FC);
+  const stats = $("diary-stats");
+  if (stats) stats.hidden = true;
   hide("diary-panel");
   hide("memory-card");
 }
@@ -220,6 +222,25 @@ async function loadDiaryLayer() {
     map.on("mouseleave", "diary-lines", () => (map.getCanvas().style.cursor = ""));
   }
   renderList(fc.features || []);
+  loadStats();
+}
+
+async function loadStats() {
+  const el = $("diary-stats");
+  if (!el) return;
+  try {
+    const s = await api("/rides/stats");
+    if (!s || !s.total_rides) {
+      el.hidden = true;
+      return;
+    }
+    $("stat-rides").textContent = s.total_rides;
+    $("stat-distance").textContent = `${s.total_distance_km} km`;
+    $("stat-elevation").textContent = `${s.total_elevation_m} m`;
+    el.hidden = false;
+  } catch {
+    el.hidden = true; // non-fatal — the list still shows
+  }
 }
 
 function renderList(features) {
