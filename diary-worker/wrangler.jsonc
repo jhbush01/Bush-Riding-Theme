@@ -2,7 +2,7 @@
   // Bush Riding Map — personal ride diary Worker (authenticated).
   // Deploy: create the D1 db + R2 bucket below, set JWT_SECRET, then deploy.
   // See README.md.
-  "name": "bush-riding-diary-api",
+  "name": "bush-riding-diary",
   "main": "src/index.js",
   "compatibility_date": "2025-06-01",
 
