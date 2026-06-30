@@ -62,8 +62,9 @@
         klaviyoListId: "R3335d",
         // Community routes Worker (approved submissions). Empty = curated only.
         communityApi: "https://api.bushridingmap.com",
-        // Personal ride diary Worker (authenticated).
-        diaryApi: "https://diary.bushridingmap.com",
+        // Personal ride diary Worker — proxied same-origin via /diary-api
+        // (Pages Function) so the browser never makes a cross-origin request.
+        diaryApi: "/diary-api",
       };
     </script>
   </head>
