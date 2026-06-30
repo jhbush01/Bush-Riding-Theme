@@ -339,6 +339,13 @@ body {
   margin: 0 0 20px;
 }
 
+.detail__disclaimer {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  margin: 14px 0 0;
+}
+
 /* ---------- Buttons ---------- */
 .button {
   font-family: var(--ui-font);

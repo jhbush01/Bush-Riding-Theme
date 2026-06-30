@@ -99,6 +99,20 @@ body.submit-page {
   margin: 6px 0;
 }
 
+.consent {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+.consent input {
+  margin-top: 2px;
+  flex: 0 0 auto;
+  accent-color: var(--olive);
+}
+
 .route-form .button--primary {
   width: 100%;
   margin-top: 4px;
