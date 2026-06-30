@@ -18,7 +18,7 @@ const DIFFICULTIES = ["easy", "moderate", "hard"];
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    const cors = corsHeaders(request, env);
+    const cors = corsHeaders();
     if (request.method === "OPTIONS") return new Response(null, { headers: cors });
 
     try {
@@ -201,15 +201,13 @@ function json(obj, status, cors) {
   });
 }
 
-function corsHeaders(request, env) {
-  const origin = request.headers.get("Origin") || "";
-  const allowed = (env.ALLOWED_ORIGINS || "*").split(",").map((s) => s.trim());
-  const allow = allowed.includes("*") ? "*" : allowed.includes(origin) ? origin : allowed[0] || "*";
+function corsHeaders() {
+  // Public, credential-free API (read routes + open submissions). Allow any
+  // origin so the map works regardless of which domain serves it.
   return {
-    "Access-Control-Allow-Origin": allow,
+    "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
-    Vary: "Origin",
   };
 }
 
