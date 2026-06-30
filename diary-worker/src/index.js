@@ -26,6 +26,10 @@ export default {
       if (p === "/rides" && M === "GET") return listRides(request, env, cors);
       if (p === "/rides" && M === "POST") return createRide(request, env, cors);
       if (p === "/rides/stats" && M === "GET") return stats(request, env, cors);
+      // No-preflight POST aliases for edit/delete (PUT/DELETE force a preflight).
+      const act = p.match(/^\/rides\/([A-Za-z0-9_-]+)\/(update|delete)$/);
+      if (act && M === "POST")
+        return act[2] === "update" ? updateRide(request, env, cors, act[1]) : deleteRide(request, env, cors, act[1]);
       const ride = p.match(/^\/rides\/([A-Za-z0-9_-]+)$/);
       if (ride) {
         if (M === "GET") return getRide(request, env, cors, ride[1]);
@@ -88,7 +92,10 @@ async function authResponse(env, cors, id, email) {
 
 // Reads the session from the cookie, or a Bearer header (for non-browser clients).
 async function authed(request, env) {
-  let token = getCookie(request, COOKIE);
+  // Token may arrive as a query param (keeps requests "simple" / preflight-free),
+  // a Bearer header, or the legacy cookie.
+  let token = new URL(request.url).searchParams.get("token");
+  if (!token) token = getCookie(request, COOKIE);
   if (!token) {
     const h = request.headers.get("Authorization") || "";
     if (h.startsWith("Bearer ")) token = h.slice(7);

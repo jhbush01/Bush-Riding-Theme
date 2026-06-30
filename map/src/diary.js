@@ -27,8 +27,9 @@ function setToken(t) {
     /* ignore */
   }
 }
-function authHeaders() {
-  return token ? { Authorization: "Bearer " + token } : {};
+function withToken(url) {
+  if (!token) return url;
+  return url + (url.includes("?") ? "&" : "?") + "token=" + encodeURIComponent(token);
 }
 const chips = { weather: null, surface: null, vibe: null };
 const EMPTY_FC = { type: "FeatureCollection", features: [] };
@@ -46,8 +47,13 @@ async function init() {
 
 /* ---------------- fetch helper ---------------- */
 async function api(path, opts = {}) {
-  const headers = { ...authHeaders(), ...(opts.headers || {}) };
-  const res = await fetch(API + path, { ...opts, headers });
+  // Keep every request "simple" (no CORS preflight): token in the query, and
+  // string bodies sent as text/plain. Preflight to the diary domain was failing
+  // in all browsers; the community worker works precisely because it never
+  // preflights.
+  const headers = { ...(opts.headers || {}) };
+  if (typeof opts.body === "string" && !headers["Content-Type"]) headers["Content-Type"] = "text/plain";
+  const res = await fetch(withToken(API + path), { ...opts, headers });
   let data = null;
   try {
     data = await res.json();
@@ -147,7 +153,6 @@ async function submitAuth(e) {
   try {
     const r = await api(authMode === "register" ? "/auth/register" : "/auth/login", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     });
     setToken(r.token);
@@ -407,9 +412,8 @@ async function saveEdit() {
   const title = $("edit-title") ? $("edit-title").value.trim() : undefined;
   const note = $("edit-note") ? $("edit-note").value.trim() : undefined;
   try {
-    await api("/rides/" + cardRideId, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
+    await api("/rides/" + cardRideId + "/update", {
+      method: "POST",
       body: JSON.stringify({ title, note }),
     });
     await openCard(cardRideId); // re-render read-only
@@ -421,7 +425,7 @@ async function saveEdit() {
 async function deleteCurrent() {
   if (!cardRideId || !confirm("Delete this ride? This can't be undone.")) return;
   try {
-    await api("/rides/" + cardRideId, { method: "DELETE" });
+    await api("/rides/" + cardRideId + "/delete", { method: "POST" });
     hide("memory-card");
     await loadDiaryLayer();
   } catch (err) {
@@ -456,7 +460,7 @@ async function setProtectedImage(imgEl, url) {
   }
   if (!url) return;
   try {
-    const res = await fetch(url, { headers: authHeaders() });
+    const res = await fetch(withToken(url)); // token in query (no preflight)
     if (!res.ok) return;
     const blob = await res.blob();
     imgEl._url = URL.createObjectURL(blob);
