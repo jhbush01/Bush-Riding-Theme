@@ -13,7 +13,7 @@ const VIBE = ["suffered", "cruised", "flew"];
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    const cors = corsHeaders(request, env);
+    const cors = corsHeaders(request);
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
 
     try {
@@ -299,15 +299,16 @@ function getCookie(request, name) {
   const m = c.match(new RegExp("(?:^|; )" + name + "=([^;]*)"));
   return m ? decodeURIComponent(m[1]) : null;
 }
-function corsHeaders(request, env) {
-  const origin = request.headers.get("Origin") || "";
-  const allowed = (env.ALLOWED_ORIGINS || "").split(",").map((s) => s.trim()).filter(Boolean);
-  const allow = allowed.includes(origin) ? origin : allowed[0] || origin;
+function corsHeaders(request) {
+  // Auth is via a Bearer token (Authorization header), not cookies, so no
+  // credentialed CORS — which iOS Safari blocks across subdomains. Reflect the
+  // origin and allow the Authorization header.
+  const origin = request.headers.get("Origin") || "*";
   return {
-    "Access-Control-Allow-Origin": allow,
-    "Access-Control-Allow-Credentials": "true",
+    "Access-Control-Allow-Origin": origin,
     "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Max-Age": "86400",
     Vary: "Origin",
   };
 }

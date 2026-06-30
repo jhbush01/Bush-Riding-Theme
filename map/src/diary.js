@@ -9,6 +9,27 @@ let map = null;
 let currentEmail = null;
 let authMode = "login";
 let cardRideId = null;
+// Bearer token (header auth). Stored in localStorage so the session survives
+// refreshes; sent as Authorization. Avoids the cross-subdomain cookie that
+// iOS Safari blocks.
+let token = null;
+try {
+  token = localStorage.getItem("brd_token") || null;
+} catch {
+  /* private mode */
+}
+function setToken(t) {
+  token = t || null;
+  try {
+    if (t) localStorage.setItem("brd_token", t);
+    else localStorage.removeItem("brd_token");
+  } catch {
+    /* ignore */
+  }
+}
+function authHeaders() {
+  return token ? { Authorization: "Bearer " + token } : {};
+}
 const chips = { weather: null, surface: null, vibe: null };
 const EMPTY_FC = { type: "FeatureCollection", features: [] };
 
@@ -25,7 +46,8 @@ async function init() {
 
 /* ---------------- fetch helper ---------------- */
 async function api(path, opts = {}) {
-  const res = await fetch(API + path, { credentials: "include", ...opts });
+  const headers = { ...authHeaders(), ...(opts.headers || {}) };
+  const res = await fetch(API + path, { ...opts, headers });
   let data = null;
   try {
     data = await res.json();
@@ -37,6 +59,7 @@ async function api(path, opts = {}) {
 }
 
 async function checkSession() {
+  if (!token) return false;
   try {
     const s = await api("/auth/session");
     if (s && s.loggedIn) {
@@ -46,6 +69,7 @@ async function checkSession() {
   } catch {
     /* worker unreachable — treat as logged out */
   }
+  setToken(null); // stale/invalid token
   return false;
 }
 
@@ -126,6 +150,7 @@ async function submitAuth(e) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     });
+    setToken(r.token);
     currentEmail = r.email;
     closeAuth();
     openDiary();
@@ -137,12 +162,8 @@ async function submitAuth(e) {
     btn.disabled = false;
   }
 }
-async function signOut() {
-  try {
-    await api("/auth/logout", { method: "POST" });
-  } catch {
-    /* ignore */
-  }
+function signOut() {
+  setToken(null);
   currentEmail = null;
   if (map && map.getSource("diary-rides")) map.getSource("diary-rides").setData(EMPTY_FC);
   hide("diary-panel");
@@ -341,13 +362,8 @@ async function openCard(id) {
   cardRideId = id;
   exitEdit();
   const photo = $("card-photo");
-  photo.hidden = true;
-  if (ride.photo_url) {
-    photo.onload = () => (photo.hidden = false);
-    photo.onerror = () => (photo.hidden = true);
-    photo.src = ride.photo_url;
-    photo.alt = ride.title || "";
-  }
+  photo.alt = ride.title || "";
+  setProtectedImage(photo, ride.photo_url);
   $("card-title").textContent = ride.title || "Untitled ride";
   $("card-date").textContent = fmtDate(ride.recorded_at);
   $("card-distance").textContent = `${ride.distance_km} km`;
@@ -429,6 +445,26 @@ function fmtDate(iso) {
 }
 function cap(s) {
   return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+}
+// Photos are auth-protected, and <img src> can't send the Bearer header — so
+// fetch the image with the header and show it via an object URL.
+async function setProtectedImage(imgEl, url) {
+  imgEl.hidden = true;
+  if (imgEl._url) {
+    URL.revokeObjectURL(imgEl._url);
+    imgEl._url = null;
+  }
+  if (!url) return;
+  try {
+    const res = await fetch(url, { headers: authHeaders() });
+    if (!res.ok) return;
+    const blob = await res.blob();
+    imgEl._url = URL.createObjectURL(blob);
+    imgEl.src = imgEl._url;
+    imgEl.hidden = false;
+  } catch {
+    /* leave hidden */
+  }
 }
 function toast(msg) {
   let t = $("brm-toast");
