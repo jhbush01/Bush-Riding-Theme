@@ -10,9 +10,8 @@
     // Origins allowed to call /submit and /routes from the browser.
     "ALLOWED_ORIGINS": "https://bushridingmap.com,https://www.bushridingmap.com",
     // Public base URL of THIS worker (used to build gpx_url/photo_url).
-    // The worker's own public URL (used to build gpx_url/photo_url). Using the
-    // workers.dev URL for now; swap to https://api.bushridingmap.com once mapped.
-    "PUBLIC_URL": "https://bush-riding-map-api.jh-dcc.workers.dev"
+    // The worker's own public URL (used to build gpx_url/photo_url).
+    "PUBLIC_URL": "https://api.bushridingmap.com"
   },
 
   "d1_databases": [
