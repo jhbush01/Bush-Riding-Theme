@@ -87,6 +87,18 @@ body {
   color: var(--ink-soft);
 }
 
+.sidebar__submit {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--olive);
+  text-decoration: none;
+}
+.sidebar__submit:hover {
+  text-decoration: underline;
+}
+
 /* ---------- Filters ---------- */
 .filters {
   padding: 16px 20px;

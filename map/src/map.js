@@ -34,6 +34,10 @@ async function init() {
     return;
   }
 
+  // Merge in approved community submissions (additive; failure is non-fatal so
+  // the curated map always works even if the Worker is down).
+  await loadCommunityRoutes();
+
   initUI();
 
   // The map is an enhancement — if it throws, the list/filters still work.
@@ -41,6 +45,24 @@ async function init() {
     await initMap();
   } catch (e) {
     console.error("Map failed to initialise; routes are still browsable.", e);
+  }
+}
+
+async function loadCommunityRoutes() {
+  const api = (CONFIG.communityApi || "").replace(/\/$/, "");
+  if (!api) return;
+  try {
+    const res = await fetch(api + "/routes", { signal: AbortSignal.timeout(6000) });
+    if (!res.ok) return;
+    const fc = await res.json();
+    for (const f of fc.features || []) {
+      if (!routeById.has(f.properties.id)) {
+        routeFeatures.push(f);
+        routeById.set(f.properties.id, f);
+      }
+    }
+  } catch (e) {
+    console.warn("Community routes unavailable:", e.message);
   }
 }
 

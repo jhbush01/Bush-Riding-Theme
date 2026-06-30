@@ -60,6 +60,9 @@
         // client code); listId is the existing "bush riding map" list.
         klaviyoCompanyId: "W9QAij",
         klaviyoListId: "R3335d",
+        // Community routes Worker (approved submissions). Set once deployed,
+        // e.g. "https://api.bushridingmap.com". Empty = curated routes only.
+        communityApi: "",
       };
     </script>
   </head>
@@ -71,6 +74,7 @@
       <header class="sidebar__head">
         <h1 class="sidebar__title"><a href="/" class="sidebar__home">Bush Riding Routes</a></h1>
         <p class="sidebar__sub">Curated gravel. Browse the map, take the track.</p>
+        <a class="sidebar__submit" href="/submit">+ Submit a route</a>
       </header>
 
       <form id="filters" class="filters" aria-label="Filter routes">

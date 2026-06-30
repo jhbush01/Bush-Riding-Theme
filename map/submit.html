@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Submit a route — Bush Riding Map</title>
+    <meta name="description" content="Share a gravel route with the Bush Riding community." />
+    <link rel="canonical" href="https://bushridingmap.com/submit" />
+    <meta name="theme-color" content="#E9E2D0" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles/app.css" />
+    <link rel="stylesheet" href="styles/submit.css" />
+
+    <script>
+      // The community routes Worker. Set once it's deployed, e.g.
+      // "https://api.bushridingmap.com". Empty = form disabled with a notice.
+      window.BRM_CONFIG = { communityApi: "" };
+    </script>
+  </head>
+  <body class="submit-page">
+    <main class="form-wrap">
+      <a class="back" href="/map">← Back to the map</a>
+      <h1 class="form-title">Submit a route</h1>
+      <p class="form-intro">
+        Share a gravel route with the community. Upload a GPX (exported from your computer or
+        head unit) and we'll review it before it goes on the map. Distance and elevation are
+        worked out from the file.
+      </p>
+
+      <form id="route-form" class="route-form">
+        <label class="field">
+          <span class="field__label">GPX file *</span>
+          <input type="file" name="gpx" accept=".gpx,application/gpx+xml" required />
+        </label>
+
+        <label class="field">
+          <span class="field__label">Route name *</span>
+          <input type="text" name="name" maxlength="80" required placeholder="e.g. Pomona Weekend Gravel" />
+        </label>
+
+        <label class="field">
+          <span class="field__label">Region *</span>
+          <input type="text" name="region" maxlength="80" required placeholder="e.g. Pomona, QLD" />
+        </label>
+
+        <label class="field">
+          <span class="field__label">Terrain *</span>
+          <select name="difficulty" required>
+            <option value="">Choose…</option>
+            <option value="easy">Easy</option>
+            <option value="moderate">Moderate</option>
+            <option value="hard">Hard</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span class="field__label">Surface <span class="opt">(optional)</span></span>
+          <input type="text" name="surface" maxlength="120" placeholder="e.g. 85% gravel, 15% sealed" />
+        </label>
+
+        <label class="field">
+          <span class="field__label">Notes <span class="opt">(optional)</span></span>
+          <textarea name="description" maxlength="400" rows="3" placeholder="A line or two about the ride."></textarea>
+        </label>
+
+        <label class="field">
+          <span class="field__label">Photo <span class="opt">(optional)</span></span>
+          <input type="file" name="photo" accept="image/*" />
+        </label>
+
+        <hr class="rule" />
+
+        <label class="field">
+          <span class="field__label">Your name <span class="opt">(shown as the route's vetter)</span></span>
+          <input type="text" name="contributor" maxlength="60" placeholder="First name is fine" />
+        </label>
+
+        <label class="field">
+          <span class="field__label">Your email *</span>
+          <input type="email" name="email" required autocomplete="email" placeholder="you@email.com" />
+          <span class="field__hint">So we can reach you about the route. Not shown publicly.</span>
+        </label>
+
+        <button type="submit" class="button button--primary" id="submit-btn">Submit route</button>
+        <p id="form-msg" class="form-msg" role="status" hidden></p>
+      </form>
+    </main>
+
+    <script>
+      const API = (window.BRM_CONFIG.communityApi || "").replace(/\/$/, "");
+      const form = document.getElementById("route-form");
+      const btn = document.getElementById("submit-btn");
+      const msg = document.getElementById("form-msg");
+
+      function show(text, ok) {
+        msg.hidden = false;
+        msg.textContent = text;
+        msg.className = "form-msg " + (ok ? "is-ok" : "is-err");
+      }
+
+      if (!API) {
+        btn.disabled = true;
+        show("Submissions aren't live yet — check back soon.", false);
+      }
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        if (!API) return;
+        btn.disabled = true;
+        btn.textContent = "Submitting…";
+        msg.hidden = true;
+        try {
+          const res = await fetch(API + "/submit", { method: "POST", body: new FormData(form) });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.error || "Submission failed.");
+          form.reset();
+          show(
+            `Thanks! Got it — ${data.distance_km} km, ${data.elevation_gain_m} m climb. ` +
+              `We'll review it and add it to the map.`,
+            true
+          );
+        } catch (err) {
+          show(err.message || "Something went wrong — try again.", false);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Submit route";
+        }
+      });
+    </script>
+  </body>
+</html>
