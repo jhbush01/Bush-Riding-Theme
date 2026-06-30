@@ -53,15 +53,26 @@ async function api(path, opts = {}) {
   // preflights.
   const headers = { ...(opts.headers || {}) };
   if (typeof opts.body === "string" && !headers["Content-Type"]) headers["Content-Type"] = "text/plain";
-  const res = await fetch(withToken(API + path), { ...opts, headers });
+  let res;
+  try {
+    res = await fetch(withToken(API + path), { ...opts, headers });
+  } catch (e) {
+    throw new Error("Network error: " + (e && e.message ? e.message : e));
+  }
+  const text = await res.text().catch(() => "");
   let data = null;
   try {
-    data = await res.json();
+    data = JSON.parse(text);
   } catch {
-    /* non-JSON (e.g. file) */
+    /* non-JSON response */
   }
-  if (!res.ok) throw new Error((data && data.error) || `Request failed (${res.status})`);
-  return data;
+  if (!res.ok) {
+    // Surface the real reason instead of a generic code, so failures are
+    // diagnosable (worker error message, or the raw body if it isn't JSON).
+    const detail = (data && data.error) || text.slice(0, 180) || "(empty body)";
+    throw new Error(`${res.status}: ${detail}`);
+  }
+  return data || {};
 }
 
 async function checkSession() {
