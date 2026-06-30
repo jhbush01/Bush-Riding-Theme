@@ -321,3 +321,5 @@ function rand(n) {
   for (let i = 0; i < n; i++) s += a[r[i] % a.length];
   return s;
 }
+
+// build: 2026-06-30T06:11:03Z
