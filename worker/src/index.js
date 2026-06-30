@@ -27,6 +27,7 @@ export default {
       if (url.pathname.startsWith("/file/") && request.method === "GET") return serveFile(url, env, cors);
       if (url.pathname === "/admin" && request.method === "GET") return adminPage(request, env);
       if (url.pathname === "/admin/action" && request.method === "POST") return adminAction(request, env);
+      if (url.pathname === "/admin/edit" && request.method === "POST") return adminEdit(request, env);
       return json({ error: "Not found" }, 404, cors);
     } catch (err) {
       return json({ error: err.message || "Server error" }, 500, cors);
@@ -163,8 +164,8 @@ function authChallenge() {
 async function adminPage(request, env) {
   if (!requireAuth(request, env)) return authChallenge();
   const { results } = await env.DB.prepare(
-    `SELECT id, status, name, region, difficulty, distance_km, elevation_gain_m,
-            description, contributor, email, coords, created_at
+    `SELECT id, status, name, region, country, difficulty, surface, distance_km,
+            elevation_gain_m, description, contributor, email, coords, created_at
        FROM submissions ORDER BY (status='pending') DESC, created_at DESC`
   ).all();
   return new Response(adminHtml(results || []), {
@@ -190,6 +191,51 @@ async function adminAction(request, env) {
       .bind(map[action], new Date().toISOString(), id)
       .run();
   }
+  return new Response(null, { status: 303, headers: { Location: "/admin" } });
+}
+
+// Edit a route's metadata in place. Track geometry (coords/gpx) isn't touched
+// here — re-submit for a new track. /routes is no-store so edits show on the
+// map immediately.
+async function adminEdit(request, env) {
+  if (!requireAuth(request, env)) return authChallenge();
+  const form = await request.formData();
+  const id = (form.get("id") || "").toString();
+  if (!id) return json({ error: "Missing id" }, 400, corsHeaders());
+
+  const name = (form.get("name") || "").toString().trim();
+  const region = (form.get("region") || "").toString().trim();
+  const country = (form.get("country") || "").toString().trim() || "Australia";
+  let difficulty = (form.get("difficulty") || "").toString().trim().toLowerCase();
+  if (!DIFFICULTIES.includes(difficulty)) difficulty = "moderate";
+  const surface = (form.get("surface") || "").toString().trim().slice(0, 120);
+  const description = (form.get("description") || "").toString().trim().slice(0, 2000);
+  const contributor = (form.get("contributor") || "").toString().trim().slice(0, 120);
+  const distance = parseFloat(form.get("distance_km"));
+  const elevation = parseInt(form.get("elevation_gain_m"), 10);
+
+  if (!name || !region) return json({ error: "Name and region are required" }, 400, corsHeaders());
+
+  await env.DB.prepare(
+    `UPDATE submissions
+        SET name=?, region=?, country=?, difficulty=?, surface=?, description=?,
+            contributor=?, distance_km=?, elevation_gain_m=?
+      WHERE id=?`
+  )
+    .bind(
+      name,
+      region,
+      country,
+      difficulty,
+      surface,
+      description,
+      contributor,
+      Number.isFinite(distance) ? distance : null,
+      Number.isFinite(elevation) ? elevation : null,
+      id
+    )
+    .run();
+
   return new Response(null, { status: 303, headers: { Location: "/admin" } });
 }
 
@@ -269,6 +315,28 @@ function adminHtml(rows) {
           ${r.status !== "rejected" ? `<button name="action" value="reject">Reject</button>` : ""}
           <button name="action" value="remove" class="danger" onclick="return confirm('Delete permanently?')">Delete</button>
         </form>
+        <details class="edit">
+          <summary>Edit details</summary>
+          <form method="POST" action="/admin/edit" class="editform">
+            <input type="hidden" name="id" value="${esc(r.id)}" />
+            <label>Name<input name="name" value="${esc(r.name)}" required /></label>
+            <label>Region<input name="region" value="${esc(r.region)}" required /></label>
+            <label>Country<input name="country" value="${esc(r.country) || "Australia"}" /></label>
+            <label>Terrain
+              <select name="difficulty">
+                ${["easy", "moderate", "hard"]
+                  .map((d) => `<option value="${d}"${r.difficulty === d ? " selected" : ""}>${d}</option>`)
+                  .join("")}
+              </select>
+            </label>
+            <label>Surface<input name="surface" value="${esc(r.surface)}" /></label>
+            <label>Distance (km)<input name="distance_km" type="number" step="0.1" value="${r.distance_km ?? ""}" /></label>
+            <label>Elevation (m)<input name="elevation_gain_m" type="number" step="1" value="${r.elevation_gain_m ?? ""}" /></label>
+            <label>Contributor<input name="contributor" value="${esc(r.contributor)}" /></label>
+            <label class="full">Description<textarea name="description" rows="3">${esc(r.description)}</textarea></label>
+            <button class="ok" type="submit">Save changes</button>
+          </form>
+        </details>
       </div>
     </article>`;
   return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -294,6 +362,13 @@ function adminHtml(rows) {
   button.ok{background:#234a25;color:#fff;border-color:#234a25}
   button.danger{border-color:#9b3a2f;color:#9b3a2f}
   .link{font-size:12px;color:#6f7c53}
+  .edit{margin-top:10px}
+  .edit>summary{font-size:12px;color:#6f7c53;cursor:pointer}
+  .editform{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;margin-top:10px;padding-top:10px;border-top:1px solid #ece5d2}
+  .editform label{display:flex;flex-direction:column;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#8a8068;gap:3px}
+  .editform .full{grid-column:1 / -1}
+  .editform input,.editform select,.editform textarea{font:inherit;font-size:13px;padding:6px 8px;border:1px solid #d8cfb8;border-radius:3px;color:#2c2a24;background:#fff;text-transform:none;letter-spacing:0}
+  .editform button{grid-column:1 / -1;justify-self:start}
 </style></head><body>
 <header><h1>Bush Riding — Route Moderation</h1><div class="count">${pending} pending · ${rows.length} total</div></header>
 <main>${rows.length ? rows.map(card).join("") : "<p>No submissions yet.</p>"}</main>
