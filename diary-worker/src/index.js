@@ -86,6 +86,13 @@ async function session(request, env, cors) {
 }
 
 async function authResponse(env, cors, id, email) {
+  if (!env.JWT_SECRET) {
+    return json(
+      { error: "JWT_SECRET is not set on this worker. Add it in Settings → Variables and secrets." },
+      500,
+      cors
+    );
+  }
   const token = await signJWT({ sub: id, email }, env.JWT_SECRET);
   return new Response(JSON.stringify({ ok: true, email, token }), {
     status: 200,
