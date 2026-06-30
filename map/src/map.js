@@ -52,7 +52,12 @@ async function loadCommunityRoutes() {
   const api = (CONFIG.communityApi || "").replace(/\/$/, "");
   if (!api) return;
   try {
-    const res = await fetch(api + "/routes", { signal: AbortSignal.timeout(6000) });
+    // Cache-bust so a newly approved route shows on the next map load (not
+    // after a stale-cache window).
+    const res = await fetch(api + "/routes?t=" + Date.now(), {
+      cache: "no-store",
+      signal: AbortSignal.timeout(6000),
+    });
     if (!res.ok) return;
     const fc = await res.json();
     for (const f of fc.features || []) {

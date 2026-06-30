@@ -131,7 +131,8 @@ async function routes(env, cors) {
 
   return json({ type: "FeatureCollection", features }, 200, {
     ...cors,
-    "Cache-Control": "public, max-age=120",
+    // No caching: approvals must appear on the map immediately.
+    "Cache-Control": "no-store",
   });
 }
 
