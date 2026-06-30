@@ -19,7 +19,7 @@
       "binding": "DB",
       "database_name": "bush-riding-map",
       // Fill in after: wrangler d1 create bush-riding-map
-      "database_id": "REPLACE_WITH_D1_ID"
+      "database_id": "b6a452ee-c92c-4cfd-beee-959f00109986"
     }
   ],
 
