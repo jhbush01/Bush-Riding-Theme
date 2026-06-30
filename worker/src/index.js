@@ -299,7 +299,3 @@ function adminHtml(rows) {
 <main>${rows.length ? rows.map(card).join("") : "<p>No submissions yet.</p>"}</main>
 </body></html>`;
 }
-
-// build: 2026-06-30T01:10:34Z
-
-// redeploy 01:18:33Z

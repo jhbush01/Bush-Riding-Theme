@@ -1,8 +1,10 @@
 # Bush Riding — Interactive Routes Map (v1)
 
-A public, no-login interactive map of curated gravel routes. Visitors browse and
-filter; downloading a route's GPX captures an email to the existing Klaviyo list.
-No backend, no database, no auth. Static site, MapLibre GL JS + Protomaps tiles.
+A public, no-login interactive map of curated gravel routes (MapLibre GL JS).
+Visitors browse and filter; downloading a route's GPX captures an email to Klaviyo.
+Two optional Cloudflare Workers extend it without touching the public map:
+community route **submissions** (`worker/`) and a personal ride **diary**
+(`diary-worker/`). Browsing always stays public and login-free.
 
 > **Repo note:** the v1 brief specified a standalone `bush-riding-map` repo. This
 > build lives in the `map/` subdirectory of the theme repo because that was the
@@ -13,24 +15,36 @@ No backend, no database, no auth. Static site, MapLibre GL JS + Protomaps tiles.
 ## Layout
 
 ```
-map/
-  index.html          # Landing page (/) — hero, stats strip, featured route, CTA
-  map.html            # Map app (/map) — MapLibre, filters, detail panel, gate, config block
+map/                  # static front-end (Cloudflare Pages)
+  index.html          # Landing page (/) — full-bleed hero + "Explore now"
+  map.html            # Map app (/map) — MapLibre, filters, detail, gate, diary, config
+  submit.html         # Public "Submit a route" form (/submit) -> community worker
   src/
-    map.js            # map init, sources/layers, clustering, selection, deep-link (#id)
+    map.js            # map init, sources/layers, clustering, selection, community merge
     filters.js        # client-side filtering over the GeoJSON
     gate.js           # email-capture modal -> Klaviyo -> blob GPX download
+    diary.js          # personal ride diary: auth, ochre layer, ink animation, panels
   styles/
-    bush.json         # active basemap style (OpenFreeMap/OpenMapTiles, brand palette)
-    bush-protomaps.json  # Protomaps-schema style for the future self-hosted R2 path
-    app.css           # shared UI styling (Archivo body, Instrument Serif headings)
-    landing.css       # landing-page styling
-  data/
-    routes.geojson    # ALL routes — single source of truth (landing stats derive from this)
-  gpx/<id>.gpx        # one track per route
-  public/<id>.jpg     # one hero photo per route
-  favicon.svg, _redirects
+    bush.json / bush-protomaps.json  # basemap styles (OpenFreeMap active; Protomaps spare)
+    app.css           # shared UI (Archivo body, Instrument Serif headings) + diary UI
+    landing.css / submit.css
+  data/routes.geojson # curated routes — single source of truth
+  gpx/<id>.gpx        # one track per curated route
+  public/<id>.jpg     # hero/landing photos
+  favicon.svg, _redirects, _headers
+
+worker/               # community routes Worker (api.bushridingmap.com) — see worker/README.md
+diary-worker/         # personal ride diary Worker (diary.bushridingmap.com) — see diary-worker/README.md
 ```
+
+### System overview
+- **Front-end (Pages):** the static `map/` site. Browsing is public, no login.
+- **Community worker (`worker/`):** accepts public GPX submissions, moderation at
+  `/admin`, serves approved routes the map merges in. `BRM_CONFIG.communityApi`.
+- **Diary worker (`diary-worker/`):** authenticated personal ride diary (PBKDF2 +
+  JWT). The map's "My Rides" draws your rides in ochre below the community routes.
+  `BRM_CONFIG.diaryApi`. Requests are kept preflight-free (token in query) so they
+  behave like the community worker's "simple" cross-origin calls.
 
 Two pages, shared assets: `index.html` (`/`) is the landing page and `map.html`
 is served at `/map` (Cloudflare Pages clean URLs). `map.html` sets `<base href="/">`
