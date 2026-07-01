@@ -95,12 +95,13 @@ async function loadEvents() {
         signal: AbortSignal.timeout(6000),
       });
       if (res.ok) {
+        // The Worker is the source of truth — trust it even when it returns an
+        // empty list (e.g. every event was deleted). Only fall back to the
+        // static seed if the Worker is actually unreachable, otherwise a delete
+        // would resurrect the seeded event on the next load.
         const fc = await res.json();
-        const feats = (fc.features || []).filter((f) => f.geometry && f.geometry.type === "Point");
-        if (feats.length) {
-          setEventFeatures(feats);
-          return;
-        }
+        setEventFeatures((fc.features || []).filter((f) => f.geometry && f.geometry.type === "Point"));
+        return;
       }
     } catch (e) {
       console.warn("Worker events unavailable, using static seed:", e.message);
@@ -891,7 +892,28 @@ async function drawElevation(route) {
   // If the user opened a different event while we were fetching, don't draw.
   if (els.detail.dataset.elevToken !== token) return;
   if (!profile) return showElevUnavailable(svg, empty);
-  renderElevation(svg, profile, note);
+  renderElevation(svg, profile, note, route.properties);
+}
+
+// Total ascent (positive elevation deltas) over the profile. Elevations are
+// lightly smoothed first because raw GPS elevation is noisy and would otherwise
+// inflate the gain. Used only if the route's own elevation_gain_m is missing.
+function computeGain(profile) {
+  const e = profile.map((p) => p.e);
+  const win = 2;
+  const sm = e.map((_, i) => {
+    const s = Math.max(0, i - win);
+    const t = Math.min(e.length, i + win + 1);
+    let a = 0;
+    for (let j = s; j < t; j++) a += e[j];
+    return a / (t - s);
+  });
+  let gain = 0;
+  for (let i = 1; i < sm.length; i++) {
+    const d = sm[i] - sm[i - 1];
+    if (d > 0) gain += d;
+  }
+  return gain;
 }
 
 function showElevUnavailable(svg, empty) {
@@ -947,8 +969,11 @@ function haversineKm(a, b) {
   return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
 }
 
-// Render the profile as a filled area + line into the 240x120 viewBox.
-function renderElevation(svg, profile, note) {
+// Render the profile as a filled area + line into the 240x120 viewBox. The
+// caption reports total elevation GAINED (ascent) — a far better read on how
+// hard a ride is than the peak height. Prefer the route's own elevation_gain_m
+// (computed from the full track), falling back to the profile if absent.
+function renderElevation(svg, profile, note, props) {
   svg.style.display = "";
   const W = 240, H = 120, padY = 8;
   const dMax = profile[profile.length - 1].d || 1;
@@ -968,7 +993,11 @@ function renderElevation(svg, profile, note) {
   lineEl.setAttribute("points", line);
   svg.appendChild(areaEl);
   svg.appendChild(lineEl);
-  if (note) note.textContent = `${Math.round(dMax)} km · ${Math.round(eMin)}–${Math.round(eMax)} m`;
+
+  const gain =
+    props && Number.isFinite(+props.elevation_gain_m) ? +props.elevation_gain_m : computeGain(profile);
+  const dist = props && Number.isFinite(+props.distance_km) ? +props.distance_km : dMax;
+  if (note) note.textContent = `${Math.round(dist)} km · ↑ ${Math.round(gain)} m gain`;
 }
 
 // ---- Drag gesture (sheet mode) -------------------------------------------
