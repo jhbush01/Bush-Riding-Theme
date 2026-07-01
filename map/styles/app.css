@@ -273,108 +273,251 @@ body {
   filter: drop-shadow(0 1px 2px rgba(255, 255, 255, 0.9));
 }
 
-/* ---------- Detail panel ---------- */
-.detail {
-  /* Fixed (not absolute) so that when it sits off-screen at translateX(100%)
-     it does NOT extend the document's scrollable width — otherwise you could
-     scroll right on iPad/desktop and reveal it. */
+/* ---------- Route detail surface (sheet / panel) ---------- */
+/* One node, three layouts: a draggable bottom sheet on mobile, a roomier
+   bottom-anchored sheet on tablet, and an inset floating panel on desktop.
+   Mobile-first defaults describe the bottom sheet; media queries below adapt
+   it. map.js sets translateY inline in sheet mode and toggles .is-open. */
+.sheet {
   position: fixed;
-  top: 0;
+  left: 0;
   right: 0;
   bottom: 0;
-  width: 340px;
-  max-width: 90vw;
+  /* Full = the tallest snap. JS translates it down to reveal peek/half. */
+  height: 90vh;
+  max-height: 90vh;
   background: var(--cream-panel);
-  border-left: 1px solid var(--line);
-  z-index: 7;
-  transform: translateX(100%);
-  transition: transform 0.25s ease;
-  overflow-y: auto;
-}
-
-.detail.is-open {
-  transform: translateX(0);
-}
-
-.detail__close {
-  position: absolute;
-  top: 10px;
-  right: 12px;
-  background: rgba(244, 239, 226, 0.85);
   border: 1px solid var(--line);
-  border-radius: 2px;
+  border-bottom: none;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  box-shadow: 0 -10px 34px rgba(28, 26, 21, 0.16);
+  z-index: 9;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform 0.32s cubic-bezier(0.22, 0.61, 0.36, 1);
+  /* Drag zone owns the gesture; the page never scrolls behind it. */
+  touch-action: none;
+  visibility: hidden;
+  overscroll-behavior: contain;
+}
+.sheet.is-open {
+  visibility: visible;
+}
+
+/* Drag zone = the peek content: handle, close, hero row and primary action.
+   Kept out of the flow's scroll so it never collapses. */
+.sheet__drag {
+  position: relative;
+  flex: 0 0 auto;
+  padding: 8px 20px 14px;
+  cursor: grab;
+}
+.sheet__drag:active {
+  cursor: grabbing;
+}
+.sheet__handle {
+  display: block;
+  width: 44px;
+  height: 5px;
+  margin: 2px auto 12px;
+  border-radius: 3px;
+  background: var(--line);
+}
+.sheet__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
   width: 30px;
   height: 30px;
+  padding: 0;
   font-size: 20px;
   line-height: 1;
-  cursor: pointer;
   color: var(--ink);
-  z-index: 1;
+  background: rgba(233, 226, 208, 0.8);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 2;
 }
 
-.detail__photo {
-  width: 100%;
-  height: 200px;
+/* Peek header — horizontal hero card so identity reads in one glance. */
+.sheet__peek {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+.sheet__thumb {
+  flex: 0 0 auto;
+  width: 88px;
+  height: 88px;
   object-fit: cover;
-  display: block;
+  border-radius: 14px;
   background: var(--sage);
+  display: block;
 }
-
-.detail__body {
-  padding: 18px 20px 28px;
+/* The class's display:block outranks the UA [hidden] rule, so restore it. */
+.sheet__thumb[hidden] {
+  display: none;
 }
-
-.detail__name {
+.sheet__head {
+  flex: 1;
+  min-width: 0;
+  /* Leave room for the floating close button on the first line. */
+  padding-right: 34px;
+}
+.sheet__name {
   margin: 0;
   font-family: var(--head-font);
-  font-size: 28px;
+  font-size: 23px;
   font-weight: 400;
-  line-height: 1.08;
+  line-height: 1.12;
+  /* Up to two lines, then ellipsis — keeps peek compact without hard-cutting
+     mid-word on longer route names. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
-
-.detail__region {
-  margin: 4px 0 16px;
-  font-size: 12px;
+.sheet__region {
+  margin: 2px 0 0;
+  font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--ink-soft);
 }
+.sheet__facts {
+  display: flex;
+  gap: 18px;
+  list-style: none;
+  margin: 9px 0 0;
+  padding: 0;
+}
+.sheet__facts li {
+  display: flex;
+  flex-direction: column;
+}
+.sheet__fact-val {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.1;
+}
+.sheet__fact-key {
+  margin-top: 2px;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--ink-soft);
+}
+.sheet__action {
+  margin-top: 14px;
+}
 
-.detail__stats {
-  margin: 0 0 16px;
+/* Revealed content (half / full). Scrolls only when the sheet is full so the
+   drag gesture and the content scroll never fight in peek/half. */
+.sheet__scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  padding: 6px 20px 28px;
+  touch-action: none;
+}
+.sheet[data-state="full"] .sheet__scroll {
+  overflow-y: auto;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+}
+.sheet__stats {
+  margin: 8px 0 16px;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px 16px;
 }
-
-.detail__stats div {
+.sheet__stats div {
   margin: 0;
 }
-
-.detail__stats dt {
+.sheet__stats dt {
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--ink-soft);
 }
-
-.detail__stats dd {
+.sheet__stats dd {
   margin: 2px 0 0;
   font-size: 14px;
 }
-
-.detail__desc {
+.sheet__desc {
   font-size: 13px;
   line-height: 1.55;
   color: var(--ink-soft);
-  margin: 0 0 20px;
+  margin: 0 0 18px;
 }
-
-.detail__disclaimer {
+.sheet__disclaimer {
   font-size: 11px;
   line-height: 1.5;
   color: var(--ink-soft);
-  margin: 14px 0 0;
+  margin: 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+/* Tablet: roomier bottom sheet anchored to the lower-left, preserving a large
+   map area rather than filling the width. Still fully draggable. */
+@media (min-width: 721px) and (max-width: 1024px) {
+  .sheet {
+    /* Anchor to the lower-right, clear of the always-open filters sidebar on
+       the left, while still reading as a bottom sheet. */
+    left: auto;
+    right: 24px;
+    width: 440px;
+    max-width: calc(100vw - 48px);
+    border-radius: 20px 20px 0 0;
+  }
+  .sheet__thumb {
+    width: 104px;
+    height: 104px;
+  }
+  .sheet__name {
+    font-size: 26px;
+  }
+}
+
+/* Desktop: an inset floating panel, not an edge-to-edge drawer. Anchored to
+   the lower-right, detached from every edge, sized to content. Drag handle is
+   hidden and content always scrolls; map.js clears the inline translateY so
+   this transform wins. */
+@media (min-width: 1025px) {
+  .sheet {
+    left: auto;
+    right: 24px;
+    bottom: 24px;
+    top: auto;
+    width: 380px;
+    max-width: 34vw;
+    height: auto;
+    max-height: calc(100vh - 112px);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    box-shadow: 0 16px 44px rgba(28, 26, 21, 0.2);
+    transform: translateX(calc(100% + 32px));
+    touch-action: auto;
+  }
+  .sheet.is-open {
+    transform: none;
+  }
+  .sheet__drag {
+    cursor: default;
+    padding-top: 16px;
+  }
+  .sheet__handle {
+    display: none;
+  }
+  .sheet__scroll {
+    overflow-y: auto;
+    touch-action: auto;
+  }
 }
 
 /* ---------- Buttons ---------- */

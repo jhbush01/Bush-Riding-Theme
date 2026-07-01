@@ -133,24 +133,39 @@
       </svg>
     </button>
 
-    <!-- Selected-route detail panel -->
-    <section id="detail" class="detail" aria-hidden="true" aria-label="Route detail">
-      <button id="detail-close" class="detail__close" aria-label="Close">&times;</button>
-      <img id="detail-photo" class="detail__photo" alt="" hidden />
-      <div class="detail__body">
-        <h2 id="detail-name" class="detail__name"></h2>
-        <p id="detail-region" class="detail__region"></p>
-        <dl class="detail__stats">
-          <div><dt>Distance</dt><dd id="detail-distance"></dd></div>
-          <div><dt>Elevation</dt><dd id="detail-elevation"></dd></div>
-          <div><dt>Terrain</dt><dd id="detail-difficulty"></dd></div>
+    <!-- Selected-route detail surface: bottom sheet (mobile/tablet) or inset
+         floating panel (desktop). Snap states are driven by map.js. -->
+    <section id="detail" class="sheet" aria-hidden="true" aria-label="Route detail" data-state="closed">
+      <!-- Drag zone = the peek content. Everything here stays visible in peek. -->
+      <div id="detail-drag" class="sheet__drag">
+        <span class="sheet__handle" aria-hidden="true"></span>
+        <button id="detail-close" class="sheet__close" aria-label="Close route detail">&times;</button>
+        <div class="sheet__peek">
+          <img id="detail-photo" class="sheet__thumb" alt="" hidden />
+          <div class="sheet__head">
+            <h2 id="detail-name" class="sheet__name"></h2>
+            <p id="detail-region" class="sheet__region"></p>
+            <ul class="sheet__facts">
+              <li><span id="detail-distance" class="sheet__fact-val"></span><span class="sheet__fact-key">dist</span></li>
+              <li><span id="detail-elevation" class="sheet__fact-val"></span><span class="sheet__fact-key">climb</span></li>
+              <li><span id="detail-difficulty" class="sheet__fact-val"></span><span class="sheet__fact-key">terrain</span></li>
+            </ul>
+          </div>
+        </div>
+        <div class="sheet__action">
+          <button id="detail-download" class="button button--primary">Download GPX</button>
+        </div>
+      </div>
+
+      <!-- Revealed as the sheet expands to half / full. -->
+      <div id="detail-scroll" class="sheet__scroll">
+        <dl class="sheet__stats">
           <div><dt>Surface</dt><dd id="detail-surface"></dd></div>
           <div><dt>Last ridden</dt><dd id="detail-lastridden"></dd></div>
           <div><dt>Vetted by</dt><dd id="detail-vetted"></dd></div>
         </dl>
-        <p id="detail-description" class="detail__desc"></p>
-        <button id="detail-download" class="button button--primary">Download GPX</button>
-        <p class="detail__disclaimer">
+        <p id="detail-description" class="sheet__desc"></p>
+        <p class="sheet__disclaimer">
           A guide only. Conditions, gates and access change — check before you ride, and ride
           at your own risk.
         </p>

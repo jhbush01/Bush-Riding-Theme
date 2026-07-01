@@ -273,10 +273,12 @@ function selectRoute(id, fly) {
       type: "FeatureCollection",
       features: [{ type: "Feature", geometry: feature.geometry, properties: {} }],
     });
-    if (fly) fitToRoutes([feature], true);
   }
 
   selectedId = id;
+  // openDetail opens the sheet at peek and frames the route above it (with the
+  // correct dynamic padding). Framing here would use stale padding, so we let
+  // the sheet own the camera.
   openDetail(feature);
   highlightResult(id);
 }
@@ -292,13 +294,48 @@ function clearSelection() {
 }
 
 // ---- Bounds --------------------------------------------------------------
-// Padding that keeps the framed routes clear of the side panels. On narrow
-// screens the panels overlay the map, so we don't reserve space for them.
+// Padding that keeps the framed route clear of whatever UI is currently
+// overlaying the map. In sheet mode (mobile/tablet) the detail surface rises
+// from the bottom, so we reserve its *visible* height so the selected route
+// stays readable above it. On desktop the filters sit left and the inset
+// detail panel sits right, so we reserve those edges instead.
 function fitPadding() {
-  const narrow = window.matchMedia("(max-width: 720px)").matches;
-  return narrow
-    ? { top: 50, bottom: 50, left: 30, right: 30 }
-    : { top: 60, bottom: 60, left: 360, right: 380 };
+  const vw = window.innerWidth;
+  const vh = viewportHeight();
+
+  if (vw <= 720) {
+    // Phone: filters are an overlay (closed by default) and the detail sheet
+    // rises full-width from the bottom. Reserve only its visible height.
+    const reserve = detailOpen && sheetState !== "full" ? sheetVisibleHeight() + 20 : 40;
+    return {
+      top: 64,
+      bottom: Math.min(reserve, Math.round(vh * 0.55)),
+      left: 28,
+      right: 28,
+    };
+  }
+
+  if (vw <= 1024) {
+    // Tablet: the filters sidebar is docked on the left; the detail sheet is a
+    // bottom-right corner sheet. Reserve both.
+    const reserve = detailOpen && sheetState !== "full" ? sheetVisibleHeight() + 20 : 40;
+    return {
+      top: 60,
+      bottom: Math.min(reserve, Math.round(vh * 0.55)),
+      left: 360,
+      right: 40,
+    };
+  }
+
+  // Desktop: filters sidebar left; inset floating detail panel bottom-right.
+  // The panel sits in the right band, so reserving the right edge keeps the
+  // route clear of it.
+  return {
+    top: 60,
+    bottom: 60,
+    left: 380,
+    right: detailOpen ? 420 : 80,
+  };
 }
 
 // LngLatBounds covering every route, or null if there are none.
@@ -316,28 +353,174 @@ function fitToRoutes(features, animate) {
   map.fitBounds(bounds, { padding: fitPadding(), animate, maxZoom: 13 });
 }
 
-// ---- Detail panel --------------------------------------------------------
+// ---- Detail surface: responsive sheet / panel ----------------------------
+// Mobile & tablet: a draggable bottom sheet with peek / half / full snap
+// states. Desktop: an inset floating panel that opens fully. One shared DOM
+// node (#detail) drives all breakpoints so only ever one surface is open.
+
+// Snap states used in sheet mode. Desktop opens straight to "full".
+let detailOpen = false;
+let sheetState = "closed"; // "closed" | "peek" | "half" | "full"
+let drag = null; // active pointer-drag session
+let reframeTimer = null;
+
+const els = {}; // cached detail nodes (populated in setupDetailPanel)
+
+// Sheet mode = anything up to tablet width. Above that we use the desktop
+// inset panel and disable dragging.
+function isSheetMode() {
+  return window.matchMedia("(max-width: 1024px)").matches;
+}
+
+function viewportHeight() {
+  return (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+}
+
+// Visible heights (px, measured up from the bottom edge) for each snap state.
+// Peek is measured from the natural height of the drag zone so the primary
+// action is always fully visible; half/full are viewport fractions.
+function snapHeights() {
+  const vh = viewportHeight();
+  const full = els.detail.offsetHeight || Math.round(vh * 0.9);
+  const peekNatural = (els.drag ? els.drag.offsetHeight : 210) + 8;
+  const half = Math.round(vh * 0.6);
+  return {
+    peek: Math.min(peekNatural, half),
+    half,
+    full,
+  };
+}
+
+function sheetVisibleHeight() {
+  if (!detailOpen || sheetState === "closed") return 0;
+  return snapHeights()[sheetState] || 0;
+}
+
+// translateY (px) that leaves `state`'s visible height showing.
+function translateForState(state) {
+  const full = els.detail.offsetHeight;
+  return Math.max(0, full - (snapHeights()[state] || 0));
+}
+
+function currentTranslateY() {
+  const t = getComputedStyle(els.detail).transform;
+  if (!t || t === "none") return 0;
+  const m = new DOMMatrixReadOnly(t);
+  return m.m42;
+}
+
 function setupDetailPanel() {
-  document.getElementById("detail-close").addEventListener("click", () => {
-    document.getElementById("detail").classList.remove("is-open");
-    document.getElementById("detail").setAttribute("aria-hidden", "true");
-    clearSelection();
-    highlightResult(null);
+  els.detail = document.getElementById("detail");
+  els.drag = document.getElementById("detail-drag");
+  els.scroll = document.getElementById("detail-scroll");
+
+  document.getElementById("detail-close").addEventListener("click", closeDetail);
+
+  // Pointer-drag on the handle / header zone drives the snap states. We ignore
+  // presses that begin on a control (close, download) so taps still fire.
+  els.drag.addEventListener("pointerdown", onDragStart);
+  window.addEventListener("pointermove", onDragMove);
+  window.addEventListener("pointerup", onDragEnd);
+  window.addEventListener("pointercancel", onDragEnd);
+
+  // Keep the sheet aligned when the layout mode flips or the mobile viewport
+  // resizes (URL bar show/hide changes the snap maths).
+  let lastMode = isSheetMode();
+  window.addEventListener("resize", () => {
+    const mode = isSheetMode();
+    if (mode !== lastMode) {
+      lastMode = mode;
+      resyncSurfaceForMode();
+    }
+    if (detailOpen && selectedId) scheduleReframe();
   });
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", () => {
+      if (detailOpen && isSheetMode() && sheetState !== "closed" && !drag) {
+        applySheetState(sheetState, false);
+      }
+    });
+  }
+}
+
+// Move the sheet to a snap state (sheet mode only). Desktop ignores translateY.
+function applySheetState(state, animate = true) {
+  const y = state === "closed" ? "100%" : translateForState(state) + "px";
+  els.detail.style.transition = animate ? "" : "none";
+  els.detail.style.transform = `translateY(${y})`;
+  if (!animate) {
+    // Force reflow so the next transition (a real drag/settle) animates.
+    void els.detail.offsetHeight;
+    els.detail.style.transition = "";
+  }
+}
+
+function setSheetState(state, { animate = true, reframe = true } = {}) {
+  sheetState = state;
+  els.detail.dataset.state = state;
+  if (isSheetMode()) applySheetState(state, animate);
+  // Re-frame in peek/half so the route stays visible above the sheet. In full
+  // the sheet covers the map, so re-framing is pointless — leave the camera.
+  if (reframe && state !== "closed" && state !== "full") scheduleReframe();
 }
 
 function openDetail(feature) {
-  const p = feature.properties;
-  const panel = document.getElementById("detail");
-  const photo = document.getElementById("detail-photo");
+  fillDetail(feature);
+  const first = !detailOpen;
+  detailOpen = true;
+  els.detail.classList.add("is-open");
+  els.detail.setAttribute("aria-hidden", "false");
 
-  // Photo degrades gracefully if the hero image isn't present yet.
+  if (isSheetMode()) {
+    if (first) {
+      // Rise from off-screen to the peek state.
+      applySheetState("closed", false);
+      requestAnimationFrame(() => setSheetState("peek"));
+    } else {
+      // Re-selecting another route: return to peek per the interaction spec.
+      setSheetState("peek");
+    }
+  } else {
+    // Desktop inset panel: no translateY, CSS handles the slide-in.
+    els.detail.style.transform = "";
+    sheetState = "full";
+    els.detail.dataset.state = "full";
+    scheduleReframe();
+  }
+}
+
+function closeDetail() {
+  if (!detailOpen) return;
+  detailOpen = false;
+  clearSelection();
+  highlightResult(null);
+  els.detail.setAttribute("aria-hidden", "true");
+
+  if (isSheetMode()) {
+    setSheetState("closed", { reframe: false });
+    onTransitionEndOnce(els.detail, () => {
+      if (!detailOpen) els.detail.classList.remove("is-open");
+    });
+  } else {
+    els.detail.classList.remove("is-open");
+    els.detail.style.transform = "";
+  }
+  sheetState = "closed";
+  els.detail.dataset.state = "closed";
+}
+
+// Populate the detail fields. Photo degrades gracefully if absent.
+function fillDetail(feature) {
+  const p = feature.properties;
+  const photo = els.detail.querySelector("#detail-photo");
   photo.hidden = true;
   if (p.photo_url) {
     photo.onload = () => (photo.hidden = false);
     photo.onerror = () => (photo.hidden = true);
     photo.src = p.photo_url;
     photo.alt = p.name;
+  } else {
+    photo.removeAttribute("src");
   }
 
   setText("detail-name", p.name);
@@ -350,11 +533,117 @@ function openDetail(feature) {
   setText("detail-vetted", p.vetted_by || "—");
   setText("detail-description", p.description);
 
-  const dl = document.getElementById("detail-download");
-  dl.onclick = () => requestDownload({ id: p.id, gpx_url: p.gpx_url });
+  els.detail.querySelector("#detail-download").onclick = () =>
+    requestDownload({ id: p.id, gpx_url: p.gpx_url });
+}
 
-  panel.classList.add("is-open");
-  panel.setAttribute("aria-hidden", "false");
+// ---- Drag gesture (sheet mode) -------------------------------------------
+function onDragStart(e) {
+  if (!isSheetMode() || !detailOpen) return;
+  if (e.target.closest("button")) return; // let close / download taps through
+  // In full state the content scrolls natively; only start a drag if the
+  // scroller is already at the top (so a downward drag can collapse it).
+  if (sheetState === "full" && els.scroll.scrollTop > 0) return;
+  drag = {
+    id: e.pointerId,
+    startY: e.clientY,
+    startT: currentTranslateY(),
+    lastY: e.clientY,
+    lastT: performance.now(),
+    v: 0,
+    active: false,
+  };
+  els.detail.style.transition = "none";
+}
+
+function onDragMove(e) {
+  if (!drag || e.pointerId !== drag.id) return;
+  const dy = e.clientY - drag.startY;
+  if (!drag.active) {
+    if (Math.abs(dy) < 4) return; // ignore micro-movement so taps still work
+    drag.active = true;
+    try {
+      els.drag.setPointerCapture(drag.id);
+    } catch (_) {}
+  }
+  const full = els.detail.offsetHeight;
+  const t = Math.min(Math.max(drag.startT + dy, 0), full);
+  els.detail.style.transform = `translateY(${t}px)`;
+  const now = performance.now();
+  drag.v = (e.clientY - drag.lastY) / Math.max(1, now - drag.lastT); // px/ms, + = down
+  drag.lastY = e.clientY;
+  drag.lastT = now;
+}
+
+function onDragEnd(e) {
+  if (!drag || e.pointerId !== drag.id) return;
+  const { active, v } = drag;
+  drag = null;
+  els.detail.style.transition = "";
+  if (!active) return; // it was a tap, not a drag
+
+  const t = currentTranslateY();
+  const full = els.detail.offsetHeight;
+  const h = snapHeights();
+  const yPeek = full - h.peek;
+  const yHalf = full - h.half;
+  const yFull = 0;
+
+  // A firm downward flick, or dragging well below peek, dismisses the sheet.
+  if (v > 0.7 || t > yPeek + 64) {
+    if (t > yHalf) return closeDetail();
+  }
+
+  // Snap to the nearest state, then bias by flick direction for a natural feel.
+  const cands = [
+    ["full", yFull],
+    ["half", yHalf],
+    ["peek", yPeek],
+  ];
+  let best = cands[0];
+  for (const c of cands) {
+    if (Math.abs(c[1] - t) < Math.abs(best[1] - t)) best = c;
+  }
+  let state = best[0];
+  if (v < -0.5) state = state === "peek" ? "half" : "full";
+  else if (v > 0.5) state = state === "full" ? "half" : state === "half" ? "peek" : "peek";
+  setSheetState(state);
+}
+
+// When the viewport crosses the sheet/desktop boundary, reset positioning so
+// inline translateY from one mode doesn't leak into the other.
+function resyncSurfaceForMode() {
+  els.detail.style.transition = "none";
+  if (detailOpen) {
+    if (isSheetMode()) {
+      els.detail.style.transform = "";
+      setSheetState("peek", { animate: false });
+    } else {
+      els.detail.style.transform = "";
+      sheetState = "full";
+      els.detail.dataset.state = "full";
+    }
+  } else {
+    els.detail.style.transform = "";
+  }
+  void els.detail.offsetHeight;
+  els.detail.style.transition = "";
+}
+
+function scheduleReframe() {
+  clearTimeout(reframeTimer);
+  reframeTimer = setTimeout(() => {
+    if (mapReady && selectedId) fitToRoutes([routeById.get(selectedId)], true);
+  }, 60);
+}
+
+function onTransitionEndOnce(el, fn) {
+  const handler = (ev) => {
+    if (ev.target !== el) return;
+    el.removeEventListener("transitionend", handler);
+    fn();
+  };
+  el.addEventListener("transitionend", handler);
 }
 
 // ---- Results list + filter refresh --------------------------------------
@@ -362,10 +651,10 @@ function refresh() {
   const filtered = applyFilters(routeFeatures);
   if (mapReady) map.getSource("routes-points").setData(pointsFC(filtered));
   renderResults(filtered);
-  // If the selected route fell out of the filter, drop the selection.
+  // If the selected route fell out of the filter, drop the selection and close
+  // the detail surface.
   if (selectedId && !filtered.some((f) => f.properties.id === selectedId)) {
-    clearSelection();
-    document.getElementById("detail").classList.remove("is-open");
+    closeDetail();
   }
 }
 
