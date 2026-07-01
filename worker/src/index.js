@@ -423,7 +423,8 @@ async function adminPage(request, env) {
   const events = await loadEventList(env);
   const routeOpts = await routeOptions(env);
   return new Response(adminHtml(results || [], events, routeOpts), {
-    headers: { "Content-Type": "text/html; charset=utf-8" },
+    // Never cache the admin panel — always reflect the latest deploy + data.
+    headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
   });
 }
 
