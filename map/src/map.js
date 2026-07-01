@@ -276,6 +276,9 @@ function selectRoute(id, fly) {
   }
 
   selectedId = id;
+  // Selecting from the results list on a phone leaves the filters drawer over
+  // the map; collapse it so the map + detail sheet are visible.
+  collapseSidebarOnMobile();
   // openDetail opens the sheet at peek and frames the route above it (with the
   // correct dynamic padding). Framing here would use stale padding, so we let
   // the sheet own the camera.
@@ -688,19 +691,29 @@ function highlightResult(id) {
 }
 
 // ---- Sidebar toggle (mobile) --------------------------------------------
+let setSidebarOpen = () => {}; // assigned in setupSidebarToggle
+
 function setupSidebarToggle() {
   const sidebar = document.getElementById("sidebar");
   const toggle = document.getElementById("sidebar-toggle");
   const close = document.getElementById("sidebar-close");
   // Mobile: the panel is closed by default (CSS) so the map shows first.
-  const setOpen = (open) => {
+  setSidebarOpen = (open) => {
     sidebar.classList.toggle("is-open", open);
     toggle.setAttribute("aria-expanded", String(open));
   };
   toggle.addEventListener("click", () =>
-    setOpen(!sidebar.classList.contains("is-open"))
+    setSidebarOpen(!sidebar.classList.contains("is-open"))
   );
-  if (close) close.addEventListener("click", () => setOpen(false));
+  if (close) close.addEventListener("click", () => setSidebarOpen(false));
+}
+
+// On phones the filters drawer overlays the map, so collapse it when a route
+// is picked — otherwise the drawer covers the map and the new detail sheet.
+// Only applies in the mobile overlay range; the docked sidebar (tablet/desktop)
+// doesn't block anything and stays put.
+function collapseSidebarOnMobile() {
+  if (window.matchMedia("(max-width: 720px)").matches) setSidebarOpen(false);
 }
 
 // ---- Helpers -------------------------------------------------------------
