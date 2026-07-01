@@ -318,9 +318,12 @@ async function submitUpload(e) {
 
     const ride = await api("/rides", { method: "POST", body: fd });
     closeUpload();
-    show("diary-panel");
+    // Ink on a clear map so the draw-on is actually visible, THEN open the
+    // rides drawer (which on a phone covers most of the screen). If there's no
+    // geometry the animation no-ops and we fall straight through to the panel.
     inkAnimation(ride.geometry, async () => {
       await loadDiaryLayer();
+      show("diary-panel");
     });
   } catch (err) {
     $("upload-error").textContent = err.message || "Upload failed.";
@@ -332,10 +335,12 @@ async function submitUpload(e) {
 }
 
 /* ---------------- ink animation (cinematic draw-on) ----------------
-   Reveal the ride slowly with line-trim-offset (GPU-smooth — no per-frame
-   expression recompile, which is what made the old gradient version glitch),
-   and ride the camera along the route as it inks so you relive the ride:
-   zoom to the start → follow the inking head → pull back to the whole route. */
+   Reveal the ride by *growing* the line one frame at a time: each frame we
+   re-set the source to the coordinates from the start up to the current head.
+   This animates on every MapLibre version (line-trim-offset wasn't reliably
+   animatable here, so the line just appeared all at once). The camera rides
+   along with the head so you relive the ride: zoom to the start → follow the
+   inking head → pull back to the whole route. */
 function inkAnimation(geometry, done) {
   const finish = () => done && done();
   if (!map || !geometry || !geometry.coordinates || geometry.coordinates.length < 2) {
@@ -343,14 +348,19 @@ function inkAnimation(geometry, done) {
   }
   const coords = geometry.coordinates;
 
-  // Cumulative along-route distance, used to walk the camera at a steady pace.
+  // Cumulative along-route distance, used to walk the head at a steady pace.
   const cum = [0];
   for (let i = 1; i < coords.length; i++) cum.push(cum[i - 1] + segKm(coords[i - 1], coords[i]));
   const totalKm = cum[cum.length - 1] || 0;
 
-  const data = { type: "Feature", geometry, properties: {} };
-  if (map.getSource("diary-ink")) map.getSource("diary-ink").setData(data);
-  else map.addSource("diary-ink", { type: "geojson", data, lineMetrics: true });
+  const lineFeature = (cs) => ({
+    type: "Feature",
+    geometry: { type: "LineString", coordinates: cs },
+    properties: {},
+  });
+  const seed = lineFeature([coords[0], coords[0]]); // valid 2-point start
+  if (map.getSource("diary-ink")) map.getSource("diary-ink").setData(seed);
+  else map.addSource("diary-ink", { type: "geojson", data: seed });
 
   const before = map.getLayer(COMMUNITY_LAYER) ? COMMUNITY_LAYER : undefined;
   if (!map.getLayer("diary-ink")) {
@@ -360,12 +370,7 @@ function inkAnimation(geometry, done) {
         type: "line",
         source: "diary-ink",
         layout: { "line-cap": "round", "line-join": "round" },
-        paint: {
-          "line-color": OCHRE,
-          "line-width": 3.5,
-          // [start, end] hides that fraction of the line; [t, 1] reveals 0..t.
-          "line-trim-offset": [0, 1],
-        },
+        paint: { "line-color": OCHRE, "line-width": 3.5 },
       },
       before
     );
@@ -397,12 +402,14 @@ function inkAnimation(geometry, done) {
     if (started) return;
     started = true;
     clearTimeout(kick);
+    const src = map.getSource("diary-ink");
     const start = performance.now();
     (function frame(now) {
       const lin = Math.min(1, (now - start) / DUR);
       const t = easeInOut(lin);
-      map.setPaintProperty("diary-ink", "line-trim-offset", [t, 1]);
-      map.setCenter(pointAt(coords, cum, totalKm, t));
+      const drawn = sliceAt(coords, cum, totalKm, t);
+      if (src) src.setData(lineFeature(drawn));
+      map.setCenter(drawn[drawn.length - 1]); // camera rides the inking head
       if (lin < 1) return requestAnimationFrame(frame);
       // Phase 3: pull back to reveal the whole inked route, then hand off.
       let ended = false;
@@ -429,17 +436,27 @@ function segKm(a, b) {
   const dLng = (((b[0] - a[0]) * Math.PI) / 180) * Math.cos(((a[1] + b[1]) / 2 * Math.PI) / 180);
   return Math.sqrt(dLat * dLat + dLng * dLng) * R;
 }
-// Point at along-route fraction `frac` (0..1), interpolated between vertices.
-function pointAt(coords, cum, total, frac) {
-  if (!total) return coords[0];
+// Coordinates from the start up to along-route fraction `frac` (0..1), with the
+// final vertex interpolated so the head advances smoothly between GPX points.
+// Always returns at least two points so it's a valid LineString.
+function sliceAt(coords, cum, total, frac) {
+  if (frac <= 0 || !total) return [coords[0], coords[0]];
+  if (frac >= 1) return coords.slice();
   const target = frac * total;
+  const out = [coords[0]];
   let i = 1;
-  while (i < cum.length && cum[i] < target) i++;
-  if (i >= cum.length) return coords[coords.length - 1];
-  const span = cum[i] - cum[i - 1] || 1e-9;
-  const r = (target - cum[i - 1]) / span;
-  const a = coords[i - 1], b = coords[i];
-  return [a[0] + (b[0] - a[0]) * r, a[1] + (b[1] - a[1]) * r];
+  while (i < cum.length && cum[i] < target) {
+    out.push(coords[i]);
+    i++;
+  }
+  if (i < coords.length) {
+    const span = cum[i] - cum[i - 1] || 1e-9;
+    const r = (target - cum[i - 1]) / span;
+    const a = coords[i - 1], b = coords[i];
+    out.push([a[0] + (b[0] - a[0]) * r, a[1] + (b[1] - a[1]) * r]);
+  }
+  if (out.length < 2) out.push(out[out.length - 1]);
+  return out;
 }
 function boundsOf(coords) {
   let minX = 180, minY = 90, maxX = -180, maxY = -90;
