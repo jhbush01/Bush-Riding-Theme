@@ -160,36 +160,12 @@
           <button id="detail-download" class="button button--primary">Download GPX</button>
         </div>
 
-        <!-- EVENT header: full-bleed hero + series + subtitle -->
+        <!-- EVENT header = the compact card. No hero here, so the peek view
+             stays short (route visible) and the CTA is reachable immediately.
+             The hero appears only when the card is expanded to full. -->
         <div class="evt-header for-event">
-          <div class="evt__hero">
-            <img id="evt-hero" class="evt__hero-img" alt="" />
-          </div>
-          <div class="evt__headline">
-            <p class="sheet__label">Community Bush Ride</p>
-            <h2 id="evt-subtitle" class="evt__subtitle"></h2>
-          </div>
-        </div>
-      </div>
-
-      <!-- Revealed as the sheet expands to half / full. -->
-      <div id="detail-scroll" class="sheet__scroll">
-        <!-- ROUTE body -->
-        <div class="for-route">
-          <dl class="sheet__stats">
-            <div><dt>Surface</dt><dd id="detail-surface"></dd></div>
-            <div><dt>Last ridden</dt><dd id="detail-lastridden"></dd></div>
-            <div><dt>Vetted by</dt><dd id="detail-vetted"></dd></div>
-          </dl>
-          <p id="detail-description" class="sheet__desc"></p>
-          <p class="sheet__disclaimer">
-            A guide only. Conditions, gates and access change — check before you ride, and ride
-            at your own risk.
-          </p>
-        </div>
-
-        <!-- EVENT body -->
-        <div class="for-event evt-body">
+          <p class="sheet__label">Community Bush Ride</p>
+          <h2 id="evt-subtitle" class="evt__subtitle"></h2>
           <p id="evt-datetime" class="evt__datetime"></p>
           <p class="evt__meeting">
             <svg class="evt__pin-icon" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
@@ -210,8 +186,30 @@
           </div>
           <p class="evt__happened for-past">This ride happened.</p>
           <a id="evt-cta" class="button button--primary evt__cta for-upcoming" target="_blank" rel="noopener noreferrer">Join the ride on Strava</a>
+        </div>
+      </div>
 
-          <!-- Full-state content -->
+      <!-- Revealed as the sheet expands to half / full. -->
+      <div id="detail-scroll" class="sheet__scroll">
+        <!-- ROUTE body -->
+        <div class="for-route">
+          <dl class="sheet__stats">
+            <div><dt>Surface</dt><dd id="detail-surface"></dd></div>
+            <div><dt>Last ridden</dt><dd id="detail-lastridden"></dd></div>
+            <div><dt>Vetted by</dt><dd id="detail-vetted"></dd></div>
+          </dl>
+          <p id="detail-description" class="sheet__desc"></p>
+          <p class="sheet__disclaimer">
+            A guide only. Conditions, gates and access change — check before you ride, and ride
+            at your own risk.
+          </p>
+        </div>
+
+        <!-- EVENT body: hero (full-state only) + editorial detail. -->
+        <div class="for-event evt-body">
+          <div class="evt__hero for-full">
+            <img id="evt-hero" class="evt__hero-img" alt="" />
+          </div>
           <p id="evt-description" class="sheet__desc evt__desc for-upcoming"></p>
           <div class="evt__kit for-upcoming">
             <p class="sheet__label">What to wear</p>

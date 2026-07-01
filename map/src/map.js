@@ -84,39 +84,47 @@ async function loadCommunityRoutes() {
   }
 }
 
-// Load event base data (static geojson) and apply Worker overrides for the
-// two admin-editable fields (interested_count, status). Failure is non-fatal.
+// Load events. The Worker (admin-managed) is the source of truth; the static
+// events.geojson is the offline fallback / initial seed. Non-fatal either way.
 async function loadEvents() {
+  const api = (CONFIG.communityApi || "").replace(/\/$/, "");
+  if (api) {
+    try {
+      const res = await fetch(api + "/events?t=" + Date.now(), {
+        cache: "no-store",
+        signal: AbortSignal.timeout(6000),
+      });
+      if (res.ok) {
+        const fc = await res.json();
+        const feats = (fc.features || []).filter((f) => f.geometry && f.geometry.type === "Point");
+        if (feats.length) {
+          setEventFeatures(feats);
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn("Worker events unavailable, using static seed:", e.message);
+    }
+  }
   try {
     const data = await fetch("data/events.geojson").then((r) => r.json());
-    eventFeatures = (data.features || []).filter(
-      (f) => f.geometry && f.geometry.type === "Point"
-    );
-    eventFeatures.forEach((f) => eventById.set(f.properties.id, f));
+    setEventFeatures((data.features || []).filter((f) => f.geometry && f.geometry.type === "Point"));
   } catch (e) {
     console.warn("Could not load events.geojson:", e.message);
-    return;
   }
+}
 
-  const api = (CONFIG.communityApi || "").replace(/\/$/, "");
-  if (!api) return;
-  try {
-    const res = await fetch(api + "/events?t=" + Date.now(), {
-      cache: "no-store",
-      signal: AbortSignal.timeout(6000),
-    });
-    if (!res.ok) return;
-    const body = await res.json();
-    const overrides = (body && body.overrides) || {};
-    for (const f of eventFeatures) {
-      const o = overrides[f.properties.id];
-      if (!o) continue;
-      if (o.interested_count != null) f.properties.interested_count = o.interested_count;
-      if (o.status) f.properties.status = o.status;
-    }
-  } catch (e) {
-    console.warn("Event overrides unavailable:", e.message);
-  }
+function setEventFeatures(feats) {
+  eventFeatures = feats;
+  eventById.clear();
+  eventFeatures.forEach((f) => eventById.set(f.properties.id, f));
+}
+
+// Resolve a hero reference: a full URL (Worker upload / external) is used as-is;
+// a bare filename is served from the site's public/ folder (static seed).
+function resolveHero(ref) {
+  if (!ref) return "";
+  return /^https?:\/\//i.test(ref) ? ref : "public/" + ref;
 }
 
 // Wire everything that does NOT depend on the map being up.
@@ -715,7 +723,9 @@ function openEventDetail(feature) {
         : { type: "FeatureCollection", features: [] }
     );
   }
-  openSheet("half");
+  // Open compact (peek): the card shows title → CTA without the hero, so the
+  // route stays visible on the map. Sliding to full reveals the hero + detail.
+  openSheet("peek");
 }
 
 // Shared open logic for both content modes.
@@ -811,7 +821,7 @@ function fillEventDetail(feature) {
     }
   };
   hero.alt = p.subtitle || p.name || "";
-  hero.src = p.hero_image ? "public/" + p.hero_image : (route && route.properties.photo_url) || "";
+  hero.src = resolveHero(p.hero_image) || (route && route.properties.photo_url) || "";
   if (!hero.getAttribute("src")) hero.hidden = true;
 
   setText("evt-subtitle", p.subtitle || "");
@@ -957,8 +967,8 @@ function resyncSurfaceForMode() {
   if (detailOpen) {
     if (isSheetMode()) {
       els.detail.style.transform = "";
-      // Events sit at half; routes at peek.
-      setSheetState(detailMode === "event" ? "half" : "peek", { animate: false });
+      // Both modes open compact at peek; the event card just carries more.
+      setSheetState("peek", { animate: false });
     } else {
       els.detail.style.transform = "";
       sheetState = "full";

@@ -1114,32 +1114,40 @@ textarea.field-input {
   display: none !important;
 }
 
-/* ---- Event header (in the drag zone) ---- */
-/* Full-bleed hero: drop the drag-zone padding in event mode. */
-.sheet[data-mode="event"] .sheet__drag {
-  padding: 0;
-}
-/* Handle + close float over the hero for contrast. */
-.sheet[data-mode="event"] .sheet__handle {
-  position: absolute;
-  top: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 3;
-  background: rgba(255, 255, 255, 0.85);
-}
-.sheet[data-mode="event"] .sheet__close {
-  background: rgba(28, 26, 21, 0.4);
-  border-color: transparent;
-  color: #fff;
+/* Content shown only when the card is expanded to full (or on desktop, where
+   the panel is always "full"). Keeps the peek/half view compact — the hero
+   stays hidden until the rider slides the card all the way up. */
+.sheet[data-mode="event"]:not([data-state="full"]) .for-full {
+  display: none !important;
 }
 
+/* ---- Event header = the compact card (in the drag zone) ---- */
+.evt-header {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  padding-top: 2px;
+}
+.evt-header .sheet__label {
+  margin: 0;
+}
+.evt__subtitle {
+  margin: 0;
+  font-family: var(--head-font);
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 1.06;
+}
+
+/* ---- Hero (in the scroll zone, full-state only): contained + rounded ---- */
 .evt__hero {
   position: relative;
   width: 100%;
   height: 190px;
-  background: var(--sage);
+  border-radius: 12px;
   overflow: hidden;
+  background: var(--sage);
+  margin-bottom: 2px;
 }
 .evt__hero-img {
   position: absolute;
@@ -1148,16 +1156,6 @@ textarea.field-input {
   height: 100%;
   object-fit: cover;
   display: block;
-}
-.evt__headline {
-  padding: 14px 20px 4px;
-}
-.evt__subtitle {
-  margin: 0;
-  font-family: var(--head-font);
-  font-size: 30px;
-  font-weight: 400;
-  line-height: 1.05;
 }
 
 /* ---- Event body (in the scroll zone) ---- */

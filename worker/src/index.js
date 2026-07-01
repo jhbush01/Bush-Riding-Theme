@@ -3,11 +3,12 @@
 //   POST /submit        public: accept a GPX submission (status=pending)
 //   GET  /routes        public: approved community routes as GeoJSON (for the map)
 //   GET  /file/<key>    public: serve a stored GPX/photo from R2
-//   GET  /events        public: Community Bush Ride event overrides (count/status)
-//   GET  /admin         private: Basic-auth moderation page (routes + events)
+//   GET  /events        public: Community Bush Ride events as GeoJSON
+//   GET  /admin         private: Basic-auth admin page (routes + events)
 //   POST /admin/action  private: approve / reject / remove a submission
 //   POST /admin/edit    private: edit a published route's metadata in place
-//   POST /admin/event   private: set an event's interested_count / status
+//   POST /admin/event/save    private: create or edit an event
+//   POST /admin/event/delete  private: delete an event
 //
 // Bindings (wrangler.jsonc): DB (D1), BUCKET (R2).
 // Secret: ADMIN_TOKEN (the admin password).
@@ -28,12 +29,13 @@ export default {
     try {
       if (url.pathname === "/submit" && request.method === "POST") return submit(request, env, cors);
       if (url.pathname === "/routes" && request.method === "GET") return routes(env, cors);
-      if (url.pathname === "/events" && request.method === "GET") return eventsOverrides(env, cors);
+      if (url.pathname === "/events" && request.method === "GET") return eventsEndpoint(env, cors);
       if (url.pathname.startsWith("/file/") && request.method === "GET") return serveFile(url, env, cors);
       if (url.pathname === "/admin" && request.method === "GET") return adminPage(request, env);
       if (url.pathname === "/admin/action" && request.method === "POST") return adminAction(request, env);
       if (url.pathname === "/admin/edit" && request.method === "POST") return adminEdit(request, env);
-      if (url.pathname === "/admin/event" && request.method === "POST") return adminEvent(request, env);
+      if (url.pathname === "/admin/event/save" && request.method === "POST") return adminEventSave(request, env);
+      if (url.pathname === "/admin/event/delete" && request.method === "POST") return adminEventDelete(request, env);
       return json({ error: "Not found" }, 404, cors);
     } catch (err) {
       return json({ error: err.message || "Server error" }, 500, cors);
@@ -144,106 +146,222 @@ async function routes(env, cors) {
 }
 
 /* ---------------- Community Bush Ride events ----------------
-   Base event data lives in the site's data/events.geojson (edited in the
-   repo). The Worker only stores the two admin-editable fields as overrides so
-   the map can reflect count/status changes without a redeploy. */
+   Events are stored in D1 and managed from /admin (create / edit / delete),
+   mirroring the route moderation flow. data/events.geojson in the repo is only
+   an initial seed (loaded once into D1) and the front-end's offline fallback. */
+const EVENT_COLS = [
+  "id", "name", "subtitle", "date_iso", "date_display", "time", "meeting_point",
+  "pace", "strava_url", "interested_count", "route_id", "description", "kit_note",
+  "hero_key", "hero_ref", "status", "lng", "lat", "updated_at",
+];
+
 async function ensureEventsTable(env) {
   await env.DB.prepare(
-    `CREATE TABLE IF NOT EXISTS event_overrides (
+    `CREATE TABLE IF NOT EXISTS events (
        id TEXT PRIMARY KEY,
-       interested_count INTEGER,
-       status TEXT,
-       updated_at TEXT
+       name TEXT, subtitle TEXT, date_iso TEXT, date_display TEXT, time TEXT,
+       meeting_point TEXT, pace TEXT, strava_url TEXT, interested_count INTEGER,
+       route_id TEXT, description TEXT, kit_note TEXT, hero_key TEXT, hero_ref TEXT,
+       status TEXT, lng REAL, lat REAL, updated_at TEXT
      )`
   ).run();
 }
 
-// Public: overrides keyed by event id. The front-end merges these onto the
-// static events.geojson. No-store so admin edits appear immediately.
-async function eventsOverrides(env, cors) {
-  await ensureEventsTable(env);
-  const { results } = await env.DB.prepare(
-    "SELECT id, interested_count, status FROM event_overrides"
-  ).all();
-  const overrides = {};
-  for (const r of results || []) {
-    const o = {};
-    if (r.interested_count != null) o.interested_count = r.interested_count;
-    if (r.status) o.status = r.status;
-    overrides[r.id] = o;
-  }
-  return json({ overrides }, 200, { ...cors, "Cache-Control": "no-store" });
+function eventUpsertSql() {
+  const set = EVENT_COLS.filter((c) => c !== "id")
+    .map((c) => `${c}=excluded.${c}`)
+    .join(", ");
+  return `INSERT INTO events (${EVENT_COLS.join(", ")})
+          VALUES (${EVENT_COLS.map(() => "?").join(", ")})
+          ON CONFLICT(id) DO UPDATE SET ${set}`;
 }
 
-// Admin: set interested_count and/or status for one event (upsert override).
-async function adminEvent(request, env) {
+async function upsertEvent(env, e) {
+  const vals = EVENT_COLS.map((c) => (c === "updated_at" ? new Date().toISOString() : e[c] ?? null));
+  await env.DB.prepare(eventUpsertSql()).bind(...vals).run();
+}
+
+// Seed D1 from the site's events.geojson the first time (empty table). Resolves
+// each event's route by name against published community routes when possible.
+async function seedEventsIfEmpty(env) {
+  const row = await env.DB.prepare("SELECT COUNT(*) AS n FROM events").first();
+  if (row && row.n > 0) return;
+  const site = (env.SITE_URL || "https://bushridingmap.com").replace(/\/$/, "");
+  let fc;
+  try {
+    const res = await fetch(site + "/data/events.geojson", { cf: { cacheTtl: 0 } });
+    if (!res.ok) return;
+    fc = await res.json();
+  } catch {
+    return;
+  }
+  for (const f of fc.features || []) {
+    const p = f.properties || {};
+    const c = (f.geometry && f.geometry.coordinates) || [0, 0];
+    let routeId = p.route_id || "";
+    if (p.route_name) {
+      const r = await env.DB.prepare(
+        "SELECT id FROM submissions WHERE name=? AND status='published' LIMIT 1"
+      )
+        .bind(p.route_name)
+        .first();
+      if (r) routeId = r.id;
+    }
+    await upsertEvent(env, {
+      id: p.id || "cbr-" + rand(6),
+      name: p.name || "Community Bush Ride",
+      subtitle: p.subtitle || "",
+      date_iso: p.date_iso || "",
+      date_display: p.date_display || "",
+      time: p.time || "",
+      meeting_point: p.meeting_point || "",
+      pace: p.pace || "",
+      strava_url: p.strava_url || "",
+      interested_count: p.interested_count ?? 0,
+      route_id: routeId,
+      description: p.description || "",
+      kit_note: p.kit_note || "",
+      hero_key: null,
+      hero_ref: p.hero_image || "",
+      status: p.status === "past" ? "past" : "upcoming",
+      lng: c[0],
+      lat: c[1],
+    });
+  }
+}
+
+function eventFeature(r, base) {
+  const heroBase = (base || "").replace(/\/$/, "");
+  return {
+    type: "Feature",
+    geometry: { type: "Point", coordinates: [r.lng, r.lat] },
+    properties: {
+      id: r.id,
+      name: r.name,
+      subtitle: r.subtitle,
+      date_iso: r.date_iso,
+      date_display: r.date_display,
+      time: r.time,
+      meeting_point: r.meeting_point,
+      pace: r.pace,
+      strava_url: r.strava_url,
+      interested_count: r.interested_count ?? 0,
+      route_id: r.route_id,
+      description: r.description,
+      kit_note: r.kit_note,
+      status: r.status || "upcoming",
+      hero_image: r.hero_key ? `${heroBase}/file/${r.hero_key}` : r.hero_ref || "",
+    },
+  };
+}
+
+// Public: all events as a GeoJSON FeatureCollection. No-store so admin edits
+// show on the map immediately.
+async function eventsEndpoint(env, cors) {
+  await ensureEventsTable(env);
+  await seedEventsIfEmpty(env);
+  const { results } = await env.DB.prepare("SELECT * FROM events ORDER BY date_iso").all();
+  const base = (env.PUBLIC_URL || "").replace(/\/$/, "");
+  const features = (results || []).map((r) => eventFeature(r, base));
+  return json({ type: "FeatureCollection", features }, 200, { ...cors, "Cache-Control": "no-store" });
+}
+
+// Admin: create or edit an event (multipart form). An empty id creates a new
+// event; the hero image is optional (upload to R2, or a filename/URL in
+// hero_ref). Existing hero is preserved when neither is supplied.
+async function adminEventSave(request, env) {
   if (!requireAuth(request, env)) return authChallenge();
   await ensureEventsTable(env);
   const form = await request.formData();
-  const id = (form.get("id") || "").toString().trim();
-  if (!id) return json({ error: "Missing id" }, 400, corsHeaders());
+  const subtitle = (form.get("subtitle") || "").toString().trim().slice(0, 120);
+  let id = (form.get("id") || "").toString().trim();
+  if (!id) id = "cbr-" + slug(subtitle || "event") + "-" + rand(4);
 
-  const cur = await env.DB.prepare(
-    "SELECT interested_count, status FROM event_overrides WHERE id=?"
-  )
-    .bind(id)
-    .first();
-  let count = cur ? cur.interested_count : null;
-  let status = cur ? cur.status : null;
-
-  if (form.has("interested_count")) {
-    const n = parseInt(form.get("interested_count"), 10);
-    if (Number.isFinite(n) && n >= 0) count = n;
+  const cur = await env.DB.prepare("SELECT hero_key, hero_ref FROM events WHERE id=?").bind(id).first();
+  let heroKey = cur ? cur.hero_key : null;
+  let heroRef = cur ? cur.hero_ref : "";
+  const refInput = (form.get("hero_ref") || "").toString().trim();
+  if (refInput) {
+    heroRef = refInput;
+    heroKey = null; // an explicit reference replaces a prior upload
   }
-  const s = (form.get("status") || "").toString();
-  if (s === "upcoming" || s === "past") status = s;
+  const heroFile = form.get("hero");
+  if (heroFile && typeof heroFile.arrayBuffer === "function" && heroFile.size > 0) {
+    if (heroFile.size > MAX_PHOTO) return json({ error: "Image too large (max 6 MB)." }, 400, corsHeaders());
+    const type = heroFile.type || "image/jpeg";
+    if (!/^image\//.test(type)) return json({ error: "Hero must be an image." }, 400, corsHeaders());
+    heroKey = `events/${id}.${type.includes("png") ? "png" : "jpg"}`;
+    await env.BUCKET.put(heroKey, await heroFile.arrayBuffer(), { httpMetadata: { contentType: type } });
+    heroRef = ""; // upload wins
+  }
 
-  await env.DB.prepare(
-    `INSERT INTO event_overrides (id, interested_count, status, updated_at)
-       VALUES (?, ?, ?, ?)
-     ON CONFLICT(id) DO UPDATE SET
-       interested_count = excluded.interested_count,
-       status = excluded.status,
-       updated_at = excluded.updated_at`
-  )
-    .bind(id, count, status, new Date().toISOString())
-    .run();
-
+  const lng = parseFloat(form.get("lng"));
+  const lat = parseFloat(form.get("lat"));
+  const count = parseInt(form.get("interested_count"), 10);
+  await upsertEvent(env, {
+    id,
+    name: (form.get("name") || "Community Bush Ride").toString().trim().slice(0, 80),
+    subtitle,
+    date_iso: (form.get("date_iso") || "").toString().trim(),
+    date_display: (form.get("date_display") || "").toString().trim().slice(0, 80),
+    time: (form.get("time") || "").toString().trim().slice(0, 40),
+    meeting_point: (form.get("meeting_point") || "").toString().trim().slice(0, 160),
+    pace: (form.get("pace") || "").toString().trim().slice(0, 160),
+    strava_url: (form.get("strava_url") || "").toString().trim().slice(0, 400),
+    interested_count: Number.isFinite(count) && count >= 0 ? count : 0,
+    route_id: (form.get("route_id") || "").toString().trim(),
+    description: (form.get("description") || "").toString().trim().slice(0, 2000),
+    kit_note: (form.get("kit_note") || "").toString().trim().slice(0, 400),
+    hero_key: heroKey,
+    hero_ref: heroRef,
+    status: (form.get("status") || "upcoming").toString() === "past" ? "past" : "upcoming",
+    lng: Number.isFinite(lng) ? lng : 0,
+    lat: Number.isFinite(lat) ? lat : 0,
+  });
   return new Response(null, { status: 303, headers: { Location: "/admin" } });
 }
 
-// Merge the static event list (fetched from the site) with stored overrides so
-// the admin page can list every event with its effective count/status.
+async function adminEventDelete(request, env) {
+  if (!requireAuth(request, env)) return authChallenge();
+  await ensureEventsTable(env);
+  const form = await request.formData();
+  const id = (form.get("id") || "").toString();
+  const row = await env.DB.prepare("SELECT hero_key FROM events WHERE id=?").bind(id).first();
+  if (row && row.hero_key) await env.BUCKET.delete(row.hero_key);
+  await env.DB.prepare("DELETE FROM events WHERE id=?").bind(id).run();
+  return new Response(null, { status: 303, headers: { Location: "/admin" } });
+}
+
+// Full event rows for the admin page.
 async function loadEventList(env) {
   await ensureEventsTable(env);
-  const { results } = await env.DB.prepare(
-    "SELECT id, interested_count, status FROM event_overrides"
-  ).all();
-  const ov = {};
-  for (const r of results || []) ov[r.id] = r;
+  await seedEventsIfEmpty(env);
+  const { results } = await env.DB.prepare("SELECT * FROM events ORDER BY date_iso").all();
+  return results || [];
+}
 
-  const site = (env.SITE_URL || "https://bushridingmap.com").replace(/\/$/, "");
-  let base = [];
+// Route <select> options for the admin event form: community (D1) + curated.
+async function routeOptions(env) {
+  const opts = [];
   try {
-    const res = await fetch(site + "/data/events.geojson", { cf: { cacheTtl: 0 } });
+    const { results } = await env.DB.prepare(
+      "SELECT id, name FROM submissions WHERE status='published' ORDER BY name"
+    ).all();
+    for (const r of results || []) opts.push({ id: r.id, name: `${r.name} (community)` });
+  } catch {
+    /* ignore */
+  }
+  const site = (env.SITE_URL || "https://bushridingmap.com").replace(/\/$/, "");
+  try {
+    const res = await fetch(site + "/data/routes.geojson", { cf: { cacheTtl: 0 } });
     if (res.ok) {
       const fc = await res.json();
-      base = (fc.features || []).map((f) => f.properties);
+      for (const f of fc.features || []) opts.push({ id: f.properties.id, name: `${f.properties.name} (curated)` });
     }
   } catch {
-    /* site unreachable — the section will show a hint */
+    /* ignore */
   }
-  return base.map((p) => {
-    const o = ov[p.id] || {};
-    return {
-      id: p.id,
-      subtitle: p.subtitle || p.id,
-      date_display: p.date_display || "",
-      interested_count: o.interested_count != null ? o.interested_count : p.interested_count ?? 0,
-      status: o.status || p.status || "upcoming",
-      overridden: !!ov[p.id],
-    };
-  });
+  return opts;
 }
 
 /* ---------------- Public: serve a stored file ---------------- */
@@ -278,7 +396,8 @@ async function adminPage(request, env) {
        FROM submissions ORDER BY (status='pending') DESC, created_at DESC`
   ).all();
   const events = await loadEventList(env);
-  return new Response(adminHtml(results || [], events), {
+  const routeOpts = await routeOptions(env);
+  return new Response(adminHtml(results || [], events, routeOpts), {
     headers: { "Content-Type": "text/html; charset=utf-8" },
   });
 }
@@ -408,29 +527,61 @@ function coordsSvg(coordsJson) {
   return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><polyline points="${pts}" fill="none" stroke="#234a25" stroke-width="2"/></svg>`;
 }
 
-function adminHtml(rows, events = []) {
+function adminHtml(rows, events = [], routeOpts = []) {
   const pending = rows.filter((r) => r.status === "pending").length;
+  const routeSelect = (sel) =>
+    `<select name="route_id"><option value="">— none —</option>${routeOpts
+      .map((o) => `<option value="${esc(o.id)}"${o.id === sel ? " selected" : ""}>${esc(o.name)}</option>`)
+      .join("")}${
+      sel && !routeOpts.some((o) => o.id === sel)
+        ? `<option value="${esc(sel)}" selected>${esc(sel)} (current)</option>`
+        : ""
+    }</select>`;
+  // One form covers both create (blank id) and edit (existing event).
+  const eventForm = (e) => {
+    const v = (k) => esc(e[k] != null ? String(e[k]) : "");
+    const isNew = !e.id;
+    return `
+      <form method="POST" action="/admin/event/save" enctype="multipart/form-data" class="editform" style="margin-top:0">
+        <input type="hidden" name="id" value="${v("id")}" />
+        <label>Ride name (subtitle)<input name="subtitle" value="${v("subtitle")}" required /></label>
+        <label>Status
+          <select name="status">
+            ${["upcoming", "past"]
+              .map((s) => `<option value="${s}"${e.status === s ? " selected" : ""}>${s}</option>`)
+              .join("")}
+          </select>
+        </label>
+        <label>Date (ISO)<input name="date_iso" type="date" value="${v("date_iso")}" /></label>
+        <label>Date (display)<input name="date_display" value="${v("date_display")}" placeholder="Saturday 2 August" /></label>
+        <label>Time<input name="time" value="${v("time")}" placeholder="6:30am" /></label>
+        <label>Meeting point<input name="meeting_point" value="${v("meeting_point")}" /></label>
+        <label>Meet lng<input name="lng" type="number" step="any" value="${v("lng")}" /></label>
+        <label>Meet lat<input name="lat" type="number" step="any" value="${v("lat")}" /></label>
+        <label>Route ${routeSelect(e.route_id || "")}</label>
+        <label>Interested<input name="interested_count" type="number" min="0" value="${e.interested_count ?? 0}" /></label>
+        <label class="full">Strava event URL<input name="strava_url" value="${v("strava_url")}" placeholder="https://strava.app.link/…" /></label>
+        <label class="full">Pace<input name="pace" value="${v("pace")}" /></label>
+        <label class="full">Kit note<input name="kit_note" value="${v("kit_note")}" /></label>
+        <label class="full">Description<textarea name="description" rows="3">${v("description")}</textarea></label>
+        <label>Hero image (upload)<input name="hero" type="file" accept="image/*" /></label>
+        <label>…or image filename/URL<input name="hero_ref" placeholder="leave blank to keep current" /></label>
+        <button class="ok" type="submit">${isNew ? "Create event" : "Save changes"}</button>
+      </form>`;
+  };
   const eventCard = (e) => `
     <article class="card ${esc(e.status)}">
       <div class="meta">
-        <h3>${esc(e.subtitle)} <span class="badge">${esc(e.status)}</span></h3>
-        <p class="sub">${esc(e.date_display)} · ${e.interested_count} interested${
-          e.overridden ? ' · <em>edited</em>' : ""
-        }</p>
-        <div class="actions">
-          <form method="POST" action="/admin/event" class="inline">
-            <input type="hidden" name="id" value="${esc(e.id)}" />
-            <label class="mini">Interested
-              <input type="number" name="interested_count" min="0" value="${e.interested_count}" />
-            </label>
-            <button class="ok" type="submit">Save count</button>
-          </form>
-          <form method="POST" action="/admin/event" class="inline">
-            <input type="hidden" name="id" value="${esc(e.id)}" />
-            <input type="hidden" name="status" value="${e.status === "past" ? "upcoming" : "past"}" />
-            <button type="submit">${e.status === "past" ? "Mark upcoming" : "Mark as past"}</button>
-          </form>
-        </div>
+        <h3>${esc(e.subtitle) || esc(e.id)} <span class="badge">${esc(e.status)}</span></h3>
+        <p class="sub">${esc(e.date_display)} · ${e.interested_count ?? 0} interested · route: ${esc(e.route_id) || "—"}</p>
+        <details class="edit">
+          <summary>Edit event</summary>
+          ${eventForm(e)}
+        </details>
+        <form method="POST" action="/admin/event/delete" class="actions" style="margin-top:8px">
+          <input type="hidden" name="id" value="${esc(e.id)}" />
+          <button name="delete" value="1" class="danger" onclick="return confirm('Delete this event?')">Delete event</button>
+        </form>
       </div>
     </article>`;
   const card = (r) => `
@@ -513,10 +664,17 @@ function adminHtml(rows, events = []) {
 <h2 class="section">Routes</h2>
 <main>${rows.length ? rows.map(card).join("") : "<p>No submissions yet.</p>"}</main>
 <h2 class="section">Events</h2>
-<main>${
-    events.length
-      ? events.map(eventCard).join("")
-      : "<p>No events found. Check that data/events.geojson is deployed and SITE_URL is set on the Worker.</p>"
-  }</main>
+<main>
+  <article class="card upcoming">
+    <div class="meta">
+      <h3>New event</h3>
+      <details class="edit">
+        <summary>Create event</summary>
+        ${eventForm({ status: "upcoming", interested_count: 0 })}
+      </details>
+    </div>
+  </article>
+  ${events.length ? events.map(eventCard).join("") : "<p>No events yet — create one above.</p>"}
+</main>
 </body></html>`;
 }

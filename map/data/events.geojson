@@ -8,45 +8,22 @@
         "coordinates": [152.8231, -27.1969]
       },
       "properties": {
-        "id": "cbr-mount-mee-aug-2026",
+        "id": "cbr-range-road-ridge-ride",
         "name": "Community Bush Ride",
-        "subtitle": "Mount Mee Forest Run",
+        "subtitle": "Range Road Ridge Ride",
         "date_iso": "2026-08-15",
         "date_display": "Saturday 15 August",
         "time": "6:30am",
-        "meeting_point": "Dayboro Bakery carpark",
+        "meeting_point": "Meeting point — set in admin",
         "pace": "Social pace. No one gets dropped.",
-        "strava_url": "https://www.strava.com/clubs/1108239/group_events/2043117",
-        "interested_count": 14,
-        "route_id": "mount-mee-forest-run",
-        "description": "The winter big one. We roll out of Dayboro just after first light, spin the valley flats to warm the legs, then hit the forestry climbs up onto the Mount Mee plateau. Regroups at every junction, a coffee-and-scroll stop at the top, and a long loose descent back down the range. Expect a solid morning out — steady climbing, big views west over the Brisbane Valley, and no one left behind.",
-        "kit_note": "This one climbs hard — bring a light layer for the descent off the range.",
-        "hero_image": "cbr-mount-mee-aug-2026.jpg",
+        "strava_url": "https://strava.app.link/O6iybPbyp4b",
+        "interested_count": 0,
+        "route_id": "range-road-ridge-ride",
+        "route_name": "Range Road Ridge Ride",
+        "description": "Placeholder — edit the details in the admin panel.",
+        "kit_note": "Bring a light layer for the ridge.",
+        "hero_image": "",
         "status": "upcoming"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [152.8556, -26.3676]
-      },
-      "properties": {
-        "id": "cbr-pomona-jun-2026",
-        "name": "Community Bush Ride",
-        "subtitle": "Pomona Weekend Gravel",
-        "date_iso": "2026-06-06",
-        "date_display": "Saturday 6 June",
-        "time": "7:00am",
-        "meeting_point": "Pomona Railway Station",
-        "pace": "Social pace. No one gets dropped.",
-        "strava_url": "https://www.strava.com/clubs/1108239/group_events/1998204",
-        "interested_count": 22,
-        "route_id": "pomona-weekend-gravel",
-        "description": "A relaxed hinterland spin out of Pomona — quiet gravel back roads, a creek crossing or two, and a bakery finish. This ride has already happened; it stays on the map as part of the record.",
-        "kit_note": "Mostly flat and fast. Bring a vest for the early start.",
-        "hero_image": "cbr-pomona-jun-2026.jpg",
-        "status": "past"
       }
     }
   ]
