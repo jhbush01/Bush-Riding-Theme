@@ -133,14 +133,18 @@
       </svg>
     </button>
 
-    <!-- Selected-route detail surface: bottom sheet (mobile/tablet) or inset
-         floating panel (desktop). Snap states are driven by map.js. -->
-    <section id="detail" class="sheet" aria-hidden="true" aria-label="Route detail" data-state="closed">
-      <!-- Drag zone = the peek content. Everything here stays visible in peek. -->
+    <!-- Detail surface: bottom sheet (mobile/tablet) or inset floating panel
+         (desktop). Snap states driven by map.js. One node, two content modes:
+         data-mode="route" (route detail) and data-mode="event" (Community Bush
+         Ride event). Only one is ever open — .for-route / .for-event toggle. -->
+    <section id="detail" class="sheet" aria-hidden="true" aria-label="Route detail" data-state="closed" data-mode="route">
+      <!-- Drag zone = the always-visible header. Grab here to move the sheet. -->
       <div id="detail-drag" class="sheet__drag">
         <span class="sheet__handle" aria-hidden="true"></span>
-        <button id="detail-close" class="sheet__close" aria-label="Close route detail">&times;</button>
-        <div class="sheet__peek">
+        <button id="detail-close" class="sheet__close" aria-label="Close">&times;</button>
+
+        <!-- ROUTE header -->
+        <div class="sheet__peek for-route">
           <img id="detail-photo" class="sheet__thumb" alt="" hidden />
           <div class="sheet__head">
             <h2 id="detail-name" class="sheet__name"></h2>
@@ -152,23 +156,72 @@
             </ul>
           </div>
         </div>
-        <div class="sheet__action">
+        <div class="sheet__action for-route">
           <button id="detail-download" class="button button--primary">Download GPX</button>
+        </div>
+
+        <!-- EVENT header: full-bleed hero + series + subtitle -->
+        <div class="evt-header for-event">
+          <div class="evt__hero">
+            <img id="evt-hero" class="evt__hero-img" alt="" />
+          </div>
+          <div class="evt__headline">
+            <p class="sheet__label">Community Bush Ride</p>
+            <h2 id="evt-subtitle" class="evt__subtitle"></h2>
+          </div>
         </div>
       </div>
 
       <!-- Revealed as the sheet expands to half / full. -->
       <div id="detail-scroll" class="sheet__scroll">
-        <dl class="sheet__stats">
-          <div><dt>Surface</dt><dd id="detail-surface"></dd></div>
-          <div><dt>Last ridden</dt><dd id="detail-lastridden"></dd></div>
-          <div><dt>Vetted by</dt><dd id="detail-vetted"></dd></div>
-        </dl>
-        <p id="detail-description" class="sheet__desc"></p>
-        <p class="sheet__disclaimer">
-          A guide only. Conditions, gates and access change — check before you ride, and ride
-          at your own risk.
-        </p>
+        <!-- ROUTE body -->
+        <div class="for-route">
+          <dl class="sheet__stats">
+            <div><dt>Surface</dt><dd id="detail-surface"></dd></div>
+            <div><dt>Last ridden</dt><dd id="detail-lastridden"></dd></div>
+            <div><dt>Vetted by</dt><dd id="detail-vetted"></dd></div>
+          </dl>
+          <p id="detail-description" class="sheet__desc"></p>
+          <p class="sheet__disclaimer">
+            A guide only. Conditions, gates and access change — check before you ride, and ride
+            at your own risk.
+          </p>
+        </div>
+
+        <!-- EVENT body -->
+        <div class="for-event evt-body">
+          <p id="evt-datetime" class="evt__datetime"></p>
+          <p class="evt__meeting">
+            <svg class="evt__pin-icon" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+              <path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z" fill="none" stroke="currentColor" stroke-width="2"/>
+              <circle cx="12" cy="9" r="2.5" fill="none" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            <span id="evt-meeting"></span>
+          </p>
+          <button id="evt-route-pill" class="evt__pill" type="button">
+            <span class="evt__pill-label">Route</span>
+            <span id="evt-route-name" class="evt__pill-name"></span>
+            <span id="evt-route-meta" class="evt__pill-meta"></span>
+          </button>
+          <p id="evt-pace" class="evt__pace for-upcoming"></p>
+          <div class="evt__interest for-upcoming">
+            <img class="evt__flame" src="https://cdn.simpleicons.org/strava" alt="" width="16" height="16" />
+            <span id="evt-interest"></span>
+          </div>
+          <p class="evt__happened for-past">This ride happened.</p>
+          <a id="evt-cta" class="button button--primary evt__cta for-upcoming" target="_blank" rel="noopener noreferrer">Join the ride on Strava</a>
+
+          <!-- Full-state content -->
+          <p id="evt-description" class="sheet__desc evt__desc for-upcoming"></p>
+          <div class="evt__kit for-upcoming">
+            <p class="sheet__label">What to wear</p>
+            <p id="evt-kit" class="evt__kit-text"></p>
+          </div>
+          <div class="evt__routeshape for-upcoming" aria-hidden="true">
+            <span class="evt__routeshape-label">Route shape</span>
+            <svg id="evt-routeshape-svg" class="evt__routeshape-svg" viewBox="0 0 240 120" preserveAspectRatio="xMidYMid meet"></svg>
+          </div>
+        </div>
       </div>
     </section>
 

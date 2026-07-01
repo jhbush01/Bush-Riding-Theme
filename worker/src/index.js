@@ -3,11 +3,15 @@
 //   POST /submit        public: accept a GPX submission (status=pending)
 //   GET  /routes        public: approved community routes as GeoJSON (for the map)
 //   GET  /file/<key>    public: serve a stored GPX/photo from R2
-//   GET  /admin         private: Basic-auth moderation page
+//   GET  /events        public: Community Bush Ride event overrides (count/status)
+//   GET  /admin         private: Basic-auth moderation page (routes + events)
 //   POST /admin/action  private: approve / reject / remove a submission
+//   POST /admin/edit    private: edit a published route's metadata in place
+//   POST /admin/event   private: set an event's interested_count / status
 //
 // Bindings (wrangler.jsonc): DB (D1), BUCKET (R2).
-// Secret: ADMIN_TOKEN (the admin password). Var: ALLOWED_ORIGINS, PUBLIC_URL.
+// Secret: ADMIN_TOKEN (the admin password).
+// Vars: ALLOWED_ORIGINS, PUBLIC_URL, SITE_URL (map site, for the admin events list).
 
 import { parseGpx } from "./gpx.js";
 
@@ -24,10 +28,12 @@ export default {
     try {
       if (url.pathname === "/submit" && request.method === "POST") return submit(request, env, cors);
       if (url.pathname === "/routes" && request.method === "GET") return routes(env, cors);
+      if (url.pathname === "/events" && request.method === "GET") return eventsOverrides(env, cors);
       if (url.pathname.startsWith("/file/") && request.method === "GET") return serveFile(url, env, cors);
       if (url.pathname === "/admin" && request.method === "GET") return adminPage(request, env);
       if (url.pathname === "/admin/action" && request.method === "POST") return adminAction(request, env);
       if (url.pathname === "/admin/edit" && request.method === "POST") return adminEdit(request, env);
+      if (url.pathname === "/admin/event" && request.method === "POST") return adminEvent(request, env);
       return json({ error: "Not found" }, 404, cors);
     } catch (err) {
       return json({ error: err.message || "Server error" }, 500, cors);
@@ -137,6 +143,109 @@ async function routes(env, cors) {
   });
 }
 
+/* ---------------- Community Bush Ride events ----------------
+   Base event data lives in the site's data/events.geojson (edited in the
+   repo). The Worker only stores the two admin-editable fields as overrides so
+   the map can reflect count/status changes without a redeploy. */
+async function ensureEventsTable(env) {
+  await env.DB.prepare(
+    `CREATE TABLE IF NOT EXISTS event_overrides (
+       id TEXT PRIMARY KEY,
+       interested_count INTEGER,
+       status TEXT,
+       updated_at TEXT
+     )`
+  ).run();
+}
+
+// Public: overrides keyed by event id. The front-end merges these onto the
+// static events.geojson. No-store so admin edits appear immediately.
+async function eventsOverrides(env, cors) {
+  await ensureEventsTable(env);
+  const { results } = await env.DB.prepare(
+    "SELECT id, interested_count, status FROM event_overrides"
+  ).all();
+  const overrides = {};
+  for (const r of results || []) {
+    const o = {};
+    if (r.interested_count != null) o.interested_count = r.interested_count;
+    if (r.status) o.status = r.status;
+    overrides[r.id] = o;
+  }
+  return json({ overrides }, 200, { ...cors, "Cache-Control": "no-store" });
+}
+
+// Admin: set interested_count and/or status for one event (upsert override).
+async function adminEvent(request, env) {
+  if (!requireAuth(request, env)) return authChallenge();
+  await ensureEventsTable(env);
+  const form = await request.formData();
+  const id = (form.get("id") || "").toString().trim();
+  if (!id) return json({ error: "Missing id" }, 400, corsHeaders());
+
+  const cur = await env.DB.prepare(
+    "SELECT interested_count, status FROM event_overrides WHERE id=?"
+  )
+    .bind(id)
+    .first();
+  let count = cur ? cur.interested_count : null;
+  let status = cur ? cur.status : null;
+
+  if (form.has("interested_count")) {
+    const n = parseInt(form.get("interested_count"), 10);
+    if (Number.isFinite(n) && n >= 0) count = n;
+  }
+  const s = (form.get("status") || "").toString();
+  if (s === "upcoming" || s === "past") status = s;
+
+  await env.DB.prepare(
+    `INSERT INTO event_overrides (id, interested_count, status, updated_at)
+       VALUES (?, ?, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET
+       interested_count = excluded.interested_count,
+       status = excluded.status,
+       updated_at = excluded.updated_at`
+  )
+    .bind(id, count, status, new Date().toISOString())
+    .run();
+
+  return new Response(null, { status: 303, headers: { Location: "/admin" } });
+}
+
+// Merge the static event list (fetched from the site) with stored overrides so
+// the admin page can list every event with its effective count/status.
+async function loadEventList(env) {
+  await ensureEventsTable(env);
+  const { results } = await env.DB.prepare(
+    "SELECT id, interested_count, status FROM event_overrides"
+  ).all();
+  const ov = {};
+  for (const r of results || []) ov[r.id] = r;
+
+  const site = (env.SITE_URL || "https://bushridingmap.com").replace(/\/$/, "");
+  let base = [];
+  try {
+    const res = await fetch(site + "/data/events.geojson", { cf: { cacheTtl: 0 } });
+    if (res.ok) {
+      const fc = await res.json();
+      base = (fc.features || []).map((f) => f.properties);
+    }
+  } catch {
+    /* site unreachable — the section will show a hint */
+  }
+  return base.map((p) => {
+    const o = ov[p.id] || {};
+    return {
+      id: p.id,
+      subtitle: p.subtitle || p.id,
+      date_display: p.date_display || "",
+      interested_count: o.interested_count != null ? o.interested_count : p.interested_count ?? 0,
+      status: o.status || p.status || "upcoming",
+      overridden: !!ov[p.id],
+    };
+  });
+}
+
 /* ---------------- Public: serve a stored file ---------------- */
 async function serveFile(url, env, cors) {
   const key = decodeURIComponent(url.pathname.replace(/^\/file\//, ""));
@@ -168,7 +277,8 @@ async function adminPage(request, env) {
             elevation_gain_m, description, contributor, email, coords, created_at
        FROM submissions ORDER BY (status='pending') DESC, created_at DESC`
   ).all();
-  return new Response(adminHtml(results || []), {
+  const events = await loadEventList(env);
+  return new Response(adminHtml(results || [], events), {
     headers: { "Content-Type": "text/html; charset=utf-8" },
   });
 }
@@ -298,8 +408,31 @@ function coordsSvg(coordsJson) {
   return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><polyline points="${pts}" fill="none" stroke="#234a25" stroke-width="2"/></svg>`;
 }
 
-function adminHtml(rows) {
+function adminHtml(rows, events = []) {
   const pending = rows.filter((r) => r.status === "pending").length;
+  const eventCard = (e) => `
+    <article class="card ${esc(e.status)}">
+      <div class="meta">
+        <h3>${esc(e.subtitle)} <span class="badge">${esc(e.status)}</span></h3>
+        <p class="sub">${esc(e.date_display)} · ${e.interested_count} interested${
+          e.overridden ? ' · <em>edited</em>' : ""
+        }</p>
+        <div class="actions">
+          <form method="POST" action="/admin/event" class="inline">
+            <input type="hidden" name="id" value="${esc(e.id)}" />
+            <label class="mini">Interested
+              <input type="number" name="interested_count" min="0" value="${e.interested_count}" />
+            </label>
+            <button class="ok" type="submit">Save count</button>
+          </form>
+          <form method="POST" action="/admin/event" class="inline">
+            <input type="hidden" name="id" value="${esc(e.id)}" />
+            <input type="hidden" name="status" value="${e.status === "past" ? "upcoming" : "past"}" />
+            <button type="submit">${e.status === "past" ? "Mark upcoming" : "Mark as past"}</button>
+          </form>
+        </div>
+      </div>
+    </article>`;
   const card = (r) => `
     <article class="card ${esc(r.status)}">
       <div class="shape">${coordsSvg(r.coords)}</div>
@@ -350,6 +483,8 @@ function adminHtml(rows) {
   .card.published{border-left:4px solid #234a25}
   .card.pending{border-left:4px solid #d7a21a}
   .card.rejected{opacity:.6}
+  .card.upcoming{border-left:4px solid #c1572e}
+  .card.past{opacity:.6;border-left:4px solid #8f8a7e}
   .shape{flex:0 0 160px}
   .meta{flex:1}
   h3{margin:0 0 4px;font-size:16px}
@@ -358,6 +493,10 @@ function adminHtml(rows) {
   .desc{margin:0 0 6px;font-size:13px}
   .by{margin:0 0 10px;color:#8a8068;font-size:12px}
   .actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .actions .inline{display:flex;gap:8px;align-items:flex-end}
+  .mini{display:flex;flex-direction:column;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:#8a8068;gap:3px}
+  .mini input{font:inherit;font-size:13px;padding:5px 7px;border:1px solid #d8cfb8;border-radius:3px;width:80px}
+  h2.section{max-width:760px;margin:26px auto 6px;padding:0 20px;font-size:15px;color:#6f7c53;text-transform:uppercase;letter-spacing:.06em}
   button{font:inherit;font-size:13px;padding:6px 12px;border:1px solid #2c2a24;background:#fff;border-radius:3px;cursor:pointer}
   button.ok{background:#234a25;color:#fff;border-color:#234a25}
   button.danger{border-color:#9b3a2f;color:#9b3a2f}
@@ -370,7 +509,14 @@ function adminHtml(rows) {
   .editform input,.editform select,.editform textarea{font:inherit;font-size:13px;padding:6px 8px;border:1px solid #d8cfb8;border-radius:3px;color:#2c2a24;background:#fff;text-transform:none;letter-spacing:0}
   .editform button{grid-column:1 / -1;justify-self:start}
 </style></head><body>
-<header><h1>Bush Riding — Route Moderation</h1><div class="count">${pending} pending · ${rows.length} total</div></header>
+<header><h1>Bush Riding — Moderation</h1><div class="count">${pending} pending · ${rows.length} routes · ${events.length} events</div></header>
+<h2 class="section">Routes</h2>
 <main>${rows.length ? rows.map(card).join("") : "<p>No submissions yet.</p>"}</main>
+<h2 class="section">Events</h2>
+<main>${
+    events.length
+      ? events.map(eventCard).join("")
+      : "<p>No events found. Check that data/events.geojson is deployed and SITE_URL is set on the Worker.</p>"
+  }</main>
 </body></html>`;
 }

@@ -11,7 +11,10 @@
     "ALLOWED_ORIGINS": "https://bushridingmap.com,https://www.bushridingmap.com",
     // Public base URL of THIS worker (used to build gpx_url/photo_url).
     // The worker's own public URL (used to build gpx_url/photo_url).
-    "PUBLIC_URL": "https://api.bushridingmap.com"
+    "PUBLIC_URL": "https://api.bushridingmap.com",
+    // The map SITE base URL. The admin Events section reads the base event
+    // list from `${SITE_URL}/data/events.geojson`. Defaults to this if unset.
+    "SITE_URL": "https://bushridingmap.com"
   },
 
   "d1_databases": [

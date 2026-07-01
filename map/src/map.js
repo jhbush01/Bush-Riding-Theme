@@ -12,6 +12,10 @@ const LEMON = "#d7e04b";
 const ROUTE_LINE = "#234a25";
 const OLIVE = "#6f7c53";
 const SAGE = "#aeb995";
+// Community Bush Ride event accent — deep terracotta so event pins win the
+// visual hierarchy over route pins. Past events render muted grey.
+const TERRACOTTA = "#c1572e";
+const EVENT_PAST = "#8f8a7e";
 
 let map;
 let mapReady = false;
@@ -19,6 +23,10 @@ let routeFeatures = []; // full LineString features
 const routeById = new Map();
 let selectedId = null;
 let requestDownload; // from gate
+
+// Community Bush Ride events (additive; separate source, never filtered).
+let eventFeatures = [];
+const eventById = new Map();
 
 init();
 
@@ -37,6 +45,11 @@ async function init() {
   // Merge in approved community submissions (additive; failure is non-fatal so
   // the curated map always works even if the Worker is down).
   await loadCommunityRoutes();
+
+  // Community Bush Ride events (additive, separate source). Base data lives in
+  // data/events.geojson; the Worker supplies interested_count / status
+  // overrides. Both are non-fatal — the map works without either.
+  await loadEvents();
 
   initUI();
 
@@ -68,6 +81,41 @@ async function loadCommunityRoutes() {
     }
   } catch (e) {
     console.warn("Community routes unavailable:", e.message);
+  }
+}
+
+// Load event base data (static geojson) and apply Worker overrides for the
+// two admin-editable fields (interested_count, status). Failure is non-fatal.
+async function loadEvents() {
+  try {
+    const data = await fetch("data/events.geojson").then((r) => r.json());
+    eventFeatures = (data.features || []).filter(
+      (f) => f.geometry && f.geometry.type === "Point"
+    );
+    eventFeatures.forEach((f) => eventById.set(f.properties.id, f));
+  } catch (e) {
+    console.warn("Could not load events.geojson:", e.message);
+    return;
+  }
+
+  const api = (CONFIG.communityApi || "").replace(/\/$/, "");
+  if (!api) return;
+  try {
+    const res = await fetch(api + "/events?t=" + Date.now(), {
+      cache: "no-store",
+      signal: AbortSignal.timeout(6000),
+    });
+    if (!res.ok) return;
+    const body = await res.json();
+    const overrides = (body && body.overrides) || {};
+    for (const f of eventFeatures) {
+      const o = overrides[f.properties.id];
+      if (!o) continue;
+      if (o.interested_count != null) f.properties.interested_count = o.interested_count;
+      if (o.status) f.properties.status = o.status;
+    }
+  } catch (e) {
+    console.warn("Event overrides unavailable:", e.message);
   }
 }
 
@@ -199,10 +247,24 @@ function onLoad() {
     },
   });
 
+  // Community Bush Ride event pins — added AFTER route layers so they render
+  // above route lines and pins (always tappable when overlapping). Isolated so
+  // an event-layer failure can never break the core route map.
+  try {
+    setupEventLayers();
+  } catch (e) {
+    console.error("Event layers failed to initialise; routes still work.", e);
+  }
+
   mapReady = true;
   // The camera is already framed on the routes via the constructor's bounds;
   // no need to re-fit here (which caused a visible jump on load).
   wireInteractions();
+  try {
+    wireEventInteractions();
+  } catch (e) {
+    console.error("Event interactions failed to wire.", e);
+  }
 
   // Sync pins to the current filter state, and (re)draw a selection made
   // before the map finished loading.
@@ -254,6 +316,163 @@ function wireInteractions() {
     map.on("mouseenter", layer, () => (map.getCanvas().style.cursor = "pointer"));
     map.on("mouseleave", layer, () => (map.getCanvas().style.cursor = ""));
   }
+
+  // Tap the bare map (not a pin/cluster/event/diary line) to dismiss the sheet.
+  map.on("click", (e) => {
+    if (!detailOpen) return;
+    const hitLayers = ["unclustered", "clusters", "event-hit", "diary-lines"].filter((l) =>
+      map.getLayer(l)
+    );
+    const hits = hitLayers.length ? map.queryRenderedFeatures(e.point, { layers: hitLayers }) : [];
+    if (!hits.length) closeDetail();
+  });
+}
+
+// ---- Community Bush Ride event pins --------------------------------------
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function setupEventLayers() {
+  if (!eventFeatures.length) return;
+
+  map.addSource("community-events", {
+    type: "geojson",
+    data: eventsFC(),
+    // No clustering: event pins always render individually.
+  });
+
+  // Outer pulse ring (upcoming only). Radius/opacity animated via rAF below;
+  // under reduced motion it stays a static ring.
+  map.addLayer({
+    id: "event-pulse",
+    type: "circle",
+    source: "community-events",
+    filter: ["==", ["get", "status"], "upcoming"],
+    paint: {
+      "circle-color": TERRACOTTA,
+      "circle-radius": reduceMotion ? 20 : 14,
+      "circle-opacity": reduceMotion ? 0.18 : 0.35,
+      "circle-stroke-width": 0,
+    },
+  });
+
+  // Inner filled anchor circle. Past events: muted grey at reduced opacity.
+  map.addLayer({
+    id: "event-core",
+    type: "circle",
+    source: "community-events",
+    paint: {
+      "circle-radius": 10,
+      "circle-color": ["match", ["get", "status"], "past", EVENT_PAST, TERRACOTTA],
+      "circle-opacity": ["match", ["get", "status"], "past", 0.4, 1],
+      "circle-stroke-width": 2,
+      "circle-stroke-color": "#ffffff",
+      "circle-stroke-opacity": ["match", ["get", "status"], "past", 0.4, 1],
+    },
+  });
+
+  // White flag icon centered on the core. Fall back to no icon (the filled
+  // circle still reads as a pin) if the image can't be added.
+  let hasIcon = false;
+  try {
+    if (!map.hasImage("event-flag")) map.addImage("event-flag", makeFlagIcon(), { pixelRatio: 2 });
+    hasIcon = true;
+  } catch (e) {
+    console.warn("Event icon unavailable; using plain marker.", e.message);
+  }
+  if (hasIcon) {
+    map.addLayer({
+      id: "event-icon",
+      type: "symbol",
+      source: "community-events",
+      layout: {
+        "icon-image": "event-flag",
+        "icon-size": 0.5,
+        "icon-allow-overlap": true,
+        "icon-ignore-placement": true,
+      },
+      paint: { "icon-opacity": ["match", ["get", "status"], "past", 0.4, 1] },
+    });
+  }
+
+  // Invisible, generously sized hit target so pins stay easy to tap even while
+  // the pulse ring is mid-fade.
+  map.addLayer({
+    id: "event-hit",
+    type: "circle",
+    source: "community-events",
+    paint: { "circle-radius": 22, "circle-color": TERRACOTTA, "circle-opacity": 0 },
+  });
+
+  startPulse();
+}
+
+// FeatureCollection for the event source (Point features, current status).
+function eventsFC() {
+  return {
+    type: "FeatureCollection",
+    features: eventFeatures.map((f) => ({
+      type: "Feature",
+      geometry: f.geometry,
+      properties: { id: f.properties.id, status: f.properties.status || "upcoming" },
+    })),
+  };
+}
+
+// A small white flag drawn to a canvas, returned as ImageData for addImage.
+function makeFlagIcon() {
+  const s = 44; // 2x of ~22px
+  const c = document.createElement("canvas");
+  c.width = s;
+  c.height = s;
+  const x = c.getContext("2d");
+  x.strokeStyle = "#fff";
+  x.fillStyle = "#fff";
+  x.lineWidth = 3;
+  x.lineCap = "round";
+  x.lineJoin = "round";
+  x.beginPath(); // pole
+  x.moveTo(16, 9);
+  x.lineTo(16, 35);
+  x.stroke();
+  x.beginPath(); // pennant
+  x.moveTo(16, 10);
+  x.lineTo(34, 15.5);
+  x.lineTo(16, 21);
+  x.closePath();
+  x.fill();
+  return x.getImageData(0, 0, s, s);
+}
+
+// Pulse the outer ring: expand 14->28px and fade 0.35->0 over ~2s, looping.
+// Under reduced motion we leave the static ring set above and do nothing.
+function startPulse() {
+  if (reduceMotion) return;
+  if (!map.getLayer("event-pulse")) return;
+  const PERIOD = 2000;
+  const t0 = performance.now();
+  (function frame(now) {
+    if (!map.getLayer("event-pulse")) return; // layer gone (e.g. teardown)
+    if (!document.hidden) {
+      const t = ((now - t0) % PERIOD) / PERIOD; // 0..1
+      map.setPaintProperty("event-pulse", "circle-radius", 14 + 14 * t);
+      map.setPaintProperty("event-pulse", "circle-opacity", 0.35 * (1 - t));
+    }
+    requestAnimationFrame(frame);
+  })(t0);
+}
+
+function wireEventInteractions() {
+  // Bind to the invisible hit target plus the visible core/icon, so a tap
+  // registers regardless of where the pulse ring happens to be mid-animation.
+  const layers = ["event-hit", "event-core", "event-icon"].filter((l) => map.getLayer(l));
+  if (!layers.length) return;
+  map.on("click", layers, (e) => {
+    const id = e.features[0].properties.id;
+    const feature = eventById.get(id);
+    if (feature) openEventDetail(feature);
+  });
+  map.on("mouseenter", layers, () => (map.getCanvas().style.cursor = "pointer"));
+  map.on("mouseleave", layers, () => (map.getCanvas().style.cursor = ""));
 }
 
 // ---- Selection -----------------------------------------------------------
@@ -363,6 +582,7 @@ function fitToRoutes(features, animate) {
 
 // Snap states used in sheet mode. Desktop opens straight to "full".
 let detailOpen = false;
+let detailMode = "route"; // "route" | "event"
 let sheetState = "closed"; // "closed" | "peek" | "half" | "full"
 let drag = null; // active pointer-drag session
 let reframeTimer = null;
@@ -468,7 +688,38 @@ function setSheetState(state, { animate = true, reframe = true } = {}) {
 }
 
 function openDetail(feature) {
+  detailMode = "route";
+  els.detail.dataset.mode = "route";
+  els.detail.removeAttribute("data-event-status");
   fillDetail(feature);
+  // Route detail opens at peek (browsing), event detail opens at half.
+  openSheet("peek");
+}
+
+// Open a Community Bush Ride event in the same sheet, with event content and
+// opening straight to half state (events need quicker decision-making).
+function openEventDetail(feature) {
+  detailMode = "event";
+  els.detail.dataset.mode = "event";
+  fillEventDetail(feature);
+
+  // Show the linked route on the map (the sheet frames it). We reuse the
+  // selected-route line but don't highlight a route pin, so the event stays
+  // the focus. selectedId drives re-framing as the sheet snaps.
+  const route = routeById.get(feature.properties.route_id);
+  selectedId = route ? route.properties.id : null;
+  if (mapReady) {
+    map.getSource("selected-route").setData(
+      route
+        ? { type: "FeatureCollection", features: [{ type: "Feature", geometry: route.geometry, properties: {} }] }
+        : { type: "FeatureCollection", features: [] }
+    );
+  }
+  openSheet("half");
+}
+
+// Shared open logic for both content modes.
+function openSheet(initialState) {
   const first = !detailOpen;
   detailOpen = true;
   els.detail.classList.add("is-open");
@@ -476,12 +727,10 @@ function openDetail(feature) {
 
   if (isSheetMode()) {
     if (first) {
-      // Rise from off-screen to the peek state.
-      applySheetState("closed", false);
-      requestAnimationFrame(() => setSheetState("peek"));
+      applySheetState("closed", false); // start off-screen
+      requestAnimationFrame(() => setSheetState(initialState));
     } else {
-      // Re-selecting another route: return to peek per the interaction spec.
-      setSheetState("peek");
+      setSheetState(initialState);
     }
   } else {
     // Desktop inset panel: no translateY, CSS handles the slide-in.
@@ -540,10 +789,98 @@ function fillDetail(feature) {
     requestDownload({ id: p.id, gpx_url: p.gpx_url });
 }
 
+// Populate the event content. Past events render read-only (no CTA) via the
+// data-event-status attribute (CSS hides .for-upcoming, shows .for-past).
+function fillEventDetail(feature) {
+  const p = feature.properties;
+  const route = routeById.get(p.route_id);
+  const isPast = p.status === "past";
+  els.detail.dataset.eventStatus = isPast ? "past" : "upcoming";
+
+  // Hero — event image, falling back to the linked route's photo, then a
+  // styled (sage) block if neither loads.
+  const hero = els.detail.querySelector("#evt-hero");
+  hero.hidden = false;
+  hero.dataset.fellback = "";
+  hero.onerror = () => {
+    if (!hero.dataset.fellback && route && route.properties.photo_url) {
+      hero.dataset.fellback = "1";
+      hero.src = route.properties.photo_url;
+    } else {
+      hero.hidden = true; // leave the sage .evt__hero block
+    }
+  };
+  hero.alt = p.subtitle || p.name || "";
+  hero.src = p.hero_image ? "public/" + p.hero_image : (route && route.properties.photo_url) || "";
+  if (!hero.getAttribute("src")) hero.hidden = true;
+
+  setText("evt-subtitle", p.subtitle || "");
+  setText("evt-datetime", [p.date_display, p.time].filter(Boolean).join(" · "));
+  setText("evt-meeting", p.meeting_point || "");
+  setText("evt-pace", p.pace || "");
+  setText("evt-interest", `${p.interested_count ?? 0} rider${p.interested_count === 1 ? "" : "s"} interested`);
+  setText("evt-description", p.description || "");
+  setText("evt-kit", p.kit_note || "");
+
+  // Route pill — name + distance + terrain from routes.geojson; taps through to
+  // the route detail. Disabled if the linked route isn't present.
+  const pill = els.detail.querySelector("#evt-route-pill");
+  if (route) {
+    const rp = route.properties;
+    setText("evt-route-name", rp.name);
+    setText("evt-route-meta", `${rp.distance_km} km · ${cap(rp.terrain_difficulty)}`);
+    pill.disabled = false;
+    pill.onclick = () => selectRoute(rp.id, true);
+  } else {
+    setText("evt-route-name", p.route_id || "Route");
+    setText("evt-route-meta", "");
+    pill.disabled = true;
+    pill.onclick = null;
+  }
+
+  // CTA — Strava event, new tab.
+  const cta = els.detail.querySelector("#evt-cta");
+  cta.href = p.strava_url || "#";
+
+  // Route shape preview (full state) — simplified polyline of the linked route.
+  drawRouteShape(route);
+}
+
+// Draw a simplified polyline of the route into the event sheet's mini SVG.
+function drawRouteShape(route) {
+  const svg = els.detail.querySelector("#evt-routeshape-svg");
+  if (!svg) return;
+  svg.innerHTML = "";
+  const coords = route && route.geometry && route.geometry.coordinates;
+  if (!coords || coords.length < 2) return;
+  const W = 240, H = 120, pad = 12;
+  const xs = coords.map((c) => c[0]);
+  const ys = coords.map((c) => c[1]);
+  const minX = Math.min(...xs), maxX = Math.max(...xs);
+  const minY = Math.min(...ys), maxY = Math.max(...ys);
+  const sx = maxX - minX || 1e-6;
+  const sy = maxY - minY || 1e-6;
+  // Preserve aspect ratio and centre within the viewBox.
+  const scale = Math.min((W - 2 * pad) / sx, (H - 2 * pad) / sy);
+  const ox = (W - sx * scale) / 2;
+  const oy = (H - sy * scale) / 2;
+  const pts = coords
+    .map((c) => {
+      const x = ox + (c[0] - minX) * scale;
+      const y = H - (oy + (c[1] - minY) * scale); // invert lat for screen y
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
+  const poly = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+  poly.setAttribute("points", pts);
+  svg.appendChild(poly);
+}
+
 // ---- Drag gesture (sheet mode) -------------------------------------------
 function onDragStart(e) {
   if (!isSheetMode() || !detailOpen) return;
-  if (e.target.closest("button")) return; // let close / download taps through
+  // Let taps on controls (close, download, route pill, Strava CTA) through.
+  if (e.target.closest("button, a")) return;
   // In full state the content scrolls natively; only start a drag if the
   // scroller is already at the top (so a downward drag can collapse it).
   if (sheetState === "full" && els.scroll.scrollTop > 0) return;
@@ -620,7 +957,8 @@ function resyncSurfaceForMode() {
   if (detailOpen) {
     if (isSheetMode()) {
       els.detail.style.transform = "";
-      setSheetState("peek", { animate: false });
+      // Events sit at half; routes at peek.
+      setSheetState(detailMode === "event" ? "half" : "peek", { animate: false });
     } else {
       els.detail.style.transform = "";
       sheetState = "full";
@@ -655,8 +993,13 @@ function refresh() {
   if (mapReady) map.getSource("routes-points").setData(pointsFC(filtered));
   renderResults(filtered);
   // If the selected route fell out of the filter, drop the selection and close
-  // the detail surface.
-  if (selectedId && !filtered.some((f) => f.properties.id === selectedId)) {
+  // the detail surface. Event sheets are exempt — events aren't filtered, and
+  // an open event may reference a route that the current filter excludes.
+  if (
+    detailMode === "route" &&
+    selectedId &&
+    !filtered.some((f) => f.properties.id === selectedId)
+  ) {
     closeDetail();
   }
 }
