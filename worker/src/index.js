@@ -183,14 +183,36 @@ async function upsertEvent(env, e) {
 
 // Seed D1 from the site's events.geojson the first time (empty table). Resolves
 // each event's route by name against published community routes when possible.
+//
+// Seeding happens exactly ONCE (tracked by a marker), never "whenever the
+// table is empty" — otherwise deleting the last event would immediately
+// re-seed it from the geojson and the delete would never stick.
+async function ensureMetaTable(env) {
+  await env.DB.prepare(
+    "CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT)"
+  ).run();
+}
+
 async function seedEventsIfEmpty(env) {
+  await ensureMetaTable(env);
+  const marker = await env.DB.prepare("SELECT value FROM meta WHERE key='events_seeded'").first();
+  if (marker) return; // already seeded once — respect deletions, even to empty
+
+  // First run. If the table already holds events (seeded by the earlier
+  // version), just record the marker and don't re-seed.
   const row = await env.DB.prepare("SELECT COUNT(*) AS n FROM events").first();
-  if (row && row.n > 0) return;
+  if (row && row.n > 0) {
+    await env.DB.prepare(
+      "INSERT OR REPLACE INTO meta (key, value) VALUES ('events_seeded', '1')"
+    ).run();
+    return;
+  }
+
   const site = (env.SITE_URL || "https://bushridingmap.com").replace(/\/$/, "");
   let fc;
   try {
     const res = await fetch(site + "/data/events.geojson", { cf: { cacheTtl: 0 } });
-    if (!res.ok) return;
+    if (!res.ok) return; // don't set the marker; retry next time
     fc = await res.json();
   } catch {
     return;
@@ -228,6 +250,9 @@ async function seedEventsIfEmpty(env) {
       lat: c[1],
     });
   }
+  await env.DB.prepare(
+    "INSERT OR REPLACE INTO meta (key, value) VALUES ('events_seeded', '1')"
+  ).run();
 }
 
 function eventFeature(r, base) {
@@ -318,7 +343,7 @@ async function adminEventSave(request, env) {
     lng: Number.isFinite(lng) ? lng : 0,
     lat: Number.isFinite(lat) ? lat : 0,
   });
-  return new Response(null, { status: 303, headers: { Location: "/admin" } });
+  return new Response(null, { status: 303, headers: { Location: "/admin#events" } });
 }
 
 async function adminEventDelete(request, env) {
@@ -329,7 +354,7 @@ async function adminEventDelete(request, env) {
   const row = await env.DB.prepare("SELECT hero_key FROM events WHERE id=?").bind(id).first();
   if (row && row.hero_key) await env.BUCKET.delete(row.hero_key);
   await env.DB.prepare("DELETE FROM events WHERE id=?").bind(id).run();
-  return new Response(null, { status: 303, headers: { Location: "/admin" } });
+  return new Response(null, { status: 303, headers: { Location: "/admin#events" } });
 }
 
 // Full event rows for the admin page.
@@ -647,7 +672,10 @@ function adminHtml(rows, events = [], routeOpts = []) {
   .actions .inline{display:flex;gap:8px;align-items:flex-end}
   .mini{display:flex;flex-direction:column;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:#8a8068;gap:3px}
   .mini input{font:inherit;font-size:13px;padding:5px 7px;border:1px solid #d8cfb8;border-radius:3px;width:80px}
-  h2.section{max-width:760px;margin:26px auto 6px;padding:0 20px;font-size:15px;color:#6f7c53;text-transform:uppercase;letter-spacing:.06em}
+  .tabs{display:flex;gap:6px;margin-top:12px}
+  .tab{font:inherit;font-size:13px;font-weight:600;padding:8px 16px;border:1px solid #d8cfb8;background:#f4efe2;color:#6f7c53;border-radius:999px;cursor:pointer}
+  .tab.is-active{background:#234a25;border-color:#234a25;color:#fff}
+  .tabpanel[hidden]{display:none}
   button{font:inherit;font-size:13px;padding:6px 12px;border:1px solid #2c2a24;background:#fff;border-radius:3px;cursor:pointer}
   button.ok{background:#234a25;color:#fff;border-color:#234a25}
   button.danger{border-color:#9b3a2f;color:#9b3a2f}
@@ -660,11 +688,16 @@ function adminHtml(rows, events = [], routeOpts = []) {
   .editform input,.editform select,.editform textarea{font:inherit;font-size:13px;padding:6px 8px;border:1px solid #d8cfb8;border-radius:3px;color:#2c2a24;background:#fff;text-transform:none;letter-spacing:0}
   .editform button{grid-column:1 / -1;justify-self:start}
 </style></head><body>
-<header><h1>Bush Riding — Moderation</h1><div class="count">${pending} pending · ${rows.length} routes · ${events.length} events</div></header>
-<h2 class="section">Routes</h2>
-<main>${rows.length ? rows.map(card).join("") : "<p>No submissions yet.</p>"}</main>
-<h2 class="section">Events</h2>
-<main>
+<header>
+  <h1>Bush Riding — Admin</h1>
+  <div class="count">${pending} pending · ${rows.length} routes · ${events.length} events</div>
+  <nav class="tabs" role="tablist">
+    <button class="tab is-active" data-tab="routes" type="button">Route moderation</button>
+    <button class="tab" data-tab="events" type="button">Events</button>
+  </nav>
+</header>
+<main id="tab-routes" class="tabpanel">${rows.length ? rows.map(card).join("") : "<p>No submissions yet.</p>"}</main>
+<main id="tab-events" class="tabpanel" hidden>
   <article class="card upcoming">
     <div class="meta">
       <h3>New event</h3>
@@ -676,5 +709,22 @@ function adminHtml(rows, events = [], routeOpts = []) {
   </article>
   ${events.length ? events.map(eventCard).join("") : "<p>No events yet — create one above.</p>"}
 </main>
+<script>
+  (function () {
+    var tabs = document.querySelectorAll(".tab");
+    function show(name) {
+      tabs.forEach(function (t) { t.classList.toggle("is-active", t.dataset.tab === name); });
+      document.getElementById("tab-routes").hidden = name !== "routes";
+      document.getElementById("tab-events").hidden = name !== "events";
+    }
+    tabs.forEach(function (t) {
+      t.addEventListener("click", function () {
+        show(t.dataset.tab);
+        history.replaceState(null, "", t.dataset.tab === "events" ? "#events" : "#routes");
+      });
+    });
+    show(location.hash === "#events" ? "events" : "routes");
+  })();
+</script>
 </body></html>`;
 }
