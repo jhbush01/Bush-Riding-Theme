@@ -1121,12 +1121,18 @@ textarea.field-input {
   display: none !important;
 }
 
+/* In event mode the drag zone holds a full-bleed hero, so drop its padding and
+   let the card carry its own. */
+.sheet[data-mode="event"] .sheet__drag {
+  padding: 0;
+}
+
 /* ---- Event header = the compact card (in the drag zone) ---- */
 .evt-header {
   display: flex;
   flex-direction: column;
   gap: 11px;
-  padding-top: 2px;
+  padding: 8px 20px 4px;
 }
 .evt-header .sheet__label {
   margin: 0;
@@ -1139,15 +1145,14 @@ textarea.field-input {
   line-height: 1.06;
 }
 
-/* ---- Hero (in the scroll zone, full-state only): contained + rounded ---- */
+/* ---- Hero: full-bleed at the top of the card, shown only at full state.
+   The sheet's overflow:hidden clips its top corners to the rounded sheet. ---- */
 .evt__hero {
   position: relative;
   width: 100%;
-  height: 190px;
-  border-radius: 12px;
+  height: 200px;
   overflow: hidden;
   background: var(--sage);
-  margin-bottom: 2px;
 }
 .evt__hero-img {
   position: absolute;
@@ -1156,6 +1161,20 @@ textarea.field-input {
   height: 100%;
   object-fit: cover;
   display: block;
+}
+/* When the hero is showing (full state), the handle + close float over it. */
+.sheet[data-mode="event"][data-state="full"] .sheet__handle {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  background: rgba(255, 255, 255, 0.85);
+}
+.sheet[data-mode="event"][data-state="full"] .sheet__close {
+  background: rgba(28, 26, 21, 0.4);
+  border-color: transparent;
+  color: #fff;
 }
 
 /* ---- Event body (in the scroll zone) ---- */
@@ -1268,29 +1287,64 @@ textarea.field-input {
 }
 
 /* Route shape preview — simplified SVG of the linked route. */
-.evt__routeshape {
+/* ---- Route elevation profile (Strava/RWGPS-style, in our colours) ---- */
+.evt__elevation {
   margin-top: 2px;
 }
-.evt__routeshape-label {
-  display: block;
+.evt__elev-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
   margin-bottom: 6px;
+}
+.evt__elev-label {
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--ink-soft);
 }
-.evt__routeshape-svg {
+.evt__elev-note {
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+.evt__elev-svg {
+  display: block;
   width: 100%;
   height: 120px;
   background: #fbf8f0;
   border: 1px solid var(--line);
   border-radius: 4px;
 }
-.evt__routeshape-svg polyline {
+.evt__elev-area {
+  fill: rgba(193, 87, 46, 0.15);
+  stroke: none;
+}
+.evt__elev-line {
   fill: none;
   stroke: var(--terracotta);
-  stroke-width: 2.5;
-  stroke-linecap: round;
+  stroke-width: 2;
   stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.evt__elev-empty {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+/* ---- Desktop: give the event panel more room so it isn't a narrow strip. ---- */
+@media (min-width: 1025px) {
+  .sheet[data-mode="event"] {
+    width: 440px;
+    max-width: 40vw;
+  }
+  .sheet[data-mode="event"] .evt-header {
+    gap: 13px;
+    padding: 14px 24px 6px;
+  }
+  .sheet[data-mode="event"] .evt-body {
+    padding-left: 4px;
+    padding-right: 4px;
+  }
 }

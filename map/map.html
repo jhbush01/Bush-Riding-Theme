@@ -160,9 +160,14 @@
           <button id="detail-download" class="button button--primary">Download GPX</button>
         </div>
 
-        <!-- EVENT header = the compact card. No hero here, so the peek view
-             stays short (route visible) and the CTA is reachable immediately.
-             The hero appears only when the card is expanded to full. -->
+        <!-- EVENT hero: at the top of the card, but revealed only at full
+             state (mobile) / always on desktop. In the compact peek view it's
+             hidden so the route stays visible and the CTA is reachable. -->
+        <div class="evt__hero for-event for-full">
+          <img id="evt-hero" class="evt__hero-img" alt="" />
+        </div>
+
+        <!-- EVENT header = the compact card. -->
         <div class="evt-header for-event">
           <p class="sheet__label">Community Bush Ride</p>
           <h2 id="evt-subtitle" class="evt__subtitle"></h2>
@@ -205,19 +210,20 @@
           </p>
         </div>
 
-        <!-- EVENT body: hero (full-state only) + editorial detail. -->
+        <!-- EVENT body: editorial detail (revealed as the card expands). -->
         <div class="for-event evt-body">
-          <div class="evt__hero for-full">
-            <img id="evt-hero" class="evt__hero-img" alt="" />
-          </div>
           <p id="evt-description" class="sheet__desc evt__desc for-upcoming"></p>
           <div class="evt__kit for-upcoming">
             <p class="sheet__label">What to wear</p>
             <p id="evt-kit" class="evt__kit-text"></p>
           </div>
-          <div class="evt__routeshape for-upcoming" aria-hidden="true">
-            <span class="evt__routeshape-label">Route shape</span>
-            <svg id="evt-routeshape-svg" class="evt__routeshape-svg" viewBox="0 0 240 120" preserveAspectRatio="xMidYMid meet"></svg>
+          <div class="evt__elevation for-upcoming" aria-hidden="true">
+            <div class="evt__elev-head">
+              <span class="evt__elev-label">Route Elevation</span>
+              <span id="evt-elev-note" class="evt__elev-note"></span>
+            </div>
+            <svg id="evt-elevation-svg" class="evt__elev-svg" viewBox="0 0 240 120" preserveAspectRatio="none"></svg>
+            <p id="evt-elev-empty" class="evt__elev-empty" hidden>Elevation data isn't available for this route yet.</p>
           </div>
         </div>
       </div>

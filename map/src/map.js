@@ -852,38 +852,123 @@ function fillEventDetail(feature) {
   const cta = els.detail.querySelector("#evt-cta");
   cta.href = p.strava_url || "#";
 
-  // Route shape preview (full state) — simplified polyline of the linked route.
-  drawRouteShape(route);
+  // Elevation profile (full state) — parsed from the linked route's GPX.
+  drawElevation(route);
 }
 
-// Draw a simplified polyline of the route into the event sheet's mini SVG.
-function drawRouteShape(route) {
-  const svg = els.detail.querySelector("#evt-routeshape-svg");
+// ---- Route elevation profile ---------------------------------------------
+const elevCache = new Map(); // route id -> profile [{d, e}] | null
+
+// Fetch the linked route's GPX, parse an elevation profile, and draw it. Falls
+// back to a clear "unavailable" note if the GPX has no elevation (e.g. some
+// curated tracks) or can't be fetched.
+async function drawElevation(route) {
+  const svg = els.detail.querySelector("#evt-elevation-svg");
+  const note = els.detail.querySelector("#evt-elev-note");
+  const empty = els.detail.querySelector("#evt-elev-empty");
   if (!svg) return;
   svg.innerHTML = "";
-  const coords = route && route.geometry && route.geometry.coordinates;
-  if (!coords || coords.length < 2) return;
-  const W = 240, H = 120, pad = 12;
-  const xs = coords.map((c) => c[0]);
-  const ys = coords.map((c) => c[1]);
-  const minX = Math.min(...xs), maxX = Math.max(...xs);
-  const minY = Math.min(...ys), maxY = Math.max(...ys);
-  const sx = maxX - minX || 1e-6;
-  const sy = maxY - minY || 1e-6;
-  // Preserve aspect ratio and centre within the viewBox.
-  const scale = Math.min((W - 2 * pad) / sx, (H - 2 * pad) / sy);
-  const ox = (W - sx * scale) / 2;
-  const oy = (H - sy * scale) / 2;
-  const pts = coords
-    .map((c) => {
-      const x = ox + (c[0] - minX) * scale;
-      const y = H - (oy + (c[1] - minY) * scale); // invert lat for screen y
-      return `${x.toFixed(1)},${y.toFixed(1)}`;
-    })
-    .join(" ");
-  const poly = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
-  poly.setAttribute("points", pts);
-  svg.appendChild(poly);
+  if (note) note.textContent = "";
+  if (empty) empty.hidden = true;
+
+  const url = route && route.properties && route.properties.gpx_url;
+  if (!url) return showElevUnavailable(svg, empty);
+
+  const key = route.properties.id;
+  const token = key; // guard against a later selection resolving first
+  els.detail.dataset.elevToken = token;
+
+  let profile = elevCache.get(key);
+  if (profile === undefined) {
+    try {
+      const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+      profile = res.ok ? parseElevation(await res.text()) : null;
+    } catch {
+      profile = null;
+    }
+    elevCache.set(key, profile);
+  }
+  // If the user opened a different event while we were fetching, don't draw.
+  if (els.detail.dataset.elevToken !== token) return;
+  if (!profile) return showElevUnavailable(svg, empty);
+  renderElevation(svg, profile, note);
+}
+
+function showElevUnavailable(svg, empty) {
+  if (svg) svg.style.display = "none";
+  if (empty) empty.hidden = false;
+}
+
+// Parse GPX <trkpt> lat/lon/ele into a cumulative-distance elevation profile.
+function parseElevation(gpxText) {
+  let doc;
+  try {
+    doc = new DOMParser().parseFromString(gpxText, "application/xml");
+  } catch {
+    return null;
+  }
+  const pts = doc.getElementsByTagName("trkpt");
+  if (!pts.length) return null;
+  const out = [];
+  let prev = null;
+  let dist = 0;
+  let hasEle = false;
+  for (let i = 0; i < pts.length; i++) {
+    const lat = parseFloat(pts[i].getAttribute("lat"));
+    const lon = parseFloat(pts[i].getAttribute("lon"));
+    if (!isFinite(lat) || !isFinite(lon)) continue;
+    if (prev) dist += haversineKm(prev, [lon, lat]);
+    prev = [lon, lat];
+    const eleEl = pts[i].getElementsByTagName("ele")[0];
+    const ele = eleEl ? parseFloat(eleEl.textContent) : NaN;
+    if (isFinite(ele)) {
+      hasEle = true;
+      out.push({ d: dist, e: ele });
+    }
+  }
+  if (!hasEle || out.length < 2) return null;
+  // Downsample to keep the SVG light.
+  const MAX = 240;
+  if (out.length <= MAX) return out;
+  const step = out.length / MAX;
+  const ds = [];
+  for (let i = 0; i < MAX; i++) ds.push(out[Math.floor(i * step)]);
+  ds.push(out[out.length - 1]);
+  return ds;
+}
+
+function haversineKm(a, b) {
+  const R = 6371;
+  const dLat = ((b[1] - a[1]) * Math.PI) / 180;
+  const dLon = ((b[0] - a[0]) * Math.PI) / 180;
+  const la1 = (a[1] * Math.PI) / 180;
+  const la2 = (b[1] * Math.PI) / 180;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(la1) * Math.cos(la2) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+
+// Render the profile as a filled area + line into the 240x120 viewBox.
+function renderElevation(svg, profile, note) {
+  svg.style.display = "";
+  const W = 240, H = 120, padY = 8;
+  const dMax = profile[profile.length - 1].d || 1;
+  const es = profile.map((p) => p.e);
+  let eMin = Math.min(...es);
+  let eMax = Math.max(...es);
+  if (eMax - eMin < 10) eMax = eMin + 10; // give a near-flat route some shape
+  const x = (d) => (d / dMax) * W;
+  const y = (e) => H - padY - ((e - eMin) / (eMax - eMin)) * (H - 2 * padY);
+  const line = profile.map((p) => `${x(p.d).toFixed(1)},${y(p.e).toFixed(1)}`).join(" ");
+  const area = `M0,${H} L${line.split(" ").join(" L")} L${W},${H} Z`;
+  const areaEl = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  areaEl.setAttribute("class", "evt__elev-area");
+  areaEl.setAttribute("d", area);
+  const lineEl = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+  lineEl.setAttribute("class", "evt__elev-line");
+  lineEl.setAttribute("points", line);
+  svg.appendChild(areaEl);
+  svg.appendChild(lineEl);
+  if (note) note.textContent = `${Math.round(dMax)} km · ${Math.round(eMin)}–${Math.round(eMax)} m`;
 }
 
 // ---- Drag gesture (sheet mode) -------------------------------------------
