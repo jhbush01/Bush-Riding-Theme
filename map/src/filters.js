@@ -1,28 +1,26 @@
 // Client-side filtering over the in-memory FeatureCollection.
 // Pure-ish: setupFilters() wires the DOM controls and calls onChange()
 // whenever any control moves. applyFilters() does the actual filtering.
+//
+// State + Region dropdowns are built live from the routes actually present, so
+// the options can never drift out of sync with the data (no manual list to
+// keep in step). Region narrows to the selected state.
 
 const state = {
   maxDistance: 200, // km; 200 == "any" (slider max)
+  usState: "", // AU state/territory (e.g. "QLD")
   region: "",
-  difficulty: null, // "easy" | "moderate" | "hard"
-  recency: null, // "1m" | "6m" | "old"
+  difficulty: null, // "groomed" | "rocky" | "proper-mud"
 };
 
 const SLIDER_MAX = 200;
 
-// Age of a route in days from its last_ridden date, relative to "today".
-function ageDays(lastRidden, now = new Date()) {
-  const then = new Date(lastRidden + "T00:00:00Z");
-  return (now - then) / 86400000;
-}
-
-function matchesRecency(bucket, lastRidden) {
-  const days = ageDays(lastRidden);
-  if (bucket === "1m") return days < 30;
-  if (bucket === "6m") return days >= 30 && days < 182;
-  if (bucket === "old") return days >= 182;
-  return true;
+// Legacy easy/moderate/hard rows map onto the new terrain vocabulary so old and
+// new submissions filter together.
+const TERRAIN_ALIAS = { easy: "groomed", moderate: "rocky", hard: "proper-mud" };
+function terrainSlug(v) {
+  const s = String(v || "").toLowerCase();
+  return TERRAIN_ALIAS[s] || s;
 }
 
 export function applyFilters(features) {
@@ -30,9 +28,9 @@ export function applyFilters(features) {
     const p = f.properties;
     if (p.status && p.status !== "published") return false;
     if (state.maxDistance < SLIDER_MAX && p.distance_km > state.maxDistance) return false;
+    if (state.usState && (p.state || "") !== state.usState) return false;
     if (state.region && p.region !== state.region) return false;
-    if (state.difficulty && p.terrain_difficulty !== state.difficulty) return false;
-    if (state.recency && !matchesRecency(state.recency, p.last_ridden)) return false;
+    if (state.difficulty && terrainSlug(p.terrain_difficulty) !== state.difficulty) return false;
     return true;
   });
 }
@@ -42,15 +40,34 @@ export function getState() {
 }
 
 export function setupFilters(features, onChange) {
-  // Region dropdown — built dynamically from distinct region values.
+  const stateSel = document.getElementById("f-state");
   const regionSel = document.getElementById("f-region");
-  const regions = [...new Set(features.map((f) => f.properties.region))].sort();
-  for (const r of regions) {
+
+  // Distinct states present in the data.
+  const states = [...new Set(features.map((f) => f.properties.state).filter(Boolean))].sort();
+  for (const s of states) {
     const opt = document.createElement("option");
-    opt.value = r;
-    opt.textContent = r;
-    regionSel.appendChild(opt);
+    opt.value = s;
+    opt.textContent = s;
+    stateSel.appendChild(opt);
   }
+
+  // Rebuild the region options for the currently selected state (or all).
+  const fillRegions = () => {
+    const scoped = features.filter((f) => !state.usState || (f.properties.state || "") === state.usState);
+    const regions = [...new Set(scoped.map((f) => f.properties.region).filter(Boolean))].sort();
+    regionSel.innerHTML = '<option value="">All regions</option>';
+    for (const r of regions) {
+      const opt = document.createElement("option");
+      opt.value = r;
+      opt.textContent = r;
+      regionSel.appendChild(opt);
+    }
+    // Keep the current region only if it's still valid under the new state.
+    if (state.region && !regions.includes(state.region)) state.region = "";
+    regionSel.value = state.region;
+  };
+  fillRegions();
 
   // Distance slider
   const dist = document.getElementById("f-distance");
@@ -66,29 +83,31 @@ export function setupFilters(features, onChange) {
   });
   renderDist();
 
+  stateSel.addEventListener("change", () => {
+    state.usState = stateSel.value;
+    fillRegions();
+    onChange();
+  });
   regionSel.addEventListener("change", () => {
     state.region = regionSel.value;
     onChange();
   });
 
-  // Toggle groups (difficulty + recency) — single-select, click again to clear.
+  // Terrain toggle group — single-select, click again to clear.
   wireToggleGroup("f-difficulty", (val) => {
     state.difficulty = val;
-    onChange();
-  });
-  wireToggleGroup("f-recency", (val) => {
-    state.recency = val;
     onChange();
   });
 
   // Reset
   document.getElementById("f-reset").addEventListener("click", () => {
     state.maxDistance = SLIDER_MAX;
+    state.usState = "";
     state.region = "";
     state.difficulty = null;
-    state.recency = null;
     dist.value = String(SLIDER_MAX);
-    regionSel.value = "";
+    stateSel.value = "";
+    fillRegions();
     renderDist();
     document
       .querySelectorAll(".toggle.is-active")

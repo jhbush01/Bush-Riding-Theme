@@ -779,16 +779,14 @@ function closeDetail() {
 function fillDetail(feature) {
   const p = feature.properties;
   setCardHero(p.photo_url, p.name);
-  setChip(p.surface, p.terrain_difficulty);
+  setChip(p.surface);
   setText("detail-eyebrow", "Community route");
   setText("detail-name", p.name || "");
+  setPill(p.terrain_difficulty, p.distance_km, p.elevation_gain_m);
   setStats(p);
-  setStart("Area", p.region || "", routeStartNav(feature));
+  setStart("Area", [p.region, p.state].filter(Boolean).join(", "), routeStartNav(feature));
   setText("detail-description", p.description || "");
-  setMeta([
-    p.last_ridden ? `Last ridden <strong>${esc(formatSince(p.last_ridden))}</strong>` : "",
-    p.vetted_by ? `Vetted by <strong>${esc(p.vetted_by)}</strong>` : "",
-  ]);
+  setCredit(p.contributed_by || p.vetted_by, p.contributor_url);
   setText("detail-disclaimer", "A guide only — ride to conditions.");
   // Primary action: Download GPX (gated).
   setCTA("Download GPX", null, () => requestDownload({ id: p.id, gpx_url: p.gpx_url }));
@@ -805,7 +803,7 @@ function fillEventDetail(feature) {
   els.detail.dataset.eventStatus = p.status === "past" ? "past" : "upcoming";
 
   setCardHero(resolveHero(p.hero_image) || rp.photo_url || "", p.subtitle || p.name, rp.photo_url);
-  setChip(rp.surface, rp.terrain_difficulty);
+  setChip(rp.surface);
   setText("detail-eyebrow", "Community bush ride");
   setText("detail-keen-text", `${p.interested_count ?? 0} keen`);
   setText("detail-name", p.subtitle || "");
@@ -815,7 +813,8 @@ function fillEventDetail(feature) {
   setStart("Start", p.meeting_point || "", eventStartNav(feature));
   setText("detail-description", p.description || "");
   setText("detail-kit", p.kit_note || "");
-  setMeta(rp.vetted_by ? [`Route vetted by <strong>${esc(rp.vetted_by)}</strong>`] : []);
+  // Credit the linked route's contributor.
+  setCredit(rp.contributed_by || rp.vetted_by, rp.contributor_url);
   setText("detail-disclaimer", "Community ride — ride to conditions.");
 
   // Past events read-only: the CTA hides (CSS via data-event-status) and this
@@ -858,21 +857,65 @@ function setCardHero(src, alt, fallbackSrc) {
   }
 }
 
-function setChip(surface, difficulty) {
+// Hero chip: the surface material at a glance ("Gravel"). Terrain + effort now
+// live in the header pill, so the chip carries just the one word.
+function setChip(surface) {
   const chip = els.detail.querySelector(".card__chip");
   const s = surface ? shortSurface(surface) : "";
-  const d = difficulty ? cap(difficulty) : "";
   setText("detail-chip-surface", s);
-  setText("detail-chip-diff", d);
-  chip.querySelector(".card__chip-dot").style.display = s && d ? "" : "none";
-  chip.classList.toggle("is-empty", !s && !d);
+  setText("detail-chip-diff", "");
+  chip.querySelector(".card__chip-dot").style.display = "none";
+  chip.classList.toggle("is-empty", !s);
 }
 
 function setStats(p) {
   setStat("detail-distance", Number.isFinite(+p.distance_km) ? fmt(p.distance_km) : "—", "km");
   setStat("detail-climb", Number.isFinite(+p.elevation_gain_m) ? fmt(p.elevation_gain_m) : "—", "m");
-  setStat("detail-effort", p.terrain_difficulty ? shortEffort(p.terrain_difficulty) : "—", "");
-  setStat("detail-surface", p.surface ? shortSurface(p.surface) : "—", "");
+}
+
+// Header descriptor pill: "Terrain · Effort" (e.g. "Rocky · Big day out").
+// Terrain is contributor-chosen; effort is derived from the ride's numbers.
+function setPill(terrain, distKm, elevM) {
+  const pill = els.detail.querySelector("#detail-pill");
+  const eff = computeEffort(distKm, elevM);
+  const parts = [terrainLabel(terrain), eff && eff.label].filter(Boolean);
+  if (!parts.length) {
+    pill.style.display = "none";
+    return;
+  }
+  pill.style.display = "";
+  pill.innerHTML = "";
+  parts.forEach((txt, i) => {
+    if (i) {
+      const dot = document.createElement("i");
+      dot.className = "card__pill-dot";
+      dot.setAttribute("aria-hidden", "true");
+      pill.appendChild(dot);
+    }
+    const span = document.createElement("span");
+    span.textContent = txt;
+    pill.appendChild(span);
+  });
+}
+
+// Contributor credit + optional "Check them out" link (Strava / RWGPS / site).
+function setCredit(name, url) {
+  const wrap = els.detail.querySelector("#detail-credit");
+  const nm = (name || "").trim();
+  if (!nm) {
+    wrap.style.display = "none";
+    return;
+  }
+  wrap.style.display = "";
+  setText("detail-credit-name", nm);
+  const link = els.detail.querySelector("#detail-credit-link");
+  const u = (url || "").trim();
+  if (u && /^https?:\/\//i.test(u)) {
+    link.href = u;
+    link.style.display = "";
+  } else {
+    link.style.display = "none";
+  }
 }
 
 function setStat(id, value, unit) {
@@ -899,10 +942,6 @@ function setStart(label, name, navHref) {
   }
 }
 
-function setMeta(parts) {
-  els.detail.querySelector("#detail-meta").innerHTML = parts.filter(Boolean).join(" · ");
-}
-
 // Primary CTA. Pass href for a real link (event → Strava); pass onclick for a
 // JS action (route → gated GPX download).
 function setCTA(label, href, onclick) {
@@ -923,8 +962,36 @@ function setCTA(label, href, onclick) {
 function fmt(n) {
   return Math.round(+n).toLocaleString("en-US");
 }
-function shortEffort(d) {
-  return d === "moderate" ? "Mod." : cap(d);
+
+// Terrain vocabulary (Groomed / Rocky / Proper Mud). Legacy easy/moderate/hard
+// rows map on so routes added before the rename still label correctly.
+const TERRAIN_LABEL = {
+  groomed: "Groomed",
+  rocky: "Rocky",
+  "proper-mud": "Proper Mud",
+  easy: "Groomed",
+  moderate: "Rocky",
+  hard: "Proper Mud",
+};
+function terrainLabel(v) {
+  const s = String(v || "").toLowerCase();
+  return TERRAIN_LABEL[s] || (v ? cap(v) : "");
+}
+
+// Effort derived from the ride's distance + climb — no stored value, so it's
+// filled in for every route on the map, including ones added before this.
+//   Cruisy            < 75 km and < 750 m
+//   Big day out       75–120 km and/or 751 m+
+//   Character building above big-day-out distance AND climb
+function computeEffort(distKm, elevM) {
+  const d = +distKm;
+  const e = +elevM;
+  if (!Number.isFinite(d) && !Number.isFinite(e)) return null;
+  const longRide = d > 120;
+  const bigClimb = e > 750;
+  if (longRide && bigClimb) return { slug: "character-building", label: "Character building" };
+  if (d >= 75 || bigClimb) return { slug: "big-day-out", label: "Big day out" };
+  return { slug: "cruisy", label: "Cruisy" };
 }
 // Reduce a verbose surface string ("92% gravel, 8% sealed") to its primary
 // material word ("Gravel") for the stat cell / hero chip.
@@ -1252,7 +1319,9 @@ function renderResults(features) {
       <p class="result__meta"></p>`;
     li.querySelector(".result__name").textContent = p.name;
     li.querySelector(".result__meta").textContent =
-      `${p.distance_km} km · ${cap(p.terrain_difficulty)} · ${p.region}`;
+      [`${p.distance_km} km`, terrainLabel(p.terrain_difficulty), [p.region, p.state].filter(Boolean).join(", ")]
+        .filter(Boolean)
+        .join(" · ");
     li.addEventListener("click", () => selectRoute(p.id, true));
     list.appendChild(li);
   }
@@ -1297,13 +1366,4 @@ function setText(id, text) {
 
 function cap(s) {
   return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
-}
-
-function formatSince(iso) {
-  const days = Math.floor((Date.now() - new Date(iso + "T00:00:00Z")) / 86400000);
-  if (days < 31) return `${days} day${days === 1 ? "" : "s"} ago`;
-  const months = Math.round(days / 30.4);
-  if (months < 12) return `${months} month${months === 1 ? "" : "s"} ago`;
-  const years = (days / 365).toFixed(1);
-  return `${years} years ago`;
 }

@@ -92,27 +92,23 @@
         </div>
 
         <div class="filter">
-          <label class="filter__label" for="f-region">Location</label>
-          <select id="f-region" class="filter__select">
-            <option value="">All regions</option>
-          </select>
-        </div>
-
-        <div class="filter">
-          <span class="filter__label">Terrain</span>
-          <div id="f-difficulty" class="toggle-group" role="group" aria-label="Terrain difficulty">
-            <button type="button" class="toggle" data-value="easy">Easy</button>
-            <button type="button" class="toggle" data-value="moderate">Moderate</button>
-            <button type="button" class="toggle" data-value="hard">Hard</button>
+          <span class="filter__label">Location</span>
+          <div class="filter__row">
+            <select id="f-state" class="filter__select" aria-label="State">
+              <option value="">All states</option>
+            </select>
+            <select id="f-region" class="filter__select" aria-label="Region">
+              <option value="">All regions</option>
+            </select>
           </div>
         </div>
 
         <div class="filter">
-          <span class="filter__label">Last ridden</span>
-          <div id="f-recency" class="toggle-group" role="group" aria-label="Time since last ridden">
-            <button type="button" class="toggle" data-value="1m">&lt; 1 mo</button>
-            <button type="button" class="toggle" data-value="6m">1–6 mo</button>
-            <button type="button" class="toggle" data-value="old">6+ mo</button>
+          <span class="filter__label">Terrain</span>
+          <div id="f-difficulty" class="toggle-group" role="group" aria-label="Terrain type">
+            <button type="button" class="toggle" data-value="groomed">Groomed</button>
+            <button type="button" class="toggle" data-value="rocky">Rocky</button>
+            <button type="button" class="toggle" data-value="proper-mud">Proper Mud</button>
           </div>
         </div>
 
@@ -162,21 +158,19 @@
               <span class="card__avatars" aria-hidden="true"><i></i><i></i><i></i></span>
               <span id="detail-keen-text" class="card__keen-text"></span>
             </div>
+            <!-- Terrain · Effort descriptor (routes) -->
+            <span id="detail-pill" class="card__pill only-route"></span>
           </div>
 
           <h2 id="detail-name" class="card__title"></h2>
           <p id="detail-when" class="card__when only-event"></p>
           <p id="detail-vibe" class="card__vibe only-event"></p>
 
-          <!-- At-a-glance stat strip -->
+          <!-- At-a-glance stat strip: the two numbers; the descriptors live in the pill. -->
           <div class="card__stats">
             <div class="card__stat"><span id="detail-distance" class="card__stat-val"></span><span class="card__stat-label">Distance</span></div>
             <div class="card__stat-div" aria-hidden="true"></div>
             <div class="card__stat"><span id="detail-climb" class="card__stat-val"></span><span class="card__stat-label">Climb</span></div>
-            <div class="card__stat-div" aria-hidden="true"></div>
-            <div class="card__stat"><span id="detail-effort" class="card__stat-val"></span><span class="card__stat-label">Effort</span></div>
-            <div class="card__stat-div" aria-hidden="true"></div>
-            <div class="card__stat"><span id="detail-surface" class="card__stat-val"></span><span class="card__stat-label">Surface</span></div>
           </div>
 
           <!-- Primary action — kept in peek so it's reachable on first tap. -->
@@ -223,8 +217,17 @@
           <div id="detail-kit" class="card__kit-text"></div>
         </div>
 
-        <!-- Quiet metadata -->
-        <p id="detail-meta" class="card__meta"></p>
+        <!-- Contributor credit -->
+        <div id="detail-credit" class="card__credit">
+          <div class="card__credit-text">
+            <span class="card__mini-label">Contributed by</span>
+            <span id="detail-credit-name" class="card__credit-name"></span>
+          </div>
+          <a id="detail-credit-link" class="card__credit-link" target="_blank" rel="noopener noreferrer">
+            Check them out
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg>
+          </a>
+        </div>
 
         <!-- Footer: secondary GPX (events) + disclaimer -->
         <div class="card__foot">

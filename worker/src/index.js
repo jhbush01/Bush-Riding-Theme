@@ -18,7 +18,25 @@ import { parseGpx } from "./gpx.js";
 
 const MAX_GPX = 5 * 1024 * 1024; // 5 MB
 const MAX_PHOTO = 6 * 1024 * 1024; // 6 MB
-const DIFFICULTIES = ["easy", "moderate", "hard"];
+// Terrain classification (contributor-chosen). Legacy easy/moderate/hard rows
+// are normalised for display on the front-end; new submissions use these.
+const DIFFICULTIES = ["groomed", "rocky", "proper-mud"];
+// Australian states/territories — the single source of truth for the State
+// field. Region is free text; the map's filter dropdowns are built from the
+// distinct state/region values actually present in published routes.
+const STATES = ["QLD", "NSW", "VIC", "TAS", "SA", "WA", "NT", "ACT"];
+
+// Add columns introduced after the original schema. ALTER fails once the column
+// exists, so each is best-effort — cheap and idempotent.
+async function ensureSubmissionsSchema(env) {
+  for (const col of ["state TEXT", "contributor_url TEXT"]) {
+    try {
+      await env.DB.prepare(`ALTER TABLE submissions ADD COLUMN ${col}`).run();
+    } catch (_) {
+      /* column already present */
+    }
+  }
+}
 
 export default {
   async fetch(request, env) {
@@ -45,11 +63,14 @@ export default {
 
 /* ---------------- Public: submit ---------------- */
 async function submit(request, env, cors) {
+  await ensureSubmissionsSchema(env);
   const form = await request.formData();
   const name = (form.get("name") || "").toString().trim();
   const region = (form.get("region") || "").toString().trim();
+  const state = (form.get("state") || "").toString().trim().toUpperCase();
   const email = (form.get("email") || "").toString().trim();
-  const contributor = (form.get("contributor") || "").toString().trim();
+  const contributor = (form.get("contributor") || "").toString().trim().slice(0, 120);
+  const contributorUrl = (form.get("contributor_url") || "").toString().trim().slice(0, 300);
   const difficulty = (form.get("difficulty") || "").toString().trim().toLowerCase();
   const surface = (form.get("surface") || "").toString().trim().slice(0, 120);
   const description = (form.get("description") || "").toString().trim().slice(0, 400);
@@ -58,10 +79,13 @@ async function submit(request, env, cors) {
 
   if (!name) return json({ error: "Route name is required." }, 400, cors);
   if (!region) return json({ error: "Region is required." }, 400, cors);
+  if (!STATES.includes(state)) return json({ error: "A valid state is required." }, 400, cors);
   if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))
     return json({ error: "A valid email is required." }, 400, cors);
   if (!DIFFICULTIES.includes(difficulty))
-    return json({ error: "Difficulty must be easy, moderate or hard." }, 400, cors);
+    return json({ error: "Terrain must be groomed, rocky or proper-mud." }, 400, cors);
+  if (contributorUrl && !/^https?:\/\//i.test(contributorUrl))
+    return json({ error: "The contributor link must start with http(s)://" }, 400, cors);
   if (!gpxFile || typeof gpxFile.text !== "function")
     return json({ error: "A GPX file is required." }, 400, cors);
   if (gpxFile.size > MAX_GPX) return json({ error: "GPX file too large (max 5 MB)." }, 400, cors);
@@ -89,15 +113,15 @@ async function submit(request, env, cors) {
 
   await env.DB.prepare(
     `INSERT INTO submissions
-      (id, status, name, region, country, difficulty, surface, description,
+      (id, status, name, region, state, country, difficulty, surface, description,
        distance_km, elevation_gain_m, marker_lng, marker_lat, coords,
-       gpx_key, photo_key, contributor, email, created_at)
-     VALUES (?, 'pending', ?, ?, 'Australia', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+       gpx_key, photo_key, contributor, contributor_url, email, created_at)
+     VALUES (?, 'pending', ?, ?, ?, 'Australia', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   )
     .bind(
-      id, name, region, difficulty, surface, description,
+      id, name, region, state, difficulty, surface, description,
       stats.distance_km, stats.elevation_gain_m, stats.marker[0], stats.marker[1],
-      JSON.stringify(stats.coords), gpxKey, photoKey, contributor, email,
+      JSON.stringify(stats.coords), gpxKey, photoKey, contributor, contributorUrl, email,
       new Date().toISOString()
     )
     .run();
@@ -107,10 +131,11 @@ async function submit(request, env, cors) {
 
 /* ---------------- Public: approved routes ---------------- */
 async function routes(env, cors) {
+  await ensureSubmissionsSchema(env);
   const { results } = await env.DB.prepare(
-    `SELECT id, name, region, country, difficulty, surface, description,
+    `SELECT id, name, region, state, country, difficulty, surface, description,
             distance_km, elevation_gain_m, marker_lng, marker_lat, coords,
-            photo_key, contributor, created_at
+            photo_key, contributor, contributor_url, created_at
        FROM submissions WHERE status = 'published' ORDER BY created_at DESC`
   ).all();
 
@@ -123,16 +148,18 @@ async function routes(env, cors) {
       name: r.name,
       marker: [r.marker_lng, r.marker_lat],
       region: r.region,
+      state: r.state || "",
       country: r.country,
       distance_km: r.distance_km,
       elevation_gain_m: r.elevation_gain_m,
       terrain_difficulty: r.difficulty,
       surface: r.surface || "",
-      last_ridden: (r.created_at || "").slice(0, 10),
       gpx_url: `${base}/file/${r.gpx_key || "gpx/" + r.id + ".gpx"}`,
       photo_url: r.photo_key ? `${base}/file/${r.photo_key}` : "",
       description: r.description || "",
-      vetted_by: r.contributor ? firstName(r.contributor) : "Community",
+      // Full contributor name (shown as "Contributed by") + optional profile URL.
+      contributed_by: (r.contributor || "").trim() || "Community",
+      contributor_url: r.contributor_url || "",
       source: "community",
       status: "published",
     },
@@ -467,9 +494,10 @@ function authChallenge() {
 
 async function adminPage(request, env) {
   if (!requireAuth(request, env)) return authChallenge();
+  await ensureSubmissionsSchema(env);
   const { results } = await env.DB.prepare(
-    `SELECT id, status, name, region, country, difficulty, surface, distance_km,
-            elevation_gain_m, description, contributor, email, coords, created_at
+    `SELECT id, status, name, region, state, country, difficulty, surface, distance_km,
+            elevation_gain_m, description, contributor, contributor_url, email, coords, created_at
        FROM submissions ORDER BY (status='pending') DESC, created_at DESC`
   ).all();
   const events = await loadEventList(env);
@@ -506,18 +534,21 @@ async function adminAction(request, env) {
 // map immediately.
 async function adminEdit(request, env) {
   if (!requireAuth(request, env)) return authChallenge();
+  await ensureSubmissionsSchema(env);
   const form = await request.formData();
   const id = (form.get("id") || "").toString();
   if (!id) return json({ error: "Missing id" }, 400, corsHeaders());
 
   const name = (form.get("name") || "").toString().trim();
   const region = (form.get("region") || "").toString().trim();
+  const state = (form.get("state") || "").toString().trim().toUpperCase();
   const country = (form.get("country") || "").toString().trim() || "Australia";
   let difficulty = (form.get("difficulty") || "").toString().trim().toLowerCase();
-  if (!DIFFICULTIES.includes(difficulty)) difficulty = "moderate";
+  if (!DIFFICULTIES.includes(difficulty)) difficulty = "rocky";
   const surface = (form.get("surface") || "").toString().trim().slice(0, 120);
   const description = (form.get("description") || "").toString().trim().slice(0, 2000);
   const contributor = (form.get("contributor") || "").toString().trim().slice(0, 120);
+  const contributorUrl = (form.get("contributor_url") || "").toString().trim().slice(0, 300);
   const distance = parseFloat(form.get("distance_km"));
   const elevation = parseInt(form.get("elevation_gain_m"), 10);
 
@@ -525,18 +556,20 @@ async function adminEdit(request, env) {
 
   await env.DB.prepare(
     `UPDATE submissions
-        SET name=?, region=?, country=?, difficulty=?, surface=?, description=?,
-            contributor=?, distance_km=?, elevation_gain_m=?
+        SET name=?, region=?, state=?, country=?, difficulty=?, surface=?, description=?,
+            contributor=?, contributor_url=?, distance_km=?, elevation_gain_m=?
       WHERE id=?`
   )
     .bind(
       name,
       region,
+      STATES.includes(state) ? state : null,
       country,
       difficulty,
       surface,
       description,
       contributor,
+      contributorUrl,
       Number.isFinite(distance) ? distance : null,
       Number.isFinite(elevation) ? elevation : null,
       id
@@ -572,9 +605,6 @@ function rand(n) {
   let s = "";
   for (let i = 0; i < n; i++) s += a[Math.floor(Math.random() * a.length)];
   return s;
-}
-function firstName(s) {
-  return s.split(/\s+/)[0];
 }
 function esc(s) {
   return (s || "").replace(/[<>&"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" }[c]));
@@ -667,9 +697,9 @@ function adminHtml(rows, events = [], routeOpts = []) {
       <div class="shape">${coordsSvg(r.coords)}</div>
       <div class="meta">
         <h3>${esc(r.name)} <span class="badge">${esc(r.status)}</span></h3>
-        <p class="sub">${esc(r.region)} · ${esc(r.difficulty)} · ${r.distance_km} km · ${r.elevation_gain_m} m</p>
+        <p class="sub">${esc(r.region)}${r.state ? ", " + esc(r.state) : ""} · ${esc(r.difficulty)} · ${r.distance_km} km · ${r.elevation_gain_m} m</p>
         <p class="desc">${esc(r.description) || "<em>no description</em>"}</p>
-        <p class="by">by ${esc(r.contributor) || "—"} · ${esc(r.email)} · ${esc((r.created_at || "").slice(0, 10))}</p>
+        <p class="by">by ${esc(r.contributor) || "—"}${r.contributor_url ? ` · <a href="${esc(r.contributor_url)}" target="_blank" rel="noopener">link</a>` : ""} · ${esc(r.email)} · ${esc((r.created_at || "").slice(0, 10))}</p>
         <form method="POST" action="/admin/action" class="actions">
           <input type="hidden" name="id" value="${esc(r.id)}" />
           <a class="link" href="/file/gpx/${esc(r.id)}.gpx">view gpx</a>
@@ -683,10 +713,16 @@ function adminHtml(rows, events = [], routeOpts = []) {
             <input type="hidden" name="id" value="${esc(r.id)}" />
             <label>Name<input name="name" value="${esc(r.name)}" required /></label>
             <label>Region<input name="region" value="${esc(r.region)}" required /></label>
+            <label>State
+              <select name="state">
+                <option value=""${!r.state ? " selected" : ""}>—</option>
+                ${STATES.map((s) => `<option value="${s}"${r.state === s ? " selected" : ""}>${s}</option>`).join("")}
+              </select>
+            </label>
             <label>Country<input name="country" value="${esc(r.country) || "Australia"}" /></label>
             <label>Terrain
               <select name="difficulty">
-                ${["easy", "moderate", "hard"]
+                ${DIFFICULTIES
                   .map((d) => `<option value="${d}"${r.difficulty === d ? " selected" : ""}>${d}</option>`)
                   .join("")}
               </select>
@@ -694,7 +730,8 @@ function adminHtml(rows, events = [], routeOpts = []) {
             <label>Surface<input name="surface" value="${esc(r.surface)}" /></label>
             <label>Distance (km)<input name="distance_km" type="number" step="0.1" value="${r.distance_km ?? ""}" /></label>
             <label>Elevation (m)<input name="elevation_gain_m" type="number" step="1" value="${r.elevation_gain_m ?? ""}" /></label>
-            <label>Contributor<input name="contributor" value="${esc(r.contributor)}" /></label>
+            <label>Contributed by<input name="contributor" value="${esc(r.contributor)}" /></label>
+            <label>Contributor link<input name="contributor_url" value="${esc(r.contributor_url)}" placeholder="Strava / RWGPS / website" /></label>
             <label class="full">Description<textarea name="description" rows="3">${esc(r.description)}</textarea></label>
             <button class="ok" type="submit">Save changes</button>
           </form>

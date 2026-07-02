@@ -46,16 +46,32 @@
 
         <label class="field">
           <span class="field__label">Region *</span>
-          <input type="text" name="region" maxlength="80" required placeholder="e.g. Pomona, QLD" />
+          <input type="text" name="region" maxlength="80" required placeholder="e.g. Southern Downs" />
+          <span class="field__hint">The riding area — keep it broad (e.g. Southern Downs, Glass House Mountains).</span>
+        </label>
+
+        <label class="field">
+          <span class="field__label">State *</span>
+          <select name="state" required>
+            <option value="">Choose…</option>
+            <option value="QLD">Queensland (QLD)</option>
+            <option value="NSW">New South Wales (NSW)</option>
+            <option value="VIC">Victoria (VIC)</option>
+            <option value="TAS">Tasmania (TAS)</option>
+            <option value="SA">South Australia (SA)</option>
+            <option value="WA">Western Australia (WA)</option>
+            <option value="NT">Northern Territory (NT)</option>
+            <option value="ACT">ACT</option>
+          </select>
         </label>
 
         <label class="field">
           <span class="field__label">Terrain *</span>
           <select name="difficulty" required>
             <option value="">Choose…</option>
-            <option value="easy">Easy</option>
-            <option value="moderate">Moderate</option>
-            <option value="hard">Hard</option>
+            <option value="groomed">Groomed</option>
+            <option value="rocky">Rocky</option>
+            <option value="proper-mud">Proper Mud</option>
           </select>
         </label>
 
@@ -77,8 +93,15 @@
         <hr class="rule" />
 
         <label class="field">
-          <span class="field__label">Your name <span class="opt">(shown as the route's vetter)</span></span>
-          <input type="text" name="contributor" maxlength="60" placeholder="First name is fine" />
+          <span class="field__label">Contributed by <span class="opt">(shown publicly)</span></span>
+          <input type="text" name="contributor" maxlength="80" placeholder="Your name, club or organisation" />
+          <span class="field__hint">The full name credited on the route card.</span>
+        </label>
+
+        <label class="field">
+          <span class="field__label">Your link <span class="opt">(optional)</span></span>
+          <input type="url" name="contributor_url" maxlength="300" placeholder="Strava / RideWithGPS / website" />
+          <span class="field__hint">Adds a “Check them out” button next to your name. Leave blank to just show the name.</span>
         </label>
 
         <label class="field">
