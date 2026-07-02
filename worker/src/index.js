@@ -320,8 +320,21 @@ async function adminEventSave(request, env) {
     heroRef = ""; // upload wins
   }
 
-  const lng = parseFloat(form.get("lng"));
-  const lat = parseFloat(form.get("lat"));
+  const routeId = (form.get("route_id") || "").toString().trim();
+  let lng = parseFloat(form.get("lng"));
+  let lat = parseFloat(form.get("lat"));
+  // If coordinates are blank/invalid — or the null-island default (0,0) — fall
+  // back to the linked route's location so the pin actually lands on the map.
+  if (!Number.isFinite(lng) || !Number.isFinite(lat) || (lng === 0 && lat === 0)) {
+    const pt = await resolveRoutePoint(env, routeId);
+    if (pt) {
+      lng = pt.lng;
+      lat = pt.lat;
+    } else {
+      lng = Number.isFinite(lng) ? lng : 0;
+      lat = Number.isFinite(lat) ? lat : 0;
+    }
+  }
   const count = parseInt(form.get("interested_count"), 10);
   await upsertEvent(env, {
     id,
@@ -334,16 +347,55 @@ async function adminEventSave(request, env) {
     pace: (form.get("pace") || "").toString().trim().slice(0, 160),
     strava_url: (form.get("strava_url") || "").toString().trim().slice(0, 400),
     interested_count: Number.isFinite(count) && count >= 0 ? count : 0,
-    route_id: (form.get("route_id") || "").toString().trim(),
+    route_id: routeId,
     description: (form.get("description") || "").toString().trim().slice(0, 2000),
     kit_note: (form.get("kit_note") || "").toString().trim().slice(0, 400),
     hero_key: heroKey,
     hero_ref: heroRef,
     status: (form.get("status") || "upcoming").toString() === "past" ? "past" : "upcoming",
-    lng: Number.isFinite(lng) ? lng : 0,
-    lat: Number.isFinite(lat) ? lat : 0,
+    lng,
+    lat,
   });
   return new Response(null, { status: 303, headers: { Location: "/admin#events" } });
+}
+
+// Resolve a meeting point [lng,lat] from a linked route: the community
+// submission's marker (or first track point), else the curated routes.geojson.
+async function resolveRoutePoint(env, routeId) {
+  if (!routeId) return null;
+  try {
+    const r = await env.DB.prepare(
+      "SELECT marker_lng, marker_lat, coords FROM submissions WHERE id=? AND status='published'"
+    )
+      .bind(routeId)
+      .first();
+    if (r) {
+      if (Number.isFinite(r.marker_lng) && Number.isFinite(r.marker_lat)) {
+        return { lng: r.marker_lng, lat: r.marker_lat };
+      }
+      if (r.coords) {
+        const c = JSON.parse(r.coords);
+        if (Array.isArray(c) && c.length) return { lng: c[0][0], lat: c[0][1] };
+      }
+    }
+  } catch {
+    /* fall through to curated */
+  }
+  try {
+    const site = (env.SITE_URL || "https://bushridingmap.com").replace(/\/$/, "");
+    const res = await fetch(site + "/data/routes.geojson", { cf: { cacheTtl: 0 } });
+    if (res.ok) {
+      const fc = await res.json();
+      const f = (fc.features || []).find((x) => x.properties && x.properties.id === routeId);
+      if (f) {
+        const m = f.properties.marker || (f.geometry && f.geometry.coordinates && f.geometry.coordinates[0]);
+        if (m) return { lng: m[0], lat: m[1] };
+      }
+    }
+  } catch {
+    /* give up */
+  }
+  return null;
 }
 
 async function adminEventDelete(request, env) {
@@ -582,8 +634,8 @@ function adminHtml(rows, events = [], routeOpts = []) {
         <label>Date (display)<input name="date_display" value="${v("date_display")}" placeholder="Saturday 2 August" /></label>
         <label>Time<input name="time" value="${v("time")}" placeholder="6:30am" /></label>
         <label>Meeting point<input name="meeting_point" value="${v("meeting_point")}" /></label>
-        <label>Meet lng<input name="lng" type="number" step="any" value="${v("lng")}" /></label>
-        <label>Meet lat<input name="lat" type="number" step="any" value="${v("lat")}" /></label>
+        <label>Meet lng (optional)<input name="lng" type="number" step="any" value="${v("lng")}" placeholder="uses route location" /></label>
+        <label>Meet lat (optional)<input name="lat" type="number" step="any" value="${v("lat")}" placeholder="uses route location" /></label>
         <label>Route ${routeSelect(e.route_id || "")}</label>
         <label>Interested<input name="interested_count" type="number" min="0" value="${e.interested_count ?? 0}" /></label>
         <label class="full">Strava event URL<input name="strava_url" value="${v("strava_url")}" placeholder="https://strava.app.link/…" /></label>
