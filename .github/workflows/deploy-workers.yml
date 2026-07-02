@@ -46,6 +46,8 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: worker
+          # v4 is required to read wrangler.jsonc (the default 3.90 can't).
+          wranglerVersion: "4.106.0"
 
       - name: Deploy diary worker
         if: steps.changes.outputs.diary == 'true' || github.event_name == 'workflow_dispatch'
@@ -54,3 +56,4 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: diary-worker
+          wranglerVersion: "4.106.0"
