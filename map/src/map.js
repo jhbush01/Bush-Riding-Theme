@@ -773,89 +773,181 @@ function closeDetail() {
   els.detail.dataset.state = "closed";
 }
 
-// Populate the detail fields. Photo degrades gracefully if absent.
+// ---- Card fill (shared redesigned card for routes and events) ------------
+
+// Route detail. The route feature carries all the numbers itself.
 function fillDetail(feature) {
   const p = feature.properties;
-  const photo = els.detail.querySelector("#detail-photo");
-  photo.hidden = true;
-  if (p.photo_url) {
-    photo.onload = () => (photo.hidden = false);
-    photo.onerror = () => (photo.hidden = true);
-    photo.src = p.photo_url;
-    photo.alt = p.name;
-  } else {
-    photo.removeAttribute("src");
-  }
-
-  setText("detail-name", p.name);
-  setText("detail-region", p.region);
-  setText("detail-distance", `${p.distance_km} km`);
-  setText("detail-elevation", `${p.elevation_gain_m} m`);
-  setText("detail-difficulty", cap(p.terrain_difficulty));
-  setText("detail-surface", p.surface);
-  setText("detail-lastridden", formatSince(p.last_ridden));
-  setText("detail-vetted", p.vetted_by || "—");
-  setText("detail-description", p.description);
-
-  els.detail.querySelector("#detail-download").onclick = () =>
-    requestDownload({ id: p.id, gpx_url: p.gpx_url });
+  setCardHero(p.photo_url, p.name);
+  setChip(p.surface, p.terrain_difficulty);
+  setText("detail-eyebrow", "Community route");
+  setText("detail-name", p.name || "");
+  setStats(p);
+  setStart("Area", p.region || "", routeStartNav(feature));
+  setText("detail-description", p.description || "");
+  setMeta([
+    p.last_ridden ? `Last ridden <strong>${esc(formatSince(p.last_ridden))}</strong>` : "",
+    p.vetted_by ? `Vetted by <strong>${esc(p.vetted_by)}</strong>` : "",
+  ]);
+  setText("detail-disclaimer", "A guide only — ride to conditions.");
+  // Primary action: Download GPX (gated).
+  setCTA("Download GPX", null, () => requestDownload({ id: p.id, gpx_url: p.gpx_url }));
+  drawElevation(feature);
 }
 
-// Populate the event content. Past events render read-only (no CTA) via the
-// data-event-status attribute (CSS hides .for-upcoming, shows .for-past).
+// Community Bush Ride event. The numbers come from the linked route; the event
+// adds the date, pace, meeting point, "keen" count and Strava action. Past
+// events render read-only (data-event-status hides .for-upcoming, shows .for-past).
 function fillEventDetail(feature) {
   const p = feature.properties;
   const route = routeById.get(p.route_id);
-  const isPast = p.status === "past";
-  els.detail.dataset.eventStatus = isPast ? "past" : "upcoming";
+  const rp = route ? route.properties : {};
+  els.detail.dataset.eventStatus = p.status === "past" ? "past" : "upcoming";
 
-  // Hero — event image, falling back to the linked route's photo, then a
-  // styled (sage) block if neither loads.
-  const hero = els.detail.querySelector("#evt-hero");
-  hero.hidden = false;
-  hero.dataset.fellback = "";
-  hero.onerror = () => {
-    if (!hero.dataset.fellback && route && route.properties.photo_url) {
-      hero.dataset.fellback = "1";
-      hero.src = route.properties.photo_url;
-    } else {
-      hero.hidden = true; // leave the sage .evt__hero block
-    }
-  };
-  hero.alt = p.subtitle || p.name || "";
-  hero.src = resolveHero(p.hero_image) || (route && route.properties.photo_url) || "";
-  if (!hero.getAttribute("src")) hero.hidden = true;
+  setCardHero(resolveHero(p.hero_image) || rp.photo_url || "", p.subtitle || p.name, rp.photo_url);
+  setChip(rp.surface, rp.terrain_difficulty);
+  setText("detail-eyebrow", "Community bush ride");
+  setText("detail-keen-text", `${p.interested_count ?? 0} keen`);
+  setText("detail-name", p.subtitle || "");
+  setText("detail-when", [p.date_display, p.time].filter(Boolean).join(" · "));
+  setText("detail-vibe", p.pace || "");
+  setStats(rp);
+  setStart("Start", p.meeting_point || "", eventStartNav(feature));
+  setText("detail-description", p.description || "");
+  setText("detail-kit", p.kit_note || "");
+  setMeta(rp.vetted_by ? [`Route vetted by <strong>${esc(rp.vetted_by)}</strong>`] : []);
+  setText("detail-disclaimer", "Community ride — ride to conditions.");
 
-  setText("evt-subtitle", p.subtitle || "");
-  setText("evt-datetime", [p.date_display, p.time].filter(Boolean).join(" · "));
-  setText("evt-meeting", p.meeting_point || "");
-  setText("evt-pace", p.pace || "");
-  setText("evt-interest", `${p.interested_count ?? 0} rider${p.interested_count === 1 ? "" : "s"} interested`);
-  setText("evt-description", p.description || "");
-  setText("evt-kit", p.kit_note || "");
+  // Past events read-only: the CTA hides (CSS via data-event-status) and this
+  // line takes its place.
+  setText("detail-happened", p.status === "past" ? "This ride has already happened." : "");
 
-  // Route pill — name + distance + terrain from routes.geojson; taps through to
-  // the route detail. Disabled if the linked route isn't present.
-  const pill = els.detail.querySelector("#evt-route-pill");
-  if (route) {
-    const rp = route.properties;
-    setText("evt-route-name", rp.name);
-    setText("evt-route-meta", `${rp.distance_km} km · ${cap(rp.terrain_difficulty)}`);
-    pill.disabled = false;
-    pill.onclick = () => selectRoute(rp.id, true);
+  // Primary: Join on Strava (real link). Secondary: download the route GPX.
+  setCTA("Join the ride on Strava", p.strava_url || "#");
+  const gpx2 = els.detail.querySelector("#detail-gpx2");
+  if (route && rp.gpx_url) {
+    gpx2.style.display = "";
+    gpx2.onclick = () => requestDownload({ id: rp.id, gpx_url: rp.gpx_url });
   } else {
-    setText("evt-route-name", p.route_id || "Route");
-    setText("evt-route-meta", "");
-    pill.disabled = true;
-    pill.onclick = null;
+    gpx2.style.display = "none";
   }
 
-  // CTA — Strava event, new tab.
-  const cta = els.detail.querySelector("#evt-cta");
-  cta.href = p.strava_url || "#";
-
-  // Elevation profile (full state) — parsed from the linked route's GPX.
   drawElevation(route);
+}
+
+// ---- Card field helpers --------------------------------------------------
+function setCardHero(src, alt, fallbackSrc) {
+  const hero = els.detail.querySelector("#detail-photo");
+  hero.dataset.fellback = "";
+  hero.onload = () => (hero.hidden = false);
+  hero.onerror = () => {
+    if (!hero.dataset.fellback && fallbackSrc && fallbackSrc !== hero.getAttribute("src")) {
+      hero.dataset.fellback = "1";
+      hero.src = fallbackSrc;
+    } else {
+      hero.hidden = true; // leave the sage hero block
+    }
+  };
+  hero.alt = alt || "";
+  if (src) {
+    hero.hidden = false;
+    hero.src = src;
+  } else {
+    hero.removeAttribute("src");
+    hero.hidden = true;
+  }
+}
+
+function setChip(surface, difficulty) {
+  const chip = els.detail.querySelector(".card__chip");
+  const s = surface ? shortSurface(surface) : "";
+  const d = difficulty ? cap(difficulty) : "";
+  setText("detail-chip-surface", s);
+  setText("detail-chip-diff", d);
+  chip.querySelector(".card__chip-dot").style.display = s && d ? "" : "none";
+  chip.classList.toggle("is-empty", !s && !d);
+}
+
+function setStats(p) {
+  setStat("detail-distance", Number.isFinite(+p.distance_km) ? fmt(p.distance_km) : "—", "km");
+  setStat("detail-climb", Number.isFinite(+p.elevation_gain_m) ? fmt(p.elevation_gain_m) : "—", "m");
+  setStat("detail-effort", p.terrain_difficulty ? shortEffort(p.terrain_difficulty) : "—", "");
+  setStat("detail-surface", p.surface ? shortSurface(p.surface) : "—", "");
+}
+
+function setStat(id, value, unit) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = String(value);
+  if (unit && value !== "—") {
+    const u = document.createElement("span");
+    u.className = "card__unit";
+    u.textContent = " " + unit;
+    el.appendChild(u);
+  }
+}
+
+function setStart(label, name, navHref) {
+  setText("detail-start-label", label);
+  setText("detail-start", name || "—");
+  const nav = els.detail.querySelector("#detail-navigate");
+  if (navHref) {
+    nav.href = navHref;
+    nav.style.display = "";
+  } else {
+    nav.style.display = "none";
+  }
+}
+
+function setMeta(parts) {
+  els.detail.querySelector("#detail-meta").innerHTML = parts.filter(Boolean).join(" · ");
+}
+
+// Primary CTA. Pass href for a real link (event → Strava); pass onclick for a
+// JS action (route → gated GPX download).
+function setCTA(label, href, onclick) {
+  const cta = els.detail.querySelector("#detail-cta");
+  cta.textContent = label;
+  if (href != null) {
+    cta.href = href;
+    cta.onclick = null;
+  } else {
+    cta.href = "#";
+    cta.onclick = (e) => {
+      e.preventDefault();
+      if (onclick) onclick();
+    };
+  }
+}
+
+function fmt(n) {
+  return Math.round(+n).toLocaleString("en-US");
+}
+function shortEffort(d) {
+  return d === "moderate" ? "Mod." : cap(d);
+}
+// Reduce a verbose surface string ("92% gravel, 8% sealed") to its primary
+// material word ("Gravel") for the stat cell / hero chip.
+function shortSurface(s) {
+  const m = String(s).match(/[a-zA-Z]+/);
+  return m ? cap(m[0]) : "—";
+}
+function navUrl(lat, lng) {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return "";
+  return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+}
+function routeStartNav(feature) {
+  const m = feature.properties.marker || (feature.geometry && feature.geometry.coordinates[0]);
+  return m ? navUrl(m[1], m[0]) : "";
+}
+function eventStartNav(feature) {
+  const c = feature.geometry && feature.geometry.coordinates;
+  return c ? navUrl(c[1], c[0]) : "";
+}
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
+  );
 }
 
 // ---- Route elevation profile ---------------------------------------------
@@ -865,11 +957,11 @@ const elevCache = new Map(); // route id -> profile [{d, e}] | null
 // back to a clear "unavailable" note if the GPX has no elevation (e.g. some
 // curated tracks) or can't be fetched.
 async function drawElevation(route) {
-  const svg = els.detail.querySelector("#evt-elevation-svg");
-  const note = els.detail.querySelector("#evt-elev-note");
-  const empty = els.detail.querySelector("#evt-elev-empty");
+  const svg = els.detail.querySelector("#detail-elev-svg");
+  const note = els.detail.querySelector("#detail-elev-note");
+  const empty = els.detail.querySelector("#detail-elev-empty");
   if (!svg) return;
-  svg.innerHTML = "";
+  clearElevSvg(svg); // keep the <defs> gradient, drop old paths
   if (note) note.textContent = "";
   if (empty) empty.hidden = true;
 
@@ -922,6 +1014,13 @@ function showElevUnavailable(svg, empty) {
   if (empty) empty.hidden = false;
 }
 
+// Remove drawn paths but preserve the static <defs> gradient in the markup.
+function clearElevSvg(svg) {
+  Array.from(svg.children).forEach((c) => {
+    if (c.tagName.toLowerCase() !== "defs") c.remove();
+  });
+}
+
 // Parse GPX <trkpt> lat/lon/ele into a cumulative-distance elevation profile.
 function parseElevation(gpxText) {
   let doc;
@@ -951,7 +1050,7 @@ function parseElevation(gpxText) {
   }
   if (!hasEle || out.length < 2) return null;
   // Downsample to keep the SVG light.
-  const MAX = 240;
+  const MAX = 160;
   if (out.length <= MAX) return out;
   const step = out.length / MAX;
   const ds = [];
@@ -970,35 +1069,42 @@ function haversineKm(a, b) {
   return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
 }
 
-// Render the profile as a filled area + line into the 240x120 viewBox. The
-// caption reports total elevation GAINED (ascent) — a far better read on how
-// hard a ride is than the peak height. Prefer the route's own elevation_gain_m
-// (computed from the full track), falling back to the profile if absent.
+// Render the profile as a filled area + line into the design's 340x54 viewBox
+// (gradient fill + rust stroke). The caption reports total elevation GAINED
+// (ascent) — a far better read on how hard a ride is than the peak height.
+// Prefer the route's own elevation_gain_m (computed from the full track),
+// falling back to the profile if absent.
 function renderElevation(svg, profile, note, props) {
   svg.style.display = "";
-  const W = 240, H = 120, padY = 8;
+  const NS = "http://www.w3.org/2000/svg";
+  const W = 340, top = 4, base = 52; // 54-tall viewBox, 2px breathing room below
   const dMax = profile[profile.length - 1].d || 1;
   const es = profile.map((p) => p.e);
   let eMin = Math.min(...es);
   let eMax = Math.max(...es);
   if (eMax - eMin < 10) eMax = eMin + 10; // give a near-flat route some shape
   const x = (d) => (d / dMax) * W;
-  const y = (e) => H - padY - ((e - eMin) / (eMax - eMin)) * (H - 2 * padY);
-  const line = profile.map((p) => `${x(p.d).toFixed(1)},${y(p.e).toFixed(1)}`).join(" ");
-  const area = `M0,${H} L${line.split(" ").join(" L")} L${W},${H} Z`;
-  const areaEl = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  areaEl.setAttribute("class", "evt__elev-area");
+  const y = (e) => base - ((e - eMin) / (eMax - eMin)) * (base - top);
+  const pts = profile.map((p) => `${x(p.d).toFixed(1)},${y(p.e).toFixed(1)}`);
+  const line = "M" + pts.join(" L");
+  const area = `M0,${base} L${pts.join(" L")} L${W},${base} Z`;
+
+  const areaEl = document.createElementNS(NS, "path");
   areaEl.setAttribute("d", area);
-  const lineEl = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
-  lineEl.setAttribute("class", "evt__elev-line");
-  lineEl.setAttribute("points", line);
+  areaEl.setAttribute("fill", "url(#elevGrad)");
+  const lineEl = document.createElementNS(NS, "path");
+  lineEl.setAttribute("d", line);
+  lineEl.setAttribute("fill", "none");
+  lineEl.setAttribute("stroke", "#bd5730");
+  lineEl.setAttribute("stroke-width", "1.6");
+  lineEl.setAttribute("stroke-linejoin", "round");
   svg.appendChild(areaEl);
   svg.appendChild(lineEl);
 
   const gain =
     props && Number.isFinite(+props.elevation_gain_m) ? +props.elevation_gain_m : computeGain(profile);
   const dist = props && Number.isFinite(+props.distance_km) ? +props.distance_km : dMax;
-  if (note) note.textContent = `${Math.round(dist)} km · ↑ ${Math.round(gain)} m gain`;
+  if (note) note.textContent = `↑ ${fmt(gain)} m over ${fmt(dist)} km`;
 }
 
 // ---- Drag gesture (sheet mode) -------------------------------------------

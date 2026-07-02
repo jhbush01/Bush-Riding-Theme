@@ -134,97 +134,105 @@
     </button>
 
     <!-- Detail surface: bottom sheet (mobile/tablet) or inset floating panel
-         (desktop). Snap states driven by map.js. One node, two content modes:
-         data-mode="route" (route detail) and data-mode="event" (Community Bush
-         Ride event). Only one is ever open — .for-route / .for-event toggle. -->
-    <section id="detail" class="sheet" aria-hidden="true" aria-label="Route detail" data-state="closed" data-mode="route">
-      <!-- Drag zone = the always-visible header. Grab here to move the sheet. -->
+         (desktop). Snap states driven by map.js. ONE redesigned card shared by
+         routes and events — data-mode toggles the event-only bits. -->
+    <section id="detail" class="sheet card" aria-hidden="true" aria-label="Route detail" data-state="closed" data-mode="route">
+      <!-- Drag zone = the always-visible peek: identity, numbers, primary action. -->
       <div id="detail-drag" class="sheet__drag">
         <span class="sheet__handle" aria-hidden="true"></span>
-        <button id="detail-close" class="sheet__close" aria-label="Close">&times;</button>
+        <button id="detail-close" class="card__close" aria-label="Close">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg>
+        </button>
 
-        <!-- ROUTE header -->
-        <div class="sheet__peek for-route">
-          <img id="detail-photo" class="sheet__thumb" alt="" hidden />
-          <div class="sheet__head">
-            <h2 id="detail-name" class="sheet__name"></h2>
-            <p id="detail-region" class="sheet__region"></p>
-            <ul class="sheet__facts">
-              <li><span id="detail-distance" class="sheet__fact-val"></span><span class="sheet__fact-key">dist</span></li>
-              <li><span id="detail-elevation" class="sheet__fact-val"></span><span class="sheet__fact-key">climb</span></li>
-              <li><span id="detail-difficulty" class="sheet__fact-val"></span><span class="sheet__fact-key">terrain</span></li>
-            </ul>
+        <!-- HERO (revealed at full / always on desktop) -->
+        <div class="card__hero for-full">
+          <img id="detail-photo" class="card__hero-img" alt="" />
+          <div class="card__hero-scrim"></div>
+          <div class="card__chip">
+            <span id="detail-chip-surface"></span>
+            <i class="card__chip-dot" aria-hidden="true"></i>
+            <span id="detail-chip-diff"></span>
           </div>
         </div>
-        <div class="sheet__action for-route">
-          <button id="detail-download" class="button button--primary">Download GPX</button>
-        </div>
 
-        <!-- EVENT hero: at the top of the card, but revealed only at full
-             state (mobile) / always on desktop. In the compact peek view it's
-             hidden so the route stays visible and the CTA is reachable. -->
-        <div class="evt__hero for-event for-full">
-          <img id="evt-hero" class="evt__hero-img" alt="" />
-        </div>
-
-        <!-- EVENT header = the compact card. -->
-        <div class="evt-header for-event">
-          <p class="sheet__label">Community Bush Ride</p>
-          <h2 id="evt-subtitle" class="evt__subtitle"></h2>
-          <p id="evt-datetime" class="evt__datetime"></p>
-          <p class="evt__meeting">
-            <svg class="evt__pin-icon" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
-              <path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z" fill="none" stroke="currentColor" stroke-width="2"/>
-              <circle cx="12" cy="9" r="2.5" fill="none" stroke="currentColor" stroke-width="2"/>
-            </svg>
-            <span id="evt-meeting"></span>
-          </p>
-          <button id="evt-route-pill" class="evt__pill" type="button">
-            <span class="evt__pill-label">Route</span>
-            <span id="evt-route-name" class="evt__pill-name"></span>
-            <span id="evt-route-meta" class="evt__pill-meta"></span>
-          </button>
-          <p id="evt-pace" class="evt__pace for-upcoming"></p>
-          <div class="evt__interest for-upcoming">
-            <img class="evt__flame" src="https://cdn.simpleicons.org/strava" alt="" width="16" height="16" />
-            <span id="evt-interest"></span>
+        <div class="card__head">
+          <div class="card__eyebrow-row">
+            <span id="detail-eyebrow" class="card__eyebrow"></span>
+            <div id="detail-keen" class="card__keen only-event">
+              <span class="card__avatars" aria-hidden="true"><i></i><i></i><i></i></span>
+              <span id="detail-keen-text" class="card__keen-text"></span>
+            </div>
           </div>
-          <p class="evt__happened for-past">This ride happened.</p>
-          <a id="evt-cta" class="button button--primary evt__cta for-upcoming" target="_blank" rel="noopener noreferrer">Join the ride on Strava</a>
+
+          <h2 id="detail-name" class="card__title"></h2>
+          <p id="detail-when" class="card__when only-event"></p>
+          <p id="detail-vibe" class="card__vibe only-event"></p>
+
+          <!-- At-a-glance stat strip -->
+          <div class="card__stats">
+            <div class="card__stat"><span id="detail-distance" class="card__stat-val"></span><span class="card__stat-label">Distance</span></div>
+            <div class="card__stat-div" aria-hidden="true"></div>
+            <div class="card__stat"><span id="detail-climb" class="card__stat-val"></span><span class="card__stat-label">Climb</span></div>
+            <div class="card__stat-div" aria-hidden="true"></div>
+            <div class="card__stat"><span id="detail-effort" class="card__stat-val"></span><span class="card__stat-label">Effort</span></div>
+            <div class="card__stat-div" aria-hidden="true"></div>
+            <div class="card__stat"><span id="detail-surface" class="card__stat-val"></span><span class="card__stat-label">Surface</span></div>
+          </div>
+
+          <!-- Primary action — kept in peek so it's reachable on first tap. -->
+          <p id="detail-happened" class="card__happened for-past">This ride happened.</p>
+          <a id="detail-cta" class="card__cta for-upcoming" target="_blank" rel="noopener noreferrer"></a>
         </div>
       </div>
 
-      <!-- Revealed as the sheet expands to half / full. -->
+      <!-- Revealed as the card expands. -->
       <div id="detail-scroll" class="sheet__scroll">
-        <!-- ROUTE body -->
-        <div class="for-route">
-          <dl class="sheet__stats">
-            <div><dt>Surface</dt><dd id="detail-surface"></dd></div>
-            <div><dt>Last ridden</dt><dd id="detail-lastridden"></dd></div>
-            <div><dt>Vetted by</dt><dd id="detail-vetted"></dd></div>
-          </dl>
-          <p id="detail-description" class="sheet__desc"></p>
-          <p class="sheet__disclaimer">
-            A guide only. Conditions, gates and access change — check before you ride, and ride
-            at your own risk.
-          </p>
+        <!-- Elevation profile -->
+        <div id="detail-elev" class="card__elev">
+          <div class="card__elev-head">
+            <span class="card__mini-label">Elevation profile</span>
+            <span id="detail-elev-note" class="card__elev-note"></span>
+          </div>
+          <svg id="detail-elev-svg" class="card__elev-svg" viewBox="0 0 340 54" preserveAspectRatio="none" aria-hidden="true">
+            <defs><linearGradient id="elevGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c9673f" stop-opacity=".34"/><stop offset="1" stop-color="#c9673f" stop-opacity=".04"/></linearGradient></defs>
+          </svg>
+          <p id="detail-elev-empty" class="card__elev-empty" hidden>Elevation data isn't available for this route yet.</p>
         </div>
 
-        <!-- EVENT body: editorial detail (revealed as the card expands). -->
-        <div class="for-event evt-body">
-          <p id="evt-description" class="sheet__desc evt__desc for-upcoming"></p>
-          <div class="evt__kit for-upcoming">
-            <p class="sheet__label">What to wear</p>
-            <p id="evt-kit" class="evt__kit-text"></p>
-          </div>
-          <div class="evt__elevation for-upcoming" aria-hidden="true">
-            <div class="evt__elev-head">
-              <span class="evt__elev-label">Route Elevation</span>
-              <span id="evt-elev-note" class="evt__elev-note"></span>
+        <!-- Start + Navigate -->
+        <div class="card__start">
+          <div class="card__start-info">
+            <svg class="card__start-pin" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-6.3-7-11a7 7 0 0 1 14 0c0 4.7-7 11-7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>
+            <div class="card__start-text">
+              <div id="detail-start-label" class="card__mini-label">Start</div>
+              <div id="detail-start" class="card__start-name"></div>
             </div>
-            <svg id="evt-elevation-svg" class="evt__elev-svg" viewBox="0 0 240 120" preserveAspectRatio="none"></svg>
-            <p id="evt-elev-empty" class="evt__elev-empty" hidden>Elevation data isn't available for this route yet.</p>
           </div>
+          <a id="detail-navigate" class="card__nav" target="_blank" rel="noopener noreferrer">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l18-8-8 18-2-8-8-2z"/></svg>
+            Navigate
+          </a>
+        </div>
+
+        <!-- Story -->
+        <p id="detail-description" class="card__desc"></p>
+
+        <!-- What to wear (events) -->
+        <div id="detail-kit-wrap" class="card__kit only-event">
+          <div class="card__mini-label card__kit-label">What to wear</div>
+          <div id="detail-kit" class="card__kit-text"></div>
+        </div>
+
+        <!-- Quiet metadata -->
+        <p id="detail-meta" class="card__meta"></p>
+
+        <!-- Footer: secondary GPX (events) + disclaimer -->
+        <div class="card__foot">
+          <button id="detail-gpx2" class="card__gpx only-event" type="button">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v13m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
+            Download GPX
+          </button>
+          <span id="detail-disclaimer" class="card__disclaimer"></span>
         </div>
       </div>
     </section>

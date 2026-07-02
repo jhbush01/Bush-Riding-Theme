@@ -344,79 +344,6 @@ body {
   z-index: 2;
 }
 
-/* Peek header — horizontal hero card so identity reads in one glance. */
-.sheet__peek {
-  display: flex;
-  gap: 14px;
-  align-items: center;
-}
-.sheet__thumb {
-  flex: 0 0 auto;
-  width: 88px;
-  height: 88px;
-  object-fit: cover;
-  border-radius: 14px;
-  background: var(--sage);
-  display: block;
-}
-/* The class's display:block outranks the UA [hidden] rule, so restore it. */
-.sheet__thumb[hidden] {
-  display: none;
-}
-.sheet__head {
-  flex: 1;
-  min-width: 0;
-  /* Leave room for the floating close button on the first line. */
-  padding-right: 34px;
-}
-.sheet__name {
-  margin: 0;
-  font-family: var(--head-font);
-  font-size: 23px;
-  font-weight: 400;
-  line-height: 1.12;
-  /* Up to two lines, then ellipsis — keeps peek compact without hard-cutting
-     mid-word on longer route names. */
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.sheet__region {
-  margin: 2px 0 0;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--ink-soft);
-}
-.sheet__facts {
-  display: flex;
-  gap: 18px;
-  list-style: none;
-  margin: 9px 0 0;
-  padding: 0;
-}
-.sheet__facts li {
-  display: flex;
-  flex-direction: column;
-}
-.sheet__fact-val {
-  font-size: 15px;
-  font-weight: 600;
-  line-height: 1.1;
-}
-.sheet__fact-key {
-  margin-top: 2px;
-  font-size: 9px;
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-  color: var(--ink-soft);
-}
-.sheet__action {
-  margin-top: 14px;
-}
-
 /* Revealed content (half / full). Scrolls only when the sheet is full so the
    drag gesture and the content scroll never fight in peek/half. */
 .sheet__scroll {
@@ -431,39 +358,6 @@ body {
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
 }
-.sheet__stats {
-  margin: 8px 0 16px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px 16px;
-}
-.sheet__stats div {
-  margin: 0;
-}
-.sheet__stats dt {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--ink-soft);
-}
-.sheet__stats dd {
-  margin: 2px 0 0;
-  font-size: 14px;
-}
-.sheet__desc {
-  font-size: 13px;
-  line-height: 1.55;
-  color: var(--ink-soft);
-  margin: 0 0 18px;
-}
-.sheet__disclaimer {
-  font-size: 11px;
-  line-height: 1.5;
-  color: var(--ink-soft);
-  margin: 0;
-  padding-top: 14px;
-  border-top: 1px solid var(--line);
-}
 
 /* Tablet: roomier bottom sheet anchored to the lower-left, preserving a large
    map area rather than filling the width. Still fully draggable. */
@@ -476,13 +370,6 @@ body {
     width: 440px;
     max-width: calc(100vw - 48px);
     border-radius: 20px 20px 0 0;
-  }
-  .sheet__thumb {
-    width: 104px;
-    height: 104px;
-  }
-  .sheet__name {
-    font-size: 26px;
   }
 }
 
@@ -511,7 +398,6 @@ body {
   }
   .sheet__drag {
     cursor: default;
-    padding-top: 16px;
   }
   .sheet__handle {
     display: none;
@@ -1079,272 +965,147 @@ textarea.field-input {
   transform: translateX(-50%) translateY(0);
 }
 
-/* ===================== Community Bush Ride events ===================== */
+/* ===================== Route / Event card ===================== */
+/* One redesigned card shared by routes (data-mode="route") and community
+   events (data-mode="event"). Warm cream surface, a hero with a ride-type
+   chip, an at-a-glance stat strip, an elevation card, start + navigate, the
+   story, and a dark primary action kept reachable in the peek. */
 
 :root {
-  /* Deep terracotta/amber — the event accent. More urgent than the route
-     palette so event pins win the visual hierarchy. */
-  --terracotta: #c1572e;
-  --terracotta-soft: #e3c3ad;
+  --terracotta: #c1572e; /* event pin accent (map layers) */
   --event-past: #8f8a7e;
+  /* Card design tokens (warmer than the app chrome, per the design). */
+  --card-bg: #efe8da;
+  --card-inset: #f6f1e6;
+  --card-inset-line: #e4dcca;
+  --card-ink: #26221b;
+  --card-ink-2: #3d382f;
+  --card-ink-3: #59544a;
+  --card-muted: #6b6558;
+  --card-muted-2: #8a8272;
+  --card-label: #a29a88;
+  --card-rust: #b04a24;
+  --card-rust-2: #bd5730;
+  --card-line: #e2dac9;
 }
 
-/* Reusable small uppercase tracked label (series name, section headers). */
-.sheet__label {
-  margin: 0 0 6px;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--ink-soft);
+.sheet.card {
+  background: var(--card-bg);
+  color: var(--card-ink);
 }
 
-/* ---- Content-mode toggling: one sheet, route OR event ---- */
-.sheet[data-mode="route"] .for-event {
-  display: none !important;
+/* Content-mode toggles */
+.sheet[data-mode="route"] .only-event { display: none !important; }
+.sheet[data-mode="event"] .only-route { display: none !important; }
+/* Hero shows only when expanded (desktop is always "full"). */
+.sheet:not([data-state="full"]) .for-full { display: none !important; }
+/* Past events: hide the join CTA, show the "happened" note. Route mode never
+   sets data-event-status, so its CTA (for-upcoming) shows and the note hides. */
+.sheet[data-event-status="past"] .for-upcoming { display: none !important; }
+.sheet:not([data-event-status="past"]) .for-past { display: none !important; }
+
+/* Drag zone is full-bleed for the hero; the head carries its own padding. */
+.sheet.card .sheet__drag { padding: 0; }
+.sheet.card .sheet__scroll { padding: 15px 22px 22px; }
+
+/* Handle + close float over the hero when it's showing (full / desktop). */
+.sheet.card[data-state="full"] .sheet__handle {
+  position: absolute; top: 9px; left: 50%; transform: translateX(-50%);
+  z-index: 3; background: rgba(255, 255, 255, 0.8);
 }
-.sheet[data-mode="event"] .for-route {
-  display: none !important;
+.card__close {
+  position: absolute; top: 12px; right: 13px; z-index: 3;
+  width: 32px; height: 32px; padding: 0; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; background: rgba(233, 226, 208, 0.85);
+  border: 1px solid var(--card-inset-line); color: var(--card-ink-2);
 }
-/* Past events hide the join/actionable content; upcoming hide the record label. */
-.sheet[data-event-status="past"] .for-upcoming {
-  display: none !important;
-}
-.sheet:not([data-event-status="past"]) .for-past {
-  display: none !important;
+.sheet.card[data-state="full"] .card__close {
+  background: rgba(24, 26, 18, 0.42); border-color: transparent; color: #fff;
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
 }
 
-/* Content shown only when the card is expanded to full (or on desktop, where
-   the panel is always "full"). Keeps the peek/half view compact — the hero
-   stays hidden until the rider slides the card all the way up. */
-.sheet[data-mode="event"]:not([data-state="full"]) .for-full {
-  display: none !important;
+/* ---- Hero ---- */
+.card__hero { position: relative; width: 100%; height: 200px; overflow: hidden; background: var(--sage); }
+.card__hero-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.card__hero-img[hidden] { display: none; }
+.card__hero-scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20, 24, 14, 0.32), transparent 34%, transparent 62%, rgba(20, 24, 14, 0.42)); }
+.card__chip {
+  position: absolute; left: 16px; bottom: 14px; display: flex; align-items: center; gap: 7px;
+  padding: 6px 11px; border-radius: 999px; background: rgba(28, 30, 20, 0.5); color: #fdf8ec;
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
 }
+.card__chip-dot { width: 3px; height: 3px; border-radius: 50%; background: #e5a07f; }
+.card__chip span:last-child { color: #f4c9b3; font-weight: 600; }
+.card__chip:empty, .card__chip.is-empty { display: none; }
 
-/* In event mode the drag zone holds a full-bleed hero, so drop its padding and
-   let the card carry its own. */
-.sheet[data-mode="event"] .sheet__drag {
-  padding: 0;
-}
+/* ---- Head: identity + numbers + primary action (the peek) ---- */
+.card__head { padding: 18px 22px 4px; }
+.card__eyebrow-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 19px; }
+.card__eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--card-rust); }
+.card__keen { display: flex; align-items: center; gap: 7px; flex: none; }
+.card__avatars { display: flex; }
+.card__avatars i { width: 19px; height: 19px; border-radius: 50%; border: 1.5px solid var(--card-bg); }
+.card__avatars i:nth-child(1) { background: #c7855f; }
+.card__avatars i:nth-child(2) { background: #7f8a5c; margin-left: -7px; }
+.card__avatars i:nth-child(3) { background: #8a7d6b; margin-left: -7px; }
+.card__keen-text { font-size: 12px; font-weight: 600; color: var(--card-muted); white-space: nowrap; }
 
-/* ---- Event header = the compact card (in the drag zone) ---- */
-.evt-header {
-  display: flex;
-  flex-direction: column;
-  gap: 11px;
-  padding: 8px 20px 4px;
-}
-.evt-header .sheet__label {
-  margin: 0;
-}
-.evt__subtitle {
-  margin: 0;
-  font-family: var(--head-font);
-  font-size: 28px;
-  font-weight: 400;
-  line-height: 1.06;
-}
+.card__title { margin: 9px 0 0; font-family: var(--head-font); font-weight: 400; font-size: 30px; line-height: 1.07; letter-spacing: 0.005em; color: var(--card-ink); }
+.card__when { margin: 9px 0 0; font-size: 15px; font-weight: 600; color: var(--card-ink-2); }
+.card__vibe { margin: 8px 0 0; font-size: 14.5px; line-height: 1.45; color: var(--card-muted); }
 
-/* ---- Hero: full-bleed at the top of the card, shown only at full state.
-   The sheet's overflow:hidden clips its top corners to the rounded sheet. ---- */
-.evt__hero {
-  position: relative;
-  width: 100%;
-  height: 200px;
-  overflow: hidden;
-  background: var(--sage);
-}
-.evt__hero-img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-/* When the hero is showing (full state), the handle + close float over it. */
-.sheet[data-mode="event"][data-state="full"] .sheet__handle {
-  position: absolute;
-  top: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 3;
-  background: rgba(255, 255, 255, 0.85);
-}
-.sheet[data-mode="event"][data-state="full"] .sheet__close {
-  background: rgba(28, 26, 21, 0.4);
-  border-color: transparent;
-  color: #fff;
-}
+/* Stat strip */
+.card__stats { margin-top: 17px; display: flex; background: var(--card-inset); border: 1px solid var(--card-inset-line); border-radius: 15px; overflow: hidden; }
+.card__stat { flex: 1; padding: 13px 6px; text-align: center; min-width: 0; }
+.card__stat-div { width: 1px; background: var(--card-inset-line); flex: none; }
+.card__stat-val { display: block; font-family: var(--head-font); font-weight: 400; font-size: 21px; line-height: 1; color: var(--card-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card__unit { font-size: 12px; color: var(--card-muted-2); }
+.card__stat-label { display: block; margin-top: 6px; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--card-label); font-weight: 700; }
 
-/* ---- Event body (in the scroll zone) ---- */
-.evt-body {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  padding-top: 4px;
-}
-.evt__datetime {
-  margin: 0;
-  font-size: 17px;
-  font-weight: 600;
-  color: var(--ink);
-}
-.evt__meeting {
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 14px;
-  color: var(--ink);
-}
-.evt__pin-icon {
-  flex: 0 0 auto;
-  color: var(--terracotta);
-}
+/* Primary CTA */
+.card__cta { display: block; width: 100%; margin-top: 16px; padding: 15px; text-align: center; text-decoration: none; border: none; border-radius: 13px; background: var(--card-ink); color: #f4eddc; font-family: var(--ui-font); font-size: 15px; font-weight: 700; letter-spacing: 0.01em; cursor: pointer; }
+.card__cta:hover { background: #000; }
+.card__happened { margin: 16px 0 0; font-size: 13px; font-style: italic; color: var(--card-muted); }
 
-/* Route pill — tappable, jumps to the linked route detail. */
-.evt__pill {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  flex-wrap: wrap;
-  width: 100%;
-  text-align: left;
-  padding: 10px 14px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: #fff;
-  color: var(--ink);
-  cursor: pointer;
-  font-family: var(--ui-font);
-}
-.evt__pill:hover {
-  border-color: var(--olive);
-  background: #fbf8f0;
-}
-.evt__pill-label {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-  color: var(--ink-soft);
-}
-.evt__pill-name {
-  font-size: 14px;
-  font-weight: 600;
-}
-.evt__pill-meta {
-  font-size: 12px;
-  color: var(--ink-soft);
-}
+/* Elevation card */
+.card__elev { padding: 11px 13px 9px; background: var(--card-inset); border: 1px solid var(--card-inset-line); border-radius: 14px; }
+.card__elev-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.card__mini-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--card-label); font-weight: 700; }
+.card__elev-note { font-size: 11px; color: var(--card-muted-2); white-space: nowrap; }
+.card__elev-svg { width: 100%; height: 46px; margin-top: 6px; display: block; }
+.card__elev-empty { margin: 8px 0 0; font-size: 12.5px; color: var(--card-muted-2); }
 
-.evt__pace {
-  margin: 0;
-  font-size: 13px;
-  color: var(--ink-soft);
-}
-.evt__interest {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  color: var(--ink);
-}
-.evt__flame {
-  display: block;
-  flex: 0 0 auto;
-}
-.evt__happened {
-  margin: 0;
-  font-size: 13px;
-  font-style: italic;
-  color: var(--ink-soft);
-}
-.evt__cta {
-  text-align: center;
-  text-decoration: none;
-  /* .button--primary already fills width; keep the anchor looking like it. */
-  display: block;
-}
+/* Start + Navigate */
+.card__start { margin-top: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.card__start-info { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.card__start-pin { flex: none; color: var(--card-rust-2); }
+.card__start-text { min-width: 0; }
+.card__start-name { font-size: 13.5px; font-weight: 600; color: var(--card-ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card__nav { flex: none; display: flex; align-items: center; gap: 7px; padding: 9px 15px; border: 1.5px solid #ccc2ac; background: transparent; border-radius: 999px; cursor: pointer; color: var(--card-ink-2); font-family: var(--ui-font); font-weight: 600; font-size: 13px; text-decoration: none; }
+.card__nav svg { color: var(--card-rust-2); }
+.card__nav:hover { border-color: var(--card-rust-2); }
 
-/* Kit note — editorially distinct: soft tint + terracotta left accent. */
-.evt__kit {
-  margin-top: 2px;
-  padding: 12px 14px;
-  background: rgba(193, 87, 46, 0.07);
-  border-left: 3px solid var(--terracotta);
-  border-radius: 0 4px 4px 0;
-}
-.evt__kit .sheet__label {
-  color: var(--terracotta);
-  margin-bottom: 4px;
-}
-.evt__kit-text {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--ink);
-}
+/* Story */
+.card__desc { margin: 17px 0 0; font-size: 14.5px; line-height: 1.5; color: var(--card-ink-3); }
+.card__desc:empty { display: none; }
 
-/* Route shape preview — simplified SVG of the linked route. */
-/* ---- Route elevation profile (Strava/RWGPS-style, in our colours) ---- */
-.evt__elevation {
-  margin-top: 2px;
-}
-.evt__elev-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin-bottom: 6px;
-}
-.evt__elev-label {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--ink-soft);
-}
-.evt__elev-note {
-  font-size: 11px;
-  color: var(--ink-soft);
-}
-.evt__elev-svg {
-  display: block;
-  width: 100%;
-  height: 120px;
-  background: #fbf8f0;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-}
-.evt__elev-area {
-  fill: rgba(193, 87, 46, 0.15);
-  stroke: none;
-}
-.evt__elev-line {
-  fill: none;
-  stroke: var(--terracotta);
-  stroke-width: 2;
-  stroke-linejoin: round;
-  vector-effect: non-scaling-stroke;
-}
-.evt__elev-empty {
-  margin: 8px 0 0;
-  font-size: 13px;
-  color: var(--ink-soft);
-}
+/* Kit note */
+.card__kit { margin-top: 15px; padding: 11px 14px; background: var(--card-inset); border-left: 3px solid var(--card-rust-2); border-radius: 0 9px 9px 0; }
+.card__kit-label { color: var(--card-rust); }
+.card__kit-text { margin-top: 3px; font-size: 13.5px; line-height: 1.4; color: var(--card-ink-2); }
 
-/* ---- Desktop: give the event panel more room so it isn't a narrow strip. ---- */
+/* Quiet metadata */
+.card__meta { margin: 15px 0 0; padding-top: 13px; border-top: 1px solid var(--card-line); font-size: 11.5px; color: var(--card-muted-2); }
+.card__meta:empty { display: none; }
+.card__meta strong { color: var(--card-muted); font-weight: 600; }
+
+/* Footer secondary (download GPX for events + disclaimer) */
+.card__foot { margin-top: 15px; padding-top: 13px; border-top: 1px solid var(--card-line); display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.card__gpx { display: flex; align-items: center; gap: 6px; background: none; border: none; padding: 0; cursor: pointer; color: #8a5334; font-family: var(--ui-font); font-weight: 600; font-size: 12.5px; }
+.card__disclaimer { font-size: 10.5px; color: #a79e8c; line-height: 1.3; text-align: right; margin-left: auto; max-width: 210px; }
+
 @media (min-width: 1025px) {
-  .sheet[data-mode="event"] {
-    width: 440px;
-    max-width: 40vw;
-  }
-  .sheet[data-mode="event"] .evt-header {
-    gap: 13px;
-    padding: 14px 24px 6px;
-  }
-  .sheet[data-mode="event"] .evt-body {
-    padding-left: 4px;
-    padding-right: 4px;
-  }
+  .sheet.card { width: 404px; }
 }
