@@ -1,3 +1,7 @@
 # Canonicalise to the apex domain. Requires www.bushridingmap.com to be added
 # as a custom domain on the Pages project so requests reach Pages.
 https://www.bushridingmap.com/* https://bushridingmap.com/:splat 301!
+
+# The map is now the homepage; keep old /map links (and deep links /map#id,
+# whose hash the browser preserves) working.
+/map / 301

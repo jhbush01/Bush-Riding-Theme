@@ -2,14 +2,16 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Bush Riding Map</title>
+    <!-- The map is the homepage. base keeps shared assets (/src, /styles, /data, ...) root-relative. -->
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>Bush Riding Routes</title>
     <meta
       name="description"
-      content="Curated gravel routes across South East Queensland. Browse the map, take the track."
+      content="Curated gravel routes. Browse, filter, and download the track. Join the bush."
     />
     <link rel="canonical" href="https://bushridingmap.com/" />
-    <meta name="theme-color" content="#2c2a24" />
+    <meta name="theme-color" content="#E9E2D0" />
 
     <!-- Icons -->
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
@@ -18,16 +20,22 @@
     <!-- Open Graph / Twitter -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Bush Riding" />
-    <meta property="og:title" content="Bush Riding Map" />
+    <meta property="og:title" content="Bush Riding Routes — Map" />
     <meta property="og:description" content="Curated gravel routes. Browse the map, take the track." />
     <meta property="og:url" content="https://bushridingmap.com/" />
     <meta property="og:image" content="https://bushridingmap.com/public/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Bush Riding Map" />
+    <meta name="twitter:title" content="Bush Riding Routes — Map" />
     <meta name="twitter:description" content="Curated gravel routes. Browse the map, take the track." />
     <meta name="twitter:image" content="https://bushridingmap.com/public/og-image.png" />
+
+    <!-- MapLibre GL JS v5.x -->
+    <link href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css" rel="stylesheet" />
+    <script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+    <!-- PMTiles protocol for MapLibre (range-request reads of a single world .pmtiles) -->
+    <script src="https://unpkg.com/pmtiles@4.4.1/dist/pmtiles.js"></script>
 
     <!-- Archivo (UI text) + Instrument Serif (headings) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -38,14 +46,326 @@
     />
 
     <link rel="stylesheet" href="styles/app.css" />
-    <link rel="stylesheet" href="styles/landing.css" />
+
+    <!-- Deployment config — the only place to set per-environment values.
+         tilesUrl is the single swappable line for the basemap source. -->
+    <script>
+      window.BRM_CONFIG = {
+        // Basemap: styles/bush.json (OpenFreeMap / OpenMapTiles, no key) is used
+        // by default. tilesUrl only applies if you switch bush.json to the
+        // Protomaps schema (bush-protomaps.json) and self-host PMTiles on R2,
+        // e.g. "https://tiles.bushriding.au/planet.pmtiles". Leave empty otherwise.
+        tilesUrl: "",
+        // Klaviyo client-side flow. companyId is the PUBLIC key (safe in
+        // client code); listId is the existing "bush riding map" list.
+        klaviyoCompanyId: "W9QAij",
+        klaviyoListId: "R3335d",
+        // Community routes Worker (approved submissions). Empty = curated only.
+        communityApi: "https://api.bushridingmap.com",
+        // Personal ride diary Worker — proxied same-origin via /diary-api
+        // (Pages Function) so the browser never makes a cross-origin request.
+        diaryApi: "/diary-api",
+      };
+    </script>
   </head>
-  <body class="landing">
-    <main class="hero">
-      <div class="hero__center">
-        <h1 class="hero__title">Bush Riding Map</h1>
-        <a class="button button--light hero__cta" href="/map">Explore now</a>
+  <body>
+    <div id="map" aria-label="Map of curated gravel routes"></div>
+
+    <!-- Filter / list panel -->
+    <aside id="sidebar" class="sidebar" aria-label="Route filters and list">
+      <header class="sidebar__head">
+        <button type="button" id="sidebar-close" class="sidebar__close" aria-label="Close filters">&times;</button>
+        <h1 class="sidebar__title"><a href="/" class="sidebar__home">Bush Riding Routes</a></h1>
+        <p class="sidebar__sub">Curated gravel. Browse the map, take the track.</p>
+        <div class="sidebar__nav">
+          <a class="sidebar__submit" href="/submit">+ Submit a route</a>
+          <button type="button" id="my-rides-btn" class="sidebar__myrides">My Rides</button>
+        </div>
+      </header>
+
+      <form id="filters" class="filters" aria-label="Filter routes">
+        <div class="filter">
+          <label class="filter__label" for="f-distance">
+            Distance <span id="f-distance-val" class="filter__val">any</span>
+          </label>
+          <input id="f-distance" class="filter__range" type="range" min="0" max="200" step="10" value="200" />
+        </div>
+
+        <div class="filter">
+          <label class="filter__label" for="f-region">Location</label>
+          <select id="f-region" class="filter__select">
+            <option value="">All regions</option>
+          </select>
+        </div>
+
+        <div class="filter">
+          <span class="filter__label">Terrain</span>
+          <div id="f-difficulty" class="toggle-group" role="group" aria-label="Terrain difficulty">
+            <button type="button" class="toggle" data-value="easy">Easy</button>
+            <button type="button" class="toggle" data-value="moderate">Moderate</button>
+            <button type="button" class="toggle" data-value="hard">Hard</button>
+          </div>
+        </div>
+
+        <div class="filter">
+          <span class="filter__label">Last ridden</span>
+          <div id="f-recency" class="toggle-group" role="group" aria-label="Time since last ridden">
+            <button type="button" class="toggle" data-value="1m">&lt; 1 mo</button>
+            <button type="button" class="toggle" data-value="6m">1–6 mo</button>
+            <button type="button" class="toggle" data-value="old">6+ mo</button>
+          </div>
+        </div>
+
+        <button type="button" id="f-reset" class="filter__reset">Reset filters</button>
+      </form>
+
+      <div class="results">
+        <p id="results-count" class="results__count"></p>
+        <ul id="results-list" class="results__list"></ul>
       </div>
-    </main>
+    </aside>
+
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-controls="sidebar" aria-expanded="false" aria-label="Open filters and routes">
+      <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false">
+        <line x1="3" y1="6" x2="21" y2="6" />
+        <line x1="3" y1="12" x2="21" y2="12" />
+        <line x1="3" y1="18" x2="21" y2="18" />
+      </svg>
+    </button>
+
+    <!-- Detail surface: bottom sheet (mobile/tablet) or inset floating panel
+         (desktop). Snap states driven by map.js. One node, two content modes:
+         data-mode="route" (route detail) and data-mode="event" (Community Bush
+         Ride event). Only one is ever open — .for-route / .for-event toggle. -->
+    <section id="detail" class="sheet" aria-hidden="true" aria-label="Route detail" data-state="closed" data-mode="route">
+      <!-- Drag zone = the always-visible header. Grab here to move the sheet. -->
+      <div id="detail-drag" class="sheet__drag">
+        <span class="sheet__handle" aria-hidden="true"></span>
+        <button id="detail-close" class="sheet__close" aria-label="Close">&times;</button>
+
+        <!-- ROUTE header -->
+        <div class="sheet__peek for-route">
+          <img id="detail-photo" class="sheet__thumb" alt="" hidden />
+          <div class="sheet__head">
+            <h2 id="detail-name" class="sheet__name"></h2>
+            <p id="detail-region" class="sheet__region"></p>
+            <ul class="sheet__facts">
+              <li><span id="detail-distance" class="sheet__fact-val"></span><span class="sheet__fact-key">dist</span></li>
+              <li><span id="detail-elevation" class="sheet__fact-val"></span><span class="sheet__fact-key">climb</span></li>
+              <li><span id="detail-difficulty" class="sheet__fact-val"></span><span class="sheet__fact-key">terrain</span></li>
+            </ul>
+          </div>
+        </div>
+        <div class="sheet__action for-route">
+          <button id="detail-download" class="button button--primary">Download GPX</button>
+        </div>
+
+        <!-- EVENT hero: at the top of the card, but revealed only at full
+             state (mobile) / always on desktop. In the compact peek view it's
+             hidden so the route stays visible and the CTA is reachable. -->
+        <div class="evt__hero for-event for-full">
+          <img id="evt-hero" class="evt__hero-img" alt="" />
+        </div>
+
+        <!-- EVENT header = the compact card. -->
+        <div class="evt-header for-event">
+          <p class="sheet__label">Community Bush Ride</p>
+          <h2 id="evt-subtitle" class="evt__subtitle"></h2>
+          <p id="evt-datetime" class="evt__datetime"></p>
+          <p class="evt__meeting">
+            <svg class="evt__pin-icon" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+              <path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z" fill="none" stroke="currentColor" stroke-width="2"/>
+              <circle cx="12" cy="9" r="2.5" fill="none" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            <span id="evt-meeting"></span>
+          </p>
+          <button id="evt-route-pill" class="evt__pill" type="button">
+            <span class="evt__pill-label">Route</span>
+            <span id="evt-route-name" class="evt__pill-name"></span>
+            <span id="evt-route-meta" class="evt__pill-meta"></span>
+          </button>
+          <p id="evt-pace" class="evt__pace for-upcoming"></p>
+          <div class="evt__interest for-upcoming">
+            <img class="evt__flame" src="https://cdn.simpleicons.org/strava" alt="" width="16" height="16" />
+            <span id="evt-interest"></span>
+          </div>
+          <p class="evt__happened for-past">This ride happened.</p>
+          <a id="evt-cta" class="button button--primary evt__cta for-upcoming" target="_blank" rel="noopener noreferrer">Join the ride on Strava</a>
+        </div>
+      </div>
+
+      <!-- Revealed as the sheet expands to half / full. -->
+      <div id="detail-scroll" class="sheet__scroll">
+        <!-- ROUTE body -->
+        <div class="for-route">
+          <dl class="sheet__stats">
+            <div><dt>Surface</dt><dd id="detail-surface"></dd></div>
+            <div><dt>Last ridden</dt><dd id="detail-lastridden"></dd></div>
+            <div><dt>Vetted by</dt><dd id="detail-vetted"></dd></div>
+          </dl>
+          <p id="detail-description" class="sheet__desc"></p>
+          <p class="sheet__disclaimer">
+            A guide only. Conditions, gates and access change — check before you ride, and ride
+            at your own risk.
+          </p>
+        </div>
+
+        <!-- EVENT body: editorial detail (revealed as the card expands). -->
+        <div class="for-event evt-body">
+          <p id="evt-description" class="sheet__desc evt__desc for-upcoming"></p>
+          <div class="evt__kit for-upcoming">
+            <p class="sheet__label">What to wear</p>
+            <p id="evt-kit" class="evt__kit-text"></p>
+          </div>
+          <div class="evt__elevation for-upcoming" aria-hidden="true">
+            <div class="evt__elev-head">
+              <span class="evt__elev-label">Route Elevation</span>
+              <span id="evt-elev-note" class="evt__elev-note"></span>
+            </div>
+            <svg id="evt-elevation-svg" class="evt__elev-svg" viewBox="0 0 240 120" preserveAspectRatio="none"></svg>
+            <p id="evt-elev-empty" class="evt__elev-empty" hidden>Elevation data isn't available for this route yet.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Email gate modal -->
+    <div id="gate" class="gate" aria-hidden="true">
+      <div class="gate__backdrop" data-gate-close></div>
+      <div class="gate__dialog" role="dialog" aria-modal="true" aria-labelledby="gate-title">
+        <button class="gate__close" data-gate-close aria-label="Close">&times;</button>
+        <h2 id="gate-title" class="gate__title">Get the route. Join the bush.</h2>
+        <p class="gate__copy">
+          Drop your email and the GPX is yours. We send the occasional route, nothing else.
+        </p>
+        <form id="gate-form" class="gate__form">
+          <input
+            id="gate-email"
+            class="gate__input"
+            type="email"
+            required
+            autocomplete="email"
+            placeholder="you@email.com"
+            aria-label="Email address"
+          />
+          <button type="submit" class="button button--primary gate__submit">Get the route</button>
+          <p id="gate-error" class="gate__error" role="alert" hidden></p>
+        </form>
+      </div>
+    </div>
+
+    <!-- ============ Diary: auth modal ============ -->
+    <div id="auth-modal" class="modal" aria-hidden="true">
+      <div class="modal__backdrop" data-auth-close></div>
+      <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+        <button class="modal__close" data-auth-close aria-label="Close">&times;</button>
+        <h2 id="auth-title" class="modal__title">Your ride diary</h2>
+        <div class="tabs" role="tablist">
+          <button class="tab is-active" id="tab-login" data-auth-tab="login">Sign in</button>
+          <button class="tab" id="tab-register" data-auth-tab="register">Create account</button>
+        </div>
+        <form id="auth-form" class="modal__form">
+          <input id="auth-email" class="field-input" type="email" required autocomplete="email" placeholder="you@email.com" aria-label="Email" />
+          <input id="auth-password" class="field-input" type="password" required autocomplete="current-password" placeholder="Password" aria-label="Password" />
+          <button type="submit" class="button button--primary" id="auth-submit">Sign in</button>
+          <p id="auth-error" class="modal__error" role="alert" hidden></p>
+        </form>
+      </div>
+    </div>
+
+    <!-- ============ Diary: upload modal ============ -->
+    <div id="upload-modal" class="modal" aria-hidden="true">
+      <div class="modal__backdrop" data-upload-close></div>
+      <div class="modal__dialog modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="upload-title">
+        <button class="modal__close" data-upload-close aria-label="Close">&times;</button>
+        <h2 id="upload-title" class="modal__title">Ink a ride</h2>
+        <form id="upload-form" class="modal__form">
+          <label class="field"><span class="field__label">GPX file *</span>
+            <input id="upload-gpx" name="gpx" type="file" accept=".gpx,application/gpx+xml" required />
+          </label>
+          <label class="field"><span class="field__label">Ride name *</span>
+            <input id="upload-title-input" name="title" class="field-input" type="text" maxlength="120" required />
+          </label>
+          <label class="field"><span class="field__label">Note</span>
+            <textarea id="upload-note" name="note" class="field-input" rows="2" maxlength="2000" placeholder="How was it?"></textarea>
+          </label>
+          <div class="field">
+            <span class="field__label">Weather</span>
+            <div class="chips" data-chip-group="weather">
+              <button type="button" class="chip" data-chip="sunny">Sunny</button>
+              <button type="button" class="chip" data-chip="overcast">Overcast</button>
+              <button type="button" class="chip" data-chip="wet">Wet</button>
+            </div>
+          </div>
+          <div class="field">
+            <span class="field__label">Surface</span>
+            <div class="chips" data-chip-group="surface">
+              <button type="button" class="chip" data-chip="smooth">Smooth</button>
+              <button type="button" class="chip" data-chip="rough">Rough</button>
+              <button type="button" class="chip" data-chip="muddy">Muddy</button>
+            </div>
+          </div>
+          <div class="field">
+            <span class="field__label">Vibe</span>
+            <div class="chips" data-chip-group="vibe">
+              <button type="button" class="chip" data-chip="suffered">Suffered</button>
+              <button type="button" class="chip" data-chip="cruised">Cruised</button>
+              <button type="button" class="chip" data-chip="flew">Flew</button>
+            </div>
+          </div>
+          <label class="field"><span class="field__label">Rode with</span>
+            <input id="upload-companions" name="companions" class="field-input" type="text" maxlength="200" placeholder="Who joined you?" />
+          </label>
+          <label class="field"><span class="field__label">Photo</span>
+            <input id="upload-photo" name="photo" type="file" accept="image/*" />
+          </label>
+          <button type="submit" class="button button--primary" id="upload-submit">Ink the Map</button>
+          <p id="upload-error" class="modal__error" role="alert" hidden></p>
+        </form>
+      </div>
+    </div>
+
+    <!-- ============ Diary: rides panel ============ -->
+    <aside id="diary-panel" class="rpanel" aria-hidden="true" aria-label="My rides">
+      <header class="rpanel__head">
+        <h2 class="rpanel__title">My Rides</h2>
+        <div class="rpanel__head-actions">
+          <button id="diary-add" class="rpanel__add" aria-label="Ink a ride">+</button>
+          <button id="diary-close" class="rpanel__close" aria-label="Close">&times;</button>
+        </div>
+      </header>
+      <dl id="diary-stats" class="rstats" hidden>
+        <div class="rstats__cell"><dt class="rstats__label">Rides</dt><dd id="stat-rides" class="rstats__val">0</dd></div>
+        <div class="rstats__cell"><dt class="rstats__label">Distance</dt><dd id="stat-distance" class="rstats__val">0 km</dd></div>
+        <div class="rstats__cell"><dt class="rstats__label">Climbed</dt><dd id="stat-elevation" class="rstats__val">0 m</dd></div>
+      </dl>
+      <p id="diary-empty" class="rpanel__empty" hidden>No rides yet. Tap + to ink your first.</p>
+      <ul id="diary-list" class="rlist"></ul>
+      <button id="diary-signout" class="rpanel__signout">Sign out</button>
+    </aside>
+
+    <!-- ============ Diary: memory card ============ -->
+    <section id="memory-card" class="rpanel rpanel--card" aria-hidden="true" aria-label="Ride detail">
+      <button id="card-close" class="rpanel__close rpanel__close--float" aria-label="Close">&times;</button>
+      <img id="card-photo" class="card-photo" alt="" hidden />
+      <div class="rpanel__body">
+        <h2 id="card-title" class="card-title"></h2>
+        <p id="card-date" class="card-date"></p>
+        <dl class="card-stats">
+          <div><dt>Distance</dt><dd id="card-distance"></dd></div>
+          <div><dt>Elevation</dt><dd id="card-elevation"></dd></div>
+        </dl>
+        <div id="card-chips" class="card-chips"></div>
+        <p id="card-note" class="card-note"></p>
+        <p id="card-companions" class="card-companions"></p>
+        <div class="card-actions">
+          <button id="card-edit" class="button">Edit</button>
+          <button id="card-delete" class="button button--danger">Delete</button>
+        </div>
+      </div>
+    </section>
+
+    <script type="module" src="src/map.js"></script>
+    <script type="module" src="src/diary.js"></script>
   </body>
 </html>

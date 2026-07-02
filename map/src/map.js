@@ -136,7 +136,7 @@ function initUI() {
   setupSidebarToggle();
   renderResults(applyFilters(routeFeatures));
 
-  // Deep link: /map#<route-id> (e.g. from the landing page's featured card)
+  // Deep link: /#<route-id> (also legacy /map#<route-id>, which redirects here)
   // opens that route. Handled here so it works even if the basemap never
   // loads; onLoad redraws the line once the map is ready.
   selectFromHash();
@@ -559,13 +559,14 @@ function fitPadding() {
   }
 
   // Desktop: filters sidebar left; inset floating detail panel bottom-right.
-  // The panel sits in the right band, so reserving the right edge keeps the
-  // route clear of it.
+  // Reserve the right edge for the panel so the route stays clear of it. The
+  // event panel is wider (440px) than the route panel (380px), so it needs a
+  // deeper reserve or the route line slips under the card.
   return {
     top: 60,
     bottom: 60,
     left: 380,
-    right: detailOpen ? 420 : 80,
+    right: detailOpen ? (detailMode === "event" ? 500 : 430) : 80,
   };
 }
 
