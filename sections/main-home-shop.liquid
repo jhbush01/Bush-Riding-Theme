@@ -1,0 +1,198 @@
+<div class="home-shop">
+
+  <div class="home-shop__banners">
+    <div class="home-shop__banner">
+      {%- if section.settings.banner_left_image != blank -%}
+        {{
+          section.settings.banner_left_image
+          | image_url: width: 1200
+          | image_tag: loading: 'lazy', widths: '400, 750, 900, 1200', sizes: '50vw', class: 'home-shop__banner-img'
+        }}
+      {%- else -%}
+        {{ 'hero-apparel-3' | placeholder_svg_tag: 'placeholder-svg home-shop__banner-img' }}
+      {%- endif -%}
+      <div class="home-shop__banner-scrim" aria-hidden="true"></div>
+      <span class="home-shop__banner-label">{{ section.settings.banner_left_label | escape }}</span>
+    </div>
+    <div class="home-shop__banner">
+      {%- if section.settings.banner_right_image != blank -%}
+        {{
+          section.settings.banner_right_image
+          | image_url: width: 1200
+          | image_tag: loading: 'lazy', widths: '400, 750, 900, 1200', sizes: '50vw', class: 'home-shop__banner-img'
+        }}
+      {%- else -%}
+        {{ 'hero-apparel-2' | placeholder_svg_tag: 'placeholder-svg home-shop__banner-img' }}
+      {%- endif -%}
+      <div class="home-shop__banner-scrim" aria-hidden="true"></div>
+      <span class="home-shop__banner-label">{{ section.settings.banner_right_label | escape }}</span>
+    </div>
+  </div>
+
+  <div class="home-shop__grid">
+    {%- for block in section.blocks -%}
+      {%- assign placeholder_names = 'product-apparel-1|product-apparel-2|detailed-apparel-1|product-apparel-1' | split: '|' -%}
+      {%- assign placeholder_name = placeholder_names[forloop.index0] | default: 'product-apparel-1' -%}
+      <div class="home-shop__card" {{ block.shopify_attributes }}>
+        {%- if block.settings.image != blank -%}
+          {{
+            block.settings.image
+            | image_url: width: 600
+            | image_tag: loading: 'lazy', widths: '300, 450, 600', sizes: '25vw', class: 'home-shop__card-img'
+          }}
+        {%- else -%}
+          {{ placeholder_name | placeholder_svg_tag: 'placeholder-svg home-shop__card-img' }}
+        {%- endif -%}
+        <p class="home-shop__card-title">{{ block.settings.title | escape }}</p>
+        <p class="home-shop__card-price">{{ block.settings.price | escape }}</p>
+      </div>
+    {%- endfor -%}
+  </div>
+
+</div>
+
+{% schema %}
+{
+  "name": "Home shop grid",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "banner_left_image",
+      "label": "Left banner image"
+    },
+    {
+      "type": "text",
+      "id": "banner_left_label",
+      "label": "Left banner label",
+      "default": "Collection Name"
+    },
+    {
+      "type": "image_picker",
+      "id": "banner_right_image",
+      "label": "Right banner image"
+    },
+    {
+      "type": "text",
+      "id": "banner_right_label",
+      "label": "Right banner label",
+      "default": "Collection Name"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "product_card",
+      "name": "Product card",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Product name",
+          "default": "Product Name"
+        },
+        {
+          "type": "text",
+          "id": "price",
+          "label": "Price",
+          "default": "$00"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Home shop grid",
+      "blocks": [
+        { "type": "product_card" },
+        { "type": "product_card" },
+        { "type": "product_card" },
+        { "type": "product_card" }
+      ]
+    }
+  ]
+}
+{% endschema %}
+
+<style>
+  .home-shop__banners {
+    display: flex;
+    width: 100%;
+  }
+
+  .home-shop__banner {
+    position: relative;
+    flex: 1 1 50%;
+    height: 34vh;
+    min-height: 200px;
+    overflow: hidden;
+  }
+
+  .home-shop__banner-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .home-shop__banner-scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.45), rgba(0,0,0,0) 55%);
+  }
+
+  .home-shop__banner-label {
+    position: absolute;
+    left: 20px;
+    bottom: 16px;
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  }
+
+  .home-shop__grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .home-shop__card {
+    padding: 20px 20px 32px;
+    cursor: default;
+  }
+
+  .home-shop__card-img {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    display: block;
+    background: #ececec;
+  }
+
+  .home-shop__card-title {
+    margin-top: 14px;
+    font-size: 0.9rem;
+    color: rgb(var(--color-foreground));
+  }
+
+  .home-shop__card-price {
+    margin-top: 4px;
+    font-size: 0.9rem;
+    color: rgba(var(--color-foreground), 0.7);
+  }
+
+  @media screen and (max-width: 989px) {
+    .home-shop__grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media screen and (max-width: 749px) {
+    .home-shop__banners { flex-direction: column; }
+    .home-shop__banner { height: 26vh; }
+  }
+</style>

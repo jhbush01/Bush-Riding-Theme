@@ -1,0 +1,75 @@
+<div class="home-split">
+  <div class="home-split__tile">
+    {%- if section.settings.image_left != blank -%}
+      {{
+        section.settings.image_left
+        | image_url: width: 1200
+        | image_tag: loading: 'lazy', widths: '400, 750, 900, 1200', sizes: '50vw', class: 'home-split__img'
+      }}
+    {%- else -%}
+      {{ 'detailed-apparel-1' | placeholder_svg_tag: 'placeholder-svg home-split__img' }}
+    {%- endif -%}
+  </div>
+  <div class="home-split__tile">
+    {%- if section.settings.image_right != blank -%}
+      {{
+        section.settings.image_right
+        | image_url: width: 1200
+        | image_tag: loading: 'lazy', widths: '400, 750, 900, 1200', sizes: '50vw', class: 'home-split__img'
+      }}
+    {%- else -%}
+      {{ 'hero-apparel-2' | placeholder_svg_tag: 'placeholder-svg home-split__img' }}
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Home split image",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "image_left",
+      "label": "Left image"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_right",
+      "label": "Right image"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Home split image"
+    }
+  ]
+}
+{% endschema %}
+
+<style>
+  .home-split {
+    display: flex;
+    width: 100%;
+  }
+
+  .home-split__tile {
+    flex: 1 1 50%;
+    height: 65vh;
+    min-height: 320px;
+    overflow: hidden;
+  }
+
+  .home-split__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  @media screen and (max-width: 749px) {
+    .home-split { flex-direction: column; }
+    .home-split__tile { height: 50vh; }
+  }
+</style>

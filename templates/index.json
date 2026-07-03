@@ -1,80 +1,85 @@
 {
   "sections": {
-    "bush_hero": {
-      "type": "bush-hero",
+    "main_home_hero": {
+      "type": "main-home-hero",
+      "settings": {
+        "video": "https://cdn.shopify.com/videos/c/o/v/f0e0ccc583fc45589dc4a168fc145f35.mp4",
+        "wordmark": "BUSH RIDING",
+        "overlay_opacity": 10
+      }
+    },
+    "home_split_1": {
+      "type": "main-home-split",
       "settings": {}
     },
-    "image_banner": {
-      "type": "image-banner",
+    "home_shop_1": {
+      "type": "main-home-shop",
+      "blocks": {
+        "card_1": { "type": "product_card", "settings": {} },
+        "card_2": { "type": "product_card", "settings": {} },
+        "card_3": { "type": "product_card", "settings": {} },
+        "card_4": { "type": "product_card", "settings": {} }
+      },
+      "block_order": ["card_1", "card_2", "card_3", "card_4"],
+      "settings": {
+        "banner_left_label": "Trail Collection",
+        "banner_right_label": "First Ride"
+      }
+    },
+    "home_split_2": {
+      "type": "main-home-split",
+      "settings": {}
+    },
+    "home_shop_2": {
+      "type": "main-home-shop",
+      "blocks": {
+        "card_1": { "type": "product_card", "settings": {} },
+        "card_2": { "type": "product_card", "settings": {} },
+        "card_3": { "type": "product_card", "settings": {} },
+        "card_4": { "type": "product_card", "settings": {} }
+      },
+      "block_order": ["card_1", "card_2", "card_3", "card_4"],
+      "settings": {
+        "banner_left_label": "Womens",
+        "banner_right_label": "New Arrivals"
+      }
+    },
+    "newsletter": {
+      "type": "newsletter",
       "blocks": {
         "heading": {
           "type": "heading",
           "settings": {
-            "heading": "Browse our latest products",
-            "heading_size": "h0"
+            "heading": "Newsletter",
+            "heading_size": "h2"
           }
         },
-        "button": {
-          "type": "buttons",
+        "paragraph": {
+          "type": "paragraph",
           "settings": {
-            "button_label_1": "Shop all",
-            "button_link_1": "shopify://collections/all",
-            "button_style_secondary_1": true,
-            "button_label_2": "",
-            "button_link_2": "",
-            "button_style_secondary_2": false
+            "text": "<p>Subscribe for updates &amp; early access to Bush Riding releases.</p>"
           }
+        },
+        "email_form": {
+          "type": "email_form",
+          "settings": {}
         }
       },
-      "block_order": [
-        "heading",
-        "button"
-      ],
+      "block_order": ["heading", "paragraph", "email_form"],
       "settings": {
-        "image_overlay_opacity": 40,
-        "image_height": "large",
-        "desktop_content_position": "bottom-center",
-        "show_text_box": false,
-        "image_behavior": "none",
-        "desktop_content_alignment": "center",
-        "color_scheme": "scheme-3",
-        "mobile_content_alignment": "center",
-        "stack_images_on_mobile": false,
-        "show_text_below": false
-      }
-    },
-    "featured_collection": {
-      "type": "featured-collection",
-      "settings": {
-        "title": "Featured products",
-        "heading_size": "h2",
-        "description": "",
-        "show_description": false,
-        "description_style": "body",
-        "collection": "all",
-        "products_to_show": 8,
-        "columns_desktop": 4,
         "color_scheme": "scheme-1",
-        "full_width": false,
-        "show_view_all": true,
-        "view_all_style": "solid",
-        "enable_desktop_slider": false,
-        "swipe_on_mobile": false,
-        "image_ratio": "adapt",
-        "image_shape": "default",
-        "show_secondary_image": true,
-        "show_vendor": false,
-        "show_rating": false,
-        "quick_add": "none",
-        "columns_mobile": "2",
-        "padding_top": 44,
-        "padding_bottom": 36
+        "full_width": true,
+        "padding_top": 40,
+        "padding_bottom": 52
       }
     }
   },
   "order": [
-    "bush_hero",
-    "image_banner",
-    "featured_collection"
+    "main_home_hero",
+    "home_split_1",
+    "home_shop_1",
+    "home_split_2",
+    "home_shop_2",
+    "newsletter"
   ]
 }
