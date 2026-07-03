@@ -1,0 +1,154 @@
+{%- style -%}
+  #MainHomeHero-{{ section.id }} .home-hero__overlay {
+    background: rgba(0, 0, 0, {{ section.settings.overlay_opacity | divided_by: 100.0 }});
+  }
+{%- endstyle -%}
+
+<div id="MainHomeHero-{{ section.id }}" class="home-hero">
+  <div class="home-hero__media">
+    {%- if section.settings.video != blank -%}
+      <video
+        class="home-hero__video"
+        autoplay
+        muted
+        loop
+        playsinline
+        aria-hidden="true"
+        poster="{{ section.settings.poster | image_url: width: 1500 }}"
+      >
+        <source src="{{ section.settings.video }}" type="video/mp4">
+      </video>
+    {%- else -%}
+      {{ 'hero-apparel-1' | placeholder_svg_tag: 'placeholder-svg home-hero__video' }}
+    {%- endif -%}
+    <div class="home-hero__overlay" aria-hidden="true"></div>
+  </div>
+
+  <div class="home-hero__content">
+    <span class="home-hero__wordmark">{{ section.settings.wordmark | escape }}</span>
+  </div>
+
+  <div class="home-hero__scroll-cue" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 9l6 6 6-6"></path>
+    </svg>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Home hero (video)",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "url",
+      "id": "video",
+      "label": "Background video (MP4 URL)"
+    },
+    {
+      "type": "image_picker",
+      "id": "poster",
+      "label": "Video poster image (optional)"
+    },
+    {
+      "type": "text",
+      "id": "wordmark",
+      "label": "Wordmark text",
+      "default": "BUSH RIDING"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "min": 0,
+      "max": 60,
+      "step": 5,
+      "unit": "%",
+      "label": "Overlay opacity",
+      "default": 10
+    }
+  ],
+  "presets": [
+    {
+      "name": "Home hero (video)"
+    }
+  ]
+}
+{% endschema %}
+
+<style>
+  .home-hero {
+    position: relative;
+    width: 100%;
+    height: 90vh;
+    min-height: 500px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .home-hero__media {
+    position: absolute;
+    inset: 0;
+  }
+
+  .home-hero__video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .home-hero__overlay {
+    position: absolute;
+    inset: 0;
+  }
+
+  .home-hero__content {
+    position: relative;
+    z-index: 2;
+    padding: 0 24px;
+  }
+
+  .home-hero__wordmark {
+    display: block;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    font-size: clamp(2.5rem, 8vw, 6rem);
+    color: #F5F0E8;
+    text-align: center;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.35);
+  }
+
+  .home-hero__scroll-cue {
+    position: absolute;
+    left: 50%;
+    bottom: 28px;
+    transform: translateX(-50%);
+    z-index: 2;
+    color: #F5F0E8;
+    width: 24px;
+    height: 24px;
+    animation: home-hero-bounce 1.8s ease-in-out infinite;
+  }
+
+  .home-hero__scroll-cue svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  @keyframes home-hero-bounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50%      { transform: translateX(-50%) translateY(8px); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .home-hero__scroll-cue { animation: none; }
+  }
+
+  @media screen and (max-width: 749px) {
+    .home-hero { height: 80vh; }
+  }
+</style>
