@@ -7,8 +7,35 @@ const COMMUNITY_LAYER = "selected-route-line"; // diary lines go below this
 
 let map = null;
 let currentEmail = null;
+let currentUsername = null;
+let currentIsAdmin = false;
 let authMode = "login";
 let cardRideId = null;
+// Callbacks fired whenever sign-in state changes (used by reviews.js).
+const authListeners = [];
+function notifyAuth() {
+  for (const cb of authListeners) {
+    try {
+      cb();
+    } catch (_) {
+      /* ignore listener errors */
+    }
+  }
+}
+
+// Shared auth surface for other modules (reviews.js) — one sign-in UI for the
+// whole app. Function declarations below are hoisted, so this is safe here.
+window.brmAuth = {
+  isSignedIn: () => !!currentEmail,
+  needsUsername: () => !!currentEmail && !currentUsername,
+  user: () => (currentEmail ? { email: currentEmail, username: currentUsername, isAdmin: currentIsAdmin } : null),
+  token: () => token,
+  openAuth: () => openAuth(),
+  ensureUsername: (cb) => openUsername(cb),
+  onChange: (cb) => {
+    if (typeof cb === "function") authListeners.push(cb);
+  },
+};
 // Bearer token (header auth). Stored in localStorage so the session survives
 // refreshes; sent as Authorization. Avoids the cross-subdomain cookie that
 // iOS Safari blocks.
@@ -81,6 +108,9 @@ async function checkSession() {
     const s = await api("/auth/session");
     if (s && s.loggedIn) {
       currentEmail = s.email;
+      currentUsername = s.username || null;
+      currentIsAdmin = !!s.isAdmin;
+      notifyAuth();
       return true;
     }
   } catch {
@@ -107,6 +137,9 @@ function wireUI() {
     el.addEventListener("click", () => setAuthMode(el.dataset.authTab))
   );
   $("auth-form").addEventListener("submit", submitAuth);
+
+  // Username prompt
+  $("username-form").addEventListener("submit", submitUsername);
 
   // Diary panel
   $("diary-close").addEventListener("click", () => hide("diary-panel"));
@@ -152,24 +185,35 @@ function setAuthMode(mode) {
   $("tab-register").classList.toggle("is-active", mode === "register");
   $("auth-submit").textContent = mode === "register" ? "Create account" : "Sign in";
   $("auth-password").setAttribute("autocomplete", mode === "register" ? "new-password" : "current-password");
+  // Username is required only when creating an account.
+  const uField = $("auth-username");
+  uField.hidden = mode !== "register";
+  uField.required = mode === "register";
   $("auth-error").hidden = true;
 }
 async function submitAuth(e) {
   e.preventDefault();
   const email = $("auth-email").value.trim();
   const password = $("auth-password").value;
+  const username = $("auth-username").value.trim();
   const btn = $("auth-submit");
   btn.disabled = true;
   $("auth-error").hidden = true;
   try {
+    const body = authMode === "register" ? { email, password, username } : { email, password };
     const r = await api(authMode === "register" ? "/auth/register" : "/auth/login", {
       method: "POST",
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify(body),
     });
     setToken(r.token);
     currentEmail = r.email;
+    currentUsername = r.username || null;
+    currentIsAdmin = !!r.isAdmin;
     closeAuth();
-    openDiary();
+    notifyAuth();
+    // "Prompt on next sign-in": older accounts have no username yet.
+    if (r.needsUsername) openUsername();
+    else openDiary();
     await loadDiaryLayer();
   } catch (err) {
     $("auth-error").textContent = err.message || "Something went wrong.";
@@ -181,11 +225,51 @@ async function submitAuth(e) {
 function signOut() {
   setToken(null);
   currentEmail = null;
+  currentUsername = null;
+  currentIsAdmin = false;
   if (map && map.getSource("diary-rides")) map.getSource("diary-rides").setData(EMPTY_FC);
   const stats = $("diary-stats");
   if (stats) stats.hidden = true;
   hide("diary-panel");
   hide("memory-card");
+  notifyAuth();
+}
+
+/* ---------------- username prompt (backfill / set) ---------------- */
+let afterUsername = null; // optional callback once a username is saved
+function openUsername(onDone) {
+  afterUsername = onDone || null;
+  $("username-error").hidden = true;
+  $("username-form").reset();
+  $("username-input").value = currentUsername || "";
+  $("username-modal").classList.add("is-open");
+  $("username-modal").setAttribute("aria-hidden", "false");
+  setTimeout(() => $("username-input").focus(), 50);
+}
+function closeUsername() {
+  $("username-modal").classList.remove("is-open");
+  $("username-modal").setAttribute("aria-hidden", "true");
+}
+async function submitUsername(e) {
+  e.preventDefault();
+  const username = $("username-input").value.trim();
+  const btn = $("username-submit");
+  btn.disabled = true;
+  $("username-error").hidden = true;
+  try {
+    const r = await api("/auth/username", { method: "POST", body: JSON.stringify({ username }) });
+    currentUsername = r.username;
+    closeUsername();
+    notifyAuth();
+    const cb = afterUsername;
+    afterUsername = null;
+    if (cb) cb();
+  } catch (err) {
+    $("username-error").textContent = err.message || "Couldn't save that username.";
+    $("username-error").hidden = false;
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 /* ---------------- diary panel + layer ---------------- */

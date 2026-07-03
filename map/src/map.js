@@ -791,6 +791,8 @@ function fillDetail(feature) {
   // Primary action: Download GPX (gated).
   setCTA("Download GPX", null, () => requestDownload({ id: p.id, gpx_url: p.gpx_url }));
   drawElevation(feature);
+  // Reviews + aggregate rating (async; enhancement only).
+  if (window.brmReviews) window.brmReviews.show(p.id, p.name);
 }
 
 // Community Bush Ride event. The numbers come from the linked route; the event
@@ -816,6 +818,8 @@ function fillEventDetail(feature) {
   // Credit the linked route's contributor.
   setCredit(rp.contributed_by || rp.vetted_by, rp.contributor_url);
   setText("detail-disclaimer", "Community ride — ride to conditions.");
+  // Events don't carry route reviews in the card; clear any prior state.
+  if (window.brmReviews) window.brmReviews.reset();
 
   // Past events read-only: the CTA hides (CSS via data-event-status) and this
   // line takes its place.

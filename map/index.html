@@ -163,6 +163,12 @@
           </div>
 
           <h2 id="detail-name" class="card__title"></h2>
+          <!-- Aggregate rating (routes) — hidden until the route has reviews. -->
+          <button id="detail-rating" class="card__rating only-route" type="button" hidden aria-label="See reviews">
+            <span id="detail-rating-stars" class="card__rating-stars" aria-hidden="true"></span>
+            <span id="detail-rating-avg" class="card__rating-avg"></span>
+            <span id="detail-rating-count" class="card__rating-count"></span>
+          </button>
           <p id="detail-when" class="card__when only-event"></p>
           <p id="detail-vibe" class="card__vibe only-event"></p>
 
@@ -216,6 +222,16 @@
           <div class="card__mini-label card__kit-label">What to wear</div>
           <div id="detail-kit" class="card__kit-text"></div>
         </div>
+
+        <!-- Reviews (routes only) -->
+        <section id="detail-reviews" class="card__reviews only-route" aria-label="Reviews">
+          <div class="card__reviews-head">
+            <span class="card__mini-label">Reviews</span>
+            <button id="review-add" class="card__review-add" type="button" aria-label="Add a review">+</button>
+          </div>
+          <p id="review-empty" class="card__review-empty">No reviews yet — be the first to rate this route.</p>
+          <ul id="review-list" class="card__review-list"></ul>
+        </section>
 
         <!-- Contributor credit -->
         <div id="detail-credit" class="card__credit">
@@ -277,11 +293,63 @@
         </div>
         <form id="auth-form" class="modal__form">
           <input id="auth-email" class="field-input" type="email" required autocomplete="email" placeholder="you@email.com" aria-label="Email" />
+          <input id="auth-username" class="field-input" type="text" hidden autocomplete="username" placeholder="Username" aria-label="Username" maxlength="20" />
           <input id="auth-password" class="field-input" type="password" required autocomplete="current-password" placeholder="Password" aria-label="Password" />
           <button type="submit" class="button button--primary" id="auth-submit">Sign in</button>
           <p id="auth-error" class="modal__error" role="alert" hidden></p>
         </form>
       </div>
+    </div>
+
+    <!-- ============ Username prompt (backfill for older accounts) ============ -->
+    <div id="username-modal" class="modal" aria-hidden="true">
+      <div class="modal__backdrop"></div>
+      <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="username-title">
+        <h2 id="username-title" class="modal__title">Choose a username</h2>
+        <p class="modal__sub">This is the name shown on your reviews. 3–20 letters, numbers, _ or -.</p>
+        <form id="username-form" class="modal__form">
+          <input id="username-input" class="field-input" type="text" maxlength="20" required placeholder="e.g. gravelgrinder" aria-label="Username" />
+          <button type="submit" class="button button--primary" id="username-submit">Save username</button>
+          <p id="username-error" class="modal__error" role="alert" hidden></p>
+        </form>
+      </div>
+    </div>
+
+    <!-- ============ Review modal (add / edit a review) ============ -->
+    <div id="review-modal" class="modal" aria-hidden="true">
+      <div class="modal__backdrop" data-review-close></div>
+      <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="review-modal-title">
+        <button class="modal__close" data-review-close aria-label="Close">&times;</button>
+        <h2 id="review-modal-title" class="modal__title">Rate this route</h2>
+        <p id="review-modal-route" class="modal__sub"></p>
+        <form id="review-form" class="modal__form">
+          <div id="review-stars" class="star-input" role="radiogroup" aria-label="Rating out of 5">
+            <button type="button" class="star-input__btn" data-star="1" aria-label="1 star">★</button>
+            <button type="button" class="star-input__btn" data-star="2" aria-label="2 stars">★</button>
+            <button type="button" class="star-input__btn" data-star="3" aria-label="3 stars">★</button>
+            <button type="button" class="star-input__btn" data-star="4" aria-label="4 stars">★</button>
+            <button type="button" class="star-input__btn" data-star="5" aria-label="5 stars">★</button>
+          </div>
+          <textarea id="review-comment" class="field-input" rows="3" maxlength="1000" placeholder="How was the ride? (optional)" aria-label="Comment"></textarea>
+          <div id="review-photo-current" class="review-photo-current" hidden>
+            <img id="review-photo-thumb" alt="Your review photo" />
+            <button type="button" id="review-photo-remove" class="button-link">Remove photo</button>
+          </div>
+          <label class="review-photo-add">
+            <input id="review-photo" type="file" accept="image/*" hidden />
+            <span id="review-photo-label">＋ Add a photo from your ride (optional)</span>
+          </label>
+          <button type="submit" class="button button--primary" id="review-submit">Post review</button>
+          <button type="button" id="review-delete" class="button-link button-link--danger" hidden>Delete my review</button>
+          <p id="review-error" class="modal__error" role="alert" hidden></p>
+        </form>
+      </div>
+    </div>
+
+    <!-- ============ Photo lightbox (full-resolution) ============ -->
+    <div id="lightbox" class="lightbox" aria-hidden="true">
+      <button class="lightbox__close" data-lightbox-close aria-label="Close">&times;</button>
+      <img id="lightbox-img" class="lightbox__img" alt="" />
     </div>
 
     <!-- ============ Diary: upload modal ============ -->
@@ -378,5 +446,6 @@
 
     <script type="module" src="src/map.js"></script>
     <script type="module" src="src/diary.js"></script>
+    <script type="module" src="src/reviews.js"></script>
   </body>
 </html>
