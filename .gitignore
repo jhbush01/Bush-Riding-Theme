@@ -13,3 +13,8 @@ node_modules
 # Cloudflare Wrangler local state / build cache
 .wrangler/
 .dev.vars
+
+# SEO route pages are build output — generated at deploy time from the live
+# route API (npm run build:seo), not committed. Remove this line if you'd
+# rather generate locally and commit the HTML instead.
+map/routes/

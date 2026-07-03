@@ -1,0 +1,10 @@
+{
+  "name": "bush-riding-map",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Bush Riding Map — static site tooling (SEO route page generator).",
+  "scripts": {
+    "build:seo": "node scripts/generate-route-pages.js",
+    "build": "npm run build:seo"
+  }
+}
