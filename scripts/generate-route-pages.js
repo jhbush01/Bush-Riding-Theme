@@ -149,7 +149,7 @@ function absImg(u) { return /^https?:\/\//i.test(u) ? u : SITE + u; }
 /* ---------------- shared chrome (consistent with the map site) ---------------- */
 function head(opts) {
   const canonical = SITE + opts.path;
-  const ogImg = absImg(opts.image || "/public/og-image.png");
+  const ogImg = absImg(opts.image || "/public/og-card.jpg");
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -346,7 +346,7 @@ ${crumbs(crumbItems)}
   <p class="rp-back"><a href="/map#${esc(r.id)}">See ${esc(r.name)} on the full interactive map →</a></p>
 </article>`;
 
-  return head({ title, description, path: url, image: r.hero || "/public/og-image.png", jsonld: ld(jsonld) }) + body + foot();
+  return head({ title, description, path: url, image: r.hero || "/public/og-card.jpg", jsonld: ld(jsonld) }) + body + foot();
 }
 
 function clampDesc(s) {
