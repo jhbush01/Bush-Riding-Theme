@@ -83,6 +83,16 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
 .rp-card__loc{margin:0 0 6px;font-size:12.5px;color:var(--ink-soft)}
 .rp-card__stats{margin:0;font-size:12.5px;color:var(--olive);font-weight:600}
 .rp-empty{color:var(--ink-soft)}
+.rp-noresult{color:var(--ink-soft);margin:8px 0}
+/* Pill filter (all-routes index) */
+.rp-filter{margin:0 0 20px;display:flex;flex-direction:column;gap:10px}
+.rp-pills{display:flex;flex-wrap:wrap;gap:8px}
+.rp-pills--region{padding-top:2px}
+.rp-pill{font-family:var(--ui-font);font-size:13px;font-weight:600;padding:7px 14px;border-radius:999px;border:1px solid rgba(0,0,0,.14);background:var(--cream-panel);color:var(--ink);cursor:pointer;line-height:1}
+.rp-pill:hover{border-color:var(--olive)}
+.rp-pill.is-active{background:var(--olive);border-color:var(--olive);color:#fff}
+.rp-pills--region .rp-pill{font-weight:500;font-size:12.5px;padding:6px 12px;color:var(--ink-soft)}
+.rp-pills--region .rp-pill.is-active{color:#fff}
 /* Events directory */
 .ev-list{display:flex;flex-direction:column;gap:14px;margin-bottom:8px}
 .ev-card{background:var(--cream-panel);border:1px solid rgba(0,0,0,.08);border-radius:12px;padding:16px 18px}
@@ -178,7 +188,8 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
 <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Bush Riding Map</a><span class="crumbs__sep">›</span><a href="/routes/">Routes</a><span class="crumbs__sep">›</span><a href="/routes/qld/">Queensland</a><span class="crumbs__sep">›</span><span aria-current="page">Brisbane Metro</span></nav>
 <h1 class="rp-title">Gravel Routes in Brisbane Metro</h1>
 <p class="rp-intro">Gravel routes in Brisbane Metro, Queensland. Every ride below is community-vetted with a downloadable GPX, elevation profile and surface notes — sorted from shortest to longest so you can pick the right day out.</p>
-<div class="rp-cards"><a class="rp-card" href="/routes/qld/brisbane-metro/goat-track-loop-cg5ef">
+
+<div class="rp-cards" id="rp-cards"><a class="rp-card" href="/routes/qld/brisbane-metro/goat-track-loop-cg5ef" data-state="qld" data-region="brisbane-metro">
   <img class="rp-card__hero" src="https://api.bushridingmap.com/file/photos/goat-track-loop-cg5ef.jpg" alt="Goat Track Loop" loading="lazy" width="640" height="360" />
   <div class="rp-card__body">
     <h3 class="rp-card__name">Goat Track Loop</h3>
@@ -186,7 +197,7 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
     <p class="rp-card__stats">46 km · Big day out · Groomed</p>
   </div>
 </a>
-<a class="rp-card" href="/routes/qld/brisbane-metro/range-road-ridge-ride-ojrk3">
+<a class="rp-card" href="/routes/qld/brisbane-metro/range-road-ridge-ride-ojrk3" data-state="qld" data-region="brisbane-metro">
   <img class="rp-card__hero" src="https://api.bushridingmap.com/file/photos/range-road-ridge-ride-ojrk3.jpg" alt="Range Road Ridge Ride" loading="lazy" width="640" height="360" />
   <div class="rp-card__body">
     <h3 class="rp-card__name">Range Road Ridge Ride</h3>
@@ -194,7 +205,7 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
     <p class="rp-card__stats">53 km · Big day out · Groomed</p>
   </div>
 </a>
-<a class="rp-card" href="/routes/qld/brisbane-metro/ferny-grove-to-wulkuraka-fi3k0">
+<a class="rp-card" href="/routes/qld/brisbane-metro/ferny-grove-to-wulkuraka-fi3k0" data-state="qld" data-region="brisbane-metro">
   <img class="rp-card__hero" src="https://api.bushridingmap.com/file/photos/ferny-grove-to-wulkuraka-fi3k0.jpg" alt="Ferny Grove to Wulkuraka" loading="lazy" width="640" height="360" />
   <div class="rp-card__body">
     <h3 class="rp-card__name">Ferny Grove to Wulkuraka</h3>
@@ -202,14 +213,16 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
     <p class="rp-card__stats">76 km · Big day out · Groomed</p>
   </div>
 </a>
-<a class="rp-card" href="/routes/qld/brisbane-metro/lacey-s-creek-loop-xsw5s">
+<a class="rp-card" href="/routes/qld/brisbane-metro/lacey-s-creek-loop-xsw5s" data-state="qld" data-region="brisbane-metro">
   <img class="rp-card__hero" src="https://api.bushridingmap.com/file/photos/lacey-s-creek-loop-xsw5s.jpg" alt="Lacey’s Creek Loop" loading="lazy" width="640" height="360" />
   <div class="rp-card__body">
     <h3 class="rp-card__name">Lacey’s Creek Loop</h3>
     <p class="rp-card__loc">Brisbane Metro, QLD</p>
     <p class="rp-card__stats">87 km · Big day out · Groomed</p>
   </div>
-</a></div></main>
+</a></div>
+<p class="rp-noresult" id="rp-noresult" hidden>No routes match — try another state or region.</p>
+</main>
 <footer class="site-foot">
   <p>Bush Riding Map — community-vetted gravel routes across Australia. Routes are guides only; ride to conditions.</p>
   <p><a href="/routes/">All routes</a> · <a href="/">Interactive map</a> · <a href="/submit">Submit a route</a></p>

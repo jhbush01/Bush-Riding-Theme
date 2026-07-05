@@ -83,6 +83,16 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
 .rp-card__loc{margin:0 0 6px;font-size:12.5px;color:var(--ink-soft)}
 .rp-card__stats{margin:0;font-size:12.5px;color:var(--olive);font-weight:600}
 .rp-empty{color:var(--ink-soft)}
+.rp-noresult{color:var(--ink-soft);margin:8px 0}
+/* Pill filter (all-routes index) */
+.rp-filter{margin:0 0 20px;display:flex;flex-direction:column;gap:10px}
+.rp-pills{display:flex;flex-wrap:wrap;gap:8px}
+.rp-pills--region{padding-top:2px}
+.rp-pill{font-family:var(--ui-font);font-size:13px;font-weight:600;padding:7px 14px;border-radius:999px;border:1px solid rgba(0,0,0,.14);background:var(--cream-panel);color:var(--ink);cursor:pointer;line-height:1}
+.rp-pill:hover{border-color:var(--olive)}
+.rp-pill.is-active{background:var(--olive);border-color:var(--olive);color:#fff}
+.rp-pills--region .rp-pill{font-weight:500;font-size:12.5px;padding:6px 12px;color:var(--ink-soft)}
+.rp-pills--region .rp-pill.is-active{color:#fff}
 /* Events directory */
 .ev-list{display:flex;flex-direction:column;gap:14px;margin-bottom:8px}
 .ev-card{background:var(--cream-panel);border:1px solid rgba(0,0,0,.08);border-radius:12px;padding:16px 18px}
@@ -142,7 +152,8 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
 <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Bush Riding Map</a><span class="crumbs__sep">›</span><a href="/routes/">Routes</a><span class="crumbs__sep">›</span><span aria-current="page">Queensland</span></nav>
 <h1 class="rp-title">Gravel Routes in Queensland</h1>
 <p class="rp-intro">Queensland&#39;s gravel riding runs from the pine forests and volcanic plugs of the south-east to the ranges further north. These community-vetted routes come with GPX files, elevation and surface detail so you can plan a ride with confidence.</p>
-<div class="rp-cards"><a class="rp-card" href="/routes/qld/ipswich/brisbane-valley-rail-trail-ubph6">
+
+<div class="rp-cards" id="rp-cards"><a class="rp-card" href="/routes/qld/ipswich/brisbane-valley-rail-trail-ubph6" data-state="qld" data-region="ipswich">
   <img class="rp-card__hero" src="https://api.bushridingmap.com/file/photos/brisbane-valley-rail-trail-ubph6.jpg" alt="Brisbane Valley Rail Trail" loading="lazy" width="640" height="360" />
   <div class="rp-card__body">
     <h3 class="rp-card__name">Brisbane Valley Rail Trail</h3>
@@ -150,7 +161,7 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
     <p class="rp-card__stats">162 km · Character building · Groomed</p>
   </div>
 </a>
-<a class="rp-card" href="/routes/qld/southern-downs/crows-nest-loop-l1cbn">
+<a class="rp-card" href="/routes/qld/southern-downs/crows-nest-loop-l1cbn" data-state="qld" data-region="southern-downs">
   <img class="rp-card__hero" src="https://api.bushridingmap.com/file/photos/crows-nest-loop-l1cbn.jpg" alt="Crows Nest Loop" loading="lazy" width="640" height="360" />
   <div class="rp-card__body">
     <h3 class="rp-card__name">Crows Nest Loop</h3>
@@ -158,7 +169,7 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
     <p class="rp-card__stats">46 km · Cruisy · Groomed</p>
   </div>
 </a>
-<a class="rp-card" href="/routes/qld/brisbane-metro/ferny-grove-to-wulkuraka-fi3k0">
+<a class="rp-card" href="/routes/qld/brisbane-metro/ferny-grove-to-wulkuraka-fi3k0" data-state="qld" data-region="brisbane-metro">
   <img class="rp-card__hero" src="https://api.bushridingmap.com/file/photos/ferny-grove-to-wulkuraka-fi3k0.jpg" alt="Ferny Grove to Wulkuraka" loading="lazy" width="640" height="360" />
   <div class="rp-card__body">
     <h3 class="rp-card__name">Ferny Grove to Wulkuraka</h3>
@@ -166,7 +177,7 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
     <p class="rp-card__stats">76 km · Big day out · Groomed</p>
   </div>
 </a>
-<a class="rp-card" href="/routes/qld/glass-house-mountain/glass-house-station-to-woodford-loop-lbjfl">
+<a class="rp-card" href="/routes/qld/glass-house-mountain/glass-house-station-to-woodford-loop-lbjfl" data-state="qld" data-region="glass-house-mountain">
   <img class="rp-card__hero" src="/public/glass-house-station-to-woodford-loop-lbjfl.jpg" alt="Glass House Station to Woodford Loop" loading="lazy" width="640" height="360" />
   <div class="rp-card__body">
     <h3 class="rp-card__name">Glass House Station to Woodford Loop</h3>
@@ -174,7 +185,7 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
     <p class="rp-card__stats">73 km · Big day out · Rocky</p>
   </div>
 </a>
-<a class="rp-card" href="/routes/qld/brisbane-metro/goat-track-loop-cg5ef">
+<a class="rp-card" href="/routes/qld/brisbane-metro/goat-track-loop-cg5ef" data-state="qld" data-region="brisbane-metro">
   <img class="rp-card__hero" src="https://api.bushridingmap.com/file/photos/goat-track-loop-cg5ef.jpg" alt="Goat Track Loop" loading="lazy" width="640" height="360" />
   <div class="rp-card__body">
     <h3 class="rp-card__name">Goat Track Loop</h3>
@@ -182,7 +193,7 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
     <p class="rp-card__stats">46 km · Big day out · Groomed</p>
   </div>
 </a>
-<a class="rp-card" href="/routes/qld/lockyer-valley/helidoom-loop-omxd4">
+<a class="rp-card" href="/routes/qld/lockyer-valley/helidoom-loop-omxd4" data-state="qld" data-region="lockyer-valley">
   <img class="rp-card__hero" src="https://api.bushridingmap.com/file/photos/helidoom-loop-omxd4.jpg" alt="Helidoom Loop" loading="lazy" width="640" height="360" />
   <div class="rp-card__body">
     <h3 class="rp-card__name">Helidoom Loop</h3>
@@ -190,7 +201,7 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
     <p class="rp-card__stats">63 km · Big day out · Groomed</p>
   </div>
 </a>
-<a class="rp-card" href="/routes/qld/somerset/kilcoy-to-jimna-loop-u1kv9">
+<a class="rp-card" href="/routes/qld/somerset/kilcoy-to-jimna-loop-u1kv9" data-state="qld" data-region="somerset">
   <img class="rp-card__hero" src="https://api.bushridingmap.com/file/photos/kilcoy-to-jimna-loop-u1kv9.jpg" alt="Kilcoy to Jimna Loop" loading="lazy" width="640" height="360" />
   <div class="rp-card__body">
     <h3 class="rp-card__name">Kilcoy to Jimna Loop</h3>
@@ -198,7 +209,7 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
     <p class="rp-card__stats">105 km · Big day out · Groomed</p>
   </div>
 </a>
-<a class="rp-card" href="/routes/qld/brisbane-metro/lacey-s-creek-loop-xsw5s">
+<a class="rp-card" href="/routes/qld/brisbane-metro/lacey-s-creek-loop-xsw5s" data-state="qld" data-region="brisbane-metro">
   <img class="rp-card__hero" src="https://api.bushridingmap.com/file/photos/lacey-s-creek-loop-xsw5s.jpg" alt="Lacey’s Creek Loop" loading="lazy" width="640" height="360" />
   <div class="rp-card__body">
     <h3 class="rp-card__name">Lacey’s Creek Loop</h3>
@@ -206,7 +217,7 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
     <p class="rp-card__stats">87 km · Big day out · Groomed</p>
   </div>
 </a>
-<a class="rp-card" href="/routes/qld/scenic-rim/mini-dirty-boonah-652ah">
+<a class="rp-card" href="/routes/qld/scenic-rim/mini-dirty-boonah-652ah" data-state="qld" data-region="scenic-rim">
   <img class="rp-card__hero" src="https://api.bushridingmap.com/file/photos/mini-dirty-boonah-652ah.jpg" alt="Mini Dirty Boonah" loading="lazy" width="640" height="360" />
   <div class="rp-card__body">
     <h3 class="rp-card__name">Mini Dirty Boonah</h3>
@@ -214,7 +225,7 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
     <p class="rp-card__stats">97 km · Big day out · Groomed</p>
   </div>
 </a>
-<a class="rp-card" href="/routes/qld/brisbane-metro/range-road-ridge-ride-ojrk3">
+<a class="rp-card" href="/routes/qld/brisbane-metro/range-road-ridge-ride-ojrk3" data-state="qld" data-region="brisbane-metro">
   <img class="rp-card__hero" src="https://api.bushridingmap.com/file/photos/range-road-ridge-ride-ojrk3.jpg" alt="Range Road Ridge Ride" loading="lazy" width="640" height="360" />
   <div class="rp-card__body">
     <h3 class="rp-card__name">Range Road Ridge Ride</h3>
@@ -222,7 +233,7 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
     <p class="rp-card__stats">53 km · Big day out · Groomed</p>
   </div>
 </a>
-<a class="rp-card" href="/routes/qld/southern-downs/stanthorpe-that-dam-ride-ke9y2">
+<a class="rp-card" href="/routes/qld/southern-downs/stanthorpe-that-dam-ride-ke9y2" data-state="qld" data-region="southern-downs">
   <img class="rp-card__hero" src="https://api.bushridingmap.com/file/photos/stanthorpe-that-dam-ride-ke9y2.jpg" alt="Stanthorpe &quot;That Dam Ride&quot;" loading="lazy" width="640" height="360" />
   <div class="rp-card__body">
     <h3 class="rp-card__name">Stanthorpe &quot;That Dam Ride&quot;</h3>
@@ -230,7 +241,7 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
     <p class="rp-card__stats">70 km · Big day out · Groomed</p>
   </div>
 </a>
-<a class="rp-card" href="/routes/qld/sunshine-coast/steak-knives-loop-kw259">
+<a class="rp-card" href="/routes/qld/sunshine-coast/steak-knives-loop-kw259" data-state="qld" data-region="sunshine-coast">
   <img class="rp-card__hero" src="https://api.bushridingmap.com/file/photos/steak-knives-loop-kw259.jpg" alt="Steak Knives Loop" loading="lazy" width="640" height="360" />
   <div class="rp-card__body">
     <h3 class="rp-card__name">Steak Knives Loop</h3>
@@ -238,7 +249,7 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
     <p class="rp-card__stats">82 km · Big day out · Groomed</p>
   </div>
 </a>
-<a class="rp-card" href="/routes/qld/sunshine-coast/sunday-creek-gravel-loop-u3t6t">
+<a class="rp-card" href="/routes/qld/sunshine-coast/sunday-creek-gravel-loop-u3t6t" data-state="qld" data-region="sunshine-coast">
   <img class="rp-card__hero" src="https://api.bushridingmap.com/file/photos/sunday-creek-gravel-loop-u3t6t.jpg" alt="Sunday Creek Gravel Loop" loading="lazy" width="640" height="360" />
   <div class="rp-card__body">
     <h3 class="rp-card__name">Sunday Creek Gravel Loop</h3>
@@ -246,14 +257,16 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
     <p class="rp-card__stats">119 km · Big day out · Groomed</p>
   </div>
 </a>
-<a class="rp-card" href="/routes/qld/southern-downs/toowoomba-multi-day-tour-iygw1">
+<a class="rp-card" href="/routes/qld/southern-downs/toowoomba-multi-day-tour-iygw1" data-state="qld" data-region="southern-downs">
   <img class="rp-card__hero" src="https://api.bushridingmap.com/file/photos/toowoomba-multi-day-tour-iygw1.jpg" alt="Toowoomba Multi-Day Tour" loading="lazy" width="640" height="360" />
   <div class="rp-card__body">
     <h3 class="rp-card__name">Toowoomba Multi-Day Tour</h3>
     <p class="rp-card__loc">Southern Downs, QLD</p>
     <p class="rp-card__stats">699 km · Character building · Groomed</p>
   </div>
-</a></div></main>
+</a></div>
+<p class="rp-noresult" id="rp-noresult" hidden>No routes match — try another state or region.</p>
+</main>
 <footer class="site-foot">
   <p>Bush Riding Map — community-vetted gravel routes across Australia. Routes are guides only; ride to conditions.</p>
   <p><a href="/routes/">All routes</a> · <a href="/">Interactive map</a> · <a href="/submit">Submit a route</a></p>

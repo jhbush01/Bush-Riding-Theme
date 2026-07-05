@@ -83,6 +83,16 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
 .rp-card__loc{margin:0 0 6px;font-size:12.5px;color:var(--ink-soft)}
 .rp-card__stats{margin:0;font-size:12.5px;color:var(--olive);font-weight:600}
 .rp-empty{color:var(--ink-soft)}
+.rp-noresult{color:var(--ink-soft);margin:8px 0}
+/* Pill filter (all-routes index) */
+.rp-filter{margin:0 0 20px;display:flex;flex-direction:column;gap:10px}
+.rp-pills{display:flex;flex-wrap:wrap;gap:8px}
+.rp-pills--region{padding-top:2px}
+.rp-pill{font-family:var(--ui-font);font-size:13px;font-weight:600;padding:7px 14px;border-radius:999px;border:1px solid rgba(0,0,0,.14);background:var(--cream-panel);color:var(--ink);cursor:pointer;line-height:1}
+.rp-pill:hover{border-color:var(--olive)}
+.rp-pill.is-active{background:var(--olive);border-color:var(--olive);color:#fff}
+.rp-pills--region .rp-pill{font-weight:500;font-size:12.5px;padding:6px 12px;color:var(--ink-soft)}
+.rp-pills--region .rp-pill.is-active{color:#fff}
 /* Events directory */
 .ev-list{display:flex;flex-direction:column;gap:14px;margin-bottom:8px}
 .ev-card{background:var(--cream-panel);border:1px solid rgba(0,0,0,.08);border-radius:12px;padding:16px 18px}
@@ -160,14 +170,17 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
 <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Bush Riding Map</a><span class="crumbs__sep">›</span><a href="/routes/">Routes</a><span class="crumbs__sep">›</span><a href="/routes/qld/">Queensland</a><span class="crumbs__sep">›</span><span aria-current="page">Ipswich</span></nav>
 <h1 class="rp-title">Gravel Routes in Ipswich</h1>
 <p class="rp-intro">Gravel routes in Ipswich, Queensland. Every ride below is community-vetted with a downloadable GPX, elevation profile and surface notes — sorted from shortest to longest so you can pick the right day out.</p>
-<div class="rp-cards"><a class="rp-card" href="/routes/qld/ipswich/brisbane-valley-rail-trail-ubph6">
+
+<div class="rp-cards" id="rp-cards"><a class="rp-card" href="/routes/qld/ipswich/brisbane-valley-rail-trail-ubph6" data-state="qld" data-region="ipswich">
   <img class="rp-card__hero" src="https://api.bushridingmap.com/file/photos/brisbane-valley-rail-trail-ubph6.jpg" alt="Brisbane Valley Rail Trail" loading="lazy" width="640" height="360" />
   <div class="rp-card__body">
     <h3 class="rp-card__name">Brisbane Valley Rail Trail</h3>
     <p class="rp-card__loc">Ipswich, QLD</p>
     <p class="rp-card__stats">162 km · Character building · Groomed</p>
   </div>
-</a></div></main>
+</a></div>
+<p class="rp-noresult" id="rp-noresult" hidden>No routes match — try another state or region.</p>
+</main>
 <footer class="site-foot">
   <p>Bush Riding Map — community-vetted gravel routes across Australia. Routes are guides only; ride to conditions.</p>
   <p><a href="/routes/">All routes</a> · <a href="/">Interactive map</a> · <a href="/submit">Submit a route</a></p>
