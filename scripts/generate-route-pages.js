@@ -115,12 +115,14 @@ async function loadFeatures() {
       const fb = path.join(MAP_DIR, "data", "routes.geojson");
       raw = JSON.parse(fs.readFileSync(fb, "utf8"));
       source = `fallback ${path.relative(ROOT, fb)}`;
+      usedErrorFallback = true;
     }
   }
   const features = (raw.features || []).filter((f) => (f.properties || {}).status === "published");
   console.log(`  source: ${source} — ${features.length} published route(s)`);
   return features;
 }
+let usedErrorFallback = false;
 
 // Normalise a GeoJSON feature (API or file shape) into a flat route model.
 function normalize(f) {
@@ -581,6 +583,14 @@ async function main() {
   console.log("Bush Riding Map — generating static route pages…");
   const features = await loadFeatures();
   const routes = features.map(normalize).filter((r) => r.id && r.name);
+
+  // Safety: if the live routes couldn't be fetched (we fell back) AND that left
+  // us with nothing, DON'T wipe the committed pages — a transient API failure at
+  // build time must never blank out /routes/**. Bail, keeping what's there.
+  if (usedErrorFallback && routes.length === 0) {
+    console.warn("! No routes and the live fetch failed — leaving existing pages untouched.");
+    return;
+  }
 
   // Clean previous output so deleted routes don't leave stale pages.
   if (fs.existsSync(OUT_DIR)) fs.rmSync(OUT_DIR, { recursive: true, force: true });
