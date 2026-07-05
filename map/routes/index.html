@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Curated Gravel Routes Across Australia | Bush Riding Map</title>
+<meta name="description" content="Browse community-vetted gravel cycling routes across Australia — GPX downloads, elevation and surface notes for every ride." />
+<link rel="canonical" href="https://bushridingmap.com/routes/" />
+<meta name="theme-color" content="#E9E2D0" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<meta property="og:site_name" content="Bush Riding" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Curated Gravel Routes Across Australia | Bush Riding Map" />
+<meta property="og:description" content="Browse community-vetted gravel cycling routes across Australia — GPX downloads, elevation and surface notes for every ride." />
+<meta property="og:url" content="https://bushridingmap.com/routes/" />
+<meta property="og:image" content="https://bushridingmap.com/public/og-card.jpg" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/styles/app.css" />
+<style>
+.seo-page{background:var(--cream);color:var(--ink);font-family:var(--ui-font);margin:0;min-height:100vh;display:flex;flex-direction:column}
+.site-head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:14px 22px;border-bottom:1px solid rgba(0,0,0,.08);background:var(--cream-panel)}
+.site-brand{font-family:var(--head-font);font-size:24px;color:var(--ink);text-decoration:none}
+.site-nav a{color:var(--ink-soft);text-decoration:none;font-size:14px;font-weight:600;margin-left:16px}
+.site-nav a:hover{color:var(--olive)}
+.wrap{width:100%;max-width:760px;margin:0 auto;padding:22px;flex:1}
+.crumbs{font-size:12.5px;color:var(--ink-soft);margin:0 0 14px;display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.crumbs a{color:var(--ink-soft);text-decoration:none}
+.crumbs a:hover{color:var(--olive);text-decoration:underline}
+.crumbs__sep{opacity:.5}
+.rp-title{font-family:var(--head-font);font-weight:400;font-size:38px;line-height:1.05;margin:6px 0 4px;color:var(--ink)}
+.rp-loc{margin:0 0 4px;color:var(--ink-soft);font-size:15px}
+.rp-hero{margin:0 0 18px;border-radius:14px;overflow:hidden;background:var(--sage)}
+.rp-hero__img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover}
+.rp-hero__img--empty{aspect-ratio:16/9;background:linear-gradient(135deg,var(--sage),var(--olive))}
+.rp-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(0,0,0,.08);border:1px solid rgba(0,0,0,.08);border-radius:12px;overflow:hidden;margin:16px 0}
+.rp-stat{background:var(--cream-panel);padding:12px 10px;text-align:center;min-width:0}
+.rp-stat__v{display:block;font-family:var(--head-font);font-size:20px;color:var(--ink)}
+.rp-stat__l{display:block;margin-top:3px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
+.rp-actions{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}
+.rp-actions .button{text-decoration:none}
+.rp-start{font-size:14.5px;color:var(--ink-soft);margin:10px 0}
+.wrap h2{font-family:var(--head-font);font-weight:400;font-size:26px;margin:26px 0 8px}
+.rp-desc{font-size:16px;line-height:1.6;color:var(--ink)}
+.rp-map-todo{margin:18px 0;border:1.5px dashed var(--sage);border-radius:12px;background:var(--cream-panel);min-height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--ink-soft);text-align:center}
+.rp-map-todo small{opacity:.7}
+.rp-meta{font-size:13px;color:var(--ink-soft)}
+.rp-meta a{color:var(--olive)}
+.rp-faq__item{border-top:1px solid rgba(0,0,0,.1);padding:10px 0}
+.rp-faq__item summary{cursor:pointer;font-weight:600;font-size:15.5px}
+.rp-faq__item p{margin:8px 0 2px;color:var(--ink-soft);line-height:1.55;font-size:14.5px}
+.rp-back{margin:24px 0 0}
+.rp-back a{color:var(--olive);font-weight:600;text-decoration:none}
+.rp-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin:6px 0 4px}
+.rp-gallery__item{display:block;border-radius:10px;overflow:hidden;background:var(--sage)}
+.rp-gallery__item img{display:block;width:100%;height:150px;object-fit:cover}
+.rp-rating{margin:4px 0 12px;font-size:15px;color:var(--ink-soft)}
+.rp-rating__stars{color:#d98a3d;letter-spacing:1px}
+.rp-reviews{display:flex;flex-direction:column;gap:14px}
+.rp-review{border-top:1px solid rgba(0,0,0,.1);padding-top:12px}
+.rp-review__head{margin:0}
+.rp-review__stars{color:#d98a3d;letter-spacing:.5px;font-size:13px}
+.rp-review__text{margin:6px 0 0;color:var(--ink-soft);line-height:1.5;font-size:14.5px}
+.rp-intro{font-size:16px;line-height:1.6;color:var(--ink-soft);max-width:60ch;margin:0 0 22px}
+.rp-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.rp-card{display:flex;flex-direction:column;background:var(--cream-panel);border:1px solid rgba(0,0,0,.08);border-radius:12px;overflow:hidden;text-decoration:none;color:inherit}
+.rp-card:hover{border-color:var(--olive)}
+.rp-card__hero{display:block;width:100%;height:130px;object-fit:cover;background:var(--sage)}
+.rp-card__hero--empty{height:130px;background:linear-gradient(135deg,var(--sage),var(--olive))}
+.rp-card__body{padding:12px 13px}
+.rp-card__name{font-family:var(--head-font);font-weight:400;font-size:19px;margin:0 0 3px;color:var(--ink)}
+.rp-card__loc{margin:0 0 6px;font-size:12.5px;color:var(--ink-soft)}
+.rp-card__stats{margin:0;font-size:12.5px;color:var(--olive);font-weight:600}
+.rp-empty{color:var(--ink-soft)}
+.site-foot{margin-top:30px;padding:22px;border-top:1px solid rgba(0,0,0,.08);background:var(--cream-panel);font-size:12.5px;color:var(--ink-soft);text-align:center}
+.site-foot a{color:var(--olive);text-decoration:none}
+@media(max-width:560px){.rp-title{font-size:30px}.rp-stats{grid-template-columns:repeat(2,1fr)}}
+</style>
+<script type="application/ld+json">
+[
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Bush Riding Map",
+        "item": "https://bushridingmap.com/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Routes",
+        "item": "https://bushridingmap.com/routes/"
+      }
+    ]
+  }
+]
+</script>
+</head>
+<body class="seo-page">
+<header class="site-head">
+  <a class="site-brand" href="/">Bush Riding Map</a>
+  <nav class="site-nav">
+    <a href="/routes/">Routes</a>
+    <a href="/">Map</a>
+    <a href="/submit">Submit a route</a>
+  </nav>
+</header>
+<main class="wrap">
+<nav class="crumbs" aria-label="Breadcrumb"><a href="/">Bush Riding Map</a><span class="crumbs__sep">›</span><span aria-current="page">Routes</span></nav>
+<h1 class="rp-title">Gravel Routes</h1>
+<p class="rp-intro">Bush Riding Map is a community-vetted collection of gravel-cycling routes across Australia. Every route is ridden and checked before it goes on the map, with a downloadable GPX, elevation and surface notes. Find your next dirt adventure below.</p>
+<div class="rp-cards"><a class="rp-card" href="/routes/qld/ipswich/brisbane-valley-rail-trail-ubph6">
+  <img class="rp-card__hero" src="https://api.bushridingmap.com/file/photos/brisbane-valley-rail-trail-ubph6.jpg" alt="Brisbane Valley Rail Trail" loading="lazy" width="640" height="360" />
+  <div class="rp-card__body">
+    <h3 class="rp-card__name">Brisbane Valley Rail Trail</h3>
+    <p class="rp-card__loc">Ipswich, QLD</p>
+    <p class="rp-card__stats">162 km · Character building · Groomed</p>
+  </div>
+</a>
+<a class="rp-card" href="/routes/qld/southern-downs/crows-nest-loop-l1cbn">
+  <img class="rp-card__hero" src="https://api.bushridingmap.com/file/photos/crows-nest-loop-l1cbn.jpg" alt="Crows Nest Loop" loading="lazy" width="640" height="360" />
+  <div class="rp-card__body">
+    <h3 class="rp-card__name">Crows Nest Loop</h3>
+    <p class="rp-card__loc">Southern Downs, QLD</p>
+    <p class="rp-card__stats">46 km · Cruisy · Groomed</p>
+  </div>
+</a>
+<a class="rp-card" href="/routes/qld/brisbane-metro/ferny-grove-to-wulkuraka-fi3k0">
+  <img class="rp-card__hero" src="https://api.bushridingmap.com/file/photos/ferny-grove-to-wulkuraka-fi3k0.jpg" alt="Ferny Grove to Wulkuraka" loading="lazy" width="640" height="360" />
+  <div class="rp-card__body">
+    <h3 class="rp-card__name">Ferny Grove to Wulkuraka</h3>
+    <p class="rp-card__loc">Brisbane Metro, QLD</p>
+    <p class="rp-card__stats">76 km · Big day out · Groomed</p>
+  </div>
+</a>
+<a class="rp-card" href="/routes/qld/glass-house-mountain/glass-house-station-to-woodford-loop-lbjfl">
+  <img class="rp-card__hero" src="/public/glass-house-station-to-woodford-loop-lbjfl.jpg" alt="Glass House Station to Woodford Loop" loading="lazy" width="640" height="360" />
+  <div class="rp-card__body">
+    <h3 class="rp-card__name">Glass House Station to Woodford Loop</h3>
+    <p class="rp-card__loc">Glass House Mountain, QLD</p>
+    <p class="rp-card__stats">73 km · Big day out · Rocky</p>
+  </div>
+</a>
+<a class="rp-card" href="/routes/qld/brisbane-metro/goat-track-loop-cg5ef">
+  <img class="rp-card__hero" src="https://api.bushridingmap.com/file/photos/goat-track-loop-cg5ef.jpg" alt="Goat Track Loop" loading="lazy" width="640" height="360" />
+  <div class="rp-card__body">
+    <h3 class="rp-card__name">Goat Track Loop</h3>
+    <p class="rp-card__loc">Brisbane Metro, QLD</p>
+    <p class="rp-card__stats">46 km · Big day out · Groomed</p>
+  </div>
+</a>
+<a class="rp-card" href="/routes/qld/lockyer-valley/helidoom-loop-omxd4">
+  <img class="rp-card__hero" src="https://api.bushridingmap.com/file/photos/helidoom-loop-omxd4.jpg" alt="Helidoom Loop" loading="lazy" width="640" height="360" />
+  <div class="rp-card__body">
+    <h3 class="rp-card__name">Helidoom Loop</h3>
+    <p class="rp-card__loc">Lockyer Valley, QLD</p>
+    <p class="rp-card__stats">63 km · Big day out · Groomed</p>
+  </div>
+</a>
+<a class="rp-card" href="/routes/qld/somerset/kilcoy-to-jimna-loop-u1kv9">
+  <img class="rp-card__hero" src="https://api.bushridingmap.com/file/photos/kilcoy-to-jimna-loop-u1kv9.jpg" alt="Kilcoy to Jimna Loop" loading="lazy" width="640" height="360" />
+  <div class="rp-card__body">
+    <h3 class="rp-card__name">Kilcoy to Jimna Loop</h3>
+    <p class="rp-card__loc">Somerset, QLD</p>
+    <p class="rp-card__stats">105 km · Big day out · Groomed</p>
+  </div>
+</a>
+<a class="rp-card" href="/routes/qld/brisbane-metro/lacey-s-creek-loop-xsw5s">
+  <img class="rp-card__hero" src="https://api.bushridingmap.com/file/photos/lacey-s-creek-loop-xsw5s.jpg" alt="Lacey’s Creek Loop" loading="lazy" width="640" height="360" />
+  <div class="rp-card__body">
+    <h3 class="rp-card__name">Lacey’s Creek Loop</h3>
+    <p class="rp-card__loc">Brisbane Metro, QLD</p>
+    <p class="rp-card__stats">87 km · Big day out · Groomed</p>
+  </div>
+</a>
+<a class="rp-card" href="/routes/qld/scenic-rim/mini-dirty-boonah-652ah">
+  <img class="rp-card__hero" src="https://api.bushridingmap.com/file/photos/mini-dirty-boonah-652ah.jpg" alt="Mini Dirty Boonah" loading="lazy" width="640" height="360" />
+  <div class="rp-card__body">
+    <h3 class="rp-card__name">Mini Dirty Boonah</h3>
+    <p class="rp-card__loc">Scenic Rim, QLD</p>
+    <p class="rp-card__stats">97 km · Big day out · Groomed</p>
+  </div>
+</a>
+<a class="rp-card" href="/routes/qld/brisbane-metro/range-road-ridge-ride-ojrk3">
+  <img class="rp-card__hero" src="https://api.bushridingmap.com/file/photos/range-road-ridge-ride-ojrk3.jpg" alt="Range Road Ridge Ride" loading="lazy" width="640" height="360" />
+  <div class="rp-card__body">
+    <h3 class="rp-card__name">Range Road Ridge Ride</h3>
+    <p class="rp-card__loc">Brisbane Metro, QLD</p>
+    <p class="rp-card__stats">53 km · Big day out · Groomed</p>
+  </div>
+</a>
+<a class="rp-card" href="/routes/qld/southern-downs/stanthorpe-that-dam-ride-ke9y2">
+  <img class="rp-card__hero" src="https://api.bushridingmap.com/file/photos/stanthorpe-that-dam-ride-ke9y2.jpg" alt="Stanthorpe &quot;That Dam Ride&quot;" loading="lazy" width="640" height="360" />
+  <div class="rp-card__body">
+    <h3 class="rp-card__name">Stanthorpe &quot;That Dam Ride&quot;</h3>
+    <p class="rp-card__loc">Southern Downs, QLD</p>
+    <p class="rp-card__stats">70 km · Big day out · Groomed</p>
+  </div>
+</a>
+<a class="rp-card" href="/routes/qld/sunshine-coast/steak-knives-loop-kw259">
+  <img class="rp-card__hero" src="https://api.bushridingmap.com/file/photos/steak-knives-loop-kw259.jpg" alt="Steak Knives Loop" loading="lazy" width="640" height="360" />
+  <div class="rp-card__body">
+    <h3 class="rp-card__name">Steak Knives Loop</h3>
+    <p class="rp-card__loc">Sunshine Coast, QLD</p>
+    <p class="rp-card__stats">82 km · Big day out · Groomed</p>
+  </div>
+</a>
+<a class="rp-card" href="/routes/qld/sunshine-coast/sunday-creek-gravel-loop-u3t6t">
+  <img class="rp-card__hero" src="https://api.bushridingmap.com/file/photos/sunday-creek-gravel-loop-u3t6t.jpg" alt="Sunday Creek Gravel Loop" loading="lazy" width="640" height="360" />
+  <div class="rp-card__body">
+    <h3 class="rp-card__name">Sunday Creek Gravel Loop</h3>
+    <p class="rp-card__loc">Sunshine Coast, QLD</p>
+    <p class="rp-card__stats">119 km · Big day out · Groomed</p>
+  </div>
+</a>
+<a class="rp-card" href="/routes/qld/southern-downs/toowoomba-multi-day-tour-iygw1">
+  <img class="rp-card__hero" src="https://api.bushridingmap.com/file/photos/toowoomba-multi-day-tour-iygw1.jpg" alt="Toowoomba Multi-Day Tour" loading="lazy" width="640" height="360" />
+  <div class="rp-card__body">
+    <h3 class="rp-card__name">Toowoomba Multi-Day Tour</h3>
+    <p class="rp-card__loc">Southern Downs, QLD</p>
+    <p class="rp-card__stats">699 km · Character building · Groomed</p>
+  </div>
+</a></div></main>
+<footer class="site-foot">
+  <p>Bush Riding Map — community-vetted gravel routes across Australia. Routes are guides only; ride to conditions.</p>
+  <p><a href="/routes/">All routes</a> · <a href="/">Interactive map</a> · <a href="/submit">Submit a route</a></p>
+</footer>
+</body>
+</html>
