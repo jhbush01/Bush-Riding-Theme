@@ -83,6 +83,18 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
 .rp-card__loc{margin:0 0 6px;font-size:12.5px;color:var(--ink-soft)}
 .rp-card__stats{margin:0;font-size:12.5px;color:var(--olive);font-weight:600}
 .rp-empty{color:var(--ink-soft)}
+/* Events directory */
+.ev-list{display:flex;flex-direction:column;gap:14px;margin-bottom:8px}
+.ev-card{background:var(--cream-panel);border:1px solid rgba(0,0,0,.08);border-radius:12px;padding:16px 18px}
+.ev-card.is-past{opacity:.7}
+.ev-card__when{margin:0 0 4px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--card-rust,#b04a24)}
+.ev-card__name{font-family:var(--head-font);font-weight:400;font-size:23px;margin:0 0 6px;color:var(--ink)}
+.ev-card__desc{margin:0 0 10px;font-size:14.5px;line-height:1.5;color:var(--ink-soft)}
+.ev-card__meta{display:flex;flex-direction:column;gap:4px;font-size:13.5px;color:var(--ink-soft)}
+.ev-card__row strong{color:var(--ink);font-weight:600}
+.ev-card__meta a{color:var(--olive);text-decoration:none}
+.ev-card__actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.ev-card__actions .button{text-decoration:none}
 .site-foot{margin-top:30px;padding:22px;border-top:1px solid rgba(0,0,0,.08);background:var(--cream-panel);font-size:12.5px;color:var(--ink-soft);text-align:center}
 .site-foot a{color:var(--olive);text-decoration:none}
 @media(max-width:560px){.rp-title{font-size:30px}.rp-stats{grid-template-columns:repeat(2,1fr)}}
@@ -139,6 +151,7 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
   <a class="site-brand" href="/">Bush Riding Map</a>
   <nav class="site-nav">
     <a href="/routes/">Routes</a>
+    <a href="/events/">Events</a>
     <a href="/">Map</a>
     <a href="/submit">Submit a route</a>
   </nav>
