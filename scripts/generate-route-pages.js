@@ -25,6 +25,9 @@ const OUT_DIR = path.join(MAP_DIR, "routes");
 const SITE = (process.env.BRM_SITE || "https://bushridingmap.com").replace(/\/$/, "");
 const ROUTES_API = process.env.BRM_ROUTES_API || "https://api.bushridingmap.com/routes";
 const ROUTES_FILE = process.env.BRM_ROUTES_FILE || "";
+// GPX (for the route-shape map + elevation profile). Fetched from each route's
+// gpx_url at build; BRM_GPX_DIR points at local <id>.gpx files for offline tests.
+const GPX_DIR = process.env.BRM_GPX_DIR || "";
 // Reviews (for the page's photo gallery + aggregate rating). The public reviews
 // endpoint is served same-origin via the Pages proxy; at build time we reach it
 // on the currently-live site. BRM_REVIEWS_FILE (JSON: {route_id: {reviews...}})
@@ -295,8 +298,105 @@ function faqItems(r) {
   return items;
 }
 
+/* ---------------- GPX → route map + elevation ---------------- */
+// Load a route's GPX and return { points:[{lat,lon,ele,d}], hasEle } (d = cumulative km).
+async function loadGpx(r) {
+  try {
+    let text;
+    if (GPX_DIR) {
+      text = fs.readFileSync(path.join(GPX_DIR, `${r.id}.gpx`), "utf8");
+    } else {
+      const u = /^https?:\/\//.test(r.gpx) ? r.gpx : SITE + r.gpx;
+      const res = await fetch(u, { signal: AbortSignal.timeout(12000) });
+      if (!res.ok) return null;
+      text = await res.text();
+    }
+    const raw = parseGpxText(text);
+    if (raw.length < 2) return null;
+    let dist = 0, prev = null, hasEle = false;
+    const points = [];
+    for (const p of raw) {
+      if (prev) dist += haversineKm(prev, p);
+      prev = p;
+      if (Number.isFinite(p.ele)) hasEle = true;
+      points.push({ lat: p.lat, lon: p.lon, ele: p.ele, d: dist });
+    }
+    return { points, hasEle };
+  } catch (_) {
+    return null; // GPX is enhancement-only; never fail the build
+  }
+}
+
+function parseGpxText(text) {
+  const out = [];
+  const re = /<trkpt\b([^>]*?)(?:\/>|>([\s\S]*?)<\/trkpt>)/g;
+  let m;
+  while ((m = re.exec(text))) {
+    const attrs = m[1] || "", inner = m[2] || "";
+    const lat = parseFloat((attrs.match(/\blat="([-\d.]+)"/) || [])[1]);
+    const lon = parseFloat((attrs.match(/\blon="([-\d.]+)"/) || [])[1]);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+    const eleM = inner.match(/<ele>\s*([-\d.]+)\s*<\/ele>/);
+    out.push({ lat, lon, ele: eleM ? parseFloat(eleM[1]) : NaN });
+  }
+  return out;
+}
+function haversineKm(a, b) {
+  const R = 6371, dLat = ((b.lat - a.lat) * Math.PI) / 180, dLon = ((b.lon - a.lon) * Math.PI) / 180;
+  const la1 = (a.lat * Math.PI) / 180, la2 = (b.lat * Math.PI) / 180;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(la1) * Math.cos(la2) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+function downsample(arr, max) {
+  if (arr.length <= max) return arr;
+  const step = arr.length / max, out = [];
+  for (let i = 0; i < max; i++) out.push(arr[Math.floor(i * step)]);
+  out.push(arr[arr.length - 1]);
+  return out;
+}
+// Inline SVG of the route's shape (GPS track), fit uniformly into the box with a
+// start marker. Not a street basemap — a pure, dependency-free route diagram.
+function routeMapSvg(points) {
+  const W = 640, H = 380, pad = 26;
+  const pts = downsample(points, 300);
+  const latMean = pts.reduce((s, p) => s + p.lat, 0) / pts.length;
+  const k = Math.cos((latMean * Math.PI) / 180) || 1; // lon scale so it isn't stretched
+  const xs = pts.map((p) => p.lon * k), ys = pts.map((p) => p.lat);
+  const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+  const dx = maxX - minX || 1e-6, dy = maxY - minY || 1e-6;
+  const scale = Math.min((W - 2 * pad) / dx, (H - 2 * pad) / dy);
+  const offX = (W - dx * scale) / 2, offY = (H - dy * scale) / 2;
+  const px = (lon) => offX + (lon * k - minX) * scale;
+  const py = (lat) => H - (offY + (lat - minY) * scale);
+  const d = "M" + pts.map((p) => `${px(p.lon).toFixed(1)},${py(p.lat).toFixed(1)}`).join(" L");
+  const s = pts[0];
+  return `<svg class="rp-map__svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="Map of the route">
+    <rect width="${W}" height="${H}" fill="#ece4d2"/>
+    <path d="${d}" fill="none" stroke="#b04a24" stroke-width="3.6" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${px(s.lon).toFixed(1)}" cy="${py(s.lat).toFixed(1)}" r="6.5" fill="#6f7c53" stroke="#fff" stroke-width="2.5"/>
+  </svg>`;
+}
+// Inline SVG elevation profile (same gradient look as the interactive card).
+function elevationSvg(points) {
+  const withEle = points.filter((p) => Number.isFinite(p.ele));
+  if (withEle.length < 2) return "";
+  const prof = downsample(withEle, 220).map((p) => ({ d: p.d, e: p.ele }));
+  const W = 680, top = 8, base = 120;
+  const dMax = prof[prof.length - 1].d || 1;
+  const es = prof.map((p) => p.e);
+  let eMin = Math.min(...es), eMax = Math.max(...es);
+  if (eMax - eMin < 10) eMax = eMin + 10;
+  const x = (dd) => (dd / dMax) * W, y = (e) => base - ((e - eMin) / (eMax - eMin)) * (base - top);
+  const seq = prof.map((p) => `${x(p.d).toFixed(1)},${y(p.e).toFixed(1)}`);
+  return `<svg class="rp-elev__svg" viewBox="0 0 ${W} 130" preserveAspectRatio="none" role="img" aria-label="Elevation profile">
+    <defs><linearGradient id="rpElev" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c9673f" stop-opacity=".34"/><stop offset="1" stop-color="#c9673f" stop-opacity=".04"/></linearGradient></defs>
+    <path d="M0,${base} L${seq.join(" L")} L${W},${base} Z" fill="url(#rpElev)"/>
+    <path d="M${seq.join(" L")}" fill="none" stroke="#bd5730" stroke-width="2" stroke-linejoin="round"/>
+  </svg>`;
+}
+
 /* ---------------- individual route page ---------------- */
-function routePage(r, reviews) {
+function routePage(r, reviews, gpx) {
   reviews = reviews || { count: 0, average: 0, reviews: [] };
   const revs = reviews.reviews || [];
   const photos = revs.filter((v) => v.photo_url);
@@ -330,6 +430,18 @@ function routePage(r, reviews) {
   const navHref = r.lat != null && r.lng != null ? `geo:${r.lat},${r.lng}` : "";
 
   const stat = (v, label) => `<div class="rp-stat"><span class="rp-stat__v">${esc(v)}</span><span class="rp-stat__l">${esc(label)}</span></div>`;
+
+  // Route-shape map + elevation profile, drawn from the GPX at build time.
+  const mapFig = gpx && gpx.points.length
+    ? `<figure class="rp-map">${routeMapSvg(gpx.points)}<figcaption class="rp-map__cap">${esc(r.name)} — ${fmt(r.distance)} km near ${esc(r.regionLabel)}, ${esc(r.stateFull)}</figcaption></figure>`
+    : "";
+  const elevSvgStr = gpx ? elevationSvg(gpx.points) : "";
+  const elevBlock = elevSvgStr
+    ? `<div class="rp-elev">
+    <div class="rp-elev__head"><span class="rp-mini">Elevation profile</span><span class="rp-elev__note">↑ ${fmt(r.elevation)} m over ${fmt(r.distance)} km</span></div>
+    ${elevSvgStr}
+  </div>`
+    : "";
 
   // Rider photo gallery (from reviews). Links to full-res so the page stays JS-free.
   const galleryHtml = photos.length
@@ -368,6 +480,8 @@ ${crumbs(crumbItems)}
     ${stat(r.terrain || "—", "Terrain")}
   </div>
 
+  ${elevBlock}
+
   <div class="rp-actions">
     <a class="button button--primary" href="${esc(r.gpx)}" download>Download GPX</a>
     ${navHref ? `<a class="button" href="${esc(navHref)}">Navigate to start</a>` : ""}
@@ -379,12 +493,7 @@ ${crumbs(crumbItems)}
   <h2>About this route</h2>
   ${r.description ? `<p class="rp-desc">${esc(r.description)}</p>` : `<p class="rp-desc">${esc(r.name)} is a ${dist} km gravel route near ${esc(r.regionLabel)}, ${esc(r.stateFull)}, with ${elev} m of climbing. Open the interactive map for the full turn-by-turn track, or download the GPX to load onto your head unit.</p>`}
 
-  <!-- Static route map: generating this requires a headless browser / tile API,
-       which is out of scope for this pure-Node build (see spec). Placeholder. -->
-  <div class="rp-map-todo" data-route-id="${esc(r.id)}">
-    <span>Route map preview</span>
-    <small>TODO: static map image of the route bounding box</small>
-  </div>
+  ${mapFig}
 
   <p class="rp-meta">${r.contributor ? `Vetted by ${r.contributorUrl ? `<a href="${esc(r.contributorUrl)}" rel="nofollow noopener">${esc(r.contributor)}</a>` : esc(r.contributor)}` : "Community-contributed route"}.</p>
 
@@ -539,8 +648,14 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
 .rp-start{font-size:14.5px;color:var(--ink-soft);margin:10px 0}
 .wrap h2{font-family:var(--head-font);font-weight:400;font-size:26px;margin:26px 0 8px}
 .rp-desc{font-size:16px;line-height:1.6;color:var(--ink)}
-.rp-map-todo{margin:18px 0;border:1.5px dashed var(--sage);border-radius:12px;background:var(--cream-panel);min-height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--ink-soft);text-align:center}
-.rp-map-todo small{opacity:.7}
+.rp-map{margin:18px 0;border:1px solid rgba(0,0,0,.1);border-radius:12px;overflow:hidden;background:#ece4d2}
+.rp-map__svg{display:block;width:100%;height:auto}
+.rp-map__cap{padding:9px 13px;font-size:12px;color:var(--ink-soft);border-top:1px solid rgba(0,0,0,.07);background:var(--cream-panel)}
+.rp-elev{margin:14px 0;padding:12px 14px;background:var(--cream-panel);border:1px solid rgba(0,0,0,.08);border-radius:12px}
+.rp-elev__head{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.rp-mini{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
+.rp-elev__note{font-size:12.5px;color:var(--ink-soft);white-space:nowrap}
+.rp-elev__svg{display:block;width:100%;height:132px;margin-top:6px}
 .rp-meta{font-size:13px;color:var(--ink-soft)}
 .rp-meta a{color:var(--olive)}
 .rp-faq__item{border-top:1px solid rgba(0,0,0,.1);padding:10px 0}
@@ -602,8 +717,8 @@ async function main() {
 
   // Individual route pages.
   for (const r of routes) {
-    const reviews = await loadReviews(r.id);
-    written.push(writePage(`routes/${r.stateSlug}/${r.regionSlug}/${r.id}/index.html`, routePage(r, reviews)));
+    const [reviews, gpx] = await Promise.all([loadReviews(r.id), loadGpx(r)]);
+    written.push(writePage(`routes/${r.stateSlug}/${r.regionSlug}/${r.id}/index.html`, routePage(r, reviews, gpx)));
   }
 
   // /routes/ — all routes.
