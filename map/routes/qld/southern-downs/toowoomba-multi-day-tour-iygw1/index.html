@@ -20,6 +20,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="/styles/app.css" />
 <style>
+/* app.css locks the map app to a non-scrolling viewport (html,body{height:100%;
+   overflow:clip}). These are ordinary content pages — undo that so they scroll. */
+html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
 .seo-page{background:var(--cream);color:var(--ink);font-family:var(--ui-font);margin:0;min-height:100vh;display:flex;flex-direction:column}
 .site-head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:14px 22px;border-bottom:1px solid rgba(0,0,0,.08);background:var(--cream-panel)}
 .site-brand{font-family:var(--head-font);font-size:24px;color:var(--ink);text-decoration:none}
