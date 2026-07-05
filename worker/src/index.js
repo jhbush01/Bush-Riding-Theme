@@ -531,16 +531,37 @@ async function adminAction(request, env) {
   return new Response(null, { status: 303, headers: { Location: "/admin" } });
 }
 
-// Fire a Cloudflare Pages Deploy Hook (if configured) so the static /routes/**
-// pages regenerate from the live API — a new/edited/removed route gets its page
-// without waiting for a manual deploy. Best-effort; never blocks the admin.
+// Regenerate the static /routes/** pages after a route changes, so a new/edited/
+// removed route gets its page without a manual deploy. Two optional mechanisms;
+// either works, both are best-effort and never block the admin:
+//   • GITHUB_DISPATCH_TOKEN (+ GITHUB_REPO) — triggers the "Generate route pages"
+//     GitHub Action, which generates + commits the pages (the default setup).
+//   • PAGES_DEPLOY_HOOK — a Cloudflare Pages Deploy Hook (if you instead use the
+//     Pages build command to generate at deploy).
 async function triggerRebuild(env) {
-  const hook = env.PAGES_DEPLOY_HOOK;
-  if (!hook) return;
-  try {
-    await fetch(hook, { method: "POST", signal: AbortSignal.timeout(5000) });
-  } catch (_) {
-    /* deploy hook unreachable — the next site deploy will regenerate anyway */
+  if (env.GITHUB_DISPATCH_TOKEN && env.GITHUB_REPO) {
+    try {
+      await fetch(`https://api.github.com/repos/${env.GITHUB_REPO}/dispatches`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${env.GITHUB_DISPATCH_TOKEN}`,
+          Accept: "application/vnd.github+json",
+          "User-Agent": "bush-riding-map",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ event_type: "routes-changed" }),
+        signal: AbortSignal.timeout(5000),
+      });
+    } catch (_) {
+      /* GitHub unreachable — the next deploy/schedule regenerates anyway */
+    }
+  }
+  if (env.PAGES_DEPLOY_HOOK) {
+    try {
+      await fetch(env.PAGES_DEPLOY_HOOK, { method: "POST", signal: AbortSignal.timeout(5000) });
+    } catch (_) {
+      /* deploy hook unreachable — the next deploy/schedule regenerates anyway */
+    }
   }
 }
 

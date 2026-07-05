@@ -34,30 +34,42 @@ The generator resolves routes in this order:
 
 Only features with `status: "published"` are generated. Drafts are skipped.
 
-## Deploy (required one-time Cloudflare Pages setting)
+## How pages get created (no Cloudflare setup needed)
 
-Pages regenerates the route pages on every deploy, from live data:
+The **`Generate route pages` GitHub Action** (`.github/workflows/generate-route-pages.yml`)
+runs the generator on GitHub's runners — which can reach the public routes API —
+and commits `map/routes/**` to the production branch. Cloudflare Pages then
+serves them as ordinary static files. No Pages build command required.
 
-- **Build command:** `npm run build:seo`
-- **Build output directory:** `map`
+It runs:
+- **on every push** to the production branch (so a deploy refreshes all pages),
+- **on a schedule** (every 30 min, to pick up newly approved routes),
+- **on demand** (Actions tab → Run workflow),
+- **on `repository_dispatch`** `routes-changed` (see below).
 
-Cloudflare's build environment can reach the public route API, so each deploy
-picks up any newly-approved routes automatically.
+The commit is made with `GITHUB_TOKEN`, which does not re-trigger workflows, so
+there is no loop.
 
-### Auto-regenerate on route approval (recommended)
+### Instant regeneration on route approval (optional)
 
-So a new route gets its page within ~a minute of approval (instead of waiting
-for the next code push):
+To make a newly approved route's page appear within ~a minute (instead of on the
+next deploy/schedule), let the community Worker trigger the Action:
 
-1. In the Pages project → **Settings → Builds & deployments → Deploy hooks**,
-   create a hook (pick the production branch). Copy its URL.
-2. On the **community Worker** (api.bushridingmap.com), add it as a secret:
-   `wrangler secret put PAGES_DEPLOY_HOOK` → paste the URL.
+1. Create a GitHub token with **contents: write** on this repo (fine-grained
+   token scoped to the repo is ideal).
+2. On the **community Worker** (api.bushridingmap.com):
+   `wrangler secret put GITHUB_DISPATCH_TOKEN` → paste the token.
+   (`GITHUB_REPO` is already set in `wrangler.jsonc`.)
 
-The Worker POSTs that hook whenever a route is approved, edited or removed in
-`/admin`, which triggers a Pages rebuild → the generator reruns against live
-data → the route's page appears/updates. It's best-effort: if the hook is unset
-or unreachable, the next deploy regenerates everything anyway.
+The Worker fires a `repository_dispatch` on approve/edit/remove → the Action
+regenerates and commits. Best-effort: if unset, pages still refresh on the next
+deploy and on the schedule.
+
+### Alternative: generate at deploy via Cloudflare
+
+If you'd rather not commit the HTML, set the Pages **Build command** to
+`npm run build:seo` and **Output dir** to `map` (and delete/disable the Action).
+Pair it with a Pages Deploy Hook in `PAGES_DEPLOY_HOOK` for instant rebuilds.
 
 If you'd rather commit the HTML instead of generating at deploy: remove
 `map/routes/` from `.gitignore`, run `npm run build:seo` locally (you have API
