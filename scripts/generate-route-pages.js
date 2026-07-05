@@ -454,7 +454,9 @@ function routePage(r, reviews, gpx) {
     ? `<img class="rp-hero__img" src="${esc(r.hero)}" alt="${esc(r.name)} — gravel route near ${esc(r.regionLabel)}" width="1200" height="675" loading="eager" />`
     : `<div class="rp-hero__img rp-hero__img--empty" aria-hidden="true"></div>`;
 
-  const navHref = r.lat != null && r.lng != null ? `geo:${r.lat},${r.lng}` : "";
+  // Google Maps directions to the start — works on desktop and mobile (a geo:
+  // URI silently does nothing on desktop and many browsers).
+  const navHref = r.lat != null && r.lng != null ? `https://www.google.com/maps/dir/?api=1&destination=${r.lat},${r.lng}` : "";
 
   const stat = (v, label) => `<div class="rp-stat"><span class="rp-stat__v">${esc(v)}</span><span class="rp-stat__l">${esc(label)}</span></div>`;
 
@@ -523,7 +525,7 @@ ${crumbs(crumbItems)}
 
   <div class="rp-actions">
     <a class="button button--primary" href="${esc(r.gpx)}" download>Download GPX</a>
-    ${navHref ? `<a class="button" href="${esc(navHref)}">Navigate to start</a>` : ""}
+    ${navHref ? `<a class="button" href="${esc(navHref)}" target="_blank" rel="noopener">Navigate to start</a>` : ""}
     <a class="button" href="/map#${esc(r.id)}">Open in interactive map</a>
   </div>
 
