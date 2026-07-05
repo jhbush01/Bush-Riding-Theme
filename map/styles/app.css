@@ -94,6 +94,10 @@ body {
   cursor: pointer;
 }
 
+/* Centred header when the drawer is open. */
+.sidebar__head {
+  text-align: center;
+}
 .sidebar__title {
   margin: 0;
   font-family: var(--head-font);
@@ -101,6 +105,32 @@ body {
   font-weight: 400;
   letter-spacing: 0.01em;
   line-height: 1.05;
+}
+
+/* Nav pills inside the drawer (Routes / Events / Submit / My Rides). */
+.sidebar__pills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 12px;
+}
+.sidebar__pill {
+  font-family: var(--ui-font);
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 6px 13px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: var(--cream);
+  color: var(--ink);
+  text-decoration: none;
+  cursor: pointer;
+  line-height: 1;
+}
+.sidebar__pill:hover {
+  border-color: var(--olive);
+  color: var(--olive);
 }
 
 .sidebar__home {

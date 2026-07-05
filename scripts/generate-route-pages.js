@@ -226,6 +226,7 @@ function head(opts) {
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="/styles/app.css" />
 <style>${PAGE_CSS}</style>
+${opts.extraHead || ""}
 ${opts.jsonld ? `<script type="application/ld+json">\n${opts.jsonld}\n</script>` : ""}
 </head>
 <body class="seo-page">
@@ -457,9 +458,21 @@ function routePage(r, reviews, gpx) {
 
   const stat = (v, label) => `<div class="rp-stat"><span class="rp-stat__v">${esc(v)}</span><span class="rp-stat__l">${esc(label)}</span></div>`;
 
-  // Route-shape map + elevation profile, drawn from the GPX at build time.
-  const mapFig = gpx && gpx.points.length
-    ? `<figure class="rp-map">${routeMapSvg(gpx.points)}<figcaption class="rp-map__cap">${esc(r.name)} — ${fmt(r.distance)} km near ${esc(r.regionLabel)}, ${esc(r.stateFull)}</figcaption></figure>`
+  // Interactive map (real basemap) with the GPX route drawn on it; the build-time
+  // route-shape SVG stays as a no-JS fallback (shown until the map loads).
+  const hasMap = gpx && gpx.points.length > 1;
+  const mapCoords = hasMap ? downsample(gpx.points, 500).map((p) => [+p.lon.toFixed(5), +p.lat.toFixed(5)]) : [];
+  const mapFig = hasMap
+    ? `<figure class="rp-map" data-has-map>
+    <div class="rp-map__live" id="rp-livemap"></div>
+    <div class="rp-map__shape">${routeMapSvg(gpx.points)}</div>
+    <figcaption class="rp-map__cap">${esc(r.name)} — ${fmt(r.distance)} km near ${esc(r.regionLabel)}, ${esc(r.stateFull)}</figcaption>
+  </figure>`
+    : "";
+  const mapEmbed = hasMap
+    ? `<script>window.__brmRoute=${JSON.stringify(mapCoords)};</script>
+<script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+<script>${ROUTE_MAP_JS}</script>`
     : "";
   const elevSvgStr = gpx ? elevationSvg(gpx.points) : "";
   const elevBlock = elevSvgStr
@@ -533,10 +546,35 @@ ${crumbs(crumbItems)}
   </div>
 
   <p class="rp-back"><a href="/map#${esc(r.id)}">See ${esc(r.name)} on the full interactive map →</a></p>
-</article>`;
+</article>
+${mapEmbed}`;
 
-  return head({ title, description, path: url, image: r.hero || "/public/og-card.jpg", jsonld: ld(jsonld) }) + body + foot();
+  const extraHead = hasMap ? `<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css" />` : "";
+  return head({ title, description, path: url, image: r.hero || "/public/og-card.jpg", jsonld: ld(jsonld), extraHead }) + body + foot();
 }
+
+// Runs on the route page: draw the GPX route on a real (keyless OpenFreeMap)
+// basemap and reveal it, replacing the static SVG fallback. If MapLibre or the
+// tiles don't load, the SVG stays — the page never breaks.
+const ROUTE_MAP_JS = `
+(function(){
+  var coords=window.__brmRoute;
+  var el=document.getElementById('rp-livemap');
+  if(!el||!window.maplibregl||!coords||coords.length<2) return;
+  fetch('/styles/bush.json').then(function(r){return r.json();}).then(function(style){
+    var map=new maplibregl.Map({container:el,style:style,attributionControl:true,cooperativeGestures:true,dragRotate:false});
+    map.addControl(new maplibregl.NavigationControl({showCompass:false}),'top-right');
+    map.on('load',function(){
+      map.addSource('brm-route',{type:'geojson',data:{type:'Feature',geometry:{type:'LineString',coordinates:coords}}});
+      map.addLayer({id:'brm-route-line',type:'line',source:'brm-route',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#b04a24','line-width':4}});
+      var bounds=new maplibregl.LngLatBounds(coords[0],coords[0]);
+      for(var i=1;i<coords.length;i++) bounds.extend(coords[i]);
+      map.fitBounds(bounds,{padding:36,duration:0});
+      new maplibregl.Marker({color:'#6f7c53'}).setLngLat(coords[0]).addTo(map);
+      var fig=el.closest('.rp-map'); if(fig) fig.classList.add('is-live');
+    });
+  }).catch(function(){});
+})();`;
 
 function clampDesc(s) {
   s = s.replace(/\s+/g, " ").trim();
@@ -810,9 +848,13 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
 .rp-start{font-size:14.5px;color:var(--ink-soft);margin:10px 0}
 .wrap h2{font-family:var(--head-font);font-weight:400;font-size:26px;margin:26px 0 8px}
 .rp-desc{font-size:16px;line-height:1.6;color:var(--ink)}
-.rp-map{margin:18px 0;border:1px solid rgba(0,0,0,.1);border-radius:12px;overflow:hidden;background:#ece4d2}
-.rp-map__svg{display:block;width:100%;height:auto}
-.rp-map__cap{padding:9px 13px;font-size:12px;color:var(--ink-soft);border-top:1px solid rgba(0,0,0,.07);background:var(--cream-panel)}
+.rp-map{position:relative;margin:18px 0;border:1px solid rgba(0,0,0,.1);border-radius:12px;overflow:hidden;background:#ece4d2}
+.rp-map__live{width:100%;height:380px}
+.rp-map__shape{position:absolute;top:0;left:0;right:0;height:380px;background:#ece4d2;display:flex}
+.rp-map.is-live .rp-map__shape{display:none}
+.rp-map__svg{display:block;width:100%;height:100%}
+.rp-map__cap{position:relative;padding:9px 13px;font-size:12px;color:var(--ink-soft);border-top:1px solid rgba(0,0,0,.07);background:var(--cream-panel)}
+@media(max-width:560px){.rp-map__live,.rp-map__shape{height:300px}}
 .rp-elev{margin:14px 0;padding:12px 14px;background:var(--cream-panel);border:1px solid rgba(0,0,0,.08);border-radius:12px}
 .rp-elev__head{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
 .rp-mini{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
