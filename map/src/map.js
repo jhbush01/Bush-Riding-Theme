@@ -1372,15 +1372,24 @@ function setupSidebarToggle() {
   const sidebar = document.getElementById("sidebar");
   const toggle = document.getElementById("sidebar-toggle");
   const close = document.getElementById("sidebar-close");
-  // Mobile: the panel is closed by default (CSS) so the map shows first.
+  // is-open drives the mobile drawer; is-closed collapses the docked panel on
+  // tablet/desktop. They're mutually exclusive. body.sidebar-open lets the map
+  // nav hide while the mobile drawer is up.
   setSidebarOpen = (open) => {
     sidebar.classList.toggle("is-open", open);
+    sidebar.classList.toggle("is-closed", !open);
     toggle.setAttribute("aria-expanded", String(open));
+    document.body.classList.toggle("sidebar-open", open);
   };
-  toggle.addEventListener("click", () =>
-    setSidebarOpen(!sidebar.classList.contains("is-open"))
-  );
+  const isOpen = () => sidebar.classList.contains("is-open") || (!sidebar.classList.contains("is-closed") && window.matchMedia("(min-width: 721px)").matches);
+  toggle.addEventListener("click", () => setSidebarOpen(!isOpen()));
   if (close) close.addEventListener("click", () => setSidebarOpen(false));
+
+  // Docked open on tablet/desktop; closed on phones so the map shows first.
+  // no-anim during init avoids a slide on load.
+  sidebar.classList.add("no-anim");
+  setSidebarOpen(window.matchMedia("(min-width: 721px)").matches);
+  requestAnimationFrame(() => sidebar.classList.remove("no-anim"));
 }
 
 // On phones the filters drawer overlays the map, so collapse it when a route

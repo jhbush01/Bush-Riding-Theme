@@ -282,7 +282,7 @@ function routeCard(r) {
   const hero = r.hero
     ? `<img class="rp-card__hero" src="${esc(r.hero)}" alt="${esc(r.name)}" loading="lazy" width="640" height="360" />`
     : `<div${heroStyle} aria-hidden="true"></div>`;
-  return `<a class="rp-card" href="${esc(routePath(r))}">
+  return `<a class="rp-card" href="${esc(routePath(r))}" data-state="${esc(r.stateSlug)}" data-region="${esc(r.regionSlug)}">
   ${hero}
   <div class="rp-card__body">
     <h3 class="rp-card__name">${esc(r.name)}</h3>
@@ -632,18 +632,81 @@ function itemListLd(routes, listUrl) {
 }
 
 function aggregatePage(opts) {
-  // opts: {title, description, path, h1, intro, routes, crumbItems, extraLd}
+  // opts: {title, description, path, h1, intro, routes, crumbItems, extraLd, filter}
   const jsonld = ld([breadcrumbLd(opts.crumbItems)].concat(opts.extraLd || []));
   const cards = opts.routes.length
-    ? `<div class="rp-cards">${opts.routes.map(routeCard).join("\n")}</div>`
+    ? `<div class="rp-cards" id="rp-cards">${opts.routes.map(routeCard).join("\n")}</div>`
     : `<p class="rp-empty">No published routes here yet — <a href="/submit">submit one</a>.</p>`;
+  const filterUi = opts.filter && opts.routes.length ? routeFilterUi(opts.routes) : "";
   const body = `
 ${crumbs(opts.crumbItems)}
 <h1 class="rp-title">${esc(opts.h1)}</h1>
 <p class="rp-intro">${esc(opts.intro)}</p>
-${cards}`;
+${filterUi}
+${cards}
+<p class="rp-noresult" id="rp-noresult" hidden>No routes match — try another state or region.</p>
+${opts.filter && opts.routes.length ? `<script>${ROUTE_FILTER_JS}</script>` : ""}`;
   return head({ title: opts.title, description: opts.description, path: opts.path, jsonld }) + body + foot();
 }
+
+// Pill filter for the all-routes index: states first; picking one reveals its
+// regions. Progressive enhancement — the cards render + are crawlable without JS.
+function routeFilterUi(routes) {
+  const states = [];
+  const seen = new Set();
+  for (const r of routes) {
+    if (!seen.has(r.stateSlug)) {
+      seen.add(r.stateSlug);
+      states.push({ slug: r.stateSlug, label: r.stateFull });
+    }
+  }
+  const statePills =
+    `<button type="button" class="rp-pill is-active" data-state="">All states</button>` +
+    states.map((s) => `<button type="button" class="rp-pill" data-state="${esc(s.slug)}">${esc(s.label)}</button>`).join("");
+  return `<div class="rp-filter">
+  <div class="rp-pills" id="rp-states">${statePills}</div>
+  <div class="rp-pills rp-pills--region" id="rp-regions" hidden></div>
+</div>`;
+}
+
+const ROUTE_FILTER_JS = `
+(function(){
+  var cards=[].slice.call(document.querySelectorAll('#rp-cards .rp-card'));
+  var stateWrap=document.getElementById('rp-states'), regionWrap=document.getElementById('rp-regions');
+  var noresult=document.getElementById('rp-noresult');
+  if(!cards.length||!stateWrap) return;
+  var curState='', curRegion='';
+  var regionNames={};
+  cards.forEach(function(c){
+    var loc=c.querySelector('.rp-card__loc'); var reg=(loc?loc.textContent:'').split(',')[0].trim();
+    if(reg) regionNames[c.getAttribute('data-region')]=reg;
+  });
+  function apply(){
+    var n=0;
+    cards.forEach(function(c){
+      var ok=(!curState||c.getAttribute('data-state')===curState)&&(!curRegion||c.getAttribute('data-region')===curRegion);
+      c.style.display=ok?'':'none'; if(ok)n++;
+    });
+    if(noresult) noresult.hidden=n>0;
+  }
+  function setActive(wrap,btn){ [].forEach.call(wrap.children,function(b){b.classList.toggle('is-active',b===btn);}); }
+  function buildRegions(){
+    var slugs={}; cards.forEach(function(c){ if(c.getAttribute('data-state')===curState) slugs[c.getAttribute('data-region')]=1; });
+    var keys=Object.keys(slugs).sort(function(a,b){return (regionNames[a]||'').localeCompare(regionNames[b]||'');});
+    if(!curState||keys.length<2){ regionWrap.hidden=true; regionWrap.innerHTML=''; return; }
+    var html='<button type="button" class="rp-pill is-active" data-region="">All regions</button>';
+    keys.forEach(function(k){ html+='<button type="button" class="rp-pill" data-region="'+k+'">'+(regionNames[k]||k)+'</button>'; });
+    regionWrap.innerHTML=html; regionWrap.hidden=false;
+  }
+  stateWrap.addEventListener('click',function(e){
+    var btn=e.target.closest('[data-state]'); if(!btn) return;
+    curState=btn.getAttribute('data-state'); curRegion=''; setActive(stateWrap,btn); buildRegions(); apply();
+  });
+  regionWrap.addEventListener('click',function(e){
+    var btn=e.target.closest('[data-region]'); if(!btn) return;
+    curRegion=btn.getAttribute('data-region'); setActive(regionWrap,btn); apply();
+  });
+})();`;
 
 /* ---------------- events directory (/events/) ---------------- */
 const EVENTS_INTRO =
@@ -783,6 +846,16 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
 .rp-card__loc{margin:0 0 6px;font-size:12.5px;color:var(--ink-soft)}
 .rp-card__stats{margin:0;font-size:12.5px;color:var(--olive);font-weight:600}
 .rp-empty{color:var(--ink-soft)}
+.rp-noresult{color:var(--ink-soft);margin:8px 0}
+/* Pill filter (all-routes index) */
+.rp-filter{margin:0 0 20px;display:flex;flex-direction:column;gap:10px}
+.rp-pills{display:flex;flex-wrap:wrap;gap:8px}
+.rp-pills--region{padding-top:2px}
+.rp-pill{font-family:var(--ui-font);font-size:13px;font-weight:600;padding:7px 14px;border-radius:999px;border:1px solid rgba(0,0,0,.14);background:var(--cream-panel);color:var(--ink);cursor:pointer;line-height:1}
+.rp-pill:hover{border-color:var(--olive)}
+.rp-pill.is-active{background:var(--olive);border-color:var(--olive);color:#fff}
+.rp-pills--region .rp-pill{font-weight:500;font-size:12.5px;padding:6px 12px;color:var(--ink-soft)}
+.rp-pills--region .rp-pill.is-active{color:#fff}
 /* Events directory */
 .ev-list{display:flex;flex-direction:column;gap:14px;margin-bottom:8px}
 .ev-card{background:var(--cream-panel);border:1px solid rgba(0,0,0,.08);border-radius:12px;padding:16px 18px}
@@ -848,6 +921,7 @@ async function main() {
         intro: ALL_INTRO,
         routes: [...routes].sort((a, b) => a.name.localeCompare(b.name)),
         crumbItems: [{ name: "Bush Riding Map", url: "/" }, { name: "Routes", url: "/routes/" }],
+        filter: true,
       }))
   );
 
