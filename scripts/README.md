@@ -42,8 +42,22 @@ Pages regenerates the route pages on every deploy, from live data:
 - **Build output directory:** `map`
 
 Cloudflare's build environment can reach the public route API, so each deploy
-picks up any newly-approved routes automatically. (Optional: have the community
-Worker ping a Pages **Deploy Hook** on approval so pages refresh immediately.)
+picks up any newly-approved routes automatically.
+
+### Auto-regenerate on route approval (recommended)
+
+So a new route gets its page within ~a minute of approval (instead of waiting
+for the next code push):
+
+1. In the Pages project → **Settings → Builds & deployments → Deploy hooks**,
+   create a hook (pick the production branch). Copy its URL.
+2. On the **community Worker** (api.bushridingmap.com), add it as a secret:
+   `wrangler secret put PAGES_DEPLOY_HOOK` → paste the URL.
+
+The Worker POSTs that hook whenever a route is approved, edited or removed in
+`/admin`, which triggers a Pages rebuild → the generator reruns against live
+data → the route's page appears/updates. It's best-effort: if the hook is unset
+or unreachable, the next deploy regenerates everything anyway.
 
 If you'd rather commit the HTML instead of generating at deploy: remove
 `map/routes/` from `.gitignore`, run `npm run build:seo` locally (you have API

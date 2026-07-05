@@ -73,7 +73,7 @@ async function submit(request, env, cors) {
   const contributorUrl = (form.get("contributor_url") || "").toString().trim().slice(0, 300);
   const difficulty = (form.get("difficulty") || "").toString().trim().toLowerCase();
   const surface = (form.get("surface") || "").toString().trim().slice(0, 120);
-  const description = (form.get("description") || "").toString().trim().slice(0, 400);
+  const description = (form.get("description") || "").toString().trim().slice(0, 4000);
   const gpxFile = form.get("gpx");
   const photoFile = form.get("photo");
 
@@ -526,7 +526,22 @@ async function adminAction(request, env) {
       .bind(map[action], new Date().toISOString(), id)
       .run();
   }
+  // The published set changed — rebuild the static route pages.
+  await triggerRebuild(env);
   return new Response(null, { status: 303, headers: { Location: "/admin" } });
+}
+
+// Fire a Cloudflare Pages Deploy Hook (if configured) so the static /routes/**
+// pages regenerate from the live API — a new/edited/removed route gets its page
+// without waiting for a manual deploy. Best-effort; never blocks the admin.
+async function triggerRebuild(env) {
+  const hook = env.PAGES_DEPLOY_HOOK;
+  if (!hook) return;
+  try {
+    await fetch(hook, { method: "POST", signal: AbortSignal.timeout(5000) });
+  } catch (_) {
+    /* deploy hook unreachable — the next site deploy will regenerate anyway */
+  }
 }
 
 // Edit a route's metadata in place. Track geometry (coords/gpx) isn't touched
@@ -546,7 +561,7 @@ async function adminEdit(request, env) {
   let difficulty = (form.get("difficulty") || "").toString().trim().toLowerCase();
   if (!DIFFICULTIES.includes(difficulty)) difficulty = "rocky";
   const surface = (form.get("surface") || "").toString().trim().slice(0, 120);
-  const description = (form.get("description") || "").toString().trim().slice(0, 2000);
+  const description = (form.get("description") || "").toString().trim().slice(0, 4000);
   const contributor = (form.get("contributor") || "").toString().trim().slice(0, 120);
   const contributorUrl = (form.get("contributor_url") || "").toString().trim().slice(0, 300);
   const distance = parseFloat(form.get("distance_km"));
@@ -576,6 +591,7 @@ async function adminEdit(request, env) {
     )
     .run();
 
+  await triggerRebuild(env); // route content changed — regenerate its page
   return new Response(null, { status: 303, headers: { Location: "/admin" } });
 }
 
@@ -732,7 +748,7 @@ function adminHtml(rows, events = [], routeOpts = []) {
             <label>Elevation (m)<input name="elevation_gain_m" type="number" step="1" value="${r.elevation_gain_m ?? ""}" /></label>
             <label>Contributed by<input name="contributor" value="${esc(r.contributor)}" /></label>
             <label>Contributor link<input name="contributor_url" value="${esc(r.contributor_url)}" placeholder="Strava / RWGPS / website" /></label>
-            <label class="full">Description<textarea name="description" rows="3">${esc(r.description)}</textarea></label>
+            <label class="full">Description (full write-up shown on the route page)<textarea name="description" rows="10">${esc(r.description)}</textarea></label>
             <button class="ok" type="submit">Save changes</button>
           </form>
         </details>

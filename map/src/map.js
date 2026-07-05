@@ -785,10 +785,12 @@ function fillDetail(feature) {
   setPill(p.terrain_difficulty, p.distance_km, p.elevation_gain_m);
   setStats(p);
   setStart("Area", [p.region, p.state].filter(Boolean).join(", "), routeStartNav(feature));
-  setText("detail-description", p.description || "");
+  // Card shows a short preview; the full write-up lives on the route page.
+  setText("detail-description", clampText(p.description || "", 220));
   setCredit(p.contributed_by || p.vetted_by, p.contributor_url);
   setText("detail-disclaimer", "A guide only — ride to conditions.");
-  // Primary action: Download GPX (gated).
+  // Prominent action: the full write-up page. Secondary: Download GPX (gated).
+  els.detail.querySelector("#detail-page-cta").href = routePageUrl(p);
   setCTA("Download GPX", null, () => requestDownload({ id: p.id, gpx_url: p.gpx_url }));
   drawElevation(feature);
   // Reviews + aggregate rating (async; enhancement only).
@@ -1019,6 +1021,32 @@ function esc(s) {
   return String(s).replace(/[&<>"']/g, (c) =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
   );
+}
+
+// URL of a route's static write-up page. MUST mirror the slug logic in
+// scripts/generate-route-pages.js so the card link and the generated file match.
+function slugify(s) {
+  return String(s || "").toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+}
+// Trim a long write-up to a card-sized preview at a word boundary.
+function clampText(s, max) {
+  s = String(s || "").replace(/\s+/g, " ").trim();
+  if (s.length <= max) return s;
+  return s.slice(0, max - 1).replace(/\s+\S*$/, "") + "…";
+}
+function routePageUrl(p) {
+  let state = (p.state || "").trim();
+  let region = (p.region || "").trim();
+  if (!state) {
+    const m = region.match(/,\s*([A-Za-z]{2,3})\s*$/);
+    if (m) {
+      state = m[1];
+      region = region.replace(/,\s*[A-Za-z]{2,3}\s*$/, "").trim();
+    }
+  }
+  const ss = slugify(state) || "au";
+  const rs = slugify(region) || "other";
+  return `/routes/${ss}/${rs}/${p.id}`;
 }
 
 // ---- Route elevation profile ---------------------------------------------

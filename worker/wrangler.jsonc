@@ -33,6 +33,9 @@
     }
   ]
 
-  // Secret (do NOT put in this file):
+  // Secrets (do NOT put in this file):
   //   wrangler secret put ADMIN_TOKEN
+  //   wrangler secret put PAGES_DEPLOY_HOOK   (optional: a Cloudflare Pages
+  //     Deploy Hook URL — pinged on route approve/edit/remove so the static
+  //     /routes/** pages regenerate. See scripts/README.md.)
 }

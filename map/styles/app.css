@@ -1090,6 +1090,22 @@ textarea.field-input {
 .card__cta:hover { background: #000; }
 .card__happened { margin: 16px 0 0; font-size: 13px; font-style: italic; color: var(--card-muted); }
 
+/* CTA row: routes show a prominent "Full route page" + a slim "Download GPX".
+   Events keep a single full-width CTA (the page button is only-route). */
+.card__cta-row { display: flex; gap: 10px; margin-top: 16px; }
+.card__cta-row .card__cta { margin-top: 0; }
+.card__cta--page { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.card__cta--page svg { flex: none; opacity: 0.9; }
+/* Route mode: page button grows, Download GPX is the slim secondary. */
+.sheet[data-mode="route"] .card__cta-row #detail-page-cta { flex: 1 1 auto; }
+.sheet[data-mode="route"] .card__cta-row #detail-cta {
+  flex: 0 0 40%; background: transparent; color: var(--card-ink);
+  border: 1.5px solid #ccc2ac; font-weight: 600; padding: 14px 8px;
+}
+.sheet[data-mode="route"] .card__cta-row #detail-cta:hover { background: transparent; border-color: var(--card-rust-2); color: var(--card-rust-2); }
+/* Event mode: the single CTA fills the row. */
+.sheet[data-mode="event"] .card__cta-row #detail-cta { flex: 1 1 auto; }
+
 /* Elevation card */
 .card__elev { padding: 11px 13px 9px; background: var(--card-inset); border: 1px solid var(--card-inset-line); border-radius: 14px; }
 .card__elev-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }

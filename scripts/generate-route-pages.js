@@ -25,6 +25,29 @@ const OUT_DIR = path.join(MAP_DIR, "routes");
 const SITE = (process.env.BRM_SITE || "https://bushridingmap.com").replace(/\/$/, "");
 const ROUTES_API = process.env.BRM_ROUTES_API || "https://api.bushridingmap.com/routes";
 const ROUTES_FILE = process.env.BRM_ROUTES_FILE || "";
+// Reviews (for the page's photo gallery + aggregate rating). The public reviews
+// endpoint is served same-origin via the Pages proxy; at build time we reach it
+// on the currently-live site. BRM_REVIEWS_FILE (JSON: {route_id: {reviews...}})
+// overrides for offline tests.
+const REVIEWS_API = process.env.BRM_REVIEWS_API || `${SITE}/diary-api/reviews`;
+const REVIEWS_FILE = process.env.BRM_REVIEWS_FILE || "";
+let REVIEWS_FIXTURE = null;
+
+async function loadReviews(routeId) {
+  const empty = { count: 0, average: 0, reviews: [] };
+  try {
+    if (REVIEWS_FILE) {
+      if (!REVIEWS_FIXTURE) REVIEWS_FIXTURE = JSON.parse(fs.readFileSync(REVIEWS_FILE, "utf8"));
+      return REVIEWS_FIXTURE[routeId] || empty;
+    }
+    const res = await fetch(`${REVIEWS_API}?route_id=${encodeURIComponent(routeId)}`, { signal: AbortSignal.timeout(10000) });
+    if (!res.ok) return empty;
+    const d = await res.json();
+    return { count: d.count || 0, average: d.average || 0, reviews: d.reviews || [] };
+  } catch (_) {
+    return empty; // reviews are additive — never fail the build over them
+  }
+}
 
 /* ---------------- taxonomy (mirrors the live route card) ---------------- */
 const TERRAIN_LABEL = {
@@ -70,6 +93,7 @@ function esc(s) {
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 function fmt(n) { return Math.round(+n).toLocaleString("en-US"); }
+function stars(n) { const r = Math.max(0, Math.min(5, Math.round(+n) || 0)); return "★".repeat(r) + "☆".repeat(5 - r); }
 // JSON-LD: escape "<" so a "</script>" inside a value can't break out of the tag.
 function ld(obj) { return JSON.stringify(obj, null, 2).replace(/</g, "\\u003c"); }
 function ensureDir(p) { fs.mkdirSync(p, { recursive: true }); }
@@ -187,7 +211,7 @@ ${siteFooter()}
 }
 function siteHeader() {
   return `<header class="site-head">
-  <a class="site-brand" href="/">Bush Riding Routes</a>
+  <a class="site-brand" href="/">Bush Riding Map</a>
   <nav class="site-nav">
     <a href="/routes/">Routes</a>
     <a href="/">Map</a>
@@ -270,7 +294,10 @@ function faqItems(r) {
 }
 
 /* ---------------- individual route page ---------------- */
-function routePage(r) {
+function routePage(r, reviews) {
+  reviews = reviews || { count: 0, average: 0, reviews: [] };
+  const revs = reviews.reviews || [];
+  const photos = revs.filter((v) => v.photo_url);
   const url = routePath(r);
   const dist = fmt(r.distance), elev = fmt(r.elevation);
   const locLine = [r.regionLabel, r.stateFull].filter(Boolean).join(", ");
@@ -289,7 +316,7 @@ function routePage(r) {
   const faqs = faqItems(r);
 
   const jsonld = [
-    sportsActivityLd(r, url),
+    sportsActivityLd(r, url, reviews),
     breadcrumbLd(crumbItems),
     faqPageLd(faqs),
   ];
@@ -301,6 +328,27 @@ function routePage(r) {
   const navHref = r.lat != null && r.lng != null ? `geo:${r.lat},${r.lng}` : "";
 
   const stat = (v, label) => `<div class="rp-stat"><span class="rp-stat__v">${esc(v)}</span><span class="rp-stat__l">${esc(label)}</span></div>`;
+
+  // Rider photo gallery (from reviews). Links to full-res so the page stays JS-free.
+  const galleryHtml = photos.length
+    ? `<h2>From riders</h2>
+  <div class="rp-gallery">
+    ${photos
+      .map((v) => `<a class="rp-gallery__item" href="${esc(v.photo_url)}" target="_blank" rel="noopener"><img src="${esc(v.photo_url)}" alt="${esc(r.name)} — photo by ${esc(v.username || "a rider")}" loading="lazy" width="480" height="360" /></a>`)
+      .join("\n    ")}
+  </div>`
+    : "";
+
+  // Rider reviews (UGC — great for SEO). Only when there are reviews.
+  const reviewsHtml = reviews.count
+    ? `<h2>Rider reviews</h2>
+  <p class="rp-rating"><span class="rp-rating__stars" aria-hidden="true">${stars(reviews.average)}</span> <strong>${reviews.average.toFixed(1)}</strong> · ${reviews.count} review${reviews.count === 1 ? "" : "s"}</p>
+  <div class="rp-reviews">
+    ${revs
+      .map((v) => `<div class="rp-review"><p class="rp-review__head"><span class="rp-review__stars" aria-hidden="true">${stars(v.rating)}</span> <strong>${esc(v.username || "Rider")}</strong></p>${v.comment ? `<p class="rp-review__text">${esc(v.comment)}</p>` : ""}</div>`)
+      .join("\n    ")}
+  </div>`
+    : "";
 
   const body = `
 ${crumbs(crumbItems)}
@@ -338,6 +386,10 @@ ${crumbs(crumbItems)}
 
   <p class="rp-meta">${r.contributor ? `Vetted by ${r.contributorUrl ? `<a href="${esc(r.contributorUrl)}" rel="nofollow noopener">${esc(r.contributor)}</a>` : esc(r.contributor)}` : "Community-contributed route"}.</p>
 
+  ${galleryHtml}
+
+  ${reviewsHtml}
+
   <h2>Frequently asked questions</h2>
   <div class="rp-faq">
     ${faqs.map((f) => `<details class="rp-faq__item"><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`).join("\n    ")}
@@ -356,7 +408,7 @@ function clampDesc(s) {
 }
 
 /* ---------------- JSON-LD builders ---------------- */
-function sportsActivityLd(r, url) {
+function sportsActivityLd(r, url, reviews) {
   const amenities = [
     ["Distance", `${fmt(r.distance)} km`],
     ["Elevation gain", `${fmt(r.elevation)} m`],
@@ -384,6 +436,23 @@ function sportsActivityLd(r, url) {
   if (r.hero) obj.image = absImg(r.hero);
   if (r.lat != null && r.lng != null) {
     obj.geo = { "@type": "GeoCoordinates", latitude: r.lat, longitude: r.lng };
+  }
+  // Real aggregate rating + a few reviews (only when they exist) — star-rating
+  // rich results in search.
+  if (reviews && reviews.count) {
+    obj.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue: reviews.average,
+      reviewCount: reviews.count,
+      bestRating: 5,
+      worstRating: 1,
+    };
+    obj.review = (reviews.reviews || []).slice(0, 5).map((v) => ({
+      "@type": "Review",
+      author: { "@type": "Person", name: v.username || "Rider" },
+      reviewRating: { "@type": "Rating", ratingValue: v.rating, bestRating: 5, worstRating: 1 },
+      ...(v.comment ? { reviewBody: v.comment } : {}),
+    }));
   }
   return obj;
 }
@@ -474,6 +543,16 @@ const PAGE_CSS = `
 .rp-faq__item p{margin:8px 0 2px;color:var(--ink-soft);line-height:1.55;font-size:14.5px}
 .rp-back{margin:24px 0 0}
 .rp-back a{color:var(--olive);font-weight:600;text-decoration:none}
+.rp-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin:6px 0 4px}
+.rp-gallery__item{display:block;border-radius:10px;overflow:hidden;background:var(--sage)}
+.rp-gallery__item img{display:block;width:100%;height:150px;object-fit:cover}
+.rp-rating{margin:4px 0 12px;font-size:15px;color:var(--ink-soft)}
+.rp-rating__stars{color:#d98a3d;letter-spacing:1px}
+.rp-reviews{display:flex;flex-direction:column;gap:14px}
+.rp-review{border-top:1px solid rgba(0,0,0,.1);padding-top:12px}
+.rp-review__head{margin:0}
+.rp-review__stars{color:#d98a3d;letter-spacing:.5px;font-size:13px}
+.rp-review__text{margin:6px 0 0;color:var(--ink-soft);line-height:1.5;font-size:14.5px}
 .rp-intro{font-size:16px;line-height:1.6;color:var(--ink-soft);max-width:60ch;margin:0 0 22px}
 .rp-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
 .rp-card{display:flex;flex-direction:column;background:var(--cream-panel);border:1px solid rgba(0,0,0,.08);border-radius:12px;overflow:hidden;text-decoration:none;color:inherit}
@@ -509,7 +588,10 @@ async function main() {
   const written = [];
 
   // Individual route pages.
-  for (const r of routes) written.push(writePage(`routes/${r.stateSlug}/${r.regionSlug}/${r.id}/index.html`, routePage(r)));
+  for (const r of routes) {
+    const reviews = await loadReviews(r.id);
+    written.push(writePage(`routes/${r.stateSlug}/${r.regionSlug}/${r.id}/index.html`, routePage(r, reviews)));
+  }
 
   // /routes/ — all routes.
   written.push(
