@@ -28,6 +28,31 @@ const ROUTES_FILE = process.env.BRM_ROUTES_FILE || "";
 // GPX (for the route-shape map + elevation profile). Fetched from each route's
 // gpx_url at build; BRM_GPX_DIR points at local <id>.gpx files for offline tests.
 const GPX_DIR = process.env.BRM_GPX_DIR || "";
+// Community events (for the /events/ directory). Live from the Worker; falls
+// back to the committed seed. BRM_EVENTS_FILE overrides for offline tests.
+const EVENTS_API = process.env.BRM_EVENTS_API || "https://api.bushridingmap.com/events";
+const EVENTS_FILE = process.env.BRM_EVENTS_FILE || "";
+
+async function loadEvents() {
+  try {
+    let raw;
+    if (EVENTS_FILE) {
+      raw = JSON.parse(fs.readFileSync(EVENTS_FILE, "utf8"));
+    } else {
+      const res = await fetch(EVENTS_API, { signal: AbortSignal.timeout(12000) });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      raw = await res.json();
+    }
+    return (raw.features || []).map((f) => f.properties || {}).filter((p) => p.id);
+  } catch (_) {
+    try {
+      const fb = JSON.parse(fs.readFileSync(path.join(MAP_DIR, "data", "events.geojson"), "utf8"));
+      return (fb.features || []).map((f) => f.properties || {}).filter((p) => p.id);
+    } catch {
+      return [];
+    }
+  }
+}
 // Reviews (for the page's photo gallery + aggregate rating). The public reviews
 // endpoint is served same-origin via the Pages proxy; at build time we reach it
 // on the currently-live site. BRM_REVIEWS_FILE (JSON: {route_id: {reviews...}})
@@ -219,6 +244,7 @@ function siteHeader() {
   <a class="site-brand" href="/">Bush Riding Map</a>
   <nav class="site-nav">
     <a href="/routes/">Routes</a>
+    <a href="/events/">Events</a>
     <a href="/">Map</a>
     <a href="/submit">Submit a route</a>
   </nav>
@@ -619,6 +645,79 @@ ${cards}`;
   return head({ title: opts.title, description: opts.description, path: opts.path, jsonld }) + body + foot();
 }
 
+/* ---------------- events directory (/events/) ---------------- */
+const EVENTS_INTRO =
+  "Community Bush Rides — social gravel rides run by the Bush Riding community. No one gets dropped. Find an upcoming ride below, check the route, and come along.";
+
+function eventCard(e, routeById) {
+  const route = e.route_id ? routeById.get(e.route_id) : null;
+  const when = [e.date_display, e.time].filter(Boolean).join(" · ");
+  const bits = [
+    e.meeting_point ? `<span class="ev-card__row"><strong>Start:</strong> ${esc(e.meeting_point)}</span>` : "",
+    e.pace ? `<span class="ev-card__row"><strong>Pace:</strong> ${esc(e.pace)}</span>` : "",
+    route ? `<span class="ev-card__row"><strong>Route:</strong> <a href="${esc(routePath(route))}">${esc(route.name)}</a> · ${fmt(route.distance)} km</span>` : "",
+  ].filter(Boolean).join("");
+  const actions = [
+    e.strava_url ? `<a class="button button--primary" href="${esc(e.strava_url)}" target="_blank" rel="noopener">Join on Strava</a>` : "",
+    route ? `<a class="button" href="${esc(routePath(route))}">View route</a>` : "",
+  ].filter(Boolean).join("");
+  return `<article class="ev-card${e.status === "past" ? " is-past" : ""}">
+    ${when ? `<p class="ev-card__when">${esc(when)}</p>` : ""}
+    <h3 class="ev-card__name">${esc(e.subtitle || e.name || "Community Bush Ride")}</h3>
+    ${e.description && !/^placeholder/i.test(e.description) ? `<p class="ev-card__desc">${esc(e.description)}</p>` : ""}
+    <div class="ev-card__meta">${bits}</div>
+    ${actions ? `<div class="ev-card__actions">${actions}</div>` : ""}
+  </article>`;
+}
+
+function eventLd(e, routeById) {
+  const route = e.route_id ? routeById.get(e.route_id) : null;
+  const obj = {
+    "@context": "https://schema.org",
+    "@type": "Event",
+    name: e.subtitle || e.name || "Community Bush Ride",
+    eventStatus: "https://schema.org/EventScheduled",
+    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+    url: SITE + "/events/",
+    organizer: { "@type": "Organization", name: "Bush Riding Map", url: SITE },
+  };
+  if (e.date_iso) obj.startDate = e.time ? `${e.date_iso}` : e.date_iso;
+  if (e.meeting_point) {
+    obj.location = { "@type": "Place", name: e.meeting_point };
+    if (route) obj.location.address = { "@type": "PostalAddress", addressRegion: route.stateFull, addressCountry: "AU" };
+  }
+  if (e.description && !/^placeholder/i.test(e.description)) obj.description = e.description;
+  return obj;
+}
+
+function eventsPage(events, routeById) {
+  const upcoming = events.filter((e) => e.status !== "past").sort((a, b) => String(a.date_iso).localeCompare(String(b.date_iso)));
+  const past = events.filter((e) => e.status === "past").sort((a, b) => String(b.date_iso).localeCompare(String(a.date_iso)));
+  const crumbItems = [
+    { name: "Bush Riding Map", url: "/" },
+    { name: "Events", url: "/events/" },
+  ];
+  const ld_ = ld([breadcrumbLd(crumbItems)].concat(upcoming.map((e) => eventLd(e, routeById))));
+
+  const section = (title, list) =>
+    list.length ? `<h2>${esc(title)}</h2><div class="ev-list">${list.map((e) => eventCard(e, routeById)).join("\n")}</div>` : "";
+  const bodyInner = upcoming.length || past.length
+    ? section("Upcoming rides", upcoming) + section("Past rides", past)
+    : `<p class="rp-empty">No rides on the calendar right now — check back soon, or <a href="/">watch the map</a>.</p>`;
+
+  const body = `
+${crumbs(crumbItems)}
+<h1 class="rp-title">Community Bush Rides</h1>
+<p class="rp-intro">${esc(EVENTS_INTRO)}</p>
+${bodyInner}`;
+  return head({
+    title: "Community Bush Rides — Gravel Events | Bush Riding Map",
+    description: clampDesc("Upcoming community gravel rides across Queensland with Bush Riding Map — social pace, no one gets dropped. See the route and come along."),
+    path: "/events/",
+    jsonld: ld_,
+  }) + body + foot();
+}
+
 /* ---------------- page CSS (inline; uses app.css tokens) ---------------- */
 const PAGE_CSS = `
 /* app.css locks the map app to a non-scrolling viewport (html,body{height:100%;
@@ -684,6 +783,18 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
 .rp-card__loc{margin:0 0 6px;font-size:12.5px;color:var(--ink-soft)}
 .rp-card__stats{margin:0;font-size:12.5px;color:var(--olive);font-weight:600}
 .rp-empty{color:var(--ink-soft)}
+/* Events directory */
+.ev-list{display:flex;flex-direction:column;gap:14px;margin-bottom:8px}
+.ev-card{background:var(--cream-panel);border:1px solid rgba(0,0,0,.08);border-radius:12px;padding:16px 18px}
+.ev-card.is-past{opacity:.7}
+.ev-card__when{margin:0 0 4px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--card-rust,#b04a24)}
+.ev-card__name{font-family:var(--head-font);font-weight:400;font-size:23px;margin:0 0 6px;color:var(--ink)}
+.ev-card__desc{margin:0 0 10px;font-size:14.5px;line-height:1.5;color:var(--ink-soft)}
+.ev-card__meta{display:flex;flex-direction:column;gap:4px;font-size:13.5px;color:var(--ink-soft)}
+.ev-card__row strong{color:var(--ink);font-weight:600}
+.ev-card__meta a{color:var(--olive);text-decoration:none}
+.ev-card__actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.ev-card__actions .button{text-decoration:none}
 .site-foot{margin-top:30px;padding:22px;border-top:1px solid rgba(0,0,0,.08);background:var(--cream-panel);font-size:12.5px;color:var(--ink-soft);text-align:center}
 .site-foot a{color:var(--olive);text-decoration:none}
 @media(max-width:560px){.rp-title{font-size:30px}.rp-stats{grid-template-columns:repeat(2,1fr)}}
@@ -714,12 +825,17 @@ async function main() {
   if (fs.existsSync(OUT_DIR)) fs.rmSync(OUT_DIR, { recursive: true, force: true });
 
   const written = [];
+  const routeById = new Map(routes.map((r) => [r.id, r]));
 
   // Individual route pages.
   for (const r of routes) {
     const [reviews, gpx] = await Promise.all([loadReviews(r.id), loadGpx(r)]);
     written.push(writePage(`routes/${r.stateSlug}/${r.regionSlug}/${r.id}/index.html`, routePage(r, reviews, gpx)));
   }
+
+  // /events/ — community rides directory (independent of routes).
+  const events = await loadEvents();
+  written.push(writePage("events/index.html", eventsPage(events, routeById)));
 
   // /routes/ — all routes.
   written.push(

@@ -261,6 +261,38 @@ body {
 
 /* ---------- Sidebar toggle (mobile) ---------- */
 /* Minimalist burger: no background, just the icon floated over the map. */
+/* Floating map nav (Routes / Events) — a compact frosted pill, top-centre. */
+.map-nav {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 7;
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  background: rgba(244, 239, 226, 0.82);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 999px;
+  box-shadow: 0 2px 12px rgba(28, 26, 21, 0.16);
+}
+.map-nav a {
+  padding: 7px 17px;
+  border-radius: 999px;
+  font-family: var(--ui-font);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: none;
+  letter-spacing: 0.01em;
+}
+.map-nav a:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--olive);
+}
+
 .sidebar-toggle {
   position: absolute;
   top: 10px;
