@@ -825,10 +825,11 @@ const PAGE_CSS = `
    overflow:clip}). These are ordinary content pages — undo that so they scroll. */
 html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
 .seo-page{background:var(--cream);color:var(--ink);font-family:var(--ui-font);margin:0;min-height:100vh;display:flex;flex-direction:column}
-.site-head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:14px 22px;border-bottom:1px solid rgba(0,0,0,.08);background:var(--cream-panel)}
-.site-brand{font-family:var(--head-font);font-size:24px;color:var(--ink);text-decoration:none}
-.site-nav a{color:var(--ink-soft);text-decoration:none;font-size:14px;font-weight:600;margin-left:16px}
-.site-nav a:hover{color:var(--olive)}
+.site-head{display:flex;flex-direction:column;align-items:center;gap:12px;padding:16px 22px;border-bottom:1px solid rgba(0,0,0,.08);background:var(--cream-panel);text-align:center}
+.site-brand{font-family:var(--head-font);font-size:26px;color:var(--ink);text-decoration:none}
+.site-nav{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.site-nav a{font-family:var(--ui-font);font-size:13px;font-weight:600;padding:7px 15px;border-radius:999px;border:1px solid rgba(0,0,0,.12);background:var(--cream);color:var(--ink);text-decoration:none;line-height:1}
+.site-nav a:hover{border-color:var(--olive);color:var(--olive)}
 .wrap{width:100%;max-width:760px;margin:0 auto;padding:22px;flex:1}
 .crumbs{font-size:12.5px;color:var(--ink-soft);margin:0 0 14px;display:flex;flex-wrap:wrap;gap:7px;align-items:center}
 .crumbs a{color:var(--ink-soft);text-decoration:none}
