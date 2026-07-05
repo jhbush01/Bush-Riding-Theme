@@ -454,9 +454,10 @@ function routePage(r, reviews, gpx) {
     ? `<img class="rp-hero__img" src="${esc(r.hero)}" alt="${esc(r.name)} — gravel route near ${esc(r.regionLabel)}" width="1200" height="675" loading="eager" />`
     : `<div class="rp-hero__img rp-hero__img--empty" aria-hidden="true"></div>`;
 
-  // Google Maps directions to the start — works on desktop and mobile (a geo:
-  // URI silently does nothing on desktop and many browsers).
+  // Google Maps directions to the start by default (works everywhere, no JS);
+  // a tiny script swaps to Apple Maps on iPhone/iPad. A geo: URI was unreliable.
   const navHref = r.lat != null && r.lng != null ? `https://www.google.com/maps/dir/?api=1&destination=${r.lat},${r.lng}` : "";
+  const appleHref = r.lat != null && r.lng != null ? `https://maps.apple.com/?daddr=${r.lat},${r.lng}&dirflg=d` : "";
 
   const stat = (v, label) => `<div class="rp-stat"><span class="rp-stat__v">${esc(v)}</span><span class="rp-stat__l">${esc(label)}</span></div>`;
 
@@ -525,7 +526,7 @@ ${crumbs(crumbItems)}
 
   <div class="rp-actions">
     <a class="button button--primary" href="${esc(r.gpx)}" download>Download GPX</a>
-    ${navHref ? `<a class="button" href="${esc(navHref)}" target="_blank" rel="noopener">Navigate to start</a>` : ""}
+    ${navHref ? `<a class="button" id="rp-nav" href="${esc(navHref)}"${appleHref ? ` data-apple="${esc(appleHref)}"` : ""} target="_blank" rel="noopener">Navigate to start</a>` : ""}
     <a class="button" href="/map#${esc(r.id)}">Open in interactive map</a>
   </div>
 
@@ -549,7 +550,8 @@ ${crumbs(crumbItems)}
 
   <p class="rp-back"><a href="/map#${esc(r.id)}">See ${esc(r.name)} on the full interactive map →</a></p>
 </article>
-${mapEmbed}`;
+${mapEmbed}
+${appleHref ? `<script>${NAV_SWAP_JS}</script>` : ""}`;
 
   const extraHead = hasMap ? `<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css" />` : "";
   return head({ title, description, path: url, image: r.hero || "/public/og-card.jpg", jsonld: ld(jsonld), extraHead }) + body + foot();
@@ -576,6 +578,18 @@ const ROUTE_MAP_JS = `
       var fig=el.closest('.rp-map'); if(fig) fig.classList.add('is-live');
     });
   }).catch(function(){});
+})();`;
+
+// On iPhone/iPad, swap the "Navigate to start" link from Google Maps to Apple
+// Maps. Google stays the no-JS default and covers every other device. iPadOS
+// reports as "Macintosh" with touch points, so we catch that too — but not Mac
+// desktops (no touch), matching the user's "on iPhone" intent.
+const NAV_SWAP_JS = `
+(function(){
+  var a=document.getElementById('rp-nav');
+  if(!a||!a.dataset.apple) return;
+  var ua=navigator.userAgent||'';
+  if(/iP(hone|ad|od)/.test(ua)||(/Macintosh/.test(ua)&&(navigator.maxTouchPoints||0)>1)) a.href=a.dataset.apple;
 })();`;
 
 function clampDesc(s) {
