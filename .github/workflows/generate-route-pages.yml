@@ -59,6 +59,10 @@ jobs:
           if git diff --cached --quiet; then
             echo "No route-page changes."
           else
-            git commit -m "Regenerate route pages [skip ci]"
+            # No "[skip ci]" — Cloudflare Pages honours it and would NOT deploy
+            # the new pages. GitHub already avoids a workflow loop: a GITHUB_TOKEN
+            # push doesn't trigger workflows, and this commit only touches
+            # map/routes/** (outside this workflow's push path filter).
+            git commit -m "Regenerate route pages"
             git push origin HEAD:claude/bush-riding-routes-map-ycmgw6
           fi
