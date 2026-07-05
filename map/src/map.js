@@ -1005,9 +1005,17 @@ function shortSurface(s) {
   const m = String(s).match(/[a-zA-Z]+/);
   return m ? cap(m[0]) : "—";
 }
+// iPhone/iPad (incl. iPadOS, which reports as "Macintosh" + touch) — but not
+// Mac desktops. Matches the "on iPhone" behaviour of the static route pages.
+function isIOS() {
+  const ua = navigator.userAgent || "";
+  return /iP(hone|ad|od)/.test(ua) || (/Macintosh/.test(ua) && (navigator.maxTouchPoints || 0) > 1);
+}
 function navUrl(lat, lng) {
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) return "";
-  return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+  return isIOS()
+    ? `https://maps.apple.com/?daddr=${lat},${lng}&dirflg=d`
+    : `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
 }
 function routeStartNav(feature) {
   const m = feature.properties.marker || (feature.geometry && feature.geometry.coordinates[0]);
