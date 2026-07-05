@@ -280,7 +280,7 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
 
   <div class="rp-actions">
     <a class="button button--primary" href="https://api.bushridingmap.com/file/gpx/toowoomba-multi-day-tour-iygw1.gpx" download>Download GPX</a>
-    <a class="button" href="https://www.google.com/maps/dir/?api=1&amp;destination=-27.64295,152.59395" target="_blank" rel="noopener">Navigate to start</a>
+    <a class="button" id="rp-nav" href="https://www.google.com/maps/dir/?api=1&amp;destination=-27.64295,152.59395" data-apple="https://maps.apple.com/?daddr=-27.64295,152.59395&amp;dirflg=d" target="_blank" rel="noopener">Navigate to start</a>
     <a class="button" href="/map#toowoomba-multi-day-tour-iygw1">Open in interactive map</a>
   </div>
 
@@ -342,6 +342,13 @@ https://bq.org.au/where-to-rides/toowoomba-multi-day-tour/ for more info</p>
       var fig=el.closest('.rp-map'); if(fig) fig.classList.add('is-live');
     });
   }).catch(function(){});
+})();</script>
+<script>
+(function(){
+  var a=document.getElementById('rp-nav');
+  if(!a||!a.dataset.apple) return;
+  var ua=navigator.userAgent||'';
+  if(/iP(hone|ad|od)/.test(ua)||(/Macintosh/.test(ua)&&(navigator.maxTouchPoints||0)>1)) a.href=a.dataset.apple;
 })();</script></main>
 <footer class="site-foot">
   <p>Bush Riding Map — community-vetted gravel routes across Australia. Routes are guides only; ride to conditions.</p>
