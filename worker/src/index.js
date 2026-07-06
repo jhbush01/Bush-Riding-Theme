@@ -17,7 +17,7 @@
 import { parseGpx } from "./gpx.js";
 
 const MAX_GPX = 5 * 1024 * 1024; // 5 MB
-const MAX_PHOTO = 6 * 1024 * 1024; // 6 MB
+const MAX_PHOTO = 12 * 1024 * 1024; // 12 MB (phone photos are often > 6 MB)
 // Terrain classification (contributor-chosen). Legacy easy/moderate/hard rows
 // are normalised for display on the front-end; new submissions use these.
 const DIFFICULTIES = ["groomed", "rocky", "proper-mud"];
@@ -104,7 +104,7 @@ async function submit(request, env, cors) {
 
   let photoKey = null;
   if (photoFile && typeof photoFile.arrayBuffer === "function" && photoFile.size > 0) {
-    if (photoFile.size > MAX_PHOTO) return json({ error: "Photo too large (max 6 MB)." }, 400, cors);
+    if (photoFile.size > MAX_PHOTO) return json({ error: "Photo too large (max 12 MB)." }, 400, cors);
     const type = photoFile.type || "image/jpeg";
     if (!/^image\//.test(type)) return json({ error: "Photo must be an image." }, 400, cors);
     photoKey = `photos/${id}.${type.includes("png") ? "png" : "jpg"}`;
@@ -339,7 +339,7 @@ async function adminEventSave(request, env) {
   }
   const heroFile = form.get("hero");
   if (heroFile && typeof heroFile.arrayBuffer === "function" && heroFile.size > 0) {
-    if (heroFile.size > MAX_PHOTO) return json({ error: "Image too large (max 6 MB)." }, 400, corsHeaders());
+    if (heroFile.size > MAX_PHOTO) return json({ error: "Image too large (max 12 MB)." }, 400, corsHeaders());
     const type = heroFile.type || "image/jpeg";
     if (!/^image\//.test(type)) return json({ error: "Hero must be an image." }, 400, corsHeaders());
     heroKey = `events/${id}.${type.includes("png") ? "png" : "jpg"}`;
@@ -497,7 +497,8 @@ async function adminPage(request, env) {
   await ensureSubmissionsSchema(env);
   const { results } = await env.DB.prepare(
     `SELECT id, status, name, region, state, country, difficulty, surface, distance_km,
-            elevation_gain_m, description, contributor, contributor_url, email, coords, created_at
+            elevation_gain_m, description, contributor, contributor_url, email, coords,
+            photo_key, created_at
        FROM submissions ORDER BY (status='pending') DESC, created_at DESC`
   ).all();
   const events = await loadEventList(env);
@@ -590,10 +591,23 @@ async function adminEdit(request, env) {
 
   if (!name || !region) return json({ error: "Name and region are required" }, 400, corsHeaders());
 
+  // Optional photo (hero) upload — lets an image be added or replaced after a
+  // route is submitted. Existing photo is kept when no new file is provided.
+  const cur = await env.DB.prepare("SELECT photo_key FROM submissions WHERE id=?").bind(id).first();
+  let photoKey = cur ? cur.photo_key : null;
+  const photoFile = form.get("photo");
+  if (photoFile && typeof photoFile.arrayBuffer === "function" && photoFile.size > 0) {
+    if (photoFile.size > MAX_PHOTO) return json({ error: "Photo too large (max 12 MB)." }, 400, corsHeaders());
+    const type = photoFile.type || "image/jpeg";
+    if (!/^image\//.test(type)) return json({ error: "Photo must be an image." }, 400, corsHeaders());
+    photoKey = `photos/${id}.${type.includes("png") ? "png" : "jpg"}`;
+    await env.BUCKET.put(photoKey, await photoFile.arrayBuffer(), { httpMetadata: { contentType: type } });
+  }
+
   await env.DB.prepare(
     `UPDATE submissions
         SET name=?, region=?, state=?, country=?, difficulty=?, surface=?, description=?,
-            contributor=?, contributor_url=?, distance_km=?, elevation_gain_m=?
+            contributor=?, contributor_url=?, distance_km=?, elevation_gain_m=?, photo_key=?
       WHERE id=?`
   )
     .bind(
@@ -608,6 +622,7 @@ async function adminEdit(request, env) {
       contributorUrl,
       Number.isFinite(distance) ? distance : null,
       Number.isFinite(elevation) ? elevation : null,
+      photoKey,
       id
     )
     .run();
@@ -746,7 +761,7 @@ function adminHtml(rows, events = [], routeOpts = []) {
         </form>
         <details class="edit">
           <summary>Edit details</summary>
-          <form method="POST" action="/admin/edit" class="editform">
+          <form method="POST" action="/admin/edit" class="editform" enctype="multipart/form-data">
             <input type="hidden" name="id" value="${esc(r.id)}" />
             <label>Name<input name="name" value="${esc(r.name)}" required /></label>
             <label>Region<input name="region" value="${esc(r.region)}" required /></label>
@@ -770,6 +785,10 @@ function adminHtml(rows, events = [], routeOpts = []) {
             <label>Contributed by<input name="contributor" value="${esc(r.contributor)}" /></label>
             <label>Contributor link<input name="contributor_url" value="${esc(r.contributor_url)}" placeholder="Strava / RWGPS / website" /></label>
             <label class="full">Description (full write-up shown on the route page)<textarea name="description" rows="10">${esc(r.description)}</textarea></label>
+            <label class="full">Photo — the hero image on the card &amp; route page (max 12 MB)
+              <input name="photo" type="file" accept="image/*" />
+              <span class="hint">${r.photo_key ? "A photo is set. Choose a new file to replace it; leave blank to keep it." : "No photo yet. Add one here."}</span>
+            </label>
             <button class="ok" type="submit">Save changes</button>
           </form>
         </details>
@@ -814,6 +833,7 @@ function adminHtml(rows, events = [], routeOpts = []) {
   .editform .full{grid-column:1 / -1}
   .editform input,.editform select,.editform textarea{font:inherit;font-size:13px;padding:6px 8px;border:1px solid #d8cfb8;border-radius:3px;color:#2c2a24;background:#fff;text-transform:none;letter-spacing:0}
   .editform button{grid-column:1 / -1;justify-self:start}
+  .editform .hint{font-size:11px;text-transform:none;letter-spacing:0;color:#8a8068}
 </style></head><body>
 <header>
   <h1>Bush Riding — Admin</h1>

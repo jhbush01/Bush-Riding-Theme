@@ -1091,7 +1091,15 @@ textarea.field-input {
 }
 
 /* ---- Hero ---- */
-.card__hero { position: relative; width: 100%; height: 200px; overflow: hidden; background: var(--sage); }
+/* The hero reveals only when the sheet is at "full" (desktop is always full).
+   Rather than a display toggle — which snaps the image into view at the drag
+   threshold — it collapses to height 0 and animates open, so the image eases
+   in smoothly in step with the sheet sliding up. */
+.card__hero {
+  position: relative; width: 100%; height: 200px; overflow: hidden; background: var(--sage);
+  transition: height 0.32s cubic-bezier(0.22, 0.61, 0.36, 1), opacity 0.28s ease;
+}
+.sheet.card:not([data-state="full"]) .card__hero { height: 0; opacity: 0; }
 .card__hero-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
 .card__hero-img[hidden] { display: none; }
 .card__hero-scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20, 24, 14, 0.32), transparent 34%, transparent 62%, rgba(20, 24, 14, 0.42)); }

@@ -147,8 +147,10 @@
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg>
         </button>
 
-        <!-- HERO (revealed at full / always on desktop) -->
-        <div class="card__hero for-full">
+        <!-- HERO (revealed at full / always on desktop). Not .for-full: it
+             collapses via height/opacity so it eases in with the slide rather
+             than popping in at the snap threshold. -->
+        <div class="card__hero">
           <img id="detail-photo" class="card__hero-img" alt="" />
           <div class="card__hero-scrim"></div>
           <div class="card__chip">

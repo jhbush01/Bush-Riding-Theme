@@ -533,7 +533,7 @@ ${crumbs(crumbItems)}
   <p class="rp-start"><strong>Start:</strong> ${esc(r.regionLabel)}${r.startNote ? " — " + esc(r.startNote) : ""}.</p>
 
   <h2>About this route</h2>
-  ${r.description ? `<p class="rp-desc">${esc(r.description)}</p>` : `<p class="rp-desc">${esc(r.name)} is a ${dist} km gravel route near ${esc(r.regionLabel)}, ${esc(r.stateFull)}, with ${elev} m of climbing. Open the interactive map for the full turn-by-turn track, or download the GPX to load onto your head unit.</p>`}
+  ${r.description ? descParagraphs(r.description) : `<p class="rp-desc">${esc(r.name)} is a ${dist} km gravel route near ${esc(r.regionLabel)}, ${esc(r.stateFull)}, with ${elev} m of climbing. Open the interactive map for the full turn-by-turn track, or download the GPX to load onto your head unit.</p>`}
 
   ${mapFig}
 
@@ -591,6 +591,20 @@ const NAV_SWAP_JS = `
   var ua=navigator.userAgent||'';
   if(/iP(hone|ad|od)/.test(ua)||(/Macintosh/.test(ua)&&(navigator.maxTouchPoints||0)>1)) a.href=a.dataset.apple;
 })();`;
+
+// Render a route write-up as HTML paragraphs. Riders enter multi-paragraph
+// notes in the submit/moderation textarea; without this the whole write-up
+// collapses into one run-on block on the page. Blank lines start a new
+// paragraph; single newlines become line breaks.
+function descParagraphs(s) {
+  return String(s || "")
+    .replace(/\r\n?/g, "\n")
+    .split(/\n{2,}/)
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .map((p) => `<p class="rp-desc">${esc(p).replace(/\n/g, "<br>")}</p>`)
+    .join("\n  ");
+}
 
 function clampDesc(s) {
   s = s.replace(/\s+/g, " ").trim();
