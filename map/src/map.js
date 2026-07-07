@@ -579,10 +579,21 @@ function routesBounds(features) {
   return bounds.isEmpty() ? null : bounds;
 }
 
+// How long the map takes to glide to a framed route. Slow (~5× the default
+// ease) so the basemap tiles have time to stream into the new view instead of
+// the camera snapping there over blank/half-drawn tiles.
+const FRAME_DURATION_MS = 4000;
+
 function fitToRoutes(features, animate) {
   const bounds = routesBounds(features);
   if (!bounds) return;
-  map.fitBounds(bounds, { padding: fitPadding(), animate, maxZoom: 13 });
+  map.fitBounds(bounds, {
+    padding: fitPadding(),
+    maxZoom: 13,
+    animate,
+    duration: animate ? FRAME_DURATION_MS : 0,
+    essential: true, // don't skip under prefers-reduced-motion mid-navigation
+  });
 }
 
 // ---- Detail surface: responsive sheet / panel ----------------------------
@@ -785,8 +796,9 @@ function fillDetail(feature) {
   setPill(p.terrain_difficulty, p.distance_km, p.elevation_gain_m);
   setStats(p);
   setStart("Area", [p.region, p.state].filter(Boolean).join(", "), routeStartNav(feature));
-  // Card shows a short preview; the full write-up lives on the route page.
-  setText("detail-description", clampText(p.description || "", 220));
+  // Card shows a short preview; the full write-up lives on the route page. When
+  // it's clamped, offer a "Continue reading" link through to that page.
+  setCardDescription(p);
   setCredit(p.contributed_by || p.vetted_by, p.contributor_url);
   setText("detail-disclaimer", "A guide only — ride to conditions.");
   // Prominent action: the full write-up page. Secondary: Download GPX (gated).
@@ -1041,6 +1053,26 @@ function clampText(s, max) {
   s = String(s || "").replace(/\s+/g, " ").trim();
   if (s.length <= max) return s;
   return s.slice(0, max - 1).replace(/\s+\S*$/, "") + "…";
+}
+
+// Fill the route card's description with a short preview. If the write-up is
+// longer than the preview, append a subtle "Continue reading" link to the
+// route's full page so riders can get the whole thing.
+function setCardDescription(p) {
+  const el = document.getElementById("detail-description");
+  const full = String(p.description || "").replace(/\s+/g, " ").trim();
+  const preview = clampText(full, 220);
+  el.textContent = preview;
+  if (preview !== full) {
+    el.appendChild(document.createTextNode(" "));
+    const a = document.createElement("a");
+    a.className = "card__desc-more";
+    a.href = routePageUrl(p);
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.textContent = "Continue reading";
+    el.appendChild(a);
+  }
 }
 function routePageUrl(p) {
   let state = (p.state || "").trim();

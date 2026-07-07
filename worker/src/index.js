@@ -730,9 +730,14 @@ function adminHtml(rows, events = [], routeOpts = []) {
       </form>`;
   };
   const eventCard = (e) => `
-    <article class="card ${esc(e.status)}">
+    <details class="card ${esc(e.status)}">
+      <summary>
+        <span class="cname">${esc(e.subtitle) || esc(e.id)}</span>
+        <span class="badge">${esc(e.status)}</span>
+        <span class="csub">${esc(e.date_display)} · ${e.interested_count ?? 0} interested</span>
+      </summary>
+      <div class="body">
       <div class="meta">
-        <h3>${esc(e.subtitle) || esc(e.id)} <span class="badge">${esc(e.status)}</span></h3>
         <p class="sub">${esc(e.date_display)} · ${e.interested_count ?? 0} interested · route: ${esc(e.route_id) || "—"}</p>
         <details class="edit">
           <summary>Edit event</summary>
@@ -743,12 +748,18 @@ function adminHtml(rows, events = [], routeOpts = []) {
           <button name="delete" value="1" class="danger" onclick="return confirm('Delete this event?')">Delete event</button>
         </form>
       </div>
-    </article>`;
+      </div>
+    </details>`;
   const card = (r) => `
-    <article class="card ${esc(r.status)}">
+    <details class="card ${esc(r.status)}">
+      <summary>
+        <span class="cname">${esc(r.name)}</span>
+        <span class="badge">${esc(r.status)}</span>
+        <span class="csub">${esc(r.region)}${r.state ? ", " + esc(r.state) : ""} · ${r.distance_km} km</span>
+      </summary>
+      <div class="body">
       <div class="shape">${coordsSvg(r.coords)}</div>
       <div class="meta">
-        <h3>${esc(r.name)} <span class="badge">${esc(r.status)}</span></h3>
         <p class="sub">${esc(r.region)}${r.state ? ", " + esc(r.state) : ""} · ${esc(r.difficulty)} · ${r.distance_km} km · ${r.elevation_gain_m} m</p>
         <p class="desc">${esc(r.description) || "<em>no description</em>"}</p>
         <p class="by">by ${esc(r.contributor) || "—"}${r.contributor_url ? ` · <a href="${esc(r.contributor_url)}" target="_blank" rel="noopener">link</a>` : ""} · ${esc(r.email)} · ${esc((r.created_at || "").slice(0, 10))}</p>
@@ -793,7 +804,8 @@ function adminHtml(rows, events = [], routeOpts = []) {
           </form>
         </details>
       </div>
-    </article>`;
+      </div>
+    </details>`;
   return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Bush Riding — Moderation</title><style>
   body{font-family:system-ui,sans-serif;margin:0;background:#f4efe2;color:#2c2a24}
@@ -801,12 +813,25 @@ function adminHtml(rows, events = [], routeOpts = []) {
   h1{font-size:18px;margin:0}
   .count{color:#6f7c53;font-size:13px}
   main{max-width:760px;margin:0 auto;padding:20px}
-  .card{display:flex;gap:16px;background:#fff;border:1px solid #d8cfb8;border-radius:4px;padding:14px;margin-bottom:14px}
+  /* Each route/event is a collapsed <details>; the summary is the row you
+     click to expand. Collapsed by default keeps the list scannable. */
+  .card{display:block;background:#fff;border:1px solid #d8cfb8;border-radius:4px;margin-bottom:8px;overflow:hidden}
+  .card>summary{list-style:none;cursor:pointer;padding:12px 14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .card>summary::-webkit-details-marker{display:none}
+  .card>summary::before{content:"\\25B8";color:#8a8068;font-size:12px;flex:none}
+  .card[open]>summary::before{content:"\\25BE"}
+  .card>summary:hover{background:#faf7ee}
+  .card>summary .cname{font-size:15px;font-weight:600;color:#2c2a24}
+  .card>summary .csub{color:#8a8068;font-size:12px}
   .card.published{border-left:4px solid #234a25}
   .card.pending{border-left:4px solid #d7a21a}
   .card.rejected{opacity:.6}
   .card.upcoming{border-left:4px solid #c1572e}
   .card.past{opacity:.6;border-left:4px solid #8f8a7e}
+  .card .body{display:flex;gap:16px;padding:0 14px 14px}
+  /* An explicit display on a child overrides the closed-details hiding, so
+     collapse it back ourselves. */
+  .card:not([open])>.body{display:none}
   .shape{flex:0 0 160px}
   .meta{flex:1}
   h3{margin:0 0 4px;font-size:16px}
@@ -845,15 +870,17 @@ function adminHtml(rows, events = [], routeOpts = []) {
 </header>
 <main id="tab-routes" class="tabpanel">${rows.length ? rows.map(card).join("") : "<p>No submissions yet.</p>"}</main>
 <main id="tab-events" class="tabpanel" hidden>
-  <article class="card upcoming">
+  <details class="card upcoming">
+    <summary><span class="cname">+ New event</span><span class="csub">create a community bush ride</span></summary>
+    <div class="body">
     <div class="meta">
-      <h3>New event</h3>
-      <details class="edit">
+      <details class="edit" open>
         <summary>Create event</summary>
         ${eventForm({ status: "upcoming", interested_count: 0 })}
       </details>
     </div>
-  </article>
+    </div>
+  </details>
   ${events.length ? events.map(eventCard).join("") : "<p>No events yet — create one above.</p>"}
 </main>
 <script>

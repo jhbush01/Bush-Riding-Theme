@@ -1190,6 +1190,10 @@ textarea.field-input {
 /* Story */
 .card__desc { margin: 17px 0 0; font-size: 14.5px; line-height: 1.5; color: var(--card-ink-3); }
 .card__desc:empty { display: none; }
+/* "Continue reading" → full route page, shown when the preview is clamped. */
+.card__desc-more { display: inline; font-weight: 600; color: var(--card-rust); text-decoration: none; white-space: nowrap; }
+.card__desc-more::after { content: " →"; }
+.card__desc-more:hover { color: var(--card-rust-2); text-decoration: underline; }
 
 /* Kit note */
 .card__kit { margin-top: 15px; padding: 11px 14px; background: var(--card-inset); border-left: 3px solid var(--card-rust-2); border-radius: 0 9px 9px 0; }
