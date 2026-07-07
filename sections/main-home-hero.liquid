@@ -6,7 +6,9 @@
 
 <div id="MainHomeHero-{{ section.id }}" class="home-hero">
   <div class="home-hero__media">
-    {%- if section.settings.video != blank -%}
+    {%- if section.settings.image != blank -%}
+      <img class="home-hero__video" src="{{ section.settings.image }}" alt="" loading="eager">
+    {%- elsif section.settings.video != blank -%}
       <video
         class="home-hero__video"
         autoplay
@@ -41,6 +43,11 @@
   "tag": "section",
   "class": "section",
   "settings": [
+    {
+      "type": "url",
+      "id": "image",
+      "label": "Background image (URL) - takes priority over video"
+    },
     {
       "type": "url",
       "id": "video",

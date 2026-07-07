@@ -3,7 +3,7 @@
     "main_home_hero": {
       "type": "main-home-hero",
       "settings": {
-        "video": "https://cdn.shopify.com/videos/c/o/v/f0e0ccc583fc45589dc4a168fc145f35.mp4",
+        "image": "https://cdn.shopify.com/s/files/1/0838/6373/2480/files/IMG_2124.jpg?v=1782811182",
         "wordmark": "BUSH RIDING",
         "overlay_opacity": 10
       }
@@ -43,35 +43,6 @@
         "banner_left_label": "Womens",
         "banner_right_label": "New Arrivals"
       }
-    },
-    "newsletter": {
-      "type": "newsletter",
-      "blocks": {
-        "heading": {
-          "type": "heading",
-          "settings": {
-            "heading": "Newsletter",
-            "heading_size": "h2"
-          }
-        },
-        "paragraph": {
-          "type": "paragraph",
-          "settings": {
-            "text": "<p>Subscribe for updates &amp; early access to Bush Riding releases.</p>"
-          }
-        },
-        "email_form": {
-          "type": "email_form",
-          "settings": {}
-        }
-      },
-      "block_order": ["heading", "paragraph", "email_form"],
-      "settings": {
-        "color_scheme": "scheme-1",
-        "full_width": true,
-        "padding_top": 40,
-        "padding_bottom": 52
-      }
     }
   },
   "order": [
@@ -79,7 +50,6 @@
     "home_split_1",
     "home_shop_1",
     "home_split_2",
-    "home_shop_2",
-    "newsletter"
+    "home_shop_2"
   ]
 }
