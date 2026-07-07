@@ -1,0 +1,115 @@
+{%- comment -%}
+  Custom footer. Column links are hardcoded placeholders (href="#")
+  until real policy/info pages exist — swap the hrefs in this file
+  once those pages are built.
+{%- endcomment -%}
+
+<footer class="color-{{ section.settings.color_scheme }} gradient main-footer">
+  <div class="page-width main-footer__columns">
+    <div class="main-footer__column">
+      <p class="main-footer__heading">Legal</p>
+      <ul class="main-footer__list" role="list">
+        <li><a href="#">Privacy Policy</a></li>
+        <li><a href="#">Terms of Service</a></li>
+        <li><a href="#">Accessibility</a></li>
+      </ul>
+    </div>
+    <div class="main-footer__column">
+      <p class="main-footer__heading">FAQ</p>
+      <ul class="main-footer__list" role="list">
+        <li><a href="#">Shipping &amp; Delivery</a></li>
+        <li><a href="#">Returns &amp; Exchanges</a></li>
+        <li><a href="#">Placing an Order</a></li>
+        <li><a href="#">Payment Information</a></li>
+      </ul>
+    </div>
+    <div class="main-footer__column">
+      <p class="main-footer__heading">Brand</p>
+      <ul class="main-footer__list" role="list">
+        <li><a href="#">About Us</a></li>
+        <li><a href="#">Club</a></li>
+        <li><a href="#">Stockists</a></li>
+      </ul>
+    </div>
+    <div class="main-footer__column">
+      <p class="main-footer__heading">Contact</p>
+      <ul class="main-footer__list" role="list">
+        <li><a href="#">Customer Service</a></li>
+        <li><a href="#">Instagram</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="page-width main-footer__bottom">
+    <small>&copy; Bush Riding {{ 'now' | date: '%Y' }}</small>
+  </div>
+</footer>
+
+{% schema %}
+{
+  "name": "Main footer",
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:sections.all.colors.label",
+      "default": "scheme-1"
+    }
+  ]
+}
+{% endschema %}
+
+<style>
+  .main-footer {
+    padding-top: 48px;
+  }
+
+  .main-footer__columns {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 32px;
+    padding-bottom: 40px;
+  }
+
+  .main-footer__heading {
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 16px;
+    color: rgb(var(--color-foreground));
+  }
+
+  .main-footer__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .main-footer__list a {
+    color: rgb(var(--color-foreground));
+    text-decoration: none;
+    font-size: 0.9rem;
+  }
+
+  .main-footer__list a:hover {
+    text-decoration: underline;
+  }
+
+  .main-footer__bottom {
+    border-top: 1px solid rgba(var(--color-foreground), 0.1);
+    padding-top: 20px;
+    padding-bottom: 24px;
+    color: rgba(var(--color-foreground), 0.7);
+  }
+
+  @media screen and (max-width: 749px) {
+    .main-footer__columns {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 32px 20px;
+    }
+  }
+</style>

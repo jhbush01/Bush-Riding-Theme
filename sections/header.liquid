@@ -74,6 +74,26 @@
       padding-top: 0.5rem;
     }
   }
+
+  .header__inline-menu .header__menu-item,
+  .header__icon--text {
+    font-size: 1.6rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+  }
+
+  .header__icon--text,
+  .header__icon--text.header__icon {
+    width: auto;
+    height: auto;
+    padding: 0.5rem 0;
+    gap: 0;
+  }
+
+  .header__icons {
+    align-items: center;
+    gap: 2.4rem;
+  }
 </style>
 
 {%- style -%}
@@ -249,7 +269,8 @@
       </div>
       {% render 'header-search', input_id: 'Search-In-Modal' %}
 
-      {%- if shop.customer_accounts_enabled -%}
+      {%- comment -%}Account icon hidden: nav is Search + Cart only{%- endcomment -%}
+      {%- if false -%}
         <a
           href="{%- if customer -%}{{ routes.account_url }}{%- else -%}{{ routes.account_login_url }}{%- endif -%}"
           class="header__icon header__icon--account link focus-inset{% if section.settings.menu != blank %} small-hide{% endif %}"
@@ -285,13 +306,8 @@
         {%- endcase -%}
       {%- endfor -%}
 
-      <a href="{{ routes.cart_url }}" class="header__icon header__icon--cart link focus-inset" id="cart-icon-bubble">
-        {% if cart == empty %}
-          <span class="svg-wrapper">{{ 'icon-cart-empty.svg' | inline_asset_content }}</span>
-        {% else %}
-          <span class="svg-wrapper">{{ 'icon-cart.svg' | inline_asset_content }}</span>
-        {% endif %}
-        <span class="visually-hidden">{{ 'templates.cart.cart' | t }}</span>
+      <a href="{{ routes.cart_url }}" class="header__icon header__icon--cart header__icon--text link focus-inset" id="cart-icon-bubble">
+        <span>{{ 'templates.cart.cart' | t }}</span>
         {%- if cart != empty -%}
           <div class="cart-count-bubble">
             {%- if cart.item_count < 100 -%}
