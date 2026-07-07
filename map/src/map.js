@@ -579,21 +579,10 @@ function routesBounds(features) {
   return bounds.isEmpty() ? null : bounds;
 }
 
-// How long the map takes to glide to a framed route. Slow (~5× the default
-// ease) so the basemap tiles have time to stream into the new view instead of
-// the camera snapping there over blank/half-drawn tiles.
-const FRAME_DURATION_MS = 4000;
-
 function fitToRoutes(features, animate) {
   const bounds = routesBounds(features);
   if (!bounds) return;
-  map.fitBounds(bounds, {
-    padding: fitPadding(),
-    maxZoom: 13,
-    animate,
-    duration: animate ? FRAME_DURATION_MS : 0,
-    essential: true, // don't skip under prefers-reduced-motion mid-navigation
-  });
+  map.fitBounds(bounds, { padding: fitPadding(), animate, maxZoom: 13 });
 }
 
 // ---- Detail surface: responsive sheet / panel ----------------------------

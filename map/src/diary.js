@@ -461,9 +461,11 @@ function inkAnimation(geometry, done) {
   }
 
   const bounds = boundsOf(coords);
-  // Pace the reveal to the ride: longer rides take longer to ink. ~0.55s/km,
+  // Pace the reveal to the ride: longer rides take longer to ink. ~2.75s/km,
   // clamped so a short loop still feels deliberate and an epic doesn't drag.
-  const DUR = Math.max(4500, Math.min(11000, 3500 + totalKm * 550));
+  // Deliberately slow (~5× a brisk draw-on) so you can actually watch the ride
+  // retrace itself and the basemap keeps up under the moving camera.
+  const DUR = Math.max(22500, Math.min(55000, 17500 + totalKm * 2750));
   // Follow a little closer than the whole-route framing so there's a sense of
   // travel, but never so close we lose the thread on a big ride.
   const fitZoom = (() => {
