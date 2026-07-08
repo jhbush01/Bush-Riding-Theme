@@ -29,7 +29,7 @@ const STATES = ["QLD", "NSW", "VIC", "TAS", "SA", "WA", "NT", "ACT"];
 // Add columns introduced after the original schema. ALTER fails once the column
 // exists, so each is best-effort — cheap and idempotent.
 async function ensureSubmissionsSchema(env) {
-  for (const col of ["state TEXT", "contributor_url TEXT", "series TEXT", "review_note TEXT"]) {
+  for (const col of ["state TEXT", "contributor_url TEXT", "series TEXT", "review_note TEXT", "series_version TEXT"]) {
     try {
       await env.DB.prepare(`ALTER TABLE submissions ADD COLUMN ${col}`).run();
     } catch (_) {
@@ -138,7 +138,7 @@ async function routes(env, cors) {
   await ensureSubmissionsSchema(env);
   await seedFamousEventsOnce(env); // promote known events to Famous Events (once)
   const { results } = await env.DB.prepare(
-    `SELECT id, name, region, state, country, difficulty, surface, description, series,
+    `SELECT id, name, region, state, country, difficulty, surface, description, series, series_version,
             distance_km, elevation_gain_m, marker_lng, marker_lat, coords,
             photo_key, contributor, contributor_url, created_at
        FROM submissions WHERE status = 'published' ORDER BY created_at DESC`
@@ -167,6 +167,7 @@ async function routes(env, cors) {
         terrain_difficulty: r.difficulty,
         surface: r.surface || "",
         series,
+        series_version: (r.series_version || "").trim(),
         // Present only for routes that belong to a famous ride.
         famous_ride: fr
           ? { name: fr.name, location: fr.location || "", dates: fr.dates || "", url: fr.url || "" }
@@ -639,6 +640,7 @@ async function adminRouteCreate(request, env) {
   const surface = (form.get("surface") || "").toString().trim().slice(0, 120);
   const description = (form.get("description") || "").toString().trim().slice(0, 4000);
   const series = (form.get("series") || "").toString().trim().slice(0, 80);
+  const seriesVersion = (form.get("series_version") || "").toString().trim().slice(0, 40);
   const contributor = (form.get("contributor") || "").toString().trim().slice(0, 120);
   const contributorUrl = (form.get("contributor_url") || "").toString().trim().slice(0, 300);
   const email = (form.get("email") || "").toString().trim().slice(0, 200);
@@ -668,12 +670,12 @@ async function adminRouteCreate(request, env) {
 
   await env.DB.prepare(
     `INSERT INTO submissions
-      (id, status, name, region, state, country, difficulty, surface, description, series,
+      (id, status, name, region, state, country, difficulty, surface, description, series, series_version,
        distance_km, elevation_gain_m, marker_lng, marker_lat, coords,
        gpx_key, photo_key, contributor, contributor_url, email, created_at)
-     VALUES (?, 'published', ?, ?, ?, 'Australia', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+     VALUES (?, 'published', ?, ?, ?, 'Australia', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).bind(
-    id, name, region, STATES.includes(state) ? state : null, difficulty, surface, description, series,
+    id, name, region, STATES.includes(state) ? state : null, difficulty, surface, description, series, seriesVersion,
     stats.distance_km, stats.elevation_gain_m, stats.marker[0], stats.marker[1],
     JSON.stringify(stats.coords), gpxKey, photoKey, contributor, contributorUrl, email,
     new Date().toISOString()
@@ -713,7 +715,7 @@ async function adminPage(request, env) {
   await seedFamousEventsOnce(env); // ensure the known Famous Events exist + tagged
   const { results } = await env.DB.prepare(
     `SELECT id, status, name, region, state, country, difficulty, surface, distance_km,
-            elevation_gain_m, description, series, contributor, contributor_url, email, coords,
+            elevation_gain_m, description, series, series_version, contributor, contributor_url, email, coords,
             photo_key, review_note, created_at
        FROM submissions ORDER BY (status='pending') DESC, created_at DESC`
   ).all();
@@ -807,6 +809,7 @@ async function adminEdit(request, env) {
   const surface = (form.get("surface") || "").toString().trim().slice(0, 120);
   const description = (form.get("description") || "").toString().trim().slice(0, 4000);
   const series = (form.get("series") || "").toString().trim().slice(0, 80);
+  const seriesVersion = (form.get("series_version") || "").toString().trim().slice(0, 40);
   const contributor = (form.get("contributor") || "").toString().trim().slice(0, 120);
   const contributorUrl = (form.get("contributor_url") || "").toString().trim().slice(0, 300);
   const distance = parseFloat(form.get("distance_km"));
@@ -829,7 +832,7 @@ async function adminEdit(request, env) {
 
   await env.DB.prepare(
     `UPDATE submissions
-        SET name=?, region=?, state=?, country=?, difficulty=?, surface=?, description=?, series=?,
+        SET name=?, region=?, state=?, country=?, difficulty=?, surface=?, description=?, series=?, series_version=?,
             contributor=?, contributor_url=?, distance_km=?, elevation_gain_m=?, photo_key=?
       WHERE id=?`
   )
@@ -842,6 +845,7 @@ async function adminEdit(request, env) {
       surface,
       description,
       series,
+      seriesVersion,
       contributor,
       contributorUrl,
       Number.isFinite(distance) ? distance : null,
@@ -1000,6 +1004,7 @@ function adminHtml(rows, events = [], routeOpts = [], famous = [], famousNames =
         <label>Contributed by<input name="contributor" /></label>
         <label>Contributor link<input name="contributor_url" placeholder="Strava / RWGPS / website" /></label>
         <label class="full">Famous event${seriesSelect("")}</label>
+        <label>Edition / year<input name="series_version" placeholder="e.g. 2026 (blank = current)" /></label>
         <label class="full">Description<textarea name="description" rows="6"></textarea></label>
         <label class="full">Photo<input name="photo" type="file" accept="image/*" /></label>
         <button class="ok" type="submit">Create &amp; publish route</button>
@@ -1093,6 +1098,7 @@ function adminHtml(rows, events = [], routeOpts = [], famous = [], famousNames =
               ${seriesSelect(r.series || "")}
               <span class="hint">Create famous events in the Famous Events tab first.</span>
             </label>
+            <label>Edition / year<input name="series_version" value="${esc(r.series_version)}" placeholder="e.g. 2026 (blank = current)" /></label>
             <label class="full">Description (full write-up shown on the route page)<textarea name="description" rows="10">${esc(r.description)}</textarea></label>
             <label class="full">Photo — the hero image on the card &amp; route page (max 12 MB)
               <input name="photo" type="file" accept="image/*" />
