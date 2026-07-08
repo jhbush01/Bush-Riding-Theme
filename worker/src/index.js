@@ -52,8 +52,11 @@ export default {
       if (url.pathname === "/admin" && request.method === "GET") return adminPage(request, env);
       if (url.pathname === "/admin/action" && request.method === "POST") return adminAction(request, env);
       if (url.pathname === "/admin/edit" && request.method === "POST") return adminEdit(request, env);
+      if (url.pathname === "/admin/route/create" && request.method === "POST") return adminRouteCreate(request, env);
       if (url.pathname === "/admin/event/save" && request.method === "POST") return adminEventSave(request, env);
       if (url.pathname === "/admin/event/delete" && request.method === "POST") return adminEventDelete(request, env);
+      if (url.pathname === "/admin/famous/save" && request.method === "POST") return adminFamousSave(request, env);
+      if (url.pathname === "/admin/famous/delete" && request.method === "POST") return adminFamousDelete(request, env);
       return json({ error: "Not found" }, 404, cors);
     } catch (err) {
       return json({ error: err.message || "Server error" }, 500, cors);
@@ -140,32 +143,44 @@ async function routes(env, cors) {
        FROM submissions WHERE status = 'published' ORDER BY created_at DESC`
   ).all();
 
+  // Famous-ride metadata (location / dates / event page) keyed by name, so a
+  // route tagged with a series carries its event's details to the map.
+  const famous = await famousByName(env).catch(() => new Map());
+
   const base = (env.PUBLIC_URL || "").replace(/\/$/, "");
-  const features = (results || []).map((r) => ({
-    type: "Feature",
-    geometry: { type: "LineString", coordinates: JSON.parse(r.coords) },
-    properties: {
-      id: r.id,
-      name: r.name,
-      marker: [r.marker_lng, r.marker_lat],
-      region: r.region,
-      state: r.state || "",
-      country: r.country,
-      distance_km: r.distance_km,
-      elevation_gain_m: r.elevation_gain_m,
-      terrain_difficulty: r.difficulty,
-      surface: r.surface || "",
-      series: r.series || "",
-      gpx_url: `${base}/file/${r.gpx_key || "gpx/" + r.id + ".gpx"}`,
-      photo_url: r.photo_key ? `${base}/file/${r.photo_key}` : "",
-      description: r.description || "",
-      // Full contributor name (shown as "Contributed by") + optional profile URL.
-      contributed_by: (r.contributor || "").trim() || "Community",
-      contributor_url: r.contributor_url || "",
-      source: "community",
-      status: "published",
-    },
-  }));
+  const features = (results || []).map((r) => {
+    const series = (r.series || "").trim();
+    const fr = series ? famous.get(series.toLowerCase()) : null;
+    return {
+      type: "Feature",
+      geometry: { type: "LineString", coordinates: JSON.parse(r.coords) },
+      properties: {
+        id: r.id,
+        name: r.name,
+        marker: [r.marker_lng, r.marker_lat],
+        region: r.region,
+        state: r.state || "",
+        country: r.country,
+        distance_km: r.distance_km,
+        elevation_gain_m: r.elevation_gain_m,
+        terrain_difficulty: r.difficulty,
+        surface: r.surface || "",
+        series,
+        // Present only for routes that belong to a famous ride.
+        famous_ride: fr
+          ? { name: fr.name, location: fr.location || "", dates: fr.dates || "", url: fr.url || "" }
+          : null,
+        gpx_url: `${base}/file/${r.gpx_key || "gpx/" + r.id + ".gpx"}`,
+        photo_url: r.photo_key ? `${base}/file/${r.photo_key}` : "",
+        description: r.description || "",
+        // Full contributor name (shown as "Contributed by") + optional profile URL.
+        contributed_by: (r.contributor || "").trim() || "Community",
+        contributor_url: r.contributor_url || "",
+        source: "community",
+        status: "published",
+      },
+    };
+  });
 
   return json({ type: "FeatureCollection", features }, 200, {
     ...cors,
@@ -470,6 +485,160 @@ async function routeOptions(env) {
   return opts;
 }
 
+/* ---------------- Famous rides (admin-curated ride series) ----------------
+   A famous ride is a well-known, usually annual event that offers several
+   routes (e.g. Clarkes Gambit). It's a first-class entity with its own fields;
+   routes join it by storing the famous ride's name in submissions.series. */
+const FAMOUS_COLS = ["id", "name", "location", "dates", "url", "description", "hero_key", "hero_ref", "created_at"];
+
+async function ensureFamousTable(env) {
+  await env.DB.prepare(
+    `CREATE TABLE IF NOT EXISTS famous_rides (
+       id TEXT PRIMARY KEY, name TEXT, location TEXT, dates TEXT, url TEXT,
+       description TEXT, hero_key TEXT, hero_ref TEXT, created_at TEXT
+     )`
+  ).run();
+}
+
+async function loadFamousList(env) {
+  await ensureFamousTable(env);
+  const { results } = await env.DB.prepare("SELECT * FROM famous_rides ORDER BY name").all();
+  return results || [];
+}
+
+// name -> row, for enriching routes and for the route-edit dropdown.
+async function famousByName(env) {
+  const map = new Map();
+  for (const r of await loadFamousList(env)) map.set((r.name || "").toLowerCase(), r);
+  return map;
+}
+
+async function adminFamousSave(request, env) {
+  if (!requireAuth(request, env)) return authChallenge();
+  await ensureFamousTable(env);
+  const form = await request.formData();
+  const name = (form.get("name") || "").toString().trim().slice(0, 80);
+  if (!name) return json({ error: "A name is required" }, 400, corsHeaders());
+  const url = (form.get("url") || "").toString().trim().slice(0, 400);
+  if (url && !/^https?:\/\//i.test(url))
+    return json({ error: "The event page URL must start with http(s)://" }, 400, corsHeaders());
+
+  let id = (form.get("id") || "").toString().trim();
+  if (!id) id = "fr-" + slug(name) + "-" + rand(4);
+
+  const cur = await env.DB.prepare("SELECT name, hero_key, hero_ref, created_at FROM famous_rides WHERE id=?").bind(id).first();
+  let heroKey = cur ? cur.hero_key : null;
+  let heroRef = cur ? cur.hero_ref : "";
+  const refInput = (form.get("hero_ref") || "").toString().trim();
+  if (refInput) { heroRef = refInput; heroKey = null; }
+  const heroFile = form.get("hero");
+  if (heroFile && typeof heroFile.arrayBuffer === "function" && heroFile.size > 0) {
+    if (heroFile.size > MAX_PHOTO) return json({ error: "Image too large (max 12 MB)." }, 400, corsHeaders());
+    const type = heroFile.type || "image/jpeg";
+    if (!/^image\//.test(type)) return json({ error: "Hero must be an image." }, 400, corsHeaders());
+    heroKey = `famous/${id}.${type.includes("png") ? "png" : "jpg"}`;
+    await env.BUCKET.put(heroKey, await heroFile.arrayBuffer(), { httpMetadata: { contentType: type } });
+    heroRef = "";
+  }
+
+  // Renaming a famous ride re-points its member routes so links don't break.
+  if (cur && cur.name && cur.name !== name) {
+    await env.DB.prepare("UPDATE submissions SET series=? WHERE series=?").bind(name, cur.name).run();
+  }
+
+  const vals = {
+    id, name,
+    location: (form.get("location") || "").toString().trim().slice(0, 160),
+    dates: (form.get("dates") || "").toString().trim().slice(0, 120),
+    url,
+    description: (form.get("description") || "").toString().trim().slice(0, 2000),
+    hero_key: heroKey, hero_ref: heroRef,
+    created_at: cur ? cur.created_at : new Date().toISOString(),
+  };
+  const set = FAMOUS_COLS.filter((c) => c !== "id").map((c) => `${c}=excluded.${c}`).join(", ");
+  await env.DB.prepare(
+    `INSERT INTO famous_rides (${FAMOUS_COLS.join(", ")}) VALUES (${FAMOUS_COLS.map(() => "?").join(", ")})
+     ON CONFLICT(id) DO UPDATE SET ${set}`
+  ).bind(...FAMOUS_COLS.map((c) => vals[c] ?? null)).run();
+
+  await triggerRebuild(env);
+  return new Response(null, { status: 303, headers: { Location: "/admin#famous" } });
+}
+
+async function adminFamousDelete(request, env) {
+  if (!requireAuth(request, env)) return authChallenge();
+  await ensureFamousTable(env);
+  const form = await request.formData();
+  const id = (form.get("id") || "").toString();
+  const row = await env.DB.prepare("SELECT name, hero_key FROM famous_rides WHERE id=?").bind(id).first();
+  if (row) {
+    if (row.hero_key) await env.BUCKET.delete(row.hero_key);
+    // Ungroup its routes (they stay, just become standalone community routes).
+    if (row.name) await env.DB.prepare("UPDATE submissions SET series='' WHERE series=?").bind(row.name).run();
+  }
+  await env.DB.prepare("DELETE FROM famous_rides WHERE id=?").bind(id).run();
+  await triggerRebuild(env);
+  return new Response(null, { status: 303, headers: { Location: "/admin#famous" } });
+}
+
+// Admin: create a community route directly (skips the public submit form). Same
+// GPX parsing as /submit, but publishes immediately and allows a series tag.
+async function adminRouteCreate(request, env) {
+  if (!requireAuth(request, env)) return authChallenge();
+  await ensureSubmissionsSchema(env);
+  const form = await request.formData();
+  const name = (form.get("name") || "").toString().trim();
+  const region = (form.get("region") || "").toString().trim();
+  const state = (form.get("state") || "").toString().trim().toUpperCase();
+  let difficulty = (form.get("difficulty") || "").toString().trim().toLowerCase();
+  if (!DIFFICULTIES.includes(difficulty)) difficulty = "rocky";
+  const surface = (form.get("surface") || "").toString().trim().slice(0, 120);
+  const description = (form.get("description") || "").toString().trim().slice(0, 4000);
+  const series = (form.get("series") || "").toString().trim().slice(0, 80);
+  const contributor = (form.get("contributor") || "").toString().trim().slice(0, 120);
+  const contributorUrl = (form.get("contributor_url") || "").toString().trim().slice(0, 300);
+  const email = (form.get("email") || "").toString().trim().slice(0, 200);
+  const gpxFile = form.get("gpx");
+
+  if (!name || !region) return json({ error: "Name and region are required" }, 400, corsHeaders());
+  if (!gpxFile || typeof gpxFile.text !== "function") return json({ error: "A GPX file is required" }, 400, corsHeaders());
+  if (gpxFile.size > MAX_GPX) return json({ error: "GPX file too large (max 5 MB)" }, 400, corsHeaders());
+
+  const xml = await gpxFile.text();
+  let stats;
+  try { stats = parseGpx(xml); } catch (e) { return json({ error: "Could not read that GPX: " + e.message }, 400, corsHeaders()); }
+
+  const id = slug(name) + "-" + rand(5);
+  const gpxKey = `gpx/${id}.gpx`;
+  await env.BUCKET.put(gpxKey, xml, { httpMetadata: { contentType: "application/gpx+xml" } });
+
+  let photoKey = null;
+  const photoFile = form.get("photo");
+  if (photoFile && typeof photoFile.arrayBuffer === "function" && photoFile.size > 0) {
+    if (photoFile.size > MAX_PHOTO) return json({ error: "Photo too large (max 12 MB)" }, 400, corsHeaders());
+    const type = photoFile.type || "image/jpeg";
+    if (!/^image\//.test(type)) return json({ error: "Photo must be an image" }, 400, corsHeaders());
+    photoKey = `photos/${id}.${type.includes("png") ? "png" : "jpg"}`;
+    await env.BUCKET.put(photoKey, await photoFile.arrayBuffer(), { httpMetadata: { contentType: type } });
+  }
+
+  await env.DB.prepare(
+    `INSERT INTO submissions
+      (id, status, name, region, state, country, difficulty, surface, description, series,
+       distance_km, elevation_gain_m, marker_lng, marker_lat, coords,
+       gpx_key, photo_key, contributor, contributor_url, email, created_at)
+     VALUES (?, 'published', ?, ?, ?, 'Australia', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).bind(
+    id, name, region, STATES.includes(state) ? state : null, difficulty, surface, description, series,
+    stats.distance_km, stats.elevation_gain_m, stats.marker[0], stats.marker[1],
+    JSON.stringify(stats.coords), gpxKey, photoKey, contributor, contributorUrl, email,
+    new Date().toISOString()
+  ).run();
+
+  await triggerRebuild(env);
+  return new Response(null, { status: 303, headers: { Location: "/admin#routes" } });
+}
+
 /* ---------------- Public: serve a stored file ---------------- */
 async function serveFile(url, env, cors) {
   const key = decodeURIComponent(url.pathname.replace(/^\/file\//, ""));
@@ -505,7 +674,9 @@ async function adminPage(request, env) {
   ).all();
   const events = await loadEventList(env);
   const routeOpts = await routeOptions(env);
-  return new Response(adminHtml(results || [], events, routeOpts), {
+  const famous = await loadFamousList(env);
+  const famousNames = famous.map((f) => f.name).filter(Boolean);
+  return new Response(adminHtml(results || [], events, routeOpts, famous, famousNames), {
     // Never cache the admin panel — always reflect the latest deploy + data.
     headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
   });
@@ -691,8 +862,17 @@ function coordsSvg(coordsJson) {
   return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><polyline points="${pts}" fill="none" stroke="#234a25" stroke-width="2"/></svg>`;
 }
 
-function adminHtml(rows, events = [], routeOpts = []) {
+function adminHtml(rows, events = [], routeOpts = [], famous = [], famousNames = []) {
   const pending = rows.filter((r) => r.status === "pending").length;
+  // Dropdown of famous rides for tagging a route to one (shared by create + edit).
+  const seriesSelect = (sel) =>
+    `<select name="series"><option value="">— none —</option>${famousNames
+      .map((n) => `<option value="${esc(n)}"${n === sel ? " selected" : ""}>${esc(n)}</option>`)
+      .join("")}${
+      sel && !famousNames.includes(sel)
+        ? `<option value="${esc(sel)}" selected>${esc(sel)} (current)</option>`
+        : ""
+    }</select>`;
   const routeSelect = (sel) =>
     `<select name="route_id"><option value="">— none —</option>${routeOpts
       .map((o) => `<option value="${esc(o.id)}"${o.id === sel ? " selected" : ""}>${esc(o.name)}</option>`)
@@ -754,6 +934,65 @@ function adminHtml(rows, events = [], routeOpts = []) {
       </div>
       </div>
     </details>`;
+
+  // Create a community route directly from moderation (skips the public form).
+  const routeCreateForm = () => `
+      <form method="POST" action="/admin/route/create" enctype="multipart/form-data" class="editform" style="margin-top:0">
+        <label class="full">GPX file<input name="gpx" type="file" accept=".gpx,application/gpx+xml" required /></label>
+        <label>Name<input name="name" required /></label>
+        <label>Region<input name="region" required /></label>
+        <label>State
+          <select name="state"><option value="">—</option>${STATES.map((s) => `<option value="${s}">${s}</option>`).join("")}</select>
+        </label>
+        <label>Terrain
+          <select name="difficulty">${DIFFICULTIES.map((d) => `<option value="${d}">${d}</option>`).join("")}</select>
+        </label>
+        <label>Surface<input name="surface" /></label>
+        <label>Contributed by<input name="contributor" /></label>
+        <label>Contributor link<input name="contributor_url" placeholder="Strava / RWGPS / website" /></label>
+        <label class="full">Famous ride${seriesSelect("")}</label>
+        <label class="full">Description<textarea name="description" rows="6"></textarea></label>
+        <label class="full">Photo<input name="photo" type="file" accept="image/*" /></label>
+        <button class="ok" type="submit">Create &amp; publish route</button>
+      </form>`;
+
+  // Famous ride create/edit form + card.
+  const famousForm = (fr) => {
+    const v = (k) => esc(fr[k] != null ? String(fr[k]) : "");
+    const isNew = !fr.id;
+    return `
+      <form method="POST" action="/admin/famous/save" enctype="multipart/form-data" class="editform" style="margin-top:0">
+        <input type="hidden" name="id" value="${v("id")}" />
+        <label class="full">Name<input name="name" value="${v("name")}" required placeholder="e.g. Clarkes Gambit" /></label>
+        <label>Festival location<input name="location" value="${v("location")}" placeholder="e.g. Clare Valley, SA" /></label>
+        <label>Dates held<input name="dates" value="${v("dates")}" placeholder="e.g. First weekend of October" /></label>
+        <label class="full">Event page URL<input name="url" value="${v("url")}" placeholder="https://…" /></label>
+        <label class="full">Description<textarea name="description" rows="4">${v("description")}</textarea></label>
+        <label>Hero image (upload)<input name="hero" type="file" accept="image/*" /></label>
+        <label>…or image URL<input name="hero_ref" placeholder="leave blank to keep" /></label>
+        <button class="ok" type="submit">${isNew ? "Create famous ride" : "Save changes"}</button>
+      </form>`;
+  };
+  const memberCount = (name) => rows.filter((r) => (r.series || "") === name).length;
+  const famousCard = (fr) => `
+    <details class="card">
+      <summary>
+        <span class="cname">◆ ${esc(fr.name)}</span>
+        <span class="badge badge--series">${memberCount(fr.name)} route${memberCount(fr.name) === 1 ? "" : "s"}</span>
+        <span class="csub">${esc(fr.location)}${fr.dates ? " · " + esc(fr.dates) : ""}</span>
+      </summary>
+      <div class="body">
+      <div class="meta">
+        <details class="edit"><summary>Edit famous ride</summary>${famousForm(fr)}</details>
+        <form method="POST" action="/admin/famous/delete" class="actions" style="margin-top:8px">
+          <input type="hidden" name="id" value="${esc(fr.id)}" />
+          ${fr.url ? `<a class="link" href="${esc(fr.url)}" target="_blank" rel="noopener">event page ↗</a>` : ""}
+          <button name="delete" value="1" class="danger" onclick="return confirm('Delete this famous ride? Its routes stay but become standalone.')">Delete</button>
+        </form>
+      </div>
+      </div>
+    </details>`;
+
   const card = (r) => `
     <details class="card ${esc(r.status)}">
       <summary>
@@ -800,8 +1039,9 @@ function adminHtml(rows, events = [], routeOpts = []) {
             <label>Elevation (m)<input name="elevation_gain_m" type="number" step="1" value="${r.elevation_gain_m ?? ""}" /></label>
             <label>Contributed by<input name="contributor" value="${esc(r.contributor)}" /></label>
             <label>Contributor link<input name="contributor_url" value="${esc(r.contributor_url)}" placeholder="Strava / RWGPS / website" /></label>
-            <label class="full">Famous ride — routes sharing this event name group under one pin on the map
-              <input name="series" value="${esc(r.series)}" placeholder="e.g. Clarkes Gambit (leave blank for a standalone route)" />
+            <label class="full">Famous ride — group this route under a famous ride pin on the map
+              ${seriesSelect(r.series || "")}
+              <span class="hint">Create famous rides in the Famous rides tab first.</span>
             </label>
             <label class="full">Description (full write-up shown on the route page)<textarea name="description" rows="10">${esc(r.description)}</textarea></label>
             <label class="full">Photo — the hero image on the card &amp; route page (max 12 MB)
@@ -871,13 +1111,35 @@ function adminHtml(rows, events = [], routeOpts = []) {
 </style></head><body>
 <header>
   <h1>Bush Riding — Admin</h1>
-  <div class="count">${pending} pending · ${rows.length} routes · ${events.length} events</div>
+  <div class="count">${pending} pending · ${rows.length} routes · ${events.length} events · ${famous.length} famous rides</div>
   <nav class="tabs" role="tablist">
     <button class="tab is-active" data-tab="routes" type="button">Route moderation</button>
     <button class="tab" data-tab="events" type="button">Events</button>
+    <button class="tab" data-tab="famous" type="button">Famous rides</button>
   </nav>
 </header>
-<main id="tab-routes" class="tabpanel">${rows.length ? rows.map(card).join("") : "<p>No submissions yet.</p>"}</main>
+<main id="tab-routes" class="tabpanel">
+  <details class="card published">
+    <summary><span class="cname">+ New community route</span><span class="csub">add a route directly — skips the public submit form</span></summary>
+    <div class="body">
+    <div class="meta">
+      <details class="edit" open><summary>Create route</summary>${routeCreateForm()}</details>
+    </div>
+    </div>
+  </details>
+  ${rows.length ? rows.map(card).join("") : "<p>No submissions yet.</p>"}
+</main>
+<main id="tab-famous" class="tabpanel" hidden>
+  <details class="card">
+    <summary><span class="cname">+ New famous ride</span><span class="csub">a well-known, usually annual ride with several routes</span></summary>
+    <div class="body">
+    <div class="meta">
+      <details class="edit" open><summary>Create famous ride</summary>${famousForm({})}</details>
+    </div>
+    </div>
+  </details>
+  ${famous.length ? famous.map(famousCard).join("") : "<p>No famous rides yet — create one above, then tag routes to it from Route moderation.</p>"}
+</main>
 <main id="tab-events" class="tabpanel" hidden>
   <details class="card upcoming">
     <summary><span class="cname">+ New event</span><span class="csub">create a community bush ride</span></summary>
@@ -895,18 +1157,20 @@ function adminHtml(rows, events = [], routeOpts = []) {
 <script>
   (function () {
     var tabs = document.querySelectorAll(".tab");
+    var panels = ["routes", "events", "famous"];
     function show(name) {
+      if (panels.indexOf(name) < 0) name = "routes";
       tabs.forEach(function (t) { t.classList.toggle("is-active", t.dataset.tab === name); });
-      document.getElementById("tab-routes").hidden = name !== "routes";
-      document.getElementById("tab-events").hidden = name !== "events";
+      panels.forEach(function (n) {
+        var el = document.getElementById("tab-" + n);
+        if (el) el.hidden = n !== name;
+      });
+      history.replaceState(null, "", "#" + name);
     }
     tabs.forEach(function (t) {
-      t.addEventListener("click", function () {
-        show(t.dataset.tab);
-        history.replaceState(null, "", t.dataset.tab === "events" ? "#events" : "#routes");
-      });
+      t.addEventListener("click", function () { show(t.dataset.tab); });
     });
-    show(location.hash === "#events" ? "events" : "routes");
+    show((location.hash || "").replace("#", "") || "routes");
   })();
 </script>
 </body></html>`;

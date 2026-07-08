@@ -260,22 +260,16 @@ function onLoad() {
     source: "routes-points",
     filter: ["!", ["has", "point_count"]],
     paint: {
-      // Event pins are largest, then grouped trailhead pins, then singles.
+      // Selected pins, then grouped trailhead pins, then singles. (Famous rides
+      // live in their own source, so these are all ordinary community routes.)
       "circle-radius": [
         "case",
-        ["==", ["get", "kind"], "series"], 11,
         ["boolean", ["feature-state", "selected"], false], 8,
         [">", ["get", "count"], 1], 9,
         6,
       ],
-      // Selected → lemon; event/series → plum; everything else → olive.
-      "circle-color": [
-        "case",
-        ["boolean", ["feature-state", "selected"], false], LEMON,
-        ["==", ["get", "kind"], "series"], SERIES,
-        OLIVE,
-      ],
-      "circle-stroke-width": ["case", ["==", ["get", "kind"], "series"], 2.5, 2],
+      "circle-color": ["case", ["boolean", ["feature-state", "selected"], false], LEMON, OLIVE],
+      "circle-stroke-width": 2,
       "circle-stroke-color": "#f4efe2",
     },
   });
@@ -296,19 +290,31 @@ function onLoad() {
     paint: { "text-color": "#f4efe2" },
   });
 
-  // Community Bush Ride event pins — added AFTER route layers so they render
-  // above route lines and pins (always tappable when overlapping). Isolated so
-  // an event-layer failure can never break the core route map.
+  // Famous-ride + Community-event pins are added AFTER route layers so they
+  // render (and pulse) above the clustered route pins — they stay prominent
+  // when zoomed out, while regular pins still show when zoomed in. Each is
+  // isolated so a failure can never break the core route map.
+  try {
+    setupFamousLayers();
+  } catch (e) {
+    console.error("Famous-ride layers failed to initialise; routes still work.", e);
+  }
   try {
     setupEventLayers();
   } catch (e) {
     console.error("Event layers failed to initialise; routes still work.", e);
   }
+  startPulse();
 
   mapReady = true;
   // The camera is already framed on the routes via the constructor's bounds;
   // no need to re-fit here (which caused a visible jump on load).
   wireInteractions();
+  try {
+    wireFamousInteractions();
+  } catch (e) {
+    console.error("Famous-ride interactions failed to wire.", e);
+  }
   try {
     wireEventInteractions();
   } catch (e) {
@@ -352,32 +358,20 @@ function centroid(coords) {
 // Either way the pin carries every member id so a click can offer a picker.
 const SAME_START_M = 50;
 function pointsFC(features) {
-  const groups = []; // { coord?, coords:[], ids:[], name, series }
-  const seriesByName = new Map(); // lowercased series -> group
+  const groups = []; // { coord, coords:[], ids:[], name }
   routeToPinId = new Map();
 
   for (const f of features) {
+    // Famous-ride routes live in their own (pulsing, always-on) source.
+    if ((f.properties.series || "").trim()) continue;
     const coord = f.properties.marker || f.geometry.coordinates[0];
     if (!coord) continue;
-    const series = (f.properties.series || "").trim();
-    if (series) {
-      const key = series.toLowerCase();
-      let g = seriesByName.get(key);
-      if (!g) {
-        g = { coords: [], ids: [], name: series, series };
-        seriesByName.set(key, g);
-        groups.push(g);
-      }
-      g.coords.push(coord);
-      g.ids.push(f.properties.id);
-    } else {
-      let g = groups.find((x) => !x.series && metersBetween(x.coord, coord) <= SAME_START_M);
-      if (!g) {
-        g = { coord, coords: [coord], ids: [], name: f.properties.name, series: "" };
-        groups.push(g);
-      }
-      g.ids.push(f.properties.id);
+    let g = groups.find((x) => metersBetween(x.coord, coord) <= SAME_START_M);
+    if (!g) {
+      g = { coord, coords: [coord], ids: [], name: f.properties.name };
+      groups.push(g);
     }
+    g.ids.push(f.properties.id);
   }
 
   const out = [];
@@ -386,15 +380,52 @@ function pointsFC(features) {
     for (const id of g.ids) routeToPinId.set(id, pinId);
     out.push({
       type: "Feature",
-      // Series pin sits at its routes' centre; a trailhead/solo pin at its start.
-      geometry: { type: "Point", coordinates: g.series ? centroid(g.coords) : g.coord },
+      geometry: { type: "Point", coordinates: g.coord },
       properties: {
         id: pinId,
         name: g.name,
         count: g.ids.length,
         ids: g.ids.join(","), // members, read on click to offer a picker
-        series: g.series || "",
-        kind: g.series ? "series" : "route",
+      },
+    });
+  }
+  return { type: "FeatureCollection", features: out };
+}
+
+// Famous-ride pins: one pulsing plum marker per famous ride, at the centre of
+// its routes. Always shown (not clustered, not filtered) so a well-known event
+// stays prominent even zoomed out. Carries its members + event metadata.
+function famousFC(features) {
+  const groups = new Map(); // lowercased name -> group
+  for (const f of features) {
+    const p = f.properties;
+    const series = (p.series || "").trim();
+    if (!series) continue;
+    const coord = p.marker || f.geometry.coordinates[0];
+    if (!coord) continue;
+    const key = series.toLowerCase();
+    let g = groups.get(key);
+    if (!g) {
+      const fr = p.famous_ride || {};
+      g = { name: series, coords: [], ids: [], location: fr.location || "", dates: fr.dates || "", url: fr.url || "" };
+      groups.set(key, g);
+    }
+    g.coords.push(coord);
+    g.ids.push(p.id);
+  }
+  const out = [];
+  for (const g of groups.values()) {
+    out.push({
+      type: "Feature",
+      geometry: { type: "Point", coordinates: centroid(g.coords) },
+      properties: {
+        id: "famous:" + g.name.toLowerCase(),
+        name: g.name,
+        count: g.ids.length,
+        ids: g.ids.join(","),
+        location: g.location,
+        dates: g.dates,
+        url: g.url,
       },
     });
   }
@@ -421,7 +452,7 @@ function wireInteractions() {
     if (ids.length <= 1) {
       selectRoute(ids[0] || props.id, true);
     } else {
-      showRouteChooser(ids, e.features[0].geometry.coordinates, props.series || "");
+      showRouteChooser(ids, e.features[0].geometry.coordinates);
     }
   });
 
@@ -435,13 +466,13 @@ function wireInteractions() {
   map.on("click", "route-count", (e) => {
     const props = e.features[0].properties;
     const ids = String(props.ids || props.id).split(",").filter(Boolean);
-    showRouteChooser(ids, e.features[0].geometry.coordinates, props.series || "");
+    showRouteChooser(ids, e.features[0].geometry.coordinates);
   });
 
   // Tap the bare map (not a pin/cluster/event/diary line) to dismiss the sheet.
   map.on("click", (e) => {
     if (!detailOpen) return;
-    const hitLayers = ["unclustered", "clusters", "event-hit", "diary-lines"].filter((l) =>
+    const hitLayers = ["unclustered", "clusters", "famous-hit", "event-hit", "diary-lines"].filter((l) =>
       map.getLayer(l)
     );
     const hits = hitLayers.length ? map.queryRenderedFeatures(e.point, { layers: hitLayers }) : [];
@@ -449,8 +480,77 @@ function wireInteractions() {
   });
 }
 
-// ---- Community Bush Ride event pins --------------------------------------
+// ---- Famous-ride pins (pulsing, own colour) ------------------------------
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function setupFamousLayers() {
+  map.addSource("famous-rides", { type: "geojson", data: famousFC(routeFeatures) });
+
+  // Pulsing plum ring — animated in startPulse (static under reduced motion).
+  map.addLayer({
+    id: "famous-pulse",
+    type: "circle",
+    source: "famous-rides",
+    paint: {
+      "circle-color": SERIES,
+      "circle-radius": reduceMotion ? 22 : 15,
+      "circle-opacity": reduceMotion ? 0.18 : 0.32,
+      "circle-stroke-width": 0,
+    },
+  });
+  // Filled plum core.
+  map.addLayer({
+    id: "famous-core",
+    type: "circle",
+    source: "famous-rides",
+    paint: {
+      "circle-radius": 11,
+      "circle-color": SERIES,
+      "circle-stroke-width": 2.5,
+      "circle-stroke-color": "#f4efe2",
+    },
+  });
+  // Route count on the core.
+  map.addLayer({
+    id: "famous-count",
+    type: "symbol",
+    source: "famous-rides",
+    filter: [">", ["get", "count"], 1],
+    layout: {
+      "text-field": ["to-string", ["get", "count"]],
+      "text-font": ["Noto Sans Regular"],
+      "text-size": 11,
+      "text-allow-overlap": true,
+      "text-ignore-placement": true,
+    },
+    paint: { "text-color": "#f4efe2" },
+  });
+  // Generous invisible hit target.
+  map.addLayer({
+    id: "famous-hit",
+    type: "circle",
+    source: "famous-rides",
+    paint: { "circle-radius": 22, "circle-color": SERIES, "circle-opacity": 0 },
+  });
+}
+
+function wireFamousInteractions() {
+  const layers = ["famous-hit", "famous-core", "famous-count"].filter((l) => map.getLayer(l));
+  if (!layers.length) return;
+  map.on("click", layers, (e) => {
+    const props = e.features[0].properties;
+    const ids = String(props.ids || "").split(",").filter(Boolean);
+    showRouteChooser(ids, e.features[0].geometry.coordinates, props.name || "", {
+      location: props.location || "",
+      dates: props.dates || "",
+      url: props.url || "",
+    });
+  });
+  map.on("mouseenter", layers, () => (map.getCanvas().style.cursor = "pointer"));
+  map.on("mouseleave", layers, () => (map.getCanvas().style.cursor = ""));
+}
+
+// ---- Community Bush Ride event pins --------------------------------------
 
 function setupEventLayers() {
   if (!eventFeatures.length) return;
@@ -523,8 +623,6 @@ function setupEventLayers() {
     source: "community-events",
     paint: { "circle-radius": 22, "circle-color": TERRACOTTA, "circle-opacity": 0 },
   });
-
-  startPulse();
 }
 
 // FeatureCollection for the event source (Point features, current status).
@@ -564,19 +662,26 @@ function makeFlagIcon() {
   return x.getImageData(0, 0, s, s);
 }
 
-// Pulse the outer ring: expand 14->28px and fade 0.35->0 over ~2s, looping.
-// Under reduced motion we leave the static ring set above and do nothing.
+// Pulse the outer rings of the event (terracotta) and famous-ride (plum) pins:
+// expand and fade over ~2s, looping. Under reduced motion the static rings set
+// on each layer stay and we do nothing.
 function startPulse() {
   if (reduceMotion) return;
-  if (!map.getLayer("event-pulse")) return;
+  const rings = [
+    { layer: "event-pulse", base: 14, grow: 14, peak: 0.35 },
+    { layer: "famous-pulse", base: 15, grow: 15, peak: 0.32 },
+  ];
   const PERIOD = 2000;
   const t0 = performance.now();
   (function frame(now) {
-    if (!map.getLayer("event-pulse")) return; // layer gone (e.g. teardown)
+    const live = rings.filter((r) => map.getLayer(r.layer));
+    if (!live.length) return; // both gone (e.g. teardown)
     if (!document.hidden) {
       const t = ((now - t0) % PERIOD) / PERIOD; // 0..1
-      map.setPaintProperty("event-pulse", "circle-radius", 14 + 14 * t);
-      map.setPaintProperty("event-pulse", "circle-opacity", 0.35 * (1 - t));
+      for (const r of live) {
+        map.setPaintProperty(r.layer, "circle-radius", r.base + r.grow * t);
+        map.setPaintProperty(r.layer, "circle-opacity", r.peak * (1 - t));
+      }
     }
     requestAnimationFrame(frame);
   })(t0);
@@ -637,20 +742,23 @@ function clearSelection() {
   selectedId = null;
 }
 
-// Several routes share a pin — an event/series (title set) or a shared trailhead
-// (no title). Pop a small picker so any of them can be opened. One route -> just
-// open it.
-function showRouteChooser(ids, lngLat, title) {
+// Several routes share a pin — a famous ride (title + meta set) or a shared
+// trailhead (no title). Pop a small picker so any of them can be opened. A lone
+// non-famous route just opens; a famous ride always shows the picker so its
+// event details surface.
+function showRouteChooser(ids, lngLat, title, meta) {
   const routes = ids.map((id) => routeById.get(id)).filter(Boolean);
-  if (routes.length <= 1) {
-    if (routes[0]) selectRoute(routes[0].properties.id, true);
+  if (!routes.length) return;
+  const isFamous = !!title;
+  if (routes.length === 1 && !isFamous) {
+    selectRoute(routes[0].properties.id, true);
     return;
   }
   if (routeChooserPopup) routeChooserPopup.remove();
 
   const wrap = document.createElement("div");
-  wrap.className = "route-chooser" + (title ? " route-chooser--event" : "");
-  if (title) {
+  wrap.className = "route-chooser" + (isFamous ? " route-chooser--event" : "");
+  if (isFamous) {
     const eyebrow = document.createElement("p");
     eyebrow.className = "route-chooser__eyebrow";
     eyebrow.textContent = "Famous ride";
@@ -660,10 +768,31 @@ function showRouteChooser(ids, lngLat, title) {
   head.className = "route-chooser__head";
   head.textContent = title || "Routes from here";
   wrap.appendChild(head);
+
+  // Famous-ride event details: location · dates, and a link to the event page.
+  const m = meta || {};
+  const where = [m.location, m.dates].filter(Boolean).join(" · ");
+  if (isFamous && where) {
+    const info = document.createElement("p");
+    info.className = "route-chooser__meta";
+    info.textContent = where;
+    wrap.appendChild(info);
+  }
+
   const sub = document.createElement("p");
   sub.className = "route-chooser__sub";
-  sub.textContent = `${routes.length} routes — tap to open`;
+  sub.textContent = `${routes.length} route${routes.length === 1 ? "" : "s"} — tap to open`;
   wrap.appendChild(sub);
+
+  if (isFamous && m.url) {
+    const link = document.createElement("a");
+    link.className = "route-chooser__eventlink";
+    link.href = m.url;
+    link.target = "_blank";
+    link.rel = "noopener";
+    link.textContent = "Event page ↗";
+    wrap.appendChild(link);
+  }
 
   for (const r of routes) {
     const p = r.properties;
@@ -693,7 +822,7 @@ function showRouteChooser(ids, lngLat, title) {
     closeButton: true,
     closeOnClick: true,
     maxWidth: "260px",
-    className: "route-chooser-popup" + (title ? " is-event" : ""),
+    className: "route-chooser-popup" + (isFamous ? " is-event" : ""),
     offset: 12,
   })
     .setLngLat(lngLat)
@@ -891,6 +1020,7 @@ function openDetail(feature) {
 function openEventDetail(feature) {
   detailMode = "event";
   els.detail.dataset.mode = "event";
+  els.detail.removeAttribute("data-famous"); // events aren't famous rides
   fillEventDetail(feature);
 
   // Show the linked route on the map (the sheet frames it). We reuse the
@@ -955,12 +1085,38 @@ function closeDetail() {
 
 // ---- Card fill (shared redesigned card for routes and events) ------------
 
+// Theme the route card as a "Famous Ride" (plum) and fill its event details.
+function setFamous(p, isFamous) {
+  if (isFamous) els.detail.dataset.famous = "1";
+  else els.detail.removeAttribute("data-famous");
+
+  const block = document.getElementById("detail-famous");
+  if (!block) return;
+  if (!isFamous) {
+    block.hidden = true;
+    return;
+  }
+  block.hidden = false;
+  const fr = p.famous_ride || {};
+  const where = [fr.location, fr.dates].filter(Boolean).join(" · ");
+  setText("detail-famous-where", where || String(p.series));
+  const link = document.getElementById("detail-famous-link");
+  if (fr.url) {
+    link.href = fr.url;
+    link.hidden = false;
+  } else {
+    link.hidden = true;
+  }
+}
+
 // Route detail. The route feature carries all the numbers itself.
 function fillDetail(feature) {
   const p = feature.properties;
+  const isFamous = !!String(p.series || "").trim();
   setCardHero(p.photo_url, p.name);
   setChip(p.surface);
-  setText("detail-eyebrow", "Community route");
+  setText("detail-eyebrow", isFamous ? "Famous Ride" : "Community route");
+  setFamous(p, isFamous);
   setText("detail-name", p.name || "");
   setPill(p.terrain_difficulty, p.distance_km, p.elevation_gain_m);
   setStats(p);
@@ -1529,7 +1685,12 @@ function onTransitionEndOnce(el, fn) {
 // ---- Results list + filter refresh --------------------------------------
 function refresh() {
   const filtered = applyFilters(routeFeatures);
-  if (mapReady) map.getSource("routes-points").setData(pointsFC(filtered));
+  if (mapReady) {
+    map.getSource("routes-points").setData(pointsFC(filtered));
+    // Famous rides always show (unfiltered) so a well-known event never vanishes.
+    const fam = map.getSource("famous-rides");
+    if (fam) fam.setData(famousFC(routeFeatures));
+  }
   renderResults(filtered);
   // If the selected route fell out of the filter, drop the selection and close
   // the detail surface. Event sheets are exempt — events aren't filtered, and

@@ -181,6 +181,13 @@
           <p id="detail-when" class="card__when only-event"></p>
           <p id="detail-vibe" class="card__vibe only-event"></p>
 
+          <!-- Famous-ride event details (routes only; shown when the route belongs
+               to a famous ride). Location · dates + a link to the event page. -->
+          <div id="detail-famous" class="card__famous only-route" hidden>
+            <p id="detail-famous-where" class="card__famous-where"></p>
+            <a id="detail-famous-link" class="card__famous-link" href="#" target="_blank" rel="noopener" hidden>Event page ↗</a>
+          </div>
+
           <!-- At-a-glance stat strip: the two numbers; the descriptors live in the pill. -->
           <div class="card__stats">
             <div class="card__stat"><span id="detail-distance" class="card__stat-val"></span><span class="card__stat-label">Distance</span></div>
