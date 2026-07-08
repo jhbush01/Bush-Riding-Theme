@@ -136,6 +136,7 @@ async function submit(request, env, cors) {
 /* ---------------- Public: approved routes ---------------- */
 async function routes(env, cors) {
   await ensureSubmissionsSchema(env);
+  await seedFamousEventsOnce(env); // promote known events to Famous Events (once)
   const { results } = await env.DB.prepare(
     `SELECT id, name, region, state, country, difficulty, surface, description, series,
             distance_km, elevation_gain_m, marker_lng, marker_lat, coords,
@@ -506,6 +507,49 @@ async function loadFamousList(env) {
   return results || [];
 }
 
+// One-time: promote the known multi-route events to Famous Events and tag their
+// routes. Every route in these sets is named "<Event> …", so we match by name.
+// Idempotent (only tags routes with no series yet; never overwrites the event's
+// location/dates), and guarded by a meta flag so it runs once. Location/dates
+// are left blank for the admin to fill in the moderation tab.
+const FAMOUS_SEED = [
+  { name: "Gravelista", like: "gravelista%" },
+  { name: "Clarkes Gambit", like: "clarkes gambit%" },
+  { name: "Noosa Enduro", like: "noosa enduro%" },
+];
+let famousSeeded = false; // in-memory short-circuit within a worker instance
+async function seedFamousEventsOnce(env) {
+  if (famousSeeded) return;
+  try {
+    await ensureMetaTable(env);
+    const done = await env.DB.prepare("SELECT value FROM meta WHERE key='famous_seeded_v1'").first();
+    if (done) {
+      famousSeeded = true;
+      return;
+    }
+    await ensureFamousTable(env);
+    await ensureSubmissionsSchema(env);
+    let tagged = 0;
+    for (const e of FAMOUS_SEED) {
+      const id = "fr-" + slug(e.name);
+      await env.DB.prepare(
+        `INSERT INTO famous_rides (id, name, location, dates, url, description, hero_key, hero_ref, created_at)
+         VALUES (?, ?, '', '', '', '', NULL, '', ?)
+         ON CONFLICT(id) DO NOTHING`
+      ).bind(id, e.name, new Date().toISOString()).run();
+      const r = await env.DB.prepare(
+        "UPDATE submissions SET series=? WHERE (series IS NULL OR series='') AND lower(name) LIKE ?"
+      ).bind(e.name, e.like).run();
+      tagged += (r.meta && r.meta.changes) || 0;
+    }
+    await env.DB.prepare("INSERT OR REPLACE INTO meta (key, value) VALUES ('famous_seeded_v1', '1')").run();
+    famousSeeded = true;
+    if (tagged > 0) await triggerRebuild(env);
+  } catch (_) {
+    /* best-effort — never block the request */
+  }
+}
+
 // name -> row, for enriching routes and for the route-edit dropdown.
 async function famousByName(env) {
   const map = new Map();
@@ -666,6 +710,7 @@ function authChallenge() {
 async function adminPage(request, env) {
   if (!requireAuth(request, env)) return authChallenge();
   await ensureSubmissionsSchema(env);
+  await seedFamousEventsOnce(env); // ensure the known Famous Events exist + tagged
   const { results } = await env.DB.prepare(
     `SELECT id, status, name, region, state, country, difficulty, surface, distance_km,
             elevation_gain_m, description, series, contributor, contributor_url, email, coords,
