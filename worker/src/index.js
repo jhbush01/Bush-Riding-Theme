@@ -29,7 +29,7 @@ const STATES = ["QLD", "NSW", "VIC", "TAS", "SA", "WA", "NT", "ACT"];
 // Add columns introduced after the original schema. ALTER fails once the column
 // exists, so each is best-effort — cheap and idempotent.
 async function ensureSubmissionsSchema(env) {
-  for (const col of ["state TEXT", "contributor_url TEXT", "series TEXT"]) {
+  for (const col of ["state TEXT", "contributor_url TEXT", "series TEXT", "review_note TEXT"]) {
     try {
       await env.DB.prepare(`ALTER TABLE submissions ADD COLUMN ${col}`).run();
     } catch (_) {
@@ -669,7 +669,7 @@ async function adminPage(request, env) {
   const { results } = await env.DB.prepare(
     `SELECT id, status, name, region, state, country, difficulty, surface, distance_km,
             elevation_gain_m, description, series, contributor, contributor_url, email, coords,
-            photo_key, created_at
+            photo_key, review_note, created_at
        FROM submissions ORDER BY (status='pending') DESC, created_at DESC`
   ).all();
   const events = await loadEventList(env);
@@ -684,9 +684,11 @@ async function adminPage(request, env) {
 
 async function adminAction(request, env) {
   if (!requireAuth(request, env)) return authChallenge();
+  await ensureSubmissionsSchema(env);
   const form = await request.formData();
   const id = (form.get("id") || "").toString();
   const action = (form.get("action") || "").toString();
+  const note = (form.get("note") || "").toString().trim().slice(0, 1000);
   const map = { approve: "published", reject: "rejected", pending: "pending" };
   if (action === "remove") {
     const row = await env.DB.prepare("SELECT gpx_key, photo_key FROM submissions WHERE id=?").bind(id).first();
@@ -696,8 +698,10 @@ async function adminAction(request, env) {
     }
     await env.DB.prepare("DELETE FROM submissions WHERE id=?").bind(id).run();
   } else if (map[action]) {
-    await env.DB.prepare("UPDATE submissions SET status=?, reviewed_at=? WHERE id=?")
-      .bind(map[action], new Date().toISOString(), id)
+    // review_note is the message the contributor sees (esp. on rejection).
+    // Approving/pending with a blank note clears any stale rejection message.
+    await env.DB.prepare("UPDATE submissions SET status=?, reviewed_at=?, review_note=? WHERE id=?")
+      .bind(map[action], new Date().toISOString(), note, id)
       .run();
   }
   // The published set changed — rebuild the static route pages.
@@ -1009,6 +1013,7 @@ function adminHtml(rows, events = [], routeOpts = [], famous = [], famousNames =
         <p class="by">by ${esc(r.contributor) || "—"}${r.contributor_url ? ` · <a href="${esc(r.contributor_url)}" target="_blank" rel="noopener">link</a>` : ""} · ${esc(r.email)} · ${esc((r.created_at || "").slice(0, 10))}</p>
         <form method="POST" action="/admin/action" class="actions">
           <input type="hidden" name="id" value="${esc(r.id)}" />
+          <input name="note" class="note-input" value="${esc(r.review_note)}" placeholder="Note to contributor (shown on rejection)" />
           <a class="link" href="/file/gpx/${esc(r.id)}.gpx">view gpx</a>
           ${r.status !== "published" ? `<button name="action" value="approve" class="ok">Approve</button>` : ""}
           ${r.status !== "rejected" ? `<button name="action" value="reject">Reject</button>` : ""}
@@ -1089,6 +1094,7 @@ function adminHtml(rows, events = [], routeOpts = [], famous = [], famousNames =
   .desc{margin:0 0 6px;font-size:13px}
   .by{margin:0 0 10px;color:#8a8068;font-size:12px}
   .actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .note-input{flex:1 1 220px;min-width:180px;font:inherit;font-size:13px;padding:6px 8px;border:1px solid #d8cfb8;border-radius:3px}
   .actions .inline{display:flex;gap:8px;align-items:flex-end}
   .mini{display:flex;flex-direction:column;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:#8a8068;gap:3px}
   .mini input{font:inherit;font-size:13px;padding:5px 7px;border:1px solid #d8cfb8;border-radius:3px;width:80px}

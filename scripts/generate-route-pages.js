@@ -838,7 +838,7 @@ function eventsPage(events, routeById) {
 
   const body = `
 ${crumbs(crumbItems)}
-<h1 class="rp-title">Community Bush Rides</h1>
+<h1 class="rp-title">Bush Events</h1>
 <p class="rp-intro">${esc(EVENTS_INTRO)}</p>
 ${bodyInner}`;
   return head({

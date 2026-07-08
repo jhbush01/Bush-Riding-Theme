@@ -470,10 +470,10 @@ function wireInteractions() {
     showRouteChooser(ids, e.features[0].geometry.coordinates);
   });
 
-  // Tap the bare map (not a pin/cluster/event/diary line) to dismiss the sheet.
+  // Tap the bare map (not a pin/cluster/event) to dismiss the sheet.
   map.on("click", (e) => {
     if (!detailOpen) return;
-    const hitLayers = ["unclustered", "clusters", "famous-hit", "event-hit", "diary-lines"].filter((l) =>
+    const hitLayers = ["unclustered", "clusters", "famous-hit", "event-hit"].filter((l) =>
       map.getLayer(l)
     );
     const hits = hitLayers.length ? map.queryRenderedFeatures(e.point, { layers: hitLayers }) : [];

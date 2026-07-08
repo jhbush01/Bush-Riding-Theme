@@ -1,16 +1,19 @@
-// Bush Riding Map — personal ride diary (additive). Does not modify map.js or
-// filters.js; it attaches via the window.brmMap / "brm:mapready" hook.
+// Bush Riding Map — contributor account surface (additive).
+// Sign in / create an account, and see the routes you've submitted with their
+// moderation status (Pending approval / Rejected — see comments / Approved).
+// Personal ride logging, the "ink the map" animation and the ochre ride lines
+// were removed — Strava / RideWithGPS cover a personal activity diary far
+// better. This is the first step toward contributor / ambassador tooling.
+//
+// Reuses the same auth as reviews.js via the shared window.brmAuth surface.
 
 const API = (window.BRM_CONFIG?.diaryApi || "").replace(/\/$/, "");
-const OCHRE = "#C4956A";
-const COMMUNITY_LAYER = "selected-route-line"; // diary lines go below this
 
-let map = null;
 let currentEmail = null;
 let currentUsername = null;
 let currentIsAdmin = false;
 let authMode = "login";
-let cardRideId = null;
+
 // Callbacks fired whenever sign-in state changes (used by reviews.js).
 const authListeners = [];
 function notifyAuth() {
@@ -36,9 +39,9 @@ window.brmAuth = {
     if (typeof cb === "function") authListeners.push(cb);
   },
 };
-// Bearer token (header auth). Stored in localStorage so the session survives
-// refreshes; sent as Authorization. Avoids the cross-subdomain cookie that
-// iOS Safari blocks.
+
+// Bearer token (header auth), stored in localStorage so the session survives
+// refreshes. Sent as ?token= to keep requests preflight-free.
 let token = null;
 try {
   token = localStorage.getItem("brd_token") || null;
@@ -58,26 +61,15 @@ function withToken(url) {
   if (!token) return url;
   return url + (url.includes("?") ? "&" : "?") + "token=" + encodeURIComponent(token);
 }
-const chips = { weather: null, surface: null, vibe: null };
-const EMPTY_FC = { type: "FeatureCollection", features: [] };
-
-/* ---------------- boot ---------------- */
-if (window.brmMapReady) init();
-else window.addEventListener("brm:mapready", init, { once: true });
 
 async function init() {
-  map = window.brmMap;
   wireUI();
-  if (!API) return; // diary not configured — "My Rides" will just say so
-  if (await checkSession()) await loadDiaryLayer();
+  if (!API) return; // account API not configured
+  await checkSession();
 }
 
 /* ---------------- fetch helper ---------------- */
 async function api(path, opts = {}) {
-  // Keep every request "simple" (no CORS preflight): token in the query, and
-  // string bodies sent as text/plain. Preflight to the diary domain was failing
-  // in all browsers; the community worker works precisely because it never
-  // preflights.
   const headers = { ...(opts.headers || {}) };
   if (typeof opts.body === "string" && !headers["Content-Type"]) headers["Content-Type"] = "text/plain";
   let res;
@@ -91,11 +83,9 @@ async function api(path, opts = {}) {
   try {
     data = JSON.parse(text);
   } catch {
-    /* non-JSON response */
+    /* non-JSON */
   }
   if (!res.ok) {
-    // Surface the real reason instead of a generic code, so failures are
-    // diagnosable (worker error message, or the raw body if it isn't JSON).
     const detail = (data && data.error) || text.slice(0, 180) || "(empty body)";
     throw new Error(`${res.status}: ${detail}`);
   }
@@ -123,11 +113,13 @@ async function checkSession() {
 /* ---------------- element refs ---------------- */
 const $ = (id) => document.getElementById(id);
 
+let subsTab = "pending";
+
 function wireUI() {
-  // My Rides nav button
+  // Account nav button
   $("my-rides-btn").addEventListener("click", () => {
-    if (!API) return toast("Diary isn't available right now.");
-    if (currentEmail) openDiary();
+    if (!API) return toast("Accounts aren't available right now.");
+    if (currentEmail) openSubmissions();
     else openAuth();
   });
 
@@ -141,29 +133,16 @@ function wireUI() {
   // Username prompt
   $("username-form").addEventListener("submit", submitUsername);
 
-  // Diary panel
-  $("diary-close").addEventListener("click", () => hide("diary-panel"));
-  $("diary-add").addEventListener("click", openUpload);
-  $("diary-signout").addEventListener("click", signOut);
-
-  // Upload modal
-  document.querySelectorAll("[data-upload-close]").forEach((el) => el.addEventListener("click", closeUpload));
-  $("upload-gpx").addEventListener("change", autoTitle);
-  $("upload-form").addEventListener("submit", submitUpload);
-  document.querySelectorAll(".chips").forEach((group) =>
-    group.querySelectorAll(".chip").forEach((btn) =>
-      btn.addEventListener("click", () => toggleChip(group.dataset.chipGroup, btn))
-    )
+  // Submissions panel
+  $("subs-close").addEventListener("click", () => hide("submissions-panel"));
+  $("subs-signout").addEventListener("click", signOut);
+  document.querySelectorAll("[data-subs-tab]").forEach((el) =>
+    el.addEventListener("click", () => setSubsTab(el.dataset.subsTab))
   );
-
-  // Memory card
-  $("card-close").addEventListener("click", () => hide("memory-card"));
-  $("card-delete").addEventListener("click", deleteCurrent);
-  $("card-edit").addEventListener("click", toggleEdit);
 
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Escape") return;
-    ["auth-modal", "upload-modal"].forEach((id) => $(id).classList.remove("is-open"));
+    ["auth-modal"].forEach((id) => $(id) && $(id).classList.remove("is-open"));
   });
 }
 
@@ -185,7 +164,6 @@ function setAuthMode(mode) {
   $("tab-register").classList.toggle("is-active", mode === "register");
   $("auth-submit").textContent = mode === "register" ? "Create account" : "Sign in";
   $("auth-password").setAttribute("autocomplete", mode === "register" ? "new-password" : "current-password");
-  // Username is required only when creating an account.
   const uField = $("auth-username");
   uField.hidden = mode !== "register";
   uField.required = mode === "register";
@@ -212,9 +190,8 @@ async function submitAuth(e) {
     closeAuth();
     notifyAuth();
     // "Prompt on next sign-in": older accounts have no username yet.
-    if (r.needsUsername) openUsername();
-    else openDiary();
-    await loadDiaryLayer();
+    if (r.needsUsername) openUsername(() => openSubmissions());
+    else openSubmissions();
   } catch (err) {
     $("auth-error").textContent = err.message || "Something went wrong.";
     $("auth-error").hidden = false;
@@ -227,16 +204,12 @@ function signOut() {
   currentEmail = null;
   currentUsername = null;
   currentIsAdmin = false;
-  if (map && map.getSource("diary-rides")) map.getSource("diary-rides").setData(EMPTY_FC);
-  const stats = $("diary-stats");
-  if (stats) stats.hidden = true;
-  hide("diary-panel");
-  hide("memory-card");
+  hide("submissions-panel");
   notifyAuth();
 }
 
 /* ---------------- username prompt (backfill / set) ---------------- */
-let afterUsername = null; // optional callback once a username is saved
+let afterUsername = null;
 function openUsername(onDone) {
   afterUsername = onDone || null;
   $("username-error").hidden = true;
@@ -272,367 +245,127 @@ async function submitUsername(e) {
   }
 }
 
-/* ---------------- diary panel + layer ---------------- */
-function openDiary() {
-  show("diary-panel");
+/* ---------------- My submissions ---------------- */
+const STAGE = {
+  pending: { label: "Pending approval", tabEmpty: "Nothing waiting on review right now." },
+  rejected: { label: "Rejected — see comments", tabEmpty: "No rejected submissions." },
+  approved: { label: "Approved", tabEmpty: "No approved routes yet." },
+};
+
+let submissions = [];
+
+async function openSubmissions() {
+  show("submissions-panel");
+  setSubsTab(subsTab);
+  await loadSubmissions();
 }
 
-async function loadDiaryLayer() {
-  if (!map) return;
-  let fc;
+async function loadSubmissions() {
+  const list = $("subs-list");
+  const empty = $("subs-empty");
+  empty.hidden = false;
+  empty.textContent = "Loading…";
+  list.innerHTML = "";
   try {
-    fc = await api("/rides");
+    const r = await api("/my-submissions");
+    submissions = Array.isArray(r.items) ? r.items : [];
   } catch (err) {
-    toast("Couldn't load your rides.");
+    submissions = [];
+    empty.textContent = "Couldn't load your submissions.";
     return;
   }
-  if (map.getSource("diary-rides")) {
-    map.getSource("diary-rides").setData(fc);
-  } else {
-    map.addSource("diary-rides", { type: "geojson", data: fc });
-    const before = map.getLayer(COMMUNITY_LAYER) ? COMMUNITY_LAYER : undefined;
-    map.addLayer(
-      {
-        id: "diary-lines",
-        type: "line",
-        source: "diary-rides",
-        layout: { "line-cap": "round", "line-join": "round" },
-        paint: { "line-color": OCHRE, "line-width": 2.5 },
-      },
-      before
-    );
-    map.on("click", "diary-lines", (e) => openCard(e.features[0].properties.id));
-    map.on("mouseenter", "diary-lines", () => (map.getCanvas().style.cursor = "pointer"));
-    map.on("mouseleave", "diary-lines", () => (map.getCanvas().style.cursor = ""));
-  }
-  renderList(fc.features || []);
-  loadStats();
+  updateCounts();
+  renderSubs();
 }
 
-async function loadStats() {
-  const el = $("diary-stats");
-  if (!el) return;
-  try {
-    const s = await api("/rides/stats");
-    if (!s || !s.total_rides) {
-      el.hidden = true;
-      return;
-    }
-    $("stat-rides").textContent = s.total_rides;
-    $("stat-distance").textContent = `${s.total_distance_km} km`;
-    $("stat-elevation").textContent = `${s.total_elevation_m} m`;
-    el.hidden = false;
-  } catch {
-    el.hidden = true; // non-fatal — the list still shows
+function updateCounts() {
+  for (const stage of Object.keys(STAGE)) {
+    const n = submissions.filter((s) => s.status === stage).length;
+    const el = document.querySelector(`.subs-tab__n[data-count="${stage}"]`);
+    if (el) el.textContent = String(n);
   }
 }
 
-function renderList(features) {
-  const list = $("diary-list");
+function setSubsTab(stage) {
+  subsTab = STAGE[stage] ? stage : "pending";
+  document.querySelectorAll("[data-subs-tab]").forEach((el) =>
+    el.classList.toggle("is-active", el.dataset.subsTab === subsTab)
+  );
+  renderSubs();
+}
+
+function renderSubs() {
+  const list = $("subs-list");
+  const empty = $("subs-empty");
+  if (!list) return;
   list.innerHTML = "";
-  $("diary-empty").hidden = features.length > 0;
-  features.forEach((f) => {
-    const p = f.properties;
-    const li = document.createElement("li");
-    li.className = "ritem";
-    li.innerHTML = `<p class="ritem__date"></p><p class="ritem__title"></p><p class="ritem__meta"></p>`;
-    li.querySelector(".ritem__date").textContent = fmtDate(p.recorded_at);
-    li.querySelector(".ritem__title").textContent = p.title || "Untitled ride";
-    li.querySelector(".ritem__meta").textContent = `${p.distance_km} km`;
-    li.addEventListener("click", () => openCard(p.id));
-    list.appendChild(li);
-  });
-}
-
-/* ---------------- upload ---------------- */
-function openUpload() {
-  $("upload-form").reset();
-  chips.weather = chips.surface = chips.vibe = null;
-  document.querySelectorAll(".chip.is-active").forEach((c) => c.classList.remove("is-active"));
-  $("upload-error").hidden = true;
-  $("upload-modal").classList.add("is-open");
-  $("upload-modal").setAttribute("aria-hidden", "false");
-}
-function closeUpload() {
-  $("upload-modal").classList.remove("is-open");
-  $("upload-modal").setAttribute("aria-hidden", "true");
-}
-function toggleChip(group, btn) {
-  const val = btn.dataset.chip;
-  const groupEl = btn.closest(".chips");
-  const active = btn.classList.contains("is-active");
-  groupEl.querySelectorAll(".chip").forEach((c) => c.classList.remove("is-active"));
-  if (active) {
-    chips[group] = null;
-  } else {
-    btn.classList.add("is-active");
-    chips[group] = val;
+  const items = submissions.filter((s) => s.status === subsTab);
+  if (!items.length) {
+    empty.hidden = false;
+    empty.textContent = STAGE[subsTab].tabEmpty;
+    return;
   }
-}
-async function autoTitle() {
-  const file = $("upload-gpx").files[0];
-  if (!file) return;
-  let name = "";
-  try {
-    const text = await file.text();
-    const m = text.match(/<name>([^<]+)<\/name>/);
-    if (m) name = m[1].trim();
-  } catch {
-    /* ignore */
-  }
-  if (!name) name = file.name.replace(/\.gpx$/i, "").replace(/[-_]+/g, " ").trim();
-  if (name && !$("upload-title-input").value) $("upload-title-input").value = name;
-}
-async function submitUpload(e) {
-  e.preventDefault();
-  const btn = $("upload-submit");
-  btn.disabled = true;
-  btn.textContent = "Inking…";
-  $("upload-error").hidden = true;
-  try {
-    const fd = new FormData();
-    fd.append("gpx", $("upload-gpx").files[0]);
-    fd.append("title", $("upload-title-input").value.trim());
-    fd.append("note", $("upload-note").value.trim());
-    fd.append("companions", $("upload-companions").value.trim());
-    if (chips.weather) fd.append("weather", chips.weather);
-    if (chips.surface) fd.append("surface", chips.surface);
-    if (chips.vibe) fd.append("vibe", chips.vibe);
-    if ($("upload-photo").files[0]) fd.append("photo", $("upload-photo").files[0]);
-
-    const ride = await api("/rides", { method: "POST", body: fd });
-    closeUpload();
-    // Ink on a clear map so the draw-on is actually visible, THEN open the
-    // rides drawer (which on a phone covers most of the screen). If there's no
-    // geometry the animation no-ops and we fall straight through to the panel.
-    inkAnimation(ride.geometry, async () => {
-      await loadDiaryLayer();
-      show("diary-panel");
-    });
-  } catch (err) {
-    $("upload-error").textContent = err.message || "Upload failed.";
-    $("upload-error").hidden = false;
-  } finally {
-    btn.disabled = false;
-    btn.textContent = "Ink the Map";
+  empty.hidden = true;
+  for (const s of items) {
+    list.appendChild(subItem(s));
   }
 }
 
-/* ---------------- ink animation (cinematic draw-on) ----------------
-   Reveal the ride by *growing* the line one frame at a time: each frame we
-   re-set the source to the coordinates from the start up to the current head.
-   This animates on every MapLibre version (line-trim-offset wasn't reliably
-   animatable here, so the line just appeared all at once). The camera rides
-   along with the head so you relive the ride: zoom to the start → follow the
-   inking head → pull back to the whole route. */
-function inkAnimation(geometry, done) {
-  const finish = () => done && done();
-  if (!map || !geometry || !geometry.coordinates || geometry.coordinates.length < 2) {
-    return finish();
-  }
-  const coords = geometry.coordinates;
+function subItem(s) {
+  const li = document.createElement("li");
+  li.className = "subs-item subs-item--" + s.status;
 
-  // Cumulative along-route distance, used to walk the head at a steady pace.
-  const cum = [0];
-  for (let i = 1; i < coords.length; i++) cum.push(cum[i - 1] + segKm(coords[i - 1], coords[i]));
-  const totalKm = cum[cum.length - 1] || 0;
+  const name = document.createElement("p");
+  name.className = "subs-item__name";
+  name.textContent = s.name || "Untitled route";
+  li.appendChild(name);
 
-  const lineFeature = (cs) => ({
-    type: "Feature",
-    geometry: { type: "LineString", coordinates: cs },
-    properties: {},
-  });
-  const seed = lineFeature([coords[0], coords[0]]); // valid 2-point start
-  if (map.getSource("diary-ink")) map.getSource("diary-ink").setData(seed);
-  else map.addSource("diary-ink", { type: "geojson", data: seed });
+  const meta = document.createElement("p");
+  meta.className = "subs-item__meta";
+  const bits = [
+    [s.region, s.state].filter(Boolean).join(", "),
+    s.distance_km != null ? `${Math.round(s.distance_km)} km` : "",
+    s.created_at ? "submitted " + fmtDate(s.created_at) : "",
+  ].filter(Boolean);
+  meta.textContent = bits.join(" · ");
+  li.appendChild(meta);
 
-  const before = map.getLayer(COMMUNITY_LAYER) ? COMMUNITY_LAYER : undefined;
-  if (!map.getLayer("diary-ink")) {
-    map.addLayer(
-      {
-        id: "diary-ink",
-        type: "line",
-        source: "diary-ink",
-        layout: { "line-cap": "round", "line-join": "round" },
-        paint: { "line-color": OCHRE, "line-width": 3.5 },
-      },
-      before
-    );
+  const badge = document.createElement("span");
+  badge.className = "subs-item__badge subs-item__badge--" + s.status;
+  badge.textContent = STAGE[s.status] ? STAGE[s.status].label : s.status;
+  li.appendChild(badge);
+
+  if (s.status === "rejected" && s.note) {
+    const note = document.createElement("p");
+    note.className = "subs-item__note";
+    note.textContent = s.note;
+    li.appendChild(note);
   }
 
-  const bounds = boundsOf(coords);
-  // Pace the reveal to the ride: longer rides take longer to ink. ~2.75s/km,
-  // clamped so a short loop still feels deliberate and an epic doesn't drag.
-  // Deliberately slow (~5× a brisk draw-on) so you can actually watch the ride
-  // retrace itself and the basemap keeps up under the moving camera.
-  const DUR = Math.max(22500, Math.min(55000, 17500 + totalKm * 2750));
-  // Follow a little closer than the whole-route framing so there's a sense of
-  // travel, but never so close we lose the thread on a big ride.
-  const fitZoom = (() => {
-    try {
-      return map.cameraForBounds(bounds, { padding: 60 }).zoom;
-    } catch {
-      return map.getZoom();
-    }
-  })();
-  const followZoom = Math.max(9, Math.min(14, fitZoom + 1.2));
-
-  // Phase 1: glide to the start. Then phase 2 inks while the camera follows.
-  map.once("moveend", runInk);
-  map.easeTo({ center: coords[0], zoom: followZoom, duration: 900 });
-  // Safety net: if moveend never fires (interrupted move), start anyway.
-  const kick = setTimeout(runInk, 1100);
-
-  let started = false;
-  function runInk() {
-    if (started) return;
-    started = true;
-    clearTimeout(kick);
-    const src = map.getSource("diary-ink");
-    const start = performance.now();
-    (function frame(now) {
-      const lin = Math.min(1, (now - start) / DUR);
-      const t = easeInOut(lin);
-      const drawn = sliceAt(coords, cum, totalKm, t);
-      if (src) src.setData(lineFeature(drawn));
-      map.setCenter(drawn[drawn.length - 1]); // camera rides the inking head
-      if (lin < 1) return requestAnimationFrame(frame);
-      // Phase 3: pull back to reveal the whole inked route, then hand off.
-      let ended = false;
-      const cleanup = () => {
-        if (ended) return;
-        ended = true;
-        if (map.getLayer("diary-ink")) map.removeLayer("diary-ink");
-        if (map.getSource("diary-ink")) map.removeSource("diary-ink");
-        finish();
-      };
-      // Whichever comes first — moveend, or a timeout in case fitBounds is a
-      // no-op and never fires moveend (otherwise the ride list wouldn't refresh).
-      map.once("moveend", cleanup);
-      setTimeout(cleanup, 1600);
-      map.fitBounds(bounds, { padding: 70, duration: 1300, maxZoom: 13 });
-    })(start);
+  if (s.status === "approved") {
+    const link = document.createElement("a");
+    link.className = "subs-item__link";
+    link.href = routePageUrl(s);
+    link.target = "_blank";
+    link.rel = "noopener";
+    link.textContent = "View route page ↗";
+    li.appendChild(link);
   }
+  return li;
 }
 
-// Equirectangular segment length in km — plenty accurate for local pacing.
-function segKm(a, b) {
-  const R = 6371;
-  const dLat = ((b[1] - a[1]) * Math.PI) / 180;
-  const dLng = (((b[0] - a[0]) * Math.PI) / 180) * Math.cos(((a[1] + b[1]) / 2 * Math.PI) / 180);
-  return Math.sqrt(dLat * dLat + dLng * dLng) * R;
+// Mirror of the route-page slug rules (see map.js / the generator).
+function slugify(s) {
+  return String(s || "")
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
-// Coordinates from the start up to along-route fraction `frac` (0..1), with the
-// final vertex interpolated so the head advances smoothly between GPX points.
-// Always returns at least two points so it's a valid LineString.
-function sliceAt(coords, cum, total, frac) {
-  if (frac <= 0 || !total) return [coords[0], coords[0]];
-  if (frac >= 1) return coords.slice();
-  const target = frac * total;
-  const out = [coords[0]];
-  let i = 1;
-  while (i < cum.length && cum[i] < target) {
-    out.push(coords[i]);
-    i++;
-  }
-  if (i < coords.length) {
-    const span = cum[i] - cum[i - 1] || 1e-9;
-    const r = (target - cum[i - 1]) / span;
-    const a = coords[i - 1], b = coords[i];
-    out.push([a[0] + (b[0] - a[0]) * r, a[1] + (b[1] - a[1]) * r]);
-  }
-  if (out.length < 2) out.push(out[out.length - 1]);
-  return out;
-}
-function boundsOf(coords) {
-  let minX = 180, minY = 90, maxX = -180, maxY = -90;
-  for (const c of coords) {
-    minX = Math.min(minX, c[0]);
-    minY = Math.min(minY, c[1]);
-    maxX = Math.max(maxX, c[0]);
-    maxY = Math.max(maxY, c[1]);
-  }
-  return [[minX, minY], [maxX, maxY]];
-}
-function easeInOut(t) {
-  return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-}
-
-/* ---------------- memory card ---------------- */
-async function openCard(id) {
-  let ride;
-  try {
-    ride = await api("/rides/" + id);
-  } catch (err) {
-    return toast("Couldn't open that ride.");
-  }
-  cardRideId = id;
-  exitEdit();
-  const photo = $("card-photo");
-  photo.alt = ride.title || "";
-  setProtectedImage(photo, ride.photo_url);
-  $("card-title").textContent = ride.title || "Untitled ride";
-  $("card-date").textContent = fmtDate(ride.recorded_at);
-  $("card-distance").textContent = `${ride.distance_km} km`;
-  $("card-elevation").textContent = `${ride.elevation_m} m`;
-  $("card-note").textContent = ride.note || "";
-  $("card-companions").textContent = ride.companions ? "Rode with " + ride.companions : "";
-  const chipWrap = $("card-chips");
-  chipWrap.innerHTML = "";
-  [ride.weather, ride.surface, ride.vibe].filter(Boolean).forEach((v) => {
-    const span = document.createElement("span");
-    span.className = "card-chip";
-    span.textContent = cap(v);
-    chipWrap.appendChild(span);
-  });
-  $("card-title").dataset.raw = ride.title || "";
-  $("card-note").dataset.raw = ride.note || "";
-  show("memory-card");
-}
-
-function toggleEdit() {
-  if (editing()) saveEdit();
-  else enterEdit();
-}
-function editing() {
-  return $("memory-card").classList.contains("is-editing");
-}
-function enterEdit() {
-  const card = $("memory-card");
-  card.classList.add("is-editing");
-  $("card-edit").textContent = "Save";
-  $("card-title").innerHTML = `<input id="edit-title" class="field-input" type="text" maxlength="120" />`;
-  $("edit-title").value = $("card-title").dataset.raw;
-  $("card-note").innerHTML = `<textarea id="edit-note" class="field-input" rows="3" maxlength="2000"></textarea>`;
-  $("edit-note").value = $("card-note").dataset.raw;
-}
-function exitEdit() {
-  $("memory-card").classList.remove("is-editing");
-  $("card-edit").textContent = "Edit";
-}
-async function saveEdit() {
-  const title = $("edit-title") ? $("edit-title").value.trim() : undefined;
-  const note = $("edit-note") ? $("edit-note").value.trim() : undefined;
-  try {
-    await api("/rides/" + cardRideId + "/update", {
-      method: "POST",
-      body: JSON.stringify({ title, note }),
-    });
-    await openCard(cardRideId); // re-render read-only
-    await loadDiaryLayer();
-  } catch (err) {
-    toast(err.message || "Couldn't save.");
-  }
-}
-async function deleteCurrent() {
-  if (!cardRideId || !confirm("Delete this ride? This can't be undone.")) return;
-  try {
-    await api("/rides/" + cardRideId + "/delete", { method: "POST" });
-    hide("memory-card");
-    await loadDiaryLayer();
-  } catch (err) {
-    toast(err.message || "Couldn't delete.");
-  }
+function routePageUrl(s) {
+  const st = slugify(s.state) || "au";
+  const rg = slugify(s.region) || "other";
+  return `/routes/${st}/${rg}/${s.id}`;
 }
 
 /* ---------------- small helpers ---------------- */
@@ -649,29 +382,6 @@ function fmtDate(iso) {
   const d = new Date(iso);
   return isNaN(d) ? "" : d.toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" });
 }
-function cap(s) {
-  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
-}
-// Photos are auth-protected, and <img src> can't send the Bearer header — so
-// fetch the image with the header and show it via an object URL.
-async function setProtectedImage(imgEl, url) {
-  imgEl.hidden = true;
-  if (imgEl._url) {
-    URL.revokeObjectURL(imgEl._url);
-    imgEl._url = null;
-  }
-  if (!url) return;
-  try {
-    const res = await fetch(withToken(url)); // token in query (no preflight)
-    if (!res.ok) return;
-    const blob = await res.blob();
-    imgEl._url = URL.createObjectURL(blob);
-    imgEl.src = imgEl._url;
-    imgEl.hidden = false;
-  } catch {
-    /* leave hidden */
-  }
-}
 function toast(msg) {
   let t = $("brm-toast");
   if (!t) {
@@ -685,3 +395,7 @@ function toast(msg) {
   clearTimeout(t._timer);
   t._timer = setTimeout(() => t.classList.remove("is-show"), 3000);
 }
+
+/* ---------------- boot (last, so all consts above are initialised) ---------- */
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init, { once: true });
+else init();

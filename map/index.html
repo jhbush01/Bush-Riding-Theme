@@ -86,7 +86,7 @@
         <p class="sidebar__sub">Explore more with our curated gravel routes and events</p>
         <div class="sidebar__nav">
           <a class="sidebar__submit" href="/submit">+ Submit a route</a>
-          <button type="button" id="my-rides-btn" class="sidebar__myrides">My Rides</button>
+          <button type="button" id="my-rides-btn" class="sidebar__myrides">My Submissions</button>
         </div>
       </header>
 
@@ -318,7 +318,7 @@
       <div class="modal__backdrop" data-auth-close></div>
       <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="auth-title">
         <button class="modal__close" data-auth-close aria-label="Close">&times;</button>
-        <h2 id="auth-title" class="modal__title">Your ride diary</h2>
+        <h2 id="auth-title" class="modal__title">Your account</h2>
         <div class="tabs" role="tablist">
           <button class="tab is-active" id="tab-login" data-auth-tab="login">Sign in</button>
           <button class="tab" id="tab-register" data-auth-tab="register">Create account</button>
@@ -384,97 +384,24 @@
       <img id="lightbox-img" class="lightbox__img" alt="" />
     </div>
 
-    <!-- ============ Diary: upload modal ============ -->
-    <div id="upload-modal" class="modal" aria-hidden="true">
-      <div class="modal__backdrop" data-upload-close></div>
-      <div class="modal__dialog modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="upload-title">
-        <button class="modal__close" data-upload-close aria-label="Close">&times;</button>
-        <h2 id="upload-title" class="modal__title">Ink a ride</h2>
-        <form id="upload-form" class="modal__form">
-          <label class="field"><span class="field__label">GPX file *</span>
-            <input id="upload-gpx" name="gpx" type="file" accept=".gpx,application/gpx+xml" required />
-          </label>
-          <label class="field"><span class="field__label">Ride name *</span>
-            <input id="upload-title-input" name="title" class="field-input" type="text" maxlength="120" required />
-          </label>
-          <label class="field"><span class="field__label">Note</span>
-            <textarea id="upload-note" name="note" class="field-input" rows="2" maxlength="2000" placeholder="How was it?"></textarea>
-          </label>
-          <div class="field">
-            <span class="field__label">Weather</span>
-            <div class="chips" data-chip-group="weather">
-              <button type="button" class="chip" data-chip="sunny">Sunny</button>
-              <button type="button" class="chip" data-chip="overcast">Overcast</button>
-              <button type="button" class="chip" data-chip="wet">Wet</button>
-            </div>
-          </div>
-          <div class="field">
-            <span class="field__label">Surface</span>
-            <div class="chips" data-chip-group="surface">
-              <button type="button" class="chip" data-chip="smooth">Smooth</button>
-              <button type="button" class="chip" data-chip="rough">Rough</button>
-              <button type="button" class="chip" data-chip="muddy">Muddy</button>
-            </div>
-          </div>
-          <div class="field">
-            <span class="field__label">Vibe</span>
-            <div class="chips" data-chip-group="vibe">
-              <button type="button" class="chip" data-chip="suffered">Suffered</button>
-              <button type="button" class="chip" data-chip="cruised">Cruised</button>
-              <button type="button" class="chip" data-chip="flew">Flew</button>
-            </div>
-          </div>
-          <label class="field"><span class="field__label">Rode with</span>
-            <input id="upload-companions" name="companions" class="field-input" type="text" maxlength="200" placeholder="Who joined you?" />
-          </label>
-          <label class="field"><span class="field__label">Photo</span>
-            <input id="upload-photo" name="photo" type="file" accept="image/*" />
-          </label>
-          <button type="submit" class="button button--primary" id="upload-submit">Ink the Map</button>
-          <p id="upload-error" class="modal__error" role="alert" hidden></p>
-        </form>
-      </div>
-    </div>
-
-    <!-- ============ Diary: rides panel ============ -->
-    <aside id="diary-panel" class="rpanel" aria-hidden="true" aria-label="My rides">
+    <!-- ============ My submissions panel ============ -->
+    <aside id="submissions-panel" class="rpanel" aria-hidden="true" aria-label="My submissions">
       <header class="rpanel__head">
-        <h2 class="rpanel__title">My Rides</h2>
-        <div class="rpanel__head-actions">
-          <button id="diary-add" class="rpanel__add" aria-label="Ink a ride">+</button>
-          <button id="diary-close" class="rpanel__close" aria-label="Close">&times;</button>
-        </div>
+        <h2 class="rpanel__title">My Submissions</h2>
+        <button id="subs-close" class="rpanel__close" aria-label="Close">&times;</button>
       </header>
-      <dl id="diary-stats" class="rstats" hidden>
-        <div class="rstats__cell"><dt class="rstats__label">Rides</dt><dd id="stat-rides" class="rstats__val">0</dd></div>
-        <div class="rstats__cell"><dt class="rstats__label">Distance</dt><dd id="stat-distance" class="rstats__val">0 km</dd></div>
-        <div class="rstats__cell"><dt class="rstats__label">Climbed</dt><dd id="stat-elevation" class="rstats__val">0 m</dd></div>
-      </dl>
-      <p id="diary-empty" class="rpanel__empty" hidden>No rides yet. Tap + to ink your first.</p>
-      <ul id="diary-list" class="rlist"></ul>
-      <button id="diary-signout" class="rpanel__signout">Sign out</button>
-    </aside>
-
-    <!-- ============ Diary: memory card ============ -->
-    <section id="memory-card" class="rpanel rpanel--card" aria-hidden="true" aria-label="Ride detail">
-      <button id="card-close" class="rpanel__close rpanel__close--float" aria-label="Close">&times;</button>
-      <img id="card-photo" class="card-photo" alt="" hidden />
-      <div class="rpanel__body">
-        <h2 id="card-title" class="card-title"></h2>
-        <p id="card-date" class="card-date"></p>
-        <dl class="card-stats">
-          <div><dt>Distance</dt><dd id="card-distance"></dd></div>
-          <div><dt>Elevation</dt><dd id="card-elevation"></dd></div>
-        </dl>
-        <div id="card-chips" class="card-chips"></div>
-        <p id="card-note" class="card-note"></p>
-        <p id="card-companions" class="card-companions"></p>
-        <div class="card-actions">
-          <button id="card-edit" class="button">Edit</button>
-          <button id="card-delete" class="button button--danger">Delete</button>
-        </div>
+      <div class="subs-tabs" role="tablist" aria-label="Submission stage">
+        <button class="subs-tab is-active" data-subs-tab="pending" type="button" role="tab">Pending <span class="subs-tab__n" data-count="pending">0</span></button>
+        <button class="subs-tab" data-subs-tab="rejected" type="button" role="tab">Rejected <span class="subs-tab__n" data-count="rejected">0</span></button>
+        <button class="subs-tab" data-subs-tab="approved" type="button" role="tab">Approved <span class="subs-tab__n" data-count="approved">0</span></button>
       </div>
-    </section>
+      <div class="subs-body">
+        <p id="subs-empty" class="rpanel__empty" hidden></p>
+        <ul id="subs-list" class="subs-list"></ul>
+      </div>
+      <a class="subs-submit" href="/submit">+ Submit a new route</a>
+      <button id="subs-signout" class="rpanel__signout">Sign out</button>
+    </aside>
 
     <script type="module" src="src/map.js"></script>
     <script type="module" src="src/diary.js"></script>

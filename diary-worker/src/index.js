@@ -1,14 +1,9 @@
-// Bush Riding Map — personal ride diary Worker (authenticated).
-// Bindings: DB (D1), BUCKET (R2). Secret: JWT_SECRET. Vars: ALLOWED_ORIGINS, PUBLIC_URL.
+// Bush Riding Map — accounts + reviews + "my submissions" Worker (authenticated).
+// Bindings: DB (D1), BUCKET (R2), COMMUNITY_DB (D1, read-only). Secret: JWT_SECRET.
 import { hashPassword, verifyPassword, signJWT, verifyJWT, JWT_TTL_SEC } from "./auth.js";
-import { parseGpx } from "./gpx.js";
 
-const MAX_GPX = 5 * 1024 * 1024;
-const MAX_PHOTO = 6 * 1024 * 1024;
+const MAX_PHOTO = 6 * 1024 * 1024; // review photos
 const COOKIE = "brd_session";
-const WEATHER = ["sunny", "overcast", "wet"];
-const SURFACE = ["smooth", "rough", "muddy"];
-const VIBE = ["suffered", "cruised", "flew"];
 
 export default {
   async fetch(request, env) {
@@ -35,19 +30,8 @@ export default {
       // Public (unauthenticated) read of review photos only.
       if (p.startsWith("/public/") && M === "GET")
         return servePublicFile(request, env, cors, decodeURIComponent(p.slice(8)));
-      if (p === "/rides" && M === "GET") return listRides(request, env, cors);
-      if (p === "/rides" && M === "POST") return createRide(request, env, cors);
-      if (p === "/rides/stats" && M === "GET") return stats(request, env, cors);
-      // No-preflight POST aliases for edit/delete (PUT/DELETE force a preflight).
-      const act = p.match(/^\/rides\/([A-Za-z0-9_-]+)\/(update|delete)$/);
-      if (act && M === "POST")
-        return act[2] === "update" ? updateRide(request, env, cors, act[1]) : deleteRide(request, env, cors, act[1]);
-      const ride = p.match(/^\/rides\/([A-Za-z0-9_-]+)$/);
-      if (ride) {
-        if (M === "GET") return getRide(request, env, cors, ride[1]);
-        if (M === "PUT") return updateRide(request, env, cors, ride[1]);
-        if (M === "DELETE") return deleteRide(request, env, cors, ride[1]);
-      }
+      // A signed-in contributor's own submitted routes + moderation status.
+      if (p === "/my-submissions" && M === "GET") return mySubmissions(request, env, cors);
       if (p.startsWith("/file/") && M === "GET") return serveFile(request, env, cors, decodeURIComponent(p.slice(6)));
       return json({ error: "Not found" }, 404, cors);
     } catch (err) {
@@ -207,153 +191,50 @@ async function authed(request, env) {
   return payload ? { userId: payload.sub, email: payload.email } : null;
 }
 
-/* ---------------- Rides ---------------- */
-async function listRides(request, env, cors) {
+/* ---------------- My submissions ---------------- */
+// A signed-in contributor's own submitted community routes, with each one's
+// moderation status and any note from the reviewer. Read from the community
+// routes DB (bound read-only as COMMUNITY_DB); matched to the account by email.
+async function mySubmissions(request, env, cors) {
   const u = await authed(request, env);
   if (!u) return json({ error: "Not authenticated" }, 401, cors);
-  const { results } = await env.DB.prepare(
-    "SELECT id, title, recorded_at, distance_km, elevation_m, vibe, geojson FROM rides WHERE user_id = ? ORDER BY recorded_at DESC"
-  )
-    .bind(u.userId)
-    .all();
-  const features = (results || []).map((r) => ({
-    type: "Feature",
-    geometry: safeGeo(r.geojson),
-    properties: {
-      id: r.id,
-      title: r.title,
-      recorded_at: r.recorded_at,
-      distance_km: r.distance_km,
-      elevation_m: r.elevation_m,
-      vibe: r.vibe,
-    },
-  }));
-  return json({ type: "FeatureCollection", features }, 200, cors);
-}
-
-async function createRide(request, env, cors) {
-  const u = await authed(request, env);
-  if (!u) return json({ error: "Not authenticated" }, 401, cors);
-
-  const form = await request.formData();
-  const gpxFile = form.get("gpx");
-  let title = (form.get("title") || "").toString().trim().slice(0, 120);
-  const note = (form.get("note") || "").toString().trim().slice(0, 2000) || null;
-  const companions = (form.get("companions") || "").toString().trim().slice(0, 200) || null;
-  const weather = chip(form.get("weather"), WEATHER);
-  const surface = chip(form.get("surface"), SURFACE);
-  const vibe = chip(form.get("vibe"), VIBE);
-  const photoFile = form.get("photo");
-
-  if (!gpxFile || typeof gpxFile.text !== "function") return json({ error: "A GPX file is required." }, 400, cors);
-  if (gpxFile.size > MAX_GPX) return json({ error: "GPX too large (max 5 MB)." }, 400, cors);
-  if (!title) return json({ error: "A ride title is required." }, 400, cors);
-
-  let parsed;
+  if (!env.COMMUNITY_DB) return json({ items: [] }, 200, cors);
+  let rows = [];
   try {
-    parsed = parseGpx(await gpxFile.text());
+    const res = await env.COMMUNITY_DB.prepare(
+      `SELECT id, name, region, state, distance_km, elevation_gain_m, status,
+              review_note, series, created_at, reviewed_at
+         FROM submissions WHERE lower(email) = lower(?) ORDER BY created_at DESC`
+    ).bind(u.email).all();
+    rows = res.results || [];
   } catch (e) {
-    return json({ error: "Could not read that GPX: " + e.message }, 400, cors);
-  }
-
-  const id = "r_" + rand(12);
-  const gpxKey = `${u.userId}/${id}.gpx`;
-  await env.BUCKET.put(gpxKey, await gpxFile.text(), { httpMetadata: { contentType: "application/gpx+xml" } });
-
-  let photoKey = null;
-  if (photoFile && typeof photoFile.arrayBuffer === "function" && photoFile.size > 0) {
-    if (photoFile.size > MAX_PHOTO) return json({ error: "Photo too large (max 6 MB)." }, 400, cors);
-    const type = photoFile.type || "image/jpeg";
-    if (!/^image\//.test(type)) return json({ error: "Photo must be an image." }, 400, cors);
-    photoKey = `${u.userId}/${id}_photo.${type.includes("png") ? "png" : "jpg"}`;
-    await env.BUCKET.put(photoKey, await photoFile.arrayBuffer(), { httpMetadata: { contentType: type } });
-  }
-
-  const now = new Date().toISOString();
-  const recorded = parsed.recorded_at || now;
-  await env.DB.prepare(
-    `INSERT INTO rides (id, user_id, title, recorded_at, distance_km, elevation_m, geojson,
-        photo_key, note, weather, surface, vibe, companions, is_manual, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)`
-  )
-    .bind(id, u.userId, title, recorded, parsed.distance_km, parsed.elevation_m, JSON.stringify(parsed.geometry),
-      photoKey, note, weather, surface, vibe, companions, now)
-    .run();
-
-  return json(rideObject({ id, user_id: u.userId, title, recorded_at: recorded, distance_km: parsed.distance_km,
-    elevation_m: parsed.elevation_m, geojson: JSON.stringify(parsed.geometry), photo_key: photoKey, note,
-    weather, surface, vibe, companions, created_at: now }, env), 200, cors);
-}
-
-async function getRide(request, env, cors, id) {
-  const u = await authed(request, env);
-  if (!u) return json({ error: "Not authenticated" }, 401, cors);
-  const r = await env.DB.prepare("SELECT * FROM rides WHERE id = ? AND user_id = ?").bind(id, u.userId).first();
-  if (!r) return json({ error: "Not found" }, 404, cors);
-  return json(rideObject(r, env), 200, cors);
-}
-
-async function updateRide(request, env, cors, id) {
-  const u = await authed(request, env);
-  if (!u) return json({ error: "Not authenticated" }, 401, cors);
-  const r = await env.DB.prepare("SELECT id FROM rides WHERE id = ? AND user_id = ?").bind(id, u.userId).first();
-  if (!r) return json({ error: "Not found" }, 404, cors);
-
-  const body = await request.json().catch(() => ({}));
-  const title = body.title !== undefined ? String(body.title).trim().slice(0, 120) : undefined;
-  const note = body.note !== undefined ? String(body.note).trim().slice(0, 2000) : undefined;
-  const companions = body.companions !== undefined ? String(body.companions).trim().slice(0, 200) : undefined;
-  const weather = body.weather !== undefined ? chip(body.weather, WEATHER) : undefined;
-  const surface = body.surface !== undefined ? chip(body.surface, SURFACE) : undefined;
-  const vibe = body.vibe !== undefined ? chip(body.vibe, VIBE) : undefined;
-
-  const sets = [];
-  const vals = [];
-  for (const [k, v] of Object.entries({ title, note, companions, weather, surface, vibe })) {
-    if (v !== undefined) {
-      sets.push(`${k} = ?`);
-      vals.push(v === "" ? null : v);
+    // review_note may not exist yet on an un-migrated community DB — retry without it.
+    try {
+      const res = await env.COMMUNITY_DB.prepare(
+        `SELECT id, name, region, state, distance_km, elevation_gain_m, status,
+                series, created_at, reviewed_at
+           FROM submissions WHERE lower(email) = lower(?) ORDER BY created_at DESC`
+      ).bind(u.email).all();
+      rows = (res.results || []).map((r) => ({ ...r, review_note: null }));
+    } catch (_) {
+      return json({ items: [] }, 200, cors);
     }
   }
-  if (sets.length) {
-    vals.push(id, u.userId);
-    await env.DB.prepare(`UPDATE rides SET ${sets.join(", ")} WHERE id = ? AND user_id = ?`).bind(...vals).run();
-  }
-  const fresh = await env.DB.prepare("SELECT * FROM rides WHERE id = ? AND user_id = ?").bind(id, u.userId).first();
-  return json(rideObject(fresh, env), 200, cors);
-}
-
-async function deleteRide(request, env, cors, id) {
-  const u = await authed(request, env);
-  if (!u) return json({ error: "Not authenticated" }, 401, cors);
-  const row = await env.DB.prepare("SELECT photo_key FROM rides WHERE id = ? AND user_id = ?").bind(id, u.userId).first();
-  if (!row) return json({ error: "Not found" }, 404, cors);
-  await env.BUCKET.delete(`${u.userId}/${id}.gpx`);
-  if (row.photo_key) await env.BUCKET.delete(row.photo_key);
-  await env.DB.prepare("DELETE FROM rides WHERE id = ? AND user_id = ?").bind(id, u.userId).run();
-  return json({ ok: true }, 200, cors);
-}
-
-async function stats(request, env, cors) {
-  const u = await authed(request, env);
-  if (!u) return json({ error: "Not authenticated" }, 401, cors);
-  const agg = await env.DB.prepare(
-    `SELECT COUNT(*) AS total_rides, COALESCE(SUM(distance_km),0) AS total_distance_km,
-            COALESCE(SUM(elevation_m),0) AS total_elevation_m,
-            MIN(recorded_at) AS first_ride_at, MAX(recorded_at) AS most_recent_at
-       FROM rides WHERE user_id = ?`
-  ).bind(u.userId).first();
-  const { results } = await env.DB.prepare(
-    "SELECT DISTINCT country FROM rides WHERE user_id = ? AND country IS NOT NULL"
-  ).bind(u.userId).all();
-  return json({
-    total_rides: agg.total_rides,
-    total_distance_km: Math.round(agg.total_distance_km),
-    total_elevation_m: Math.round(agg.total_elevation_m),
-    countries: (results || []).map((r) => r.country),
-    first_ride_at: agg.first_ride_at,
-    most_recent_at: agg.most_recent_at,
-  }, 200, cors);
+  const items = rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    region: r.region || "",
+    state: r.state || "",
+    distance_km: r.distance_km,
+    elevation_gain_m: r.elevation_gain_m,
+    // Normalise to the three contributor-facing stages.
+    status: r.status === "published" ? "approved" : r.status === "rejected" ? "rejected" : "pending",
+    note: r.review_note || "",
+    series: r.series || "",
+    created_at: r.created_at || "",
+    reviewed_at: r.reviewed_at || "",
+  }));
+  return json({ items }, 200, cors);
 }
 
 async function serveFile(request, env, cors, key) {
@@ -483,35 +364,6 @@ async function servePublicFile(request, env, cors, key) {
 }
 
 /* ---------------- Helpers ---------------- */
-function rideObject(r, env) {
-  const base = (env.PUBLIC_URL || "").replace(/\/$/, "");
-  return {
-    id: r.id,
-    title: r.title,
-    recorded_at: r.recorded_at,
-    distance_km: r.distance_km,
-    elevation_m: r.elevation_m,
-    geometry: safeGeo(r.geojson),
-    note: r.note || "",
-    weather: r.weather || null,
-    surface: r.surface || null,
-    vibe: r.vibe || null,
-    companions: r.companions || "",
-    photo_url: r.photo_key ? `${base}/file/${r.photo_key}` : "",
-    created_at: r.created_at,
-  };
-}
-function safeGeo(s) {
-  try {
-    return JSON.parse(s);
-  } catch {
-    return { type: "LineString", coordinates: [] };
-  }
-}
-function chip(v, allowed) {
-  const s = (v || "").toString().trim().toLowerCase();
-  return allowed.includes(s) ? s : null;
-}
 function cookie(token, maxAge) {
   // SameSite=None; Secure so the cross-subdomain credentialed fetch from the
   // Pages site to this worker sends it. HttpOnly keeps it out of JS (XSS-safe).

@@ -22,6 +22,13 @@
       "binding": "DB",
       "database_name": "bush-riding-diary",
       "database_id": "c085c28a-b84e-40a6-a379-fe1889b79df1"
+    },
+    {
+      // Read-only use of the community routes DB so a signed-in contributor can
+      // see the routes they've submitted and each one's moderation status.
+      "binding": "COMMUNITY_DB",
+      "database_name": "bush-riding-map",
+      "database_id": "b6a452ee-c92c-4cfd-beee-959f00109986"
     }
   ],
 
