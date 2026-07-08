@@ -950,7 +950,7 @@ function adminHtml(rows, events = [], routeOpts = [], famous = [], famousNames =
         <label>Surface<input name="surface" /></label>
         <label>Contributed by<input name="contributor" /></label>
         <label>Contributor link<input name="contributor_url" placeholder="Strava / RWGPS / website" /></label>
-        <label class="full">Famous ride${seriesSelect("")}</label>
+        <label class="full">Famous event${seriesSelect("")}</label>
         <label class="full">Description<textarea name="description" rows="6"></textarea></label>
         <label class="full">Photo<input name="photo" type="file" accept="image/*" /></label>
         <button class="ok" type="submit">Create &amp; publish route</button>
@@ -970,7 +970,7 @@ function adminHtml(rows, events = [], routeOpts = [], famous = [], famousNames =
         <label class="full">Description<textarea name="description" rows="4">${v("description")}</textarea></label>
         <label>Hero image (upload)<input name="hero" type="file" accept="image/*" /></label>
         <label>…or image URL<input name="hero_ref" placeholder="leave blank to keep" /></label>
-        <button class="ok" type="submit">${isNew ? "Create famous ride" : "Save changes"}</button>
+        <button class="ok" type="submit">${isNew ? "Create famous event" : "Save changes"}</button>
       </form>`;
   };
   const memberCount = (name) => rows.filter((r) => (r.series || "") === name).length;
@@ -983,11 +983,11 @@ function adminHtml(rows, events = [], routeOpts = [], famous = [], famousNames =
       </summary>
       <div class="body">
       <div class="meta">
-        <details class="edit"><summary>Edit famous ride</summary>${famousForm(fr)}</details>
+        <details class="edit"><summary>Edit famous event</summary>${famousForm(fr)}</details>
         <form method="POST" action="/admin/famous/delete" class="actions" style="margin-top:8px">
           <input type="hidden" name="id" value="${esc(fr.id)}" />
           ${fr.url ? `<a class="link" href="${esc(fr.url)}" target="_blank" rel="noopener">event page ↗</a>` : ""}
-          <button name="delete" value="1" class="danger" onclick="return confirm('Delete this famous ride? Its routes stay but become standalone.')">Delete</button>
+          <button name="delete" value="1" class="danger" onclick="return confirm('Delete this famous event? Its routes stay but become standalone.')">Delete</button>
         </form>
       </div>
       </div>
@@ -1039,9 +1039,9 @@ function adminHtml(rows, events = [], routeOpts = [], famous = [], famousNames =
             <label>Elevation (m)<input name="elevation_gain_m" type="number" step="1" value="${r.elevation_gain_m ?? ""}" /></label>
             <label>Contributed by<input name="contributor" value="${esc(r.contributor)}" /></label>
             <label>Contributor link<input name="contributor_url" value="${esc(r.contributor_url)}" placeholder="Strava / RWGPS / website" /></label>
-            <label class="full">Famous ride — group this route under a famous ride pin on the map
+            <label class="full">Famous event — group this route under a famous event pin on the map
               ${seriesSelect(r.series || "")}
-              <span class="hint">Create famous rides in the Famous rides tab first.</span>
+              <span class="hint">Create famous events in the Famous Events tab first.</span>
             </label>
             <label class="full">Description (full write-up shown on the route page)<textarea name="description" rows="10">${esc(r.description)}</textarea></label>
             <label class="full">Photo — the hero image on the card &amp; route page (max 12 MB)
@@ -1111,11 +1111,11 @@ function adminHtml(rows, events = [], routeOpts = [], famous = [], famousNames =
 </style></head><body>
 <header>
   <h1>Bush Riding — Admin</h1>
-  <div class="count">${pending} pending · ${rows.length} routes · ${events.length} events · ${famous.length} famous rides</div>
+  <div class="count">${pending} pending · ${rows.length} routes · ${events.length} bush events · ${famous.length} famous events</div>
   <nav class="tabs" role="tablist">
-    <button class="tab is-active" data-tab="routes" type="button">Route moderation</button>
-    <button class="tab" data-tab="events" type="button">Events</button>
-    <button class="tab" data-tab="famous" type="button">Famous rides</button>
+    <button class="tab is-active" data-tab="routes" type="button">Community Routes</button>
+    <button class="tab" data-tab="events" type="button">Bush Events</button>
+    <button class="tab" data-tab="famous" type="button">Famous Events</button>
   </nav>
 </header>
 <main id="tab-routes" class="tabpanel">
@@ -1131,14 +1131,14 @@ function adminHtml(rows, events = [], routeOpts = [], famous = [], famousNames =
 </main>
 <main id="tab-famous" class="tabpanel" hidden>
   <details class="card">
-    <summary><span class="cname">+ New famous ride</span><span class="csub">a well-known, usually annual ride with several routes</span></summary>
+    <summary><span class="cname">+ New famous event</span><span class="csub">a well-known, usually annual event with several routes</span></summary>
     <div class="body">
     <div class="meta">
-      <details class="edit" open><summary>Create famous ride</summary>${famousForm({})}</details>
+      <details class="edit" open><summary>Create famous event</summary>${famousForm({})}</details>
     </div>
     </div>
   </details>
-  ${famous.length ? famous.map(famousCard).join("") : "<p>No famous rides yet — create one above, then tag routes to it from Route moderation.</p>"}
+  ${famous.length ? famous.map(famousCard).join("") : "<p>No famous events yet — create one above, then tag routes to it from Community Routes.</p>"}
 </main>
 <main id="tab-events" class="tabpanel" hidden>
   <details class="card upcoming">

@@ -324,6 +324,7 @@ function onLoad() {
   // Sync pins to the current filter state, and (re)draw a selection made
   // before the map finished loading.
   refresh();
+  setupCategoryFilters();
   if (selectedId) selectRoute(selectedId, false);
 
   // Non-invasive integration point for the optional diary layer (diary.js).
@@ -761,7 +762,7 @@ function showRouteChooser(ids, lngLat, title, meta) {
   if (isFamous) {
     const eyebrow = document.createElement("p");
     eyebrow.className = "route-chooser__eyebrow";
-    eyebrow.textContent = "Famous ride";
+    eyebrow.textContent = "Famous Event";
     wrap.appendChild(eyebrow);
   }
   const head = document.createElement("p");
@@ -1115,7 +1116,7 @@ function fillDetail(feature) {
   const isFamous = !!String(p.series || "").trim();
   setCardHero(p.photo_url, p.name);
   setChip(p.surface);
-  setText("detail-eyebrow", isFamous ? "Famous Ride" : "Community route");
+  setText("detail-eyebrow", isFamous ? "Famous Event" : "Community route");
   setFamous(p, isFamous);
   setText("detail-name", p.name || "");
   setPill(p.terrain_difficulty, p.distance_km, p.elevation_gain_m);
@@ -1733,6 +1734,63 @@ function highlightResult(id) {
   document.querySelectorAll(".result").forEach((el) => {
     el.classList.toggle("is-active", el.dataset.id === id);
   });
+}
+
+// ---- Category filters (Community Routes / Bush Events / Famous Events) ----
+// Multi-select pills in the drawer that show/hide each pin category on the map.
+const CATEGORY_LAYERS = {
+  routes: ["clusters", "cluster-count", "unclustered", "route-count"],
+  bush: ["event-pulse", "event-core", "event-icon", "event-hit"],
+  famous: ["famous-pulse", "famous-core", "famous-count", "famous-hit"],
+};
+
+function setCategoryVisible(cat, on) {
+  for (const layer of CATEGORY_LAYERS[cat] || []) {
+    if (map.getLayer(layer)) map.setLayoutProperty(layer, "visibility", on ? "visible" : "none");
+  }
+}
+
+function setupCategoryFilters() {
+  const group = document.getElementById("f-categories");
+  if (!group) return;
+
+  // Hide a pill whose category has no pins, so the control only offers what's
+  // actually on the map.
+  const present = {
+    routes: routeFeatures.some((f) => !(f.properties.series || "").trim()),
+    bush: eventFeatures.length > 0,
+    famous: routeFeatures.some((f) => (f.properties.series || "").trim()),
+  };
+
+  const apply = (btn) => {
+    const on = btn.classList.contains("is-active");
+    btn.setAttribute("aria-pressed", String(on));
+    setCategoryVisible(btn.dataset.cat, on);
+  };
+
+  group.querySelectorAll(".cat").forEach((btn) => {
+    if (!present[btn.dataset.cat]) {
+      btn.hidden = true;
+      return;
+    }
+    apply(btn); // set initial visibility from the default-active state
+    btn.addEventListener("click", () => {
+      btn.classList.toggle("is-active");
+      apply(btn);
+    });
+  });
+
+  // Reset also re-shows every category.
+  const reset = document.getElementById("f-reset");
+  if (reset) {
+    reset.addEventListener("click", () => {
+      group.querySelectorAll(".cat").forEach((btn) => {
+        if (btn.hidden) return;
+        btn.classList.add("is-active");
+        apply(btn);
+      });
+    });
+  }
 }
 
 // ---- Sidebar toggle (mobile) --------------------------------------------

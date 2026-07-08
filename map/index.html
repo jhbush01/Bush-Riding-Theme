@@ -74,8 +74,8 @@
     <!-- Minimal floating nav over the map (top-center; clears the left sidebar
          and the top-left mobile toggle). -->
     <nav class="map-nav" aria-label="Browse">
-      <a href="/routes/">Routes</a>
-      <a href="/events/">Events</a>
+      <a href="/routes/">Community Routes</a>
+      <a href="/events/">Bush Events</a>
     </nav>
 
     <!-- Filter / list panel -->
@@ -91,6 +91,15 @@
       </header>
 
       <form id="filters" class="filters" aria-label="Filter routes">
+        <div class="filter">
+          <span class="filter__label">Show on map</span>
+          <div id="f-categories" class="cat-group" role="group" aria-label="Pin categories">
+            <button type="button" class="cat is-active" data-cat="routes" aria-pressed="true"><span class="cat__dot cat__dot--routes" aria-hidden="true"></span>Community Routes</button>
+            <button type="button" class="cat is-active" data-cat="bush" aria-pressed="true"><span class="cat__dot cat__dot--bush" aria-hidden="true"></span>Bush Events</button>
+            <button type="button" class="cat is-active" data-cat="famous" aria-pressed="true"><span class="cat__dot cat__dot--famous" aria-hidden="true"></span>Famous Events</button>
+          </div>
+        </div>
+
         <div class="filter">
           <label class="filter__label" for="f-distance">
             Distance <span id="f-distance-val" class="filter__val">any</span>

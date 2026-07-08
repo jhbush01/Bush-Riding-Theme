@@ -244,8 +244,8 @@ function siteHeader() {
   return `<header class="site-head">
   <a class="site-brand" href="/">Bush Riding Map</a>
   <nav class="site-nav">
-    <a href="/routes/">Routes</a>
-    <a href="/events/">Events</a>
+    <a href="/routes/">Community Routes</a>
+    <a href="/events/">Bush Events</a>
     <a href="/">Map</a>
     <a href="/submit">Submit a route</a>
   </nav>
@@ -826,7 +826,7 @@ function eventsPage(events, routeById) {
   const past = events.filter((e) => e.status === "past").sort((a, b) => String(b.date_iso).localeCompare(String(a.date_iso)));
   const crumbItems = [
     { name: "Bush Riding Map", url: "/" },
-    { name: "Events", url: "/events/" },
+    { name: "Bush Events", url: "/events/" },
   ];
   const ld_ = ld([breadcrumbLd(crumbItems)].concat(upcoming.map((e) => eventLd(e, routeById))));
 
