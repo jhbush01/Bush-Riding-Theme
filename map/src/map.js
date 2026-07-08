@@ -666,19 +666,22 @@ function makeFlagIcon() {
 // on each layer stay and we do nothing.
 function startPulse() {
   if (reduceMotion) return;
+  // Each ring starts at its pin's core radius (so it emerges FROM the pin) and
+  // eases outward while fading — a clear outward ripple, not an inward throb.
   const rings = [
-    { layer: "event-pulse", base: 14, grow: 14, peak: 0.35 },
-    { layer: "famous-pulse", base: 15, grow: 15, peak: 0.32 },
+    { layer: "event-pulse", base: 10, grow: 22, peak: 0.4 },
+    { layer: "famous-pulse", base: 11, grow: 24, peak: 0.38 },
   ];
-  const PERIOD = 2000;
+  const PERIOD = 2200;
   const t0 = performance.now();
   (function frame(now) {
     const live = rings.filter((r) => map.getLayer(r.layer));
     if (!live.length) return; // both gone (e.g. teardown)
     if (!document.hidden) {
       const t = ((now - t0) % PERIOD) / PERIOD; // 0..1
+      const easeOut = 1 - (1 - t) * (1 - t); // fast expansion, then decelerate
       for (const r of live) {
-        map.setPaintProperty(r.layer, "circle-radius", r.base + r.grow * t);
+        map.setPaintProperty(r.layer, "circle-radius", r.base + r.grow * easeOut);
         map.setPaintProperty(r.layer, "circle-opacity", r.peak * (1 - t));
       }
     }
@@ -705,7 +708,9 @@ function selectRoute(id, fly) {
   const feature = routeById.get(id);
   if (!feature) return;
   deck = null; // a directly-picked community route has no sibling deck
+  backTarget = null;
   updateDeckNav();
+  updateBackButton();
 
   if (mapReady) {
     // Clear previous selected pin state. Highlight the *pin*, which may be shared
@@ -847,7 +852,7 @@ function famousEvents() {
     let g = byName.get(key);
     if (!g) {
       const fr = f.properties.famous_ride || {};
-      g = { name: series, key, location: fr.location || "", dates: fr.dates || "", url: fr.url || "", routes: [], states: {} };
+      g = { name: series, key, location: fr.location || "", dates: fr.dates || "", url: fr.url || "", description: fr.description || "", routes: [], states: {} };
       byName.set(key, g);
     }
     g.routes.push(f);
@@ -907,11 +912,8 @@ function showFamousPopup(props, lngLat) {
   }
   const btn = document.createElement("button");
   btn.type = "button";
-  btn.className = "route-pick";
-  const nm = document.createElement("span");
-  nm.className = "route-pick__name";
-  nm.textContent = "View event & routes →";
-  btn.appendChild(nm);
+  btn.className = "famous-popup__cta";
+  btn.textContent = "View event & routes →";
   btn.addEventListener("click", () => {
     if (routeChooserPopup) routeChooserPopup.remove();
     openFamousCardByName(props.name);
@@ -943,8 +945,10 @@ function showFamous() {
   els.detail.dataset.mode = "famous";
   els.detail.removeAttribute("data-event-status");
   els.detail.removeAttribute("data-famous");
+  backTarget = null; // the event card is the top of its stack
   fillFamousCard(ev);
   updateDeckNav();
+  updateBackButton();
   frameFeatures(routesForEdition(ev, ev._edition));
 }
 function fillFamousCard(ev) {
@@ -952,7 +956,9 @@ function fillFamousCard(ev) {
   setCardHero(firstPhoto, ev.name);
   setText("detail-eyebrow", "Famous Event");
   setText("detail-name", ev.name);
-  setText("famous-where", [ev.location, ev.dates].filter(Boolean).join(" · "));
+  // Keep it light: a small description + a link to the event page. The routes
+  // do the talking. Location + dates live on the pin popup.
+  setText("famous-desc", ev.description || "");
 
   const edWrap = document.getElementById("famous-editions");
   edWrap.innerHTML = "";
@@ -1004,14 +1010,16 @@ function famousRouteRow(route, ev) {
   return btn;
 }
 
-// Open a route from a famous event, with a deck of that edition's routes.
+// Open a route from a famous event, with a deck of that edition's routes and a
+// back link to the event card.
 function openRouteFromEvent(route, ev) {
   const sibs = routesForEdition(ev, ev._edition);
   deck = { kind: "route", items: sibs, index: Math.max(0, sibs.findIndex((x) => x.properties.id === route.properties.id)), event: ev };
-  showRouteFromDeck(false);
+  backTarget = { kind: "famous", name: ev.name };
+  showRouteFromDeck();
   openSheet("peek");
 }
-function showRouteFromDeck(reopen) {
+function showRouteFromDeck() {
   const route = deck.items[deck.index];
   detailMode = "route";
   els.detail.dataset.mode = "route";
@@ -1022,6 +1030,7 @@ function showRouteFromDeck(reopen) {
     map.getSource("selected-route").setData({ type: "FeatureCollection", features: [{ type: "Feature", geometry: route.geometry, properties: {} }] });
   }
   updateDeckNav();
+  updateBackButton();
   frameFeatures([route]);
 }
 
@@ -1030,8 +1039,42 @@ function openBushEventDeck(feature) {
   const st = eventState(feature);
   const sibs = eventFeatures.filter((e) => eventState(e) === st);
   deck = { kind: "event", items: sibs.length ? sibs : [feature], index: Math.max(0, sibs.findIndex((e) => e.properties.id === feature.properties.id)) };
+  backTarget = null;
   openEventDetail(deck.items[deck.index]);
   updateDeckNav();
+  updateBackButton();
+}
+// Re-fill a bush event card during deck nav (no sheet re-open).
+function showEventFromDeck() {
+  const feature = deck.items[deck.index];
+  detailMode = "event";
+  els.detail.dataset.mode = "event";
+  els.detail.removeAttribute("data-famous");
+  fillEventDetail(feature);
+  const route = routeById.get(feature.properties.route_id);
+  selectedId = route ? route.properties.id : null;
+  if (mapReady) {
+    map.getSource("selected-route").setData(
+      route
+        ? { type: "FeatureCollection", features: [{ type: "Feature", geometry: route.geometry, properties: {} }] }
+        : { type: "FeatureCollection", features: [] }
+    );
+  }
+  updateDeckNav();
+  updateBackButton();
+  if (route) frameFeatures([route]);
+}
+
+function goBack() {
+  if (!backTarget) return;
+  if (backTarget.kind === "famous") openFamousCardByName(backTarget.name);
+  else if (backTarget.kind === "event" && backTarget.feature) openBushEventDeck(backTarget.feature);
+}
+function updateBackButton() {
+  if (!els.back) return;
+  const show = !!backTarget && detailMode === "route";
+  els.back.hidden = !show;
+  if (show) document.getElementById("detail-back-label").textContent = "Back to " + backTarget.name;
 }
 
 function updateDeckNav() {
@@ -1042,9 +1085,50 @@ function updateDeckNav() {
 function deckGo(dir) {
   if (!deck || deck.items.length < 2) return;
   deck.index = (deck.index + dir + deck.items.length) % deck.items.length;
-  if (deck.kind === "famous") showFamous();
-  else if (deck.kind === "event") { openEventDetail(deck.items[deck.index]); updateDeckNav(); }
-  else if (deck.kind === "route") showRouteFromDeck(false);
+  const render =
+    deck.kind === "famous" ? showFamous : deck.kind === "event" ? showEventFromDeck : showRouteFromDeck;
+  slideDeck(dir, render);
+}
+
+// Smooth horizontal "push" transition between sibling cards: the current card
+// slides out in the swipe direction, the next slides in from the other side.
+let sliding = false;
+function slideDeck(dir, render) {
+  const nodes = [els.drag, els.scroll].filter(Boolean);
+  if (sliding || !nodes.length) {
+    render();
+    return;
+  }
+  sliding = true;
+  const OUT = dir > 0 ? -34 : 34; // exit toward the swipe direction
+  nodes.forEach((n) => {
+    n.style.transition = "transform .15s ease, opacity .15s ease";
+    n.style.transform = `translateX(${OUT}px)`;
+    n.style.opacity = "0";
+  });
+  setTimeout(() => {
+    render();
+    nodes.forEach((n) => {
+      n.style.transition = "none";
+      n.style.transform = `translateX(${-OUT}px)`;
+      n.style.opacity = "0";
+    });
+    requestAnimationFrame(() => {
+      nodes.forEach((n) => {
+        n.style.transition = "transform .22s ease, opacity .22s ease";
+        n.style.transform = "translateX(0)";
+        n.style.opacity = "1";
+      });
+      setTimeout(() => {
+        nodes.forEach((n) => {
+          n.style.transition = "";
+          n.style.transform = "";
+          n.style.opacity = "";
+        });
+        sliding = false;
+      }, 240);
+    });
+  }, 155);
 }
 
 // Frame the map to a set of route features (their outlines).
@@ -1133,6 +1217,8 @@ let sheetState = "closed"; // "closed" | "peek" | "half" | "full"
 // Sibling "deck" the current card belongs to, for swipe/chevron navigation:
 // famous events in a state, bush events in a state, or the routes of one event.
 let deck = null; // { kind:"famous"|"event"|"route", items:[...], index, event? }
+// When a route was opened from an event, where the back button returns to.
+let backTarget = null; // { kind:"famous", name } | { kind:"event", feature }
 let drag = null; // active pointer-drag session
 let reframeTimer = null;
 
@@ -1188,9 +1274,11 @@ function setupDetailPanel() {
   els.deckPrev = document.getElementById("deck-prev");
   els.deckNext = document.getElementById("deck-next");
 
+  els.back = document.getElementById("detail-back");
   document.getElementById("detail-close").addEventListener("click", closeDetail);
   if (els.deckPrev) els.deckPrev.addEventListener("click", () => deckGo(-1));
   if (els.deckNext) els.deckNext.addEventListener("click", () => deckGo(1));
+  if (els.back) els.back.addEventListener("click", goBack);
 
   // Horizontal swipe between sibling cards. Passive (never preventDefault) so it
   // can't interfere with the vertical drag; only a clearly-horizontal flick fires.
@@ -1317,7 +1405,9 @@ function closeDetail() {
   if (!detailOpen) return;
   detailOpen = false;
   deck = null;
+  backTarget = null;
   updateDeckNav();
+  updateBackButton();
   clearSelection();
   highlightResult(null);
   els.detail.setAttribute("aria-hidden", "true");

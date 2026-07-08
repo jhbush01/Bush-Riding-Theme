@@ -179,6 +179,13 @@
         </div>
 
         <div class="card__head">
+          <!-- Back to the parent event card (shown when a route was opened from
+               a Famous / Bush event). -->
+          <button id="detail-back" class="card__back" type="button" hidden>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+            <span id="detail-back-label">Back</span>
+          </button>
+
           <div class="card__eyebrow-row">
             <span id="detail-eyebrow" class="card__eyebrow"></span>
             <div id="detail-keen" class="card__keen only-event">
@@ -202,11 +209,11 @@
           <!-- Famous Event card body: location · dates, an optional edition
                switcher, the event's routes, and a link to the event page. -->
           <div id="famous-panel" class="famous-panel only-famous">
-            <p id="famous-where" class="famous-panel__where"></p>
-            <div id="famous-editions" class="famous-panel__editions" role="group" aria-label="Editions" hidden></div>
-            <p class="famous-panel__routes-label card__mini-label">Routes</p>
-            <ul id="famous-routes" class="famous-panel__routes"></ul>
+            <p id="famous-desc" class="famous-panel__desc"></p>
             <a id="famous-eventlink" class="famous-panel__link" target="_blank" rel="noopener" hidden>Event page ↗</a>
+            <div id="famous-editions" class="famous-panel__editions" role="group" aria-label="Editions" hidden></div>
+            <p class="famous-panel__routes-label card__mini-label">Official routes</p>
+            <ul id="famous-routes" class="famous-panel__routes"></ul>
           </div>
 
           <!-- Famous-ride event details (routes only; shown when the route belongs

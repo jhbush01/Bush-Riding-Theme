@@ -170,7 +170,7 @@ async function routes(env, cors) {
         series_version: (r.series_version || "").trim(),
         // Present only for routes that belong to a famous ride.
         famous_ride: fr
-          ? { name: fr.name, location: fr.location || "", dates: fr.dates || "", url: fr.url || "" }
+          ? { name: fr.name, location: fr.location || "", dates: fr.dates || "", url: fr.url || "", description: fr.description || "" }
           : null,
         gpx_url: `${base}/file/${r.gpx_key || "gpx/" + r.id + ".gpx"}`,
         photo_url: r.photo_key ? `${base}/file/${r.photo_key}` : "",
