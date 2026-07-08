@@ -653,7 +653,7 @@ function showRouteChooser(ids, lngLat, title) {
   if (title) {
     const eyebrow = document.createElement("p");
     eyebrow.className = "route-chooser__eyebrow";
-    eyebrow.textContent = "Event";
+    eyebrow.textContent = "Famous ride";
     wrap.appendChild(eyebrow);
   }
   const head = document.createElement("p");

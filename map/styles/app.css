@@ -611,6 +611,39 @@ body {
 .route-chooser-popup.is-event .maplibregl-popup-content {
   border-top: 3px solid #8a4f7d;
 }
+/* Header text clears the close button. */
+.route-chooser__eyebrow,
+.route-chooser__head,
+.route-chooser__sub { padding-right: 24px; }
+/* Close button, restyled to the site's cream/rust identity (the default is a
+   bare glyph that clashes with everything else). */
+.route-chooser-popup .maplibregl-popup-close-button {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--cream);
+  color: #6b6350;
+  font-size: 17px;
+  line-height: 1;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.route-chooser-popup .maplibregl-popup-close-button:hover {
+  background: #fff;
+  border-color: #8a5334;
+  color: #8a5334;
+}
+.route-chooser-popup .maplibregl-popup-close-button:focus-visible {
+  outline: 2px solid #8a5334;
+  outline-offset: 2px;
+}
 .route-pick {
   display: flex;
   flex-direction: column;

@@ -800,7 +800,7 @@ function adminHtml(rows, events = [], routeOpts = []) {
             <label>Elevation (m)<input name="elevation_gain_m" type="number" step="1" value="${r.elevation_gain_m ?? ""}" /></label>
             <label>Contributed by<input name="contributor" value="${esc(r.contributor)}" /></label>
             <label>Contributor link<input name="contributor_url" value="${esc(r.contributor_url)}" placeholder="Strava / RWGPS / website" /></label>
-            <label class="full">Event / series — routes sharing this name group under one pin on the map
+            <label class="full">Famous ride — routes sharing this event name group under one pin on the map
               <input name="series" value="${esc(r.series)}" placeholder="e.g. Clarkes Gambit (leave blank for a standalone route)" />
             </label>
             <label class="full">Description (full write-up shown on the route page)<textarea name="description" rows="10">${esc(r.description)}</textarea></label>
