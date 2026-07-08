@@ -23,6 +23,11 @@ let routeFeatures = []; // full LineString features
 const routeById = new Map();
 let selectedId = null;
 let requestDownload; // from gate
+// Routes that share a start (e.g. a 50/95/135 km set from one trailhead) collapse
+// to a single pin. routeToPinId maps each route id to its pin's id (the group's
+// first route) so selecting any member still highlights the right pin.
+let routeToPinId = new Map();
+let routeChooserPopup = null; // open "N routes from here" picker, if any
 
 // Community Bush Ride events (additive; separate source, never filtered).
 let eventFeatures = [];
@@ -199,6 +204,9 @@ function onLoad() {
     clusterRadius: 45,
     clusterMaxZoom: 11,
     promoteId: "id",
+    // Sum each pin's route count so a cluster badge shows total routes, not
+    // just the number of distinct start locations it covers.
+    clusterProperties: { routeCount: ["+", ["get", "count"]] },
   });
 
   // Selected route LineString (drawn on click).
@@ -236,7 +244,7 @@ function onLoad() {
     source: "routes-points",
     filter: ["has", "point_count"],
     layout: {
-      "text-field": ["get", "point_count_abbreviated"],
+      "text-field": ["get", "routeCount"],
       "text-font": ["Noto Sans Regular"],
       "text-size": 12,
     },
@@ -249,11 +257,33 @@ function onLoad() {
     source: "routes-points",
     filter: ["!", ["has", "point_count"]],
     paint: {
-      "circle-radius": ["case", ["boolean", ["feature-state", "selected"], false], 8, 6],
+      // Grouped pins (2+ routes at one start) sit a touch larger to hold the count.
+      "circle-radius": [
+        "case",
+        ["boolean", ["feature-state", "selected"], false], 8,
+        [">", ["get", "count"], 1], 9,
+        6,
+      ],
       "circle-color": ["case", ["boolean", ["feature-state", "selected"], false], LEMON, OLIVE],
       "circle-stroke-width": 2,
       "circle-stroke-color": "#f4efe2",
     },
+  });
+
+  // Count badge on grouped pins so "multiple routes here" is visible at a glance.
+  map.addLayer({
+    id: "route-count",
+    type: "symbol",
+    source: "routes-points",
+    filter: ["all", ["!", ["has", "point_count"]], [">", ["get", "count"], 1]],
+    layout: {
+      "text-field": ["get", "count"],
+      "text-font": ["Noto Sans Regular"],
+      "text-size": 11,
+      "text-allow-overlap": true,
+      "text-ignore-placement": true,
+    },
+    paint: { "text-color": "#f4efe2" },
   });
 
   // Community Bush Ride event pins — added AFTER route layers so they render
@@ -287,19 +317,51 @@ function onLoad() {
   window.dispatchEvent(new CustomEvent("brm:mapready"));
 }
 
+// Rough metres between two [lng,lat] points (equirectangular — fine at pin scale).
+function metersBetween(a, b) {
+  const R = 6371000;
+  const lat = ((a[1] + b[1]) / 2) * (Math.PI / 180);
+  const dLat = (b[1] - a[1]) * (Math.PI / 180);
+  const dLng = (b[0] - a[0]) * (Math.PI / 180) * Math.cos(lat);
+  return R * Math.sqrt(dLat * dLat + dLng * dLng);
+}
+
 // Build a points FeatureCollection from each route's marker (or line start).
+// Routes that start within ~50 m of each other (a shared trailhead — e.g. a
+// 50/95/135 km set) merge into ONE pin carrying the whole set, so they show as
+// a single counted marker instead of stacked, un-clickable pins. Proximity
+// grouping (not coordinate rounding) avoids splitting starts that differ only
+// by GPS jitter.
+const SAME_START_M = 50;
 function pointsFC(features) {
-  return {
-    type: "FeatureCollection",
-    features: features.map((f) => ({
+  const groups = []; // { coord, ids:[], name }
+  routeToPinId = new Map();
+  for (const f of features) {
+    const coord = f.properties.marker || f.geometry.coordinates[0];
+    if (!coord) continue;
+    let g = groups.find((x) => metersBetween(x.coord, coord) <= SAME_START_M);
+    if (!g) {
+      g = { coord, ids: [], name: f.properties.name };
+      groups.push(g);
+    }
+    g.ids.push(f.properties.id);
+  }
+  const out = [];
+  for (const g of groups) {
+    const pinId = g.ids[0];
+    for (const id of g.ids) routeToPinId.set(id, pinId);
+    out.push({
       type: "Feature",
-      geometry: {
-        type: "Point",
-        coordinates: f.properties.marker || f.geometry.coordinates[0],
+      geometry: { type: "Point", coordinates: g.coord },
+      properties: {
+        id: pinId,
+        name: g.name,
+        count: g.ids.length,
+        ids: g.ids.join(","), // members, read on click to offer a picker
       },
-      properties: { id: f.properties.id, name: f.properties.name },
-    })),
-  };
+    });
+  }
+  return { type: "FeatureCollection", features: out };
 }
 
 function wireInteractions() {
@@ -315,16 +377,29 @@ function wireInteractions() {
       });
   });
 
-  // Pin click -> select route.
+  // Pin click -> select the route, or offer a picker when several share the pin.
   map.on("click", "unclustered", (e) => {
-    const id = e.features[0].properties.id;
-    selectRoute(id, true);
+    const props = e.features[0].properties;
+    const ids = String(props.ids || props.id).split(",").filter(Boolean);
+    if (ids.length <= 1) {
+      selectRoute(ids[0] || props.id, true);
+    } else {
+      showRouteChooser(ids, e.features[0].geometry.coordinates);
+    }
   });
 
-  for (const layer of ["clusters", "unclustered"]) {
+  for (const layer of ["clusters", "unclustered", "route-count"]) {
     map.on("mouseenter", layer, () => (map.getCanvas().style.cursor = "pointer"));
     map.on("mouseleave", layer, () => (map.getCanvas().style.cursor = ""));
   }
+
+  // A grouped pin's count badge sits above the circle; make a tap on the number
+  // behave like a tap on the pin.
+  map.on("click", "route-count", (e) => {
+    const props = e.features[0].properties;
+    const ids = String(props.ids || props.id).split(",").filter(Boolean);
+    showRouteChooser(ids, e.features[0].geometry.coordinates);
+  });
 
   // Tap the bare map (not a pin/cluster/event/diary line) to dismiss the sheet.
   map.on("click", (e) => {
@@ -490,11 +565,12 @@ function selectRoute(id, fly) {
   if (!feature) return;
 
   if (mapReady) {
-    // Clear previous selected pin state.
+    // Clear previous selected pin state. Highlight the *pin*, which may be shared
+    // by several routes at one start — routeToPinId maps a route to its pin.
     if (selectedId) {
-      map.setFeatureState({ source: "routes-points", id: selectedId }, { selected: false });
+      map.setFeatureState({ source: "routes-points", id: routeToPinId.get(selectedId) || selectedId }, { selected: false });
     }
-    map.setFeatureState({ source: "routes-points", id }, { selected: true });
+    map.setFeatureState({ source: "routes-points", id: routeToPinId.get(id) || id }, { selected: true });
 
     // Draw the LineString.
     map.getSource("selected-route").setData({
@@ -517,11 +593,67 @@ function selectRoute(id, fly) {
 function clearSelection() {
   if (mapReady) {
     if (selectedId) {
-      map.setFeatureState({ source: "routes-points", id: selectedId }, { selected: false });
+      map.setFeatureState({ source: "routes-points", id: routeToPinId.get(selectedId) || selectedId }, { selected: false });
     }
     map.getSource("selected-route").setData({ type: "FeatureCollection", features: [] });
   }
   selectedId = null;
+}
+
+// Several routes start at the same place (e.g. a 50/95/135 km set): pop a small
+// picker at the pin so any of them can be opened. One route -> just open it.
+function showRouteChooser(ids, lngLat) {
+  const routes = ids.map((id) => routeById.get(id)).filter(Boolean);
+  if (routes.length <= 1) {
+    if (routes[0]) selectRoute(routes[0].properties.id, true);
+    return;
+  }
+  if (routeChooserPopup) routeChooserPopup.remove();
+
+  const wrap = document.createElement("div");
+  wrap.className = "route-chooser";
+  const head = document.createElement("p");
+  head.className = "route-chooser__head";
+  head.textContent = `${routes.length} routes from here`;
+  wrap.appendChild(head);
+
+  for (const r of routes) {
+    const p = r.properties;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "route-pick";
+    const nm = document.createElement("span");
+    nm.className = "route-pick__name";
+    nm.textContent = p.name || "Route";
+    const meta = document.createElement("span");
+    meta.className = "route-pick__meta";
+    meta.textContent = [
+      p.distance_km != null ? `${fmt(p.distance_km)} km` : "",
+      terrainLabel(p.terrain_difficulty),
+    ]
+      .filter(Boolean)
+      .join(" · ");
+    btn.append(nm, meta);
+    btn.addEventListener("click", () => {
+      if (routeChooserPopup) routeChooserPopup.remove();
+      selectRoute(p.id, true);
+    });
+    wrap.appendChild(btn);
+  }
+
+  routeChooserPopup = new maplibregl.Popup({
+    closeButton: true,
+    closeOnClick: true,
+    maxWidth: "260px",
+    className: "route-chooser-popup",
+    offset: 12,
+  })
+    .setLngLat(lngLat)
+    .setDOMContent(wrap)
+    .addTo(map);
+  routeChooserPopup.on("close", () => {
+    routeChooserPopup = null;
+  });
 }
 
 // ---- Bounds --------------------------------------------------------------
