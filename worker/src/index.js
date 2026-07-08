@@ -29,7 +29,7 @@ const STATES = ["QLD", "NSW", "VIC", "TAS", "SA", "WA", "NT", "ACT"];
 // Add columns introduced after the original schema. ALTER fails once the column
 // exists, so each is best-effort — cheap and idempotent.
 async function ensureSubmissionsSchema(env) {
-  for (const col of ["state TEXT", "contributor_url TEXT"]) {
+  for (const col of ["state TEXT", "contributor_url TEXT", "series TEXT"]) {
     try {
       await env.DB.prepare(`ALTER TABLE submissions ADD COLUMN ${col}`).run();
     } catch (_) {
@@ -74,6 +74,7 @@ async function submit(request, env, cors) {
   const difficulty = (form.get("difficulty") || "").toString().trim().toLowerCase();
   const surface = (form.get("surface") || "").toString().trim().slice(0, 120);
   const description = (form.get("description") || "").toString().trim().slice(0, 4000);
+  const series = (form.get("series") || "").toString().trim().slice(0, 80);
   const gpxFile = form.get("gpx");
   const photoFile = form.get("photo");
 
@@ -113,13 +114,13 @@ async function submit(request, env, cors) {
 
   await env.DB.prepare(
     `INSERT INTO submissions
-      (id, status, name, region, state, country, difficulty, surface, description,
+      (id, status, name, region, state, country, difficulty, surface, description, series,
        distance_km, elevation_gain_m, marker_lng, marker_lat, coords,
        gpx_key, photo_key, contributor, contributor_url, email, created_at)
-     VALUES (?, 'pending', ?, ?, ?, 'Australia', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+     VALUES (?, 'pending', ?, ?, ?, 'Australia', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   )
     .bind(
-      id, name, region, state, difficulty, surface, description,
+      id, name, region, state, difficulty, surface, description, series,
       stats.distance_km, stats.elevation_gain_m, stats.marker[0], stats.marker[1],
       JSON.stringify(stats.coords), gpxKey, photoKey, contributor, contributorUrl, email,
       new Date().toISOString()
@@ -133,7 +134,7 @@ async function submit(request, env, cors) {
 async function routes(env, cors) {
   await ensureSubmissionsSchema(env);
   const { results } = await env.DB.prepare(
-    `SELECT id, name, region, state, country, difficulty, surface, description,
+    `SELECT id, name, region, state, country, difficulty, surface, description, series,
             distance_km, elevation_gain_m, marker_lng, marker_lat, coords,
             photo_key, contributor, contributor_url, created_at
        FROM submissions WHERE status = 'published' ORDER BY created_at DESC`
@@ -154,6 +155,7 @@ async function routes(env, cors) {
       elevation_gain_m: r.elevation_gain_m,
       terrain_difficulty: r.difficulty,
       surface: r.surface || "",
+      series: r.series || "",
       gpx_url: `${base}/file/${r.gpx_key || "gpx/" + r.id + ".gpx"}`,
       photo_url: r.photo_key ? `${base}/file/${r.photo_key}` : "",
       description: r.description || "",
@@ -497,7 +499,7 @@ async function adminPage(request, env) {
   await ensureSubmissionsSchema(env);
   const { results } = await env.DB.prepare(
     `SELECT id, status, name, region, state, country, difficulty, surface, distance_km,
-            elevation_gain_m, description, contributor, contributor_url, email, coords,
+            elevation_gain_m, description, series, contributor, contributor_url, email, coords,
             photo_key, created_at
        FROM submissions ORDER BY (status='pending') DESC, created_at DESC`
   ).all();
@@ -584,6 +586,7 @@ async function adminEdit(request, env) {
   if (!DIFFICULTIES.includes(difficulty)) difficulty = "rocky";
   const surface = (form.get("surface") || "").toString().trim().slice(0, 120);
   const description = (form.get("description") || "").toString().trim().slice(0, 4000);
+  const series = (form.get("series") || "").toString().trim().slice(0, 80);
   const contributor = (form.get("contributor") || "").toString().trim().slice(0, 120);
   const contributorUrl = (form.get("contributor_url") || "").toString().trim().slice(0, 300);
   const distance = parseFloat(form.get("distance_km"));
@@ -606,7 +609,7 @@ async function adminEdit(request, env) {
 
   await env.DB.prepare(
     `UPDATE submissions
-        SET name=?, region=?, state=?, country=?, difficulty=?, surface=?, description=?,
+        SET name=?, region=?, state=?, country=?, difficulty=?, surface=?, description=?, series=?,
             contributor=?, contributor_url=?, distance_km=?, elevation_gain_m=?, photo_key=?
       WHERE id=?`
   )
@@ -618,6 +621,7 @@ async function adminEdit(request, env) {
       difficulty,
       surface,
       description,
+      series,
       contributor,
       contributorUrl,
       Number.isFinite(distance) ? distance : null,
@@ -755,6 +759,7 @@ function adminHtml(rows, events = [], routeOpts = []) {
       <summary>
         <span class="cname">${esc(r.name)}</span>
         <span class="badge">${esc(r.status)}</span>
+        ${r.series ? `<span class="badge badge--series">◆ ${esc(r.series)}</span>` : ""}
         <span class="csub">${esc(r.region)}${r.state ? ", " + esc(r.state) : ""} · ${r.distance_km} km</span>
       </summary>
       <div class="body">
@@ -795,6 +800,9 @@ function adminHtml(rows, events = [], routeOpts = []) {
             <label>Elevation (m)<input name="elevation_gain_m" type="number" step="1" value="${r.elevation_gain_m ?? ""}" /></label>
             <label>Contributed by<input name="contributor" value="${esc(r.contributor)}" /></label>
             <label>Contributor link<input name="contributor_url" value="${esc(r.contributor_url)}" placeholder="Strava / RWGPS / website" /></label>
+            <label class="full">Event / series — routes sharing this name group under one pin on the map
+              <input name="series" value="${esc(r.series)}" placeholder="e.g. Clarkes Gambit (leave blank for a standalone route)" />
+            </label>
             <label class="full">Description (full write-up shown on the route page)<textarea name="description" rows="10">${esc(r.description)}</textarea></label>
             <label class="full">Photo — the hero image on the card &amp; route page (max 12 MB)
               <input name="photo" type="file" accept="image/*" />
@@ -836,6 +844,7 @@ function adminHtml(rows, events = [], routeOpts = []) {
   .meta{flex:1}
   h3{margin:0 0 4px;font-size:16px}
   .badge{font-size:10px;text-transform:uppercase;letter-spacing:.06em;background:#ece5d2;padding:2px 6px;border-radius:3px;color:#6f7c53}
+  .badge--series{background:#ecdcef;color:#7a4a6d;text-transform:none;letter-spacing:0}
   .sub{margin:0 0 6px;color:#5a5346;font-size:13px}
   .desc{margin:0 0 6px;font-size:13px}
   .by{margin:0 0 10px;color:#8a8068;font-size:12px}

@@ -586,13 +586,30 @@ body {
   box-shadow: 0 8px 26px rgba(28, 26, 21, 0.18);
   background: var(--cream-panel);
 }
-.route-chooser__head {
-  margin: 0 2px 7px;
-  font-size: 10.5px;
+.route-chooser__eyebrow {
+  margin: 0 2px 2px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: var(--olive);
+  color: #8a4f7d;
+}
+.route-chooser__head {
+  margin: 0 2px 1px;
+  font-family: var(--head-font);
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 1.12;
+  color: #2c2a24;
+}
+.route-chooser__sub {
+  margin: 0 2px 8px;
+  font-size: 11px;
+  color: #8a8068;
+}
+/* Event picker gets a plum top accent to echo its map pin. */
+.route-chooser-popup.is-event .maplibregl-popup-content {
+  border-top: 3px solid #8a4f7d;
 }
 .route-pick {
   display: flex;

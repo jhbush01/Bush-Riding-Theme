@@ -16,6 +16,9 @@ const SAGE = "#aeb995";
 // visual hierarchy over route pins. Past events render muted grey.
 const TERRACOTTA = "#c1572e";
 const EVENT_PAST = "#8f8a7e";
+// Route-series / event pin — a plum distinct from route (olive), community-event
+// (terracotta) and cluster (sage) pins, so a multi-route event reads at a glance.
+const SERIES = "#8a4f7d";
 
 let map;
 let mapReady = false;
@@ -244,7 +247,7 @@ function onLoad() {
     source: "routes-points",
     filter: ["has", "point_count"],
     layout: {
-      "text-field": ["get", "routeCount"],
+      "text-field": ["to-string", ["get", "routeCount"]],
       "text-font": ["Noto Sans Regular"],
       "text-size": 12,
     },
@@ -257,15 +260,22 @@ function onLoad() {
     source: "routes-points",
     filter: ["!", ["has", "point_count"]],
     paint: {
-      // Grouped pins (2+ routes at one start) sit a touch larger to hold the count.
+      // Event pins are largest, then grouped trailhead pins, then singles.
       "circle-radius": [
         "case",
+        ["==", ["get", "kind"], "series"], 11,
         ["boolean", ["feature-state", "selected"], false], 8,
         [">", ["get", "count"], 1], 9,
         6,
       ],
-      "circle-color": ["case", ["boolean", ["feature-state", "selected"], false], LEMON, OLIVE],
-      "circle-stroke-width": 2,
+      // Selected → lemon; event/series → plum; everything else → olive.
+      "circle-color": [
+        "case",
+        ["boolean", ["feature-state", "selected"], false], LEMON,
+        ["==", ["get", "kind"], "series"], SERIES,
+        OLIVE,
+      ],
+      "circle-stroke-width": ["case", ["==", ["get", "kind"], "series"], 2.5, 2],
       "circle-stroke-color": "#f4efe2",
     },
   });
@@ -277,7 +287,7 @@ function onLoad() {
     source: "routes-points",
     filter: ["all", ["!", ["has", "point_count"]], [">", ["get", "count"], 1]],
     layout: {
-      "text-field": ["get", "count"],
+      "text-field": ["to-string", ["get", "count"]],
       "text-font": ["Noto Sans Regular"],
       "text-size": 11,
       "text-allow-overlap": true,
@@ -325,39 +335,66 @@ function metersBetween(a, b) {
   const dLng = (b[0] - a[0]) * (Math.PI / 180) * Math.cos(lat);
   return R * Math.sqrt(dLat * dLat + dLng * dLng);
 }
+function centroid(coords) {
+  let x = 0, y = 0;
+  for (const c of coords) { x += c[0]; y += c[1]; }
+  return [x / coords.length, y / coords.length];
+}
 
 // Build a points FeatureCollection from each route's marker (or line start).
-// Routes that start within ~50 m of each other (a shared trailhead — e.g. a
-// 50/95/135 km set) merge into ONE pin carrying the whole set, so they show as
-// a single counted marker instead of stacked, un-clickable pins. Proximity
-// grouping (not coordinate rounding) avoids splitting starts that differ only
-// by GPS jitter.
+// Two kinds of grouping collapse overlapping pins into one:
+//   • Event / series (an explicit `series` name, e.g. "Clarkes Gambit"): every
+//     route in the series shares ONE plum pin at the set's centre, regardless of
+//     how spread out the starts are.
+//   • Shared trailhead: remaining routes starting within ~50 m of each other
+//     (e.g. a 50/95/135 km set) merge into one pin. Proximity — not coordinate
+//     rounding — so GPS jitter at a start doesn't split the set.
+// Either way the pin carries every member id so a click can offer a picker.
 const SAME_START_M = 50;
 function pointsFC(features) {
-  const groups = []; // { coord, ids:[], name }
+  const groups = []; // { coord?, coords:[], ids:[], name, series }
+  const seriesByName = new Map(); // lowercased series -> group
   routeToPinId = new Map();
+
   for (const f of features) {
     const coord = f.properties.marker || f.geometry.coordinates[0];
     if (!coord) continue;
-    let g = groups.find((x) => metersBetween(x.coord, coord) <= SAME_START_M);
-    if (!g) {
-      g = { coord, ids: [], name: f.properties.name };
-      groups.push(g);
+    const series = (f.properties.series || "").trim();
+    if (series) {
+      const key = series.toLowerCase();
+      let g = seriesByName.get(key);
+      if (!g) {
+        g = { coords: [], ids: [], name: series, series };
+        seriesByName.set(key, g);
+        groups.push(g);
+      }
+      g.coords.push(coord);
+      g.ids.push(f.properties.id);
+    } else {
+      let g = groups.find((x) => !x.series && metersBetween(x.coord, coord) <= SAME_START_M);
+      if (!g) {
+        g = { coord, coords: [coord], ids: [], name: f.properties.name, series: "" };
+        groups.push(g);
+      }
+      g.ids.push(f.properties.id);
     }
-    g.ids.push(f.properties.id);
   }
+
   const out = [];
   for (const g of groups) {
     const pinId = g.ids[0];
     for (const id of g.ids) routeToPinId.set(id, pinId);
     out.push({
       type: "Feature",
-      geometry: { type: "Point", coordinates: g.coord },
+      // Series pin sits at its routes' centre; a trailhead/solo pin at its start.
+      geometry: { type: "Point", coordinates: g.series ? centroid(g.coords) : g.coord },
       properties: {
         id: pinId,
         name: g.name,
         count: g.ids.length,
         ids: g.ids.join(","), // members, read on click to offer a picker
+        series: g.series || "",
+        kind: g.series ? "series" : "route",
       },
     });
   }
@@ -384,7 +421,7 @@ function wireInteractions() {
     if (ids.length <= 1) {
       selectRoute(ids[0] || props.id, true);
     } else {
-      showRouteChooser(ids, e.features[0].geometry.coordinates);
+      showRouteChooser(ids, e.features[0].geometry.coordinates, props.series || "");
     }
   });
 
@@ -398,7 +435,7 @@ function wireInteractions() {
   map.on("click", "route-count", (e) => {
     const props = e.features[0].properties;
     const ids = String(props.ids || props.id).split(",").filter(Boolean);
-    showRouteChooser(ids, e.features[0].geometry.coordinates);
+    showRouteChooser(ids, e.features[0].geometry.coordinates, props.series || "");
   });
 
   // Tap the bare map (not a pin/cluster/event/diary line) to dismiss the sheet.
@@ -600,9 +637,10 @@ function clearSelection() {
   selectedId = null;
 }
 
-// Several routes start at the same place (e.g. a 50/95/135 km set): pop a small
-// picker at the pin so any of them can be opened. One route -> just open it.
-function showRouteChooser(ids, lngLat) {
+// Several routes share a pin — an event/series (title set) or a shared trailhead
+// (no title). Pop a small picker so any of them can be opened. One route -> just
+// open it.
+function showRouteChooser(ids, lngLat, title) {
   const routes = ids.map((id) => routeById.get(id)).filter(Boolean);
   if (routes.length <= 1) {
     if (routes[0]) selectRoute(routes[0].properties.id, true);
@@ -611,11 +649,21 @@ function showRouteChooser(ids, lngLat) {
   if (routeChooserPopup) routeChooserPopup.remove();
 
   const wrap = document.createElement("div");
-  wrap.className = "route-chooser";
+  wrap.className = "route-chooser" + (title ? " route-chooser--event" : "");
+  if (title) {
+    const eyebrow = document.createElement("p");
+    eyebrow.className = "route-chooser__eyebrow";
+    eyebrow.textContent = "Event";
+    wrap.appendChild(eyebrow);
+  }
   const head = document.createElement("p");
   head.className = "route-chooser__head";
-  head.textContent = `${routes.length} routes from here`;
+  head.textContent = title || "Routes from here";
   wrap.appendChild(head);
+  const sub = document.createElement("p");
+  sub.className = "route-chooser__sub";
+  sub.textContent = `${routes.length} routes — tap to open`;
+  wrap.appendChild(sub);
 
   for (const r of routes) {
     const p = r.properties;
@@ -645,7 +693,7 @@ function showRouteChooser(ids, lngLat) {
     closeButton: true,
     closeOnClick: true,
     maxWidth: "260px",
-    className: "route-chooser-popup",
+    className: "route-chooser-popup" + (title ? " is-event" : ""),
     offset: 12,
   })
     .setLngLat(lngLat)
