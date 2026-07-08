@@ -540,12 +540,10 @@ function wireFamousInteractions() {
   if (!layers.length) return;
   map.on("click", layers, (e) => {
     const props = e.features[0].properties;
-    const ids = String(props.ids || "").split(",").filter(Boolean);
-    showRouteChooser(ids, e.features[0].geometry.coordinates, props.name || "", {
-      location: props.location || "",
-      dates: props.dates || "",
-      url: props.url || "",
-    });
+    showFamousPopup(
+      { name: props.name || "", location: props.location || "", dates: props.dates || "" },
+      e.features[0].geometry.coordinates
+    );
   });
   map.on("mouseenter", layers, () => (map.getCanvas().style.cursor = "pointer"));
   map.on("mouseleave", layers, () => (map.getCanvas().style.cursor = ""));
@@ -696,7 +694,7 @@ function wireEventInteractions() {
   map.on("click", layers, (e) => {
     const id = e.features[0].properties.id;
     const feature = eventById.get(id);
-    if (feature) openEventDetail(feature);
+    if (feature) openBushEventDeck(feature);
   });
   map.on("mouseenter", layers, () => (map.getCanvas().style.cursor = "pointer"));
   map.on("mouseleave", layers, () => (map.getCanvas().style.cursor = ""));
@@ -706,6 +704,8 @@ function wireEventInteractions() {
 function selectRoute(id, fly) {
   const feature = routeById.get(id);
   if (!feature) return;
+  deck = null; // a directly-picked community route has no sibling deck
+  updateDeckNav();
 
   if (mapReady) {
     // Clear previous selected pin state. Highlight the *pin*, which may be shared
@@ -834,6 +834,232 @@ function showRouteChooser(ids, lngLat, title, meta) {
   });
 }
 
+// ---- Famous Events: card, editions, deck navigation ----------------------
+
+// Build the famous-event model from the loaded routes: one entry per event with
+// its routes, editions (series_version), dominant state, and event metadata.
+function famousEvents() {
+  const byName = new Map();
+  for (const f of routeFeatures) {
+    const series = (f.properties.series || "").trim();
+    if (!series) continue;
+    const key = series.toLowerCase();
+    let g = byName.get(key);
+    if (!g) {
+      const fr = f.properties.famous_ride || {};
+      g = { name: series, key, location: fr.location || "", dates: fr.dates || "", url: fr.url || "", routes: [], states: {} };
+      byName.set(key, g);
+    }
+    g.routes.push(f);
+    const st = f.properties.state || "";
+    if (st) g.states[st] = (g.states[st] || 0) + 1;
+  }
+  const out = [];
+  for (const g of byName.values()) {
+    let state = "", best = -1;
+    for (const [s, n] of Object.entries(g.states)) if (n > best) { best = n; state = s; }
+    g.state = state;
+    g.editions = sortEditions([...new Set(g.routes.map((r) => (r.properties.series_version || "").trim()))]);
+    g.latestEdition = g.editions[0];
+    out.push(g);
+  }
+  return out;
+}
+// Newest edition first; the blank/"current" bucket sorts last (but is the only
+// entry when nothing is versioned).
+function sortEditions(versions) {
+  const named = versions.filter(Boolean).sort((a, b) => {
+    const na = parseFloat(a), nb = parseFloat(b);
+    if (Number.isFinite(na) && Number.isFinite(nb)) return nb - na;
+    return b.localeCompare(a);
+  });
+  const hasBlank = versions.includes("");
+  if (!named.length) return [""];
+  return hasBlank ? [...named, ""] : named;
+}
+function routesForEdition(ev, edition) {
+  return ev.routes.filter((r) => (r.properties.series_version || "").trim() === edition);
+}
+function eventState(feature) {
+  const r = routeById.get(feature.properties.route_id);
+  return (r && r.properties.state) || "";
+}
+
+// Small popup on the pin: name + town + dates, tap to open the full card.
+function showFamousPopup(props, lngLat) {
+  if (routeChooserPopup) routeChooserPopup.remove();
+  const wrap = document.createElement("div");
+  wrap.className = "route-chooser route-chooser--event";
+  const eb = document.createElement("p");
+  eb.className = "route-chooser__eyebrow";
+  eb.textContent = "Famous Event";
+  wrap.appendChild(eb);
+  const head = document.createElement("p");
+  head.className = "route-chooser__head";
+  head.textContent = props.name || "Famous Event";
+  wrap.appendChild(head);
+  const where = [props.location, props.dates].filter(Boolean).join(" · ");
+  if (where) {
+    const info = document.createElement("p");
+    info.className = "route-chooser__meta";
+    info.textContent = where;
+    wrap.appendChild(info);
+  }
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "route-pick";
+  const nm = document.createElement("span");
+  nm.className = "route-pick__name";
+  nm.textContent = "View event & routes →";
+  btn.appendChild(nm);
+  btn.addEventListener("click", () => {
+    if (routeChooserPopup) routeChooserPopup.remove();
+    openFamousCardByName(props.name);
+  });
+  wrap.appendChild(btn);
+  routeChooserPopup = new maplibregl.Popup({
+    closeButton: true, closeOnClick: true, maxWidth: "260px", className: "route-chooser-popup is-event", offset: 12,
+  })
+    .setLngLat(lngLat)
+    .setDOMContent(wrap)
+    .addTo(map);
+  routeChooserPopup.on("close", () => { routeChooserPopup = null; });
+}
+
+function openFamousCardByName(name) {
+  const evs = famousEvents();
+  const ev = evs.find((e) => e.name.toLowerCase() === String(name).toLowerCase());
+  if (!ev) return;
+  const sibs = evs.filter((e) => e.state === ev.state).sort((a, b) => a.name.localeCompare(b.name));
+  deck = { kind: "famous", items: sibs, index: Math.max(0, sibs.findIndex((e) => e.key === ev.key)) };
+  showFamous();
+  openSheet("half");
+}
+// Re-fill the current famous card without reopening the sheet (used by deck nav).
+function showFamous() {
+  const ev = deck.items[deck.index];
+  if (!ev._edition) ev._edition = ev.latestEdition;
+  detailMode = "famous";
+  els.detail.dataset.mode = "famous";
+  els.detail.removeAttribute("data-event-status");
+  els.detail.removeAttribute("data-famous");
+  fillFamousCard(ev);
+  updateDeckNav();
+  frameFeatures(routesForEdition(ev, ev._edition));
+}
+function fillFamousCard(ev) {
+  const firstPhoto = (ev.routes[0] && ev.routes[0].properties.photo_url) || "";
+  setCardHero(firstPhoto, ev.name);
+  setText("detail-eyebrow", "Famous Event");
+  setText("detail-name", ev.name);
+  setText("famous-where", [ev.location, ev.dates].filter(Boolean).join(" · "));
+
+  const edWrap = document.getElementById("famous-editions");
+  edWrap.innerHTML = "";
+  if (ev.editions.length > 1) {
+    edWrap.hidden = false;
+    for (const edn of ev.editions) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "famous-edition" + (edn === ev._edition ? " is-active" : "");
+      b.textContent = edn || "Current";
+      b.addEventListener("click", () => {
+        ev._edition = edn;
+        fillFamousCard(ev);
+        frameFeatures(routesForEdition(ev, ev._edition));
+      });
+      edWrap.appendChild(b);
+    }
+  } else {
+    edWrap.hidden = true;
+  }
+
+  const list = document.getElementById("famous-routes");
+  list.innerHTML = "";
+  for (const r of routesForEdition(ev, ev._edition)) list.appendChild(famousRouteRow(r, ev));
+
+  const link = document.getElementById("famous-eventlink");
+  if (ev.url) { link.href = ev.url; link.hidden = false; } else { link.hidden = true; }
+}
+function famousRouteRow(route, ev) {
+  const p = route.properties;
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "famous-route";
+  const text = document.createElement("span");
+  const nm = document.createElement("span");
+  nm.className = "famous-route__name";
+  nm.textContent = p.name || "Route";
+  const meta = document.createElement("span");
+  meta.className = "famous-route__meta";
+  meta.textContent = [p.distance_km != null ? `${fmt(p.distance_km)} km` : "", terrainLabel(p.terrain_difficulty)].filter(Boolean).join(" · ");
+  text.appendChild(nm);
+  text.appendChild(meta);
+  const chev = document.createElement("span");
+  chev.className = "famous-route__chev";
+  chev.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>';
+  btn.appendChild(text);
+  btn.appendChild(chev);
+  btn.addEventListener("click", () => openRouteFromEvent(route, ev));
+  return btn;
+}
+
+// Open a route from a famous event, with a deck of that edition's routes.
+function openRouteFromEvent(route, ev) {
+  const sibs = routesForEdition(ev, ev._edition);
+  deck = { kind: "route", items: sibs, index: Math.max(0, sibs.findIndex((x) => x.properties.id === route.properties.id)), event: ev };
+  showRouteFromDeck(false);
+  openSheet("peek");
+}
+function showRouteFromDeck(reopen) {
+  const route = deck.items[deck.index];
+  detailMode = "route";
+  els.detail.dataset.mode = "route";
+  els.detail.removeAttribute("data-event-status");
+  fillDetail(route);
+  selectedId = route.properties.id;
+  if (mapReady) {
+    map.getSource("selected-route").setData({ type: "FeatureCollection", features: [{ type: "Feature", geometry: route.geometry, properties: {} }] });
+  }
+  updateDeckNav();
+  frameFeatures([route]);
+}
+
+// Open a bush event with a deck of the other bush events in its state.
+function openBushEventDeck(feature) {
+  const st = eventState(feature);
+  const sibs = eventFeatures.filter((e) => eventState(e) === st);
+  deck = { kind: "event", items: sibs.length ? sibs : [feature], index: Math.max(0, sibs.findIndex((e) => e.properties.id === feature.properties.id)) };
+  openEventDetail(deck.items[deck.index]);
+  updateDeckNav();
+}
+
+function updateDeckNav() {
+  const has = !!(deck && deck.items && deck.items.length > 1);
+  if (els.deckPrev) els.deckPrev.hidden = !has;
+  if (els.deckNext) els.deckNext.hidden = !has;
+}
+function deckGo(dir) {
+  if (!deck || deck.items.length < 2) return;
+  deck.index = (deck.index + dir + deck.items.length) % deck.items.length;
+  if (deck.kind === "famous") showFamous();
+  else if (deck.kind === "event") { openEventDetail(deck.items[deck.index]); updateDeckNav(); }
+  else if (deck.kind === "route") showRouteFromDeck(false);
+}
+
+// Frame the map to a set of route features (their outlines).
+function frameFeatures(features) {
+  if (!mapReady || !features || !features.length) return;
+  scheduleReframeFeatures(features);
+}
+let reframeFeaturesTimer = null;
+function scheduleReframeFeatures(features) {
+  clearTimeout(reframeFeaturesTimer);
+  reframeFeaturesTimer = setTimeout(() => {
+    if (mapReady) fitToRoutes(features, true);
+  }, 60);
+}
+
 // ---- Bounds --------------------------------------------------------------
 // Padding that keeps the framed route clear of whatever UI is currently
 // overlaying the map. In sheet mode (mobile/tablet) the detail surface rises
@@ -902,8 +1128,11 @@ function fitToRoutes(features, animate) {
 
 // Snap states used in sheet mode. Desktop opens straight to "full".
 let detailOpen = false;
-let detailMode = "route"; // "route" | "event"
+let detailMode = "route"; // "route" | "event" | "famous"
 let sheetState = "closed"; // "closed" | "peek" | "half" | "full"
+// Sibling "deck" the current card belongs to, for swipe/chevron navigation:
+// famous events in a state, bush events in a state, or the routes of one event.
+let deck = null; // { kind:"famous"|"event"|"route", items:[...], index, event? }
 let drag = null; // active pointer-drag session
 let reframeTimer = null;
 
@@ -956,8 +1185,28 @@ function setupDetailPanel() {
   els.detail = document.getElementById("detail");
   els.drag = document.getElementById("detail-drag");
   els.scroll = document.getElementById("detail-scroll");
+  els.deckPrev = document.getElementById("deck-prev");
+  els.deckNext = document.getElementById("deck-next");
 
   document.getElementById("detail-close").addEventListener("click", closeDetail);
+  if (els.deckPrev) els.deckPrev.addEventListener("click", () => deckGo(-1));
+  if (els.deckNext) els.deckNext.addEventListener("click", () => deckGo(1));
+
+  // Horizontal swipe between sibling cards. Passive (never preventDefault) so it
+  // can't interfere with the vertical drag; only a clearly-horizontal flick fires.
+  let swX = null, swY = null;
+  els.detail.addEventListener("touchstart", (e) => {
+    if (!deck || deck.items.length < 2) { swX = null; return; }
+    swX = e.touches[0].clientX;
+    swY = e.touches[0].clientY;
+  }, { passive: true });
+  els.detail.addEventListener("touchend", (e) => {
+    if (swX == null) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - swX, dy = t.clientY - swY;
+    swX = null;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.6) deckGo(dx < 0 ? 1 : -1);
+  }, { passive: true });
 
   // Pointer-drag on the handle / header zone drives the snap states. We ignore
   // presses that begin on a control (close, download) so taps still fire.
@@ -1067,6 +1316,8 @@ function openSheet(initialState) {
 function closeDetail() {
   if (!detailOpen) return;
   detailOpen = false;
+  deck = null;
+  updateDeckNav();
   clearSelection();
   highlightResult(null);
   els.detail.setAttribute("aria-hidden", "true");
