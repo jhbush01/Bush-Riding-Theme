@@ -487,18 +487,23 @@ const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").match
 function setupFamousLayers() {
   map.addSource("famous-rides", { type: "geojson", data: famousFC(routeFeatures) });
 
-  // Pulsing plum ring — animated in startPulse (static under reduced motion).
-  map.addLayer({
-    id: "famous-pulse",
-    type: "circle",
-    source: "famous-rides",
-    paint: {
-      "circle-color": SERIES,
-      "circle-radius": reduceMotion ? 22 : 15,
-      "circle-opacity": reduceMotion ? 0.18 : 0.32,
-      "circle-stroke-width": 0,
-    },
-  });
+  // Two hollow plum ripple rings emanating outward (animated in startPulse).
+  for (const id of ["famous-pulse", "famous-pulse-b"]) {
+    map.addLayer({
+      id,
+      type: "circle",
+      source: "famous-rides",
+      paint: {
+        "circle-radius": reduceMotion ? 20 : 13,
+        "circle-color": SERIES,
+        "circle-opacity": 0,
+        "circle-stroke-color": SERIES,
+        "circle-stroke-width": 2.5,
+        "circle-stroke-opacity": reduceMotion ? 0.22 : 0,
+      },
+    });
+    if (reduceMotion) break;
+  }
   // Filled plum core.
   map.addLayer({
     id: "famous-core",
@@ -560,20 +565,26 @@ function setupEventLayers() {
     // No clustering: event pins always render individually.
   });
 
-  // Outer pulse ring (upcoming only). Radius/opacity animated via rAF below;
-  // under reduced motion it stays a static ring.
-  map.addLayer({
-    id: "event-pulse",
-    type: "circle",
-    source: "community-events",
-    filter: ["==", ["get", "status"], "upcoming"],
-    paint: {
-      "circle-color": TERRACOTTA,
-      "circle-radius": reduceMotion ? 20 : 14,
-      "circle-opacity": reduceMotion ? 0.18 : 0.35,
-      "circle-stroke-width": 0,
-    },
-  });
+  // Two hollow ripple rings (upcoming only) that continuously emanate outward,
+  // like a stone dropped in water. Radius + stroke opacity animated via rAF
+  // below; under reduced motion a single static ring stays.
+  for (const id of ["event-pulse", "event-pulse-b"]) {
+    map.addLayer({
+      id,
+      type: "circle",
+      source: "community-events",
+      filter: ["==", ["get", "status"], "upcoming"],
+      paint: {
+        "circle-radius": reduceMotion ? 18 : 12,
+        "circle-color": TERRACOTTA,
+        "circle-opacity": 0, // hollow — the ring is the stroke
+        "circle-stroke-color": TERRACOTTA,
+        "circle-stroke-width": 2.5,
+        "circle-stroke-opacity": reduceMotion ? 0.22 : 0,
+      },
+    });
+    if (reduceMotion) break; // one static ring is enough
+  }
 
   // Inner filled anchor circle. Past events: muted grey at reduced opacity.
   map.addLayer({
@@ -666,23 +677,29 @@ function makeFlagIcon() {
 // on each layer stay and we do nothing.
 function startPulse() {
   if (reduceMotion) return;
-  // Each ring starts at its pin's core radius (so it emerges FROM the pin) and
-  // eases outward while fading — a clear outward ripple, not an inward throb.
+  // Continuous outward ripples. Each pin has two rings offset half a cycle, so
+  // there's always one expanding. A ring fades IN just off the pin, grows, then
+  // fades OUT at the edge (opacity 0 at both ends) — nothing ever travels back
+  // inward, and there's no visible reset. Slow, like ripples in water.
   const rings = [
-    { layer: "event-pulse", base: 10, grow: 22, peak: 0.4 },
-    { layer: "famous-pulse", base: 11, grow: 24, peak: 0.38 },
+    { layer: "event-pulse", base: 11, grow: 30, peak: 0.5, phase: 0 },
+    { layer: "event-pulse-b", base: 11, grow: 30, peak: 0.5, phase: 0.5 },
+    { layer: "famous-pulse", base: 12, grow: 30, peak: 0.5, phase: 0 },
+    { layer: "famous-pulse-b", base: 12, grow: 30, peak: 0.5, phase: 0.5 },
   ];
-  const PERIOD = 2200;
+  const PERIOD = 3600; // slow
   const t0 = performance.now();
   (function frame(now) {
     const live = rings.filter((r) => map.getLayer(r.layer));
-    if (!live.length) return; // both gone (e.g. teardown)
+    if (!live.length) return; // all gone (e.g. teardown)
     if (!document.hidden) {
-      const t = ((now - t0) % PERIOD) / PERIOD; // 0..1
-      const easeOut = 1 - (1 - t) * (1 - t); // fast expansion, then decelerate
+      const base = ((now - t0) % PERIOD) / PERIOD;
       for (const r of live) {
-        map.setPaintProperty(r.layer, "circle-radius", r.base + r.grow * easeOut);
-        map.setPaintProperty(r.layer, "circle-opacity", r.peak * (1 - t));
+        const ph = (base + r.phase) % 1; // 0..1 within this ring's cycle
+        map.setPaintProperty(r.layer, "circle-radius", r.base + r.grow * ph);
+        // sin() -> opacity is 0 at ph=0 (near the pin) and ph=1 (far out),
+        // peaking mid-flight, so rings never pop or snap back.
+        map.setPaintProperty(r.layer, "circle-stroke-opacity", r.peak * Math.sin(Math.PI * ph));
       }
     }
     requestAnimationFrame(frame);
@@ -2081,8 +2098,8 @@ function highlightResult(id) {
 // Multi-select pills in the drawer that show/hide each pin category on the map.
 const CATEGORY_LAYERS = {
   routes: ["clusters", "cluster-count", "unclustered", "route-count"],
-  bush: ["event-pulse", "event-core", "event-icon", "event-hit"],
-  famous: ["famous-pulse", "famous-core", "famous-count", "famous-hit"],
+  bush: ["event-pulse", "event-pulse-b", "event-core", "event-icon", "event-hit"],
+  famous: ["famous-pulse", "famous-pulse-b", "famous-core", "famous-count", "famous-hit"],
 };
 
 function setCategoryVisible(cat, on) {

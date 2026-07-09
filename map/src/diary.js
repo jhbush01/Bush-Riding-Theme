@@ -115,9 +115,19 @@ const $ = (id) => document.getElementById(id);
 
 let subsTab = "pending";
 
+// This module runs on both the map (full account UI) and the submit page (auth
+// modal only). Every wiring below is guarded so a missing element is a no-op.
+function on(id, ev, fn) {
+  const el = $(id);
+  if (el) el.addEventListener(ev, fn);
+}
+function hasSubmissionsUI() {
+  return !!$("submissions-panel");
+}
+
 function wireUI() {
   // Account nav button
-  $("my-rides-btn").addEventListener("click", () => {
+  on("my-rides-btn", "click", () => {
     if (!API) return toast("Accounts aren't available right now.");
     if (currentEmail) openSubmissions();
     else openAuth();
@@ -128,14 +138,14 @@ function wireUI() {
   document.querySelectorAll("[data-auth-tab]").forEach((el) =>
     el.addEventListener("click", () => setAuthMode(el.dataset.authTab))
   );
-  $("auth-form").addEventListener("submit", submitAuth);
+  on("auth-form", "submit", submitAuth);
 
   // Username prompt
-  $("username-form").addEventListener("submit", submitUsername);
+  on("username-form", "submit", submitUsername);
 
-  // Submissions panel
-  $("subs-close").addEventListener("click", () => hide("submissions-panel"));
-  $("subs-signout").addEventListener("click", signOut);
+  // Submissions panel (map page only)
+  on("subs-close", "click", () => hide("submissions-panel"));
+  on("subs-signout", "click", signOut);
   document.querySelectorAll("[data-subs-tab]").forEach((el) =>
     el.addEventListener("click", () => setSubsTab(el.dataset.subsTab))
   );
@@ -189,9 +199,12 @@ async function submitAuth(e) {
     currentIsAdmin = !!r.isAdmin;
     closeAuth();
     notifyAuth();
-    // "Prompt on next sign-in": older accounts have no username yet.
-    if (r.needsUsername) openUsername(() => openSubmissions());
-    else openSubmissions();
+    // On the map, land in the submissions panel. Elsewhere (e.g. the submit
+    // page) just close — whatever triggered sign-in continues via onChange.
+    if (hasSubmissionsUI()) {
+      if (r.needsUsername) openUsername(() => openSubmissions());
+      else openSubmissions();
+    }
   } catch (err) {
     $("auth-error").textContent = err.message || "Something went wrong.";
     $("auth-error").hidden = false;
@@ -370,12 +383,16 @@ function routePageUrl(s) {
 
 /* ---------------- small helpers ---------------- */
 function show(id) {
-  $(id).classList.add("is-open");
-  $(id).setAttribute("aria-hidden", "false");
+  const el = $(id);
+  if (!el) return;
+  el.classList.add("is-open");
+  el.setAttribute("aria-hidden", "false");
 }
 function hide(id) {
-  $(id).classList.remove("is-open");
-  $(id).setAttribute("aria-hidden", "true");
+  const el = $(id);
+  if (!el) return;
+  el.classList.remove("is-open");
+  el.setAttribute("aria-hidden", "true");
 }
 function fmtDate(iso) {
   if (!iso) return "";
