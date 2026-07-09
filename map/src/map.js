@@ -677,17 +677,19 @@ function makeFlagIcon() {
 // on each layer stay and we do nothing.
 function startPulse() {
   if (reduceMotion) return;
-  // Continuous outward ripples. Each pin has two rings offset half a cycle, so
-  // there's always one expanding. A ring fades IN just off the pin, grows, then
-  // fades OUT at the edge (opacity 0 at both ends) — nothing ever travels back
-  // inward, and there's no visible reset. Slow, like ripples in water.
+  // Purely outward ripples. Each ring is BORN bright at the pin core, expands
+  // and fades to nothing by 75% of its cycle, then stays invisible (a gap)
+  // until it resets. Because nothing is ever visible near the reset, and radius
+  // only ever grows while visible, the eye never sees anything move inward.
+  // Two rings offset half a cycle keep it continuous, like ripples in water.
+  const VIS = 0.75; // visible for the first 75% of each cycle, then a gap
   const rings = [
-    { layer: "event-pulse", base: 11, grow: 30, peak: 0.5, phase: 0 },
-    { layer: "event-pulse-b", base: 11, grow: 30, peak: 0.5, phase: 0.5 },
-    { layer: "famous-pulse", base: 12, grow: 30, peak: 0.5, phase: 0 },
-    { layer: "famous-pulse-b", base: 12, grow: 30, peak: 0.5, phase: 0.5 },
+    { layer: "event-pulse", base: 10, grow: 40, peak: 0.55, phase: 0 },
+    { layer: "event-pulse-b", base: 10, grow: 40, peak: 0.55, phase: 0.5 },
+    { layer: "famous-pulse", base: 11, grow: 40, peak: 0.55, phase: 0 },
+    { layer: "famous-pulse-b", base: 11, grow: 40, peak: 0.55, phase: 0.5 },
   ];
-  const PERIOD = 3600; // slow
+  const PERIOD = 3200; // slow
   const t0 = performance.now();
   (function frame(now) {
     const live = rings.filter((r) => map.getLayer(r.layer));
@@ -697,9 +699,9 @@ function startPulse() {
       for (const r of live) {
         const ph = (base + r.phase) % 1; // 0..1 within this ring's cycle
         map.setPaintProperty(r.layer, "circle-radius", r.base + r.grow * ph);
-        // sin() -> opacity is 0 at ph=0 (near the pin) and ph=1 (far out),
-        // peaking mid-flight, so rings never pop or snap back.
-        map.setPaintProperty(r.layer, "circle-stroke-opacity", r.peak * Math.sin(Math.PI * ph));
+        // Bright at birth (ph 0), fading to 0 by VIS, invisible until reset.
+        const op = ph < VIS ? r.peak * (1 - ph / VIS) : 0;
+        map.setPaintProperty(r.layer, "circle-stroke-opacity", op);
       }
     }
     requestAnimationFrame(frame);
@@ -1094,58 +1096,99 @@ function updateBackButton() {
   if (show) document.getElementById("detail-back-label").textContent = "Back to " + backTarget.name;
 }
 
-function updateDeckNav() {
-  const has = !!(deck && deck.items && deck.items.length > 1);
-  if (els.deckPrev) els.deckPrev.hidden = !has;
-  if (els.deckNext) els.deckNext.hidden = !has;
-}
-function deckGo(dir) {
-  if (!deck || deck.items.length < 2) return;
-  deck.index = (deck.index + dir + deck.items.length) % deck.items.length;
-  const render =
-    deck.kind === "famous" ? showFamous : deck.kind === "event" ? showEventFromDeck : showRouteFromDeck;
-  slideDeck(dir, render);
+// Re-fill the card for the current deck index (no animation).
+function renderDeck() {
+  if (deck.kind === "famous") showFamous();
+  else if (deck.kind === "event") showEventFromDeck();
+  else showRouteFromDeck();
 }
 
-// Smooth horizontal "push" transition between sibling cards: the current card
-// slides out in the swipe direction, the next slides in from the other side.
+// Deck bar: pagination dots + prev/next chevrons. Rebuilds the dots when the
+// deck length changes; otherwise just moves the active dot.
+function updateDeckNav() {
+  const has = !!(deck && deck.items && deck.items.length > 1);
+  if (els.deckBar) els.deckBar.hidden = !has;
+  if (!has || !els.deckDots) return;
+  if (els.deckDots.childElementCount !== deck.items.length) {
+    els.deckDots.innerHTML = "";
+    deck.items.forEach((_, i) => {
+      const d = document.createElement("button");
+      d.type = "button";
+      d.className = "deck-dot";
+      d.setAttribute("aria-label", "Card " + (i + 1));
+      d.addEventListener("click", () => deckJump(i));
+      els.deckDots.appendChild(d);
+    });
+  }
+  [...els.deckDots.children].forEach((d, i) => d.classList.toggle("is-active", i === deck.index));
+}
+
+// ---- Card carousel: finger-tracked horizontal drag + push transition -------
 let sliding = false;
-function slideDeck(dir, render) {
-  const nodes = [els.drag, els.scroll].filter(Boolean);
-  if (sliding || !nodes.length) {
-    render();
+function cardNodes() {
+  return [els.drag, els.scroll].filter(Boolean);
+}
+function setCardX(x, fade) {
+  const o = fade == null ? "" : String(fade);
+  for (const n of cardNodes()) {
+    n.style.transform = x ? `translateX(${x}px)` : "";
+    if (fade != null) n.style.opacity = o;
+  }
+}
+function setCardAnim(on) {
+  for (const n of cardNodes()) n.style.transition = on ? "transform .24s ease, opacity .24s ease" : "none";
+}
+function clearCardX() {
+  for (const n of cardNodes()) {
+    n.style.transition = "";
+    n.style.transform = "";
+    n.style.opacity = "";
+  }
+}
+
+// Animate to a new deck index: the current card continues out in `dir`, the new
+// card slides in from the other side. Starts from wherever the card currently
+// sits (finger position), so a released drag flows straight into the transition.
+function advanceTo(newIndex, dir) {
+  if (sliding) return;
+  const nodes = cardNodes();
+  if (!nodes.length) {
+    deck.index = newIndex;
+    renderDeck();
     return;
   }
   sliding = true;
-  const OUT = dir > 0 ? -34 : 34; // exit toward the swipe direction
-  nodes.forEach((n) => {
-    n.style.transition = "transform .15s ease, opacity .15s ease";
-    n.style.transform = `translateX(${OUT}px)`;
-    n.style.opacity = "0";
-  });
+  const W = els.detail.offsetWidth || 340;
+  setCardAnim(true);
+  setCardX(dir > 0 ? -W : W, 0); // slide current out
   setTimeout(() => {
-    render();
-    nodes.forEach((n) => {
-      n.style.transition = "none";
-      n.style.transform = `translateX(${-OUT}px)`;
-      n.style.opacity = "0";
-    });
+    deck.index = newIndex;
+    renderDeck();
+    setCardAnim(false);
+    setCardX(dir > 0 ? W : -W, 0); // place incoming off the other edge
     requestAnimationFrame(() => {
-      nodes.forEach((n) => {
-        n.style.transition = "transform .22s ease, opacity .22s ease";
-        n.style.transform = "translateX(0)";
-        n.style.opacity = "1";
-      });
+      setCardAnim(true);
+      setCardX(0, 1); // slide it in
       setTimeout(() => {
-        nodes.forEach((n) => {
-          n.style.transition = "";
-          n.style.transform = "";
-          n.style.opacity = "";
-        });
+        clearCardX();
         sliding = false;
-      }, 240);
+      }, 260);
     });
-  }, 155);
+  }, 210);
+}
+function deckGo(dir) {
+  if (!deck || deck.items.length < 2 || sliding) return;
+  advanceTo((deck.index + dir + deck.items.length) % deck.items.length, dir);
+}
+function deckJump(i) {
+  if (!deck || i === deck.index || sliding) return;
+  advanceTo(i, i > deck.index ? 1 : -1);
+}
+// Released a horizontal drag without crossing the threshold — ease back to rest.
+function cardSnapBack() {
+  setCardAnim(true);
+  setCardX(0, 1);
+  setTimeout(clearCardX, 240);
 }
 
 // Frame the map to a set of route features (their outlines).
@@ -1288,6 +1331,8 @@ function setupDetailPanel() {
   els.detail = document.getElementById("detail");
   els.drag = document.getElementById("detail-drag");
   els.scroll = document.getElementById("detail-scroll");
+  els.deckBar = document.getElementById("deck-bar");
+  els.deckDots = document.getElementById("deck-dots");
   els.deckPrev = document.getElementById("deck-prev");
   els.deckNext = document.getElementById("deck-next");
 
@@ -1296,22 +1341,6 @@ function setupDetailPanel() {
   if (els.deckPrev) els.deckPrev.addEventListener("click", () => deckGo(-1));
   if (els.deckNext) els.deckNext.addEventListener("click", () => deckGo(1));
   if (els.back) els.back.addEventListener("click", goBack);
-
-  // Horizontal swipe between sibling cards. Passive (never preventDefault) so it
-  // can't interfere with the vertical drag; only a clearly-horizontal flick fires.
-  let swX = null, swY = null;
-  els.detail.addEventListener("touchstart", (e) => {
-    if (!deck || deck.items.length < 2) { swX = null; return; }
-    swX = e.touches[0].clientX;
-    swY = e.touches[0].clientY;
-  }, { passive: true });
-  els.detail.addEventListener("touchend", (e) => {
-    if (swX == null) return;
-    const t = e.changedTouches[0];
-    const dx = t.clientX - swX, dy = t.clientY - swY;
-    swX = null;
-    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.6) deckGo(dx < 0 ? 1 : -1);
-  }, { passive: true });
 
   // Pointer-drag on the handle / header zone drives the snap states. We ignore
   // presses that begin on a control (close, download) so taps still fire.
@@ -1940,26 +1969,43 @@ function onDragStart(e) {
   if (sheetState === "full" && els.scroll.scrollTop > 0) return;
   drag = {
     id: e.pointerId,
+    startX: e.clientX,
     startY: e.clientY,
     startT: currentTranslateY(),
     lastY: e.clientY,
     lastT: performance.now(),
     v: 0,
     active: false,
+    axis: null, // "x" (carousel between cards) | "y" (sheet snap)
+    dx: 0,
   };
   els.detail.style.transition = "none";
 }
 
 function onDragMove(e) {
   if (!drag || e.pointerId !== drag.id) return;
+  const dx = e.clientX - drag.startX;
   const dy = e.clientY - drag.startY;
   if (!drag.active) {
-    if (Math.abs(dy) < 4) return; // ignore micro-movement so taps still work
+    if (Math.abs(dx) < 5 && Math.abs(dy) < 5) return; // ignore micro-movement so taps still work
     drag.active = true;
+    // Lock the axis on the first real movement. Horizontal only when there are
+    // sibling cards to move between (and we're not mid-transition).
+    const canCarousel = deck && deck.items.length > 1 && !sliding;
+    drag.axis = canCarousel && Math.abs(dx) > Math.abs(dy) ? "x" : "y";
     try {
       els.drag.setPointerCapture(drag.id);
     } catch (_) {}
+    if (drag.axis === "x") setCardAnim(false);
   }
+
+  if (drag.axis === "x") {
+    // Card tracks the finger — you can hold it anywhere between routes.
+    drag.dx = dx;
+    setCardX(dx);
+    return;
+  }
+
   const full = els.detail.offsetHeight;
   const t = Math.min(Math.max(drag.startT + dy, 0), full);
   els.detail.style.transform = `translateY(${t}px)`;
@@ -1971,11 +2017,19 @@ function onDragMove(e) {
 
 function onDragEnd(e) {
   if (!drag || e.pointerId !== drag.id) return;
-  const { active, v } = drag;
+  const { active, v, axis, dx } = drag;
   drag = null;
-  els.detail.style.transition = "";
   if (!active) return; // it was a tap, not a drag
 
+  // Horizontal release: past ~a quarter of the card advances; else snap back.
+  if (axis === "x") {
+    const W = els.detail.offsetWidth || 340;
+    if (Math.abs(dx) > Math.min(96, W * 0.24)) deckGo(dx < 0 ? 1 : -1);
+    else cardSnapBack();
+    return;
+  }
+
+  els.detail.style.transition = "";
   const t = currentTranslateY();
   const full = els.detail.offsetHeight;
   const h = snapHeights();

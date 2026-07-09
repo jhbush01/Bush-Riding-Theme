@@ -156,15 +156,6 @@
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg>
         </button>
 
-        <!-- Deck navigation: swipe / tap between sibling cards (events in a state,
-             or routes in an event). Hidden unless the current card has siblings. -->
-        <button id="deck-prev" class="deck-nav deck-nav--prev" aria-label="Previous" hidden>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
-        </button>
-        <button id="deck-next" class="deck-nav deck-nav--next" aria-label="Next" hidden>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
-        </button>
-
         <!-- HERO (revealed at full / always on desktop). Not .for-full: it
              collapses via height/opacity so it eases in with the slide rather
              than popping in at the snap threshold. -->
@@ -240,6 +231,19 @@
             </a>
             <a id="detail-cta" class="card__cta" target="_blank" rel="noopener noreferrer"></a>
           </div>
+        </div>
+
+        <!-- Deck bar: pagination dots + chevrons to move between the sibling
+             cards (an event's routes, or events in a state). Frosted so it reads
+             as its own control, distinct from the hero. Hidden when solo. -->
+        <div id="deck-bar" class="deck-bar" hidden>
+          <button id="deck-prev" class="deck-arrow" type="button" aria-label="Previous">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+          </button>
+          <div id="deck-dots" class="deck-dots" role="tablist" aria-label="Cards"></div>
+          <button id="deck-next" class="deck-arrow" type="button" aria-label="Next">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
+          </button>
         </div>
       </div>
 
