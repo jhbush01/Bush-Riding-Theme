@@ -56,7 +56,9 @@
         "para_2",
         "refrain"
       ],
-      "settings": {}
+      "settings": {
+        "figure": "shopify://shop_images/IMG_2419.jpg"
+      }
     },
     "alpine_collection": {
       "type": "alpine-collection",
@@ -65,6 +67,7 @@
         "tagline": "FW26 — weathered nylon, laminated layers, raw shell.",
         "collection": "",
         "products_to_show": 4,
+        "panel_left": "shopify://shop_images/IMG_0682-removebg-preview.png",
         "panel_product": ""
       }
     },
