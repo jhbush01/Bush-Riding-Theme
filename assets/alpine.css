@@ -109,36 +109,117 @@ body.template-index .alp-head { top: 50vh; top: 50svh; transform: translateY(-50
 .alp-nav-link--wordmark { font-weight: 800; font-size: clamp(1.55rem, 2vw + 1rem, 2.85rem); letter-spacing: 0.01em; }
 .alp-nav-link--clock { font-weight: 500; font-variant-numeric: tabular-nums; font-size: clamp(1rem, 1.2vw + 0.7rem, 1.8rem); }
 
-/* Inline hamburger button (shown in place of the nav on mobile). */
-.alp-nav-link--menu { display: none; flex-direction: column; justify-content: center; gap: 5px; padding: 8px; }
+/* Corner hamburger button — always visible, opens the quartered menu. */
+.alp-nav-link--menu { display: inline-flex; flex-direction: column; justify-content: center; gap: 5px; padding: 8px; }
 .alp-nav-link--menu span {
   display: block; width: 26px; height: 2px; border-radius: 1px;
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.75);
   box-shadow: 0 1px 3px rgba(22, 21, 15, 0.4);
 }
 
-/* ── Menu overlay ────────────────────────────────────────────────────────── */
+/* ── Quartered menu overlay ──────────────────────────────────────────────────
+   Expands from the top-right (the hamburger corner) with a clip-path circle —
+   the page is wiped away and the quartered grid appears. Thin white lines
+   between the quarters come from a 1px grid gap over a white ground. */
 .alp-menu {
   position: fixed; inset: 0; z-index: 60;
-  background: var(--alp-olive);
-  padding: 24px var(--alp-pad-page);
-  display: flex; flex-direction: column;
+  background: #fff;
+  visibility: hidden;
+  pointer-events: none;
+  clip-path: circle(0% at calc(100% - 42px) 42px);
+  transition: clip-path 0.6s cubic-bezier(0.76, 0, 0.24, 1), visibility 0s linear 0.6s;
 }
-.alp-menu[hidden] { display: none; }
+.alp-menu.is-open {
+  visibility: visible;
+  pointer-events: auto;
+  clip-path: circle(150% at calc(100% - 42px) 42px);
+  transition: clip-path 0.6s cubic-bezier(0.76, 0, 0.24, 1), visibility 0s;
+}
 
-.alp-menu__close { align-self: flex-end; }
+.alp-menu__grid {
+  position: absolute; inset: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 1px;
+  background: #fff; /* shows through the 1px gaps as thin white lines */
+}
 
-.alp-menu nav { flex: 1; display: flex; align-items: center; }
-.alp-menu ul { list-style: none; display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 0; }
-.alp-menu a {
-  font-family: var(--alp-font-display);
-  font-size: clamp(2.4rem, 9vw, 4rem);
-  font-weight: 400;
-  color: var(--alp-haze);
+.alp-menu__q {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: clamp(18px, 4vw, 40px);
   text-decoration: none;
-  line-height: 1.15;
+  background: var(--alp-olive);
+  isolation: isolate;
 }
-.alp-menu a:hover { color: var(--alp-surface); }
+
+.alp-menu__media {
+  position: absolute; inset: 0;
+  z-index: -1;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  background-size: cover;
+  background-position: center;
+  transform: scale(1.06);
+  transition: transform 0.7s ease;
+}
+.alp-menu.is-open .alp-menu__media { transform: scale(1); }
+.alp-menu__media--ph { background: linear-gradient(135deg, #6b6740, #4c4930); }
+.alp-menu__q::after { content: ""; position: absolute; inset: 0; z-index: -1; background: rgba(22, 21, 15, 0.28); }
+.alp-menu__q--account { justify-content: center; }
+.alp-menu__q--account::after { background: none; }
+.alp-menu__q--account { background: var(--alp-bg); }
+
+.alp-menu__label {
+  font-family: var(--alp-font-display);
+  font-size: clamp(1.8rem, 5vw, 3.4rem);
+  font-weight: 500;
+  line-height: 1.05;
+  color: #fff;
+}
+.alp-menu__q--account .alp-menu__label { color: var(--alp-ink); }
+.alp-menu__sub {
+  margin-top: 6px;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.8);
+}
+.alp-menu__q--account .alp-menu__sub { color: rgba(22, 21, 15, 0.55); }
+
+/* Content fades/lifts in once the wipe is nearly complete. */
+.alp-menu__label, .alp-menu__sub {
+  opacity: 0; transform: translateY(14px);
+  transition: opacity 0.4s ease 0.25s, transform 0.4s ease 0.25s;
+}
+.alp-menu.is-open .alp-menu__label,
+.alp-menu.is-open .alp-menu__sub { opacity: 1; transform: none; }
+
+.alp-menu__close {
+  position: absolute;
+  top: max(24px, env(safe-area-inset-top));
+  right: max(20px, env(safe-area-inset-right));
+  z-index: 3;
+  width: 44px; height: 44px;
+  background: transparent; border: 0; cursor: pointer;
+}
+.alp-menu__close span {
+  position: absolute; top: 50%; left: 50%;
+  width: 26px; height: 2px; background: #fff;
+  box-shadow: 0 0 3px rgba(22, 21, 15, 0.5);
+}
+.alp-menu__close span:first-child { transform: translate(-50%, -50%) rotate(45deg); }
+.alp-menu__close span:last-child { transform: translate(-50%, -50%) rotate(-45deg); }
+
+@media (prefers-reduced-motion: reduce) {
+  .alp-menu, .alp-menu.is-open { transition: visibility 0s; clip-path: none; }
+  .alp-menu:not(.is-open) { clip-path: circle(0%); }
+  .alp-menu__media, .alp-menu__label, .alp-menu__sub { transition: none; }
+}
 
 /* ── Hero (f_01/f_16: full-bleed media, chip product tags over the image) ── */
 .alp-hero { position: relative; min-height: 100svh; overflow: hidden; }
@@ -415,9 +496,10 @@ body.template-index .alp-foot__small { padding: 2px 0 0; text-align: center; fon
 }
 
 @media (max-width: 860px) {
-  /* Mobile bar: wordmark + clock + hamburger only. */
-  .alp-head__nav, .alp-head__social, .alp-head__cart { display: none; }
-  .alp-nav-link--menu { display: inline-flex; }
+  /* Mobile bar: wordmark + Shop/BUSH MAP + hamburger. Clock hides to save room. */
+  .alp-nav-link--clock { display: none; }
+  .alp-head__nav { gap: 2px; }
+  .alp-menu__grid { grid-template-rows: 1fr 1fr; }
 
 
   .alp-collection__duo { grid-template-columns: 1fr; }

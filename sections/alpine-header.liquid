@@ -1,8 +1,17 @@
 {%- comment -%}
-  ALP1NE chip header — fixed bar of white chips over the page (frames f_01–f_16):
-  wordmark + live clock on the left, nav chips centre, social/utility right.
-  Collapses to a Menu chip on mobile, opening the olive overlay.
+  Bush Riding header — wordmark + clock, two visible items (Shop, BUSH MAP™),
+  and a hamburger in the corner. The hamburger opens a full-screen menu that
+  expands from the corner (wiping the page away), split into quarters by thin
+  white lines: Shop (image), a video panel, an account / sign-in panel, and a
+  link to Bush Map.
 {%- endcomment -%}
+
+{%- liquid
+  assign shop_url = section.settings.shop_url | default: routes.all_products_collection_url
+  assign map_url = section.settings.map_url | default: 'https://map.bushriding.cc'
+  assign shop_label = section.settings.shop_label | default: 'Shop'
+  assign map_label = section.settings.map_label | default: 'BUSH MAP™'
+-%}
 
 <header class="alp alp-head" data-alp-header>
   <div class="alp-head__group">
@@ -15,48 +24,69 @@
   </div>
 
   <nav class="alp-head__nav" aria-label="Primary">
-    {%- for link in section.settings.menu.links -%}
-      <a class="alp-nav-link" href="{{ link.url }}">{{ link.title | escape }}</a>
-    {%- endfor -%}
-    {%- if section.settings.map_label != blank -%}
-      {%- assign alp_map_url = section.settings.map_url | default: 'https://map.bushriding.cc' -%}
-      <a class="alp-nav-link" href="{{ alp_map_url }}">{{ section.settings.map_label | escape }}</a>
-    {%- endif -%}
+    <a class="alp-nav-link" href="{{ shop_url }}">{{ shop_label | escape }}</a>
+    <a class="alp-nav-link" href="{{ map_url }}">{{ map_label | escape }}</a>
   </nav>
 
   <div class="alp-head__group">
-    {%- if section.settings.social_instagram != blank -%}
-      <a class="alp-nav-link alp-head__social" href="{{ section.settings.social_instagram }}" target="_blank" rel="noopener">Instagram</a>
-    {%- endif -%}
-    {%- if section.settings.social_press_url != blank -%}
-      <a class="alp-nav-link alp-head__social" href="{{ section.settings.social_press_url }}">{{ section.settings.social_press_label | default: 'Press' | escape }}</a>
-    {%- endif -%}
-    <a class="alp-nav-link alp-head__cart" href="{{ routes.cart_url }}" id="alp-cart-chip">
-      Cart{% if cart.item_count > 0 %} ({{ cart.item_count }}){% endif %}
-    </a>
     <button class="alp-nav-link alp-nav-link--menu" type="button" data-alp-menu-open aria-expanded="false" aria-controls="alp-menu-overlay" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
   </div>
 </header>
 
-<div class="alp alp-menu" id="alp-menu-overlay" data-alp-menu hidden>
-  <button class="alp-chip alp-menu__close" type="button" data-alp-menu-close>Close</button>
-  <nav aria-label="Overlay">
-    <ul role="list">
-      {%- for link in section.settings.menu.links -%}
-        <li><a href="{{ link.url }}" data-alp-menu-link>{{ link.title | escape }}</a></li>
-      {%- endfor -%}
-      {%- if section.settings.map_label != blank -%}
-        {%- assign alp_map_url_menu = section.settings.map_url | default: 'https://map.bushriding.cc' -%}
-        <li><a href="{{ alp_map_url_menu }}" data-alp-menu-link>{{ section.settings.map_label | escape }}</a></li>
+<div class="alp alp-menu" id="alp-menu-overlay" data-alp-menu aria-hidden="true">
+  <button class="alp-menu__close" type="button" data-alp-menu-close aria-label="Close menu">
+    <span></span><span></span>
+  </button>
+
+  <div class="alp-menu__grid">
+    {%- comment -%} Top-left: Shop, image background {%- endcomment -%}
+    <a class="alp-menu__q alp-menu__q--shop" href="{{ shop_url }}" data-alp-menu-link>
+      {%- if section.settings.menu_shop_image != blank -%}
+        <span class="alp-menu__media" style="background-image:url('{{ section.settings.menu_shop_image | image_url: width: 1400 }}')"></span>
+      {%- else -%}
+        <span class="alp-menu__media alp-menu__media--ph"></span>
       {%- endif -%}
-      <li><a href="{{ routes.cart_url }}" data-alp-menu-link>Cart{% if cart.item_count > 0 %} ({{ cart.item_count }}){% endif %}</a></li>
-      {%- if section.settings.social_instagram != blank -%}
-        <li><a href="{{ section.settings.social_instagram }}" data-alp-menu-link target="_blank" rel="noopener">Instagram</a></li>
+      <span class="alp-menu__label">{{ shop_label | escape }}</span>
+    </a>
+
+    {%- comment -%} Top-right: video panel {%- endcomment -%}
+    <a class="alp-menu__q alp-menu__q--video" href="{{ section.settings.menu_video_url_link | default: shop_url }}" data-alp-menu-link>
+      {%- if section.settings.menu_video_url != blank -%}
+        <video class="alp-menu__media" autoplay muted loop playsinline aria-hidden="true"
+          {% if section.settings.menu_video_poster != blank %}poster="{{ section.settings.menu_video_poster | image_url: width: 1400 }}"{% endif %}>
+          <source src="{{ section.settings.menu_video_url }}" type="video/mp4">
+        </video>
+      {%- else -%}
+        <span class="alp-menu__media alp-menu__media--ph"></span>
       {%- endif -%}
-    </ul>
-  </nav>
+      {%- if section.settings.menu_video_label != blank -%}
+        <span class="alp-menu__label">{{ section.settings.menu_video_label | escape }}</span>
+      {%- endif -%}
+    </a>
+
+    {%- comment -%} Bottom-left: account / sign-in {%- endcomment -%}
+    {%- if customer -%}
+      <a class="alp-menu__q alp-menu__q--account" href="{{ routes.account_url }}" data-alp-menu-link>
+        <span class="alp-menu__label">{{ customer.first_name | escape }} {{ customer.last_name | escape }}</span>
+        <span class="alp-menu__sub">My account</span>
+      </a>
+    {%- else -%}
+      <a class="alp-menu__q alp-menu__q--account" href="{{ routes.account_login_url }}" data-alp-menu-link>
+        <span class="alp-menu__label">Sign in</span>
+        <span class="alp-menu__sub">{{ section.settings.signin_sub | default: 'Shop the community' | escape }}</span>
+      </a>
+    {%- endif -%}
+
+    {%- comment -%} Bottom-right: Bush Map {%- endcomment -%}
+    <a class="alp-menu__q alp-menu__q--map" href="{{ map_url }}" data-alp-menu-link>
+      {%- if section.settings.menu_map_image != blank -%}
+        <span class="alp-menu__media" style="background-image:url('{{ section.settings.menu_map_image | image_url: width: 1400 }}')"></span>
+      {%- endif -%}
+      <span class="alp-menu__label">{{ map_label | escape }}</span>
+    </a>
+  </div>
 </div>
 
 {% schema %}
@@ -72,12 +102,6 @@
       "info": "Leave blank to use the store name."
     },
     {
-      "type": "link_list",
-      "id": "menu",
-      "label": "Navigation menu",
-      "default": "main-menu"
-    },
-    {
       "type": "text",
       "id": "clock_timezone",
       "label": "Clock time zone (IANA id)",
@@ -90,34 +114,24 @@
       "default": "AEST"
     },
     {
-      "type": "text",
-      "id": "map_label",
-      "label": "Map link label",
-      "default": "Map",
-      "info": "Leave blank to hide the Map link."
+      "type": "header",
+      "content": "Visible items"
     },
+    { "type": "text", "id": "shop_label", "label": "Shop label", "default": "Shop" },
+    { "type": "url", "id": "shop_url", "label": "Shop URL", "info": "Defaults to the all-products catalog." },
+    { "type": "text", "id": "map_label", "label": "Map label", "default": "BUSH MAP™" },
+    { "type": "url", "id": "map_url", "label": "Map URL", "info": "Defaults to https://map.bushriding.cc." },
     {
-      "type": "url",
-      "id": "map_url",
-      "label": "Map link URL",
-      "info": "Defaults to https://map.bushriding.cc when blank."
+      "type": "header",
+      "content": "Menu — quarters"
     },
-    {
-      "type": "url",
-      "id": "social_instagram",
-      "label": "Instagram URL"
-    },
-    {
-      "type": "url",
-      "id": "social_press_url",
-      "label": "Press link URL"
-    },
-    {
-      "type": "text",
-      "id": "social_press_label",
-      "label": "Press link label",
-      "default": "Press"
-    }
+    { "type": "image_picker", "id": "menu_shop_image", "label": "Shop panel image (top left)" },
+    { "type": "url", "id": "menu_video_url", "label": "Video panel MP4 URL (top right)" },
+    { "type": "image_picker", "id": "menu_video_poster", "label": "Video poster" },
+    { "type": "text", "id": "menu_video_label", "label": "Video panel label" },
+    { "type": "url", "id": "menu_video_url_link", "label": "Video panel link" },
+    { "type": "text", "id": "signin_sub", "label": "Sign-in subtitle", "default": "Shop the community" },
+    { "type": "image_picker", "id": "menu_map_image", "label": "Map panel image (bottom right)" }
   ]
 }
 {% endschema %}

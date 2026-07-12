@@ -25,33 +25,41 @@
   tick();
   setInterval(tick, 10000);
 
-  /* ── Menu overlay — delegated, so re-rendered headers keep working ── */
+  /* ── Quartered menu overlay — opens with a clip-path expand from the corner.
+     Delegated so a re-rendered header keeps working. */
+  function closeMenu(focusBtn) {
+    var overlay = document.querySelector('[data-alp-menu]');
+    var openBtn = document.querySelector('[data-alp-menu-open]');
+    if (!overlay) return;
+    overlay.classList.remove('is-open');
+    overlay.setAttribute('aria-hidden', 'true');
+    if (openBtn) {
+      openBtn.setAttribute('aria-expanded', 'false');
+      if (focusBtn) openBtn.focus();
+    }
+  }
+
   document.addEventListener('click', function (e) {
     var overlay = document.querySelector('[data-alp-menu]');
     var openBtn = document.querySelector('[data-alp-menu-open]');
     if (!overlay) return;
 
     if (e.target.closest('[data-alp-menu-open]')) {
-      overlay.hidden = false;
+      overlay.classList.add('is-open');
+      overlay.setAttribute('aria-hidden', 'false');
       if (openBtn) openBtn.setAttribute('aria-expanded', 'true');
       var closeBtn = overlay.querySelector('[data-alp-menu-close]');
       if (closeBtn) closeBtn.focus();
-    } else if (e.target.closest('[data-alp-menu-close]') || e.target.closest('[data-alp-menu-link]')) {
-      overlay.hidden = true;
-      if (openBtn) {
-        openBtn.setAttribute('aria-expanded', 'false');
-        if (e.target.closest('[data-alp-menu-close]')) openBtn.focus();
-      }
+    } else if (e.target.closest('[data-alp-menu-close]')) {
+      closeMenu(true);
+    } else if (e.target.closest('[data-alp-menu-link]')) {
+      closeMenu(false); /* let the link navigate */
     }
   });
 
   document.addEventListener('keydown', function (e) {
     var overlay = document.querySelector('[data-alp-menu]');
-    if (e.key === 'Escape' && overlay && !overlay.hidden) {
-      overlay.hidden = true;
-      var openBtn = document.querySelector('[data-alp-menu-open]');
-      if (openBtn) { openBtn.setAttribute('aria-expanded', 'false'); openBtn.focus(); }
-    }
+    if (e.key === 'Escape' && overlay && overlay.classList.contains('is-open')) closeMenu(true);
   });
 
   /* ── Scroll reveal ──

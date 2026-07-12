@@ -15,9 +15,10 @@
       "type": "alpine-header",
       "settings": {
         "wordmark": "Bush Riding™",
-        "menu": "main-menu",
         "clock_timezone": "Australia/Brisbane",
-        "clock_label": "AEST"
+        "clock_label": "AEST",
+        "map_label": "BUSH MAP™",
+        "shop_label": "Shop"
       }
     }
   },
