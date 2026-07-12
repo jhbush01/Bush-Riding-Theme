@@ -1,0 +1,59 @@
+# Auto-deploy the Cloudflare Workers on push to the map's production branch.
+#
+# The map front-end (bushridingmap.com) is a Cloudflare Pages project that
+# auto-builds from this repo. The Workers (api.bushridingmap.com and the diary
+# worker) are separate and don't auto-deploy on their own — this workflow does
+# it, so a push that changes worker code goes live like the site does.
+#
+# One-time setup — add two repository secrets (Settings → Secrets and variables
+# → Actions):
+#   CLOUDFLARE_API_TOKEN   — a token with the "Edit Cloudflare Workers" template
+#                            (Workers Scripts:Edit + D1:Edit + Workers R2:Edit).
+#   CLOUDFLARE_ACCOUNT_ID  — your Cloudflare account id (Workers & Pages → the
+#                            right-hand "Account ID"). Optional if the token is
+#                            scoped to a single account, but recommended.
+name: Deploy Workers
+
+on:
+  push:
+    branches: [claude/bush-riding-routes-map-ycmgw6]
+    paths:
+      - "worker/**"
+      - "diary-worker/**"
+      - ".github/workflows/deploy-workers.yml"
+  workflow_dispatch: {} # lets you re-run manually after adding the secrets
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detect which workers changed
+        uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            community:
+              - 'worker/**'
+            diary:
+              - 'diary-worker/**'
+
+      - name: Deploy community worker (api.bushridingmap.com)
+        if: steps.changes.outputs.community == 'true' || github.event_name == 'workflow_dispatch'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: worker
+          # v4 is required to read wrangler.jsonc (the default 3.90 can't).
+          wranglerVersion: "4.106.0"
+
+      - name: Deploy diary worker
+        if: steps.changes.outputs.diary == 'true' || github.event_name == 'workflow_dispatch'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: diary-worker
+          wranglerVersion: "4.106.0"

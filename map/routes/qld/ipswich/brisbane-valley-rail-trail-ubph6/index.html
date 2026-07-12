@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Brisbane Valley Rail Trail — 162km Gravel Ride near Ipswich | Bush Riding Map</title>
+<meta name="description" content="Brisbane Valley Rail Trail is a 162km gravel route near Ipswich, Queensland with 1,120m of climbing (Character building, Groomed). Download the GPX and ride it." />
+<link rel="canonical" href="https://bushridingmap.com/routes/qld/ipswich/brisbane-valley-rail-trail-ubph6" />
+<meta name="theme-color" content="#E9E2D0" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<meta property="og:site_name" content="Bush Riding" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Brisbane Valley Rail Trail — 162km Gravel Ride near Ipswich | Bush Riding Map" />
+<meta property="og:description" content="Brisbane Valley Rail Trail is a 162km gravel route near Ipswich, Queensland with 1,120m of climbing (Character building, Groomed). Download the GPX and ride it." />
+<meta property="og:url" content="https://bushridingmap.com/routes/qld/ipswich/brisbane-valley-rail-trail-ubph6" />
+<meta property="og:image" content="https://api.bushridingmap.com/file/photos/brisbane-valley-rail-trail-ubph6.jpg" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/styles/app.css" />
+<style>
+/* app.css locks the map app to a non-scrolling viewport (html,body{height:100%;
+   overflow:clip}). These are ordinary content pages — undo that so they scroll. */
+html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
+.seo-page{background:var(--cream);color:var(--ink);font-family:var(--ui-font);margin:0;min-height:100vh;display:flex;flex-direction:column}
+.site-head{display:flex;flex-direction:column;align-items:center;gap:12px;padding:16px 22px;border-bottom:1px solid rgba(0,0,0,.08);background:var(--cream-panel);text-align:center}
+.site-brand{font-family:var(--head-font);font-size:26px;color:var(--ink);text-decoration:none}
+.site-nav{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.site-nav a{font-family:var(--ui-font);font-size:13px;font-weight:600;padding:7px 15px;border-radius:999px;border:1px solid rgba(0,0,0,.12);background:var(--cream);color:var(--ink);text-decoration:none;line-height:1}
+.site-nav a:hover{border-color:var(--olive);color:var(--olive)}
+.wrap{width:100%;max-width:760px;margin:0 auto;padding:22px;flex:1}
+.crumbs{font-size:12.5px;color:var(--ink-soft);margin:0 0 14px;display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.crumbs a{color:var(--ink-soft);text-decoration:none}
+.crumbs a:hover{color:var(--olive);text-decoration:underline}
+.crumbs__sep{opacity:.5}
+.rp-title{font-family:var(--head-font);font-weight:400;font-size:38px;line-height:1.05;margin:6px 0 4px;color:var(--ink)}
+.rp-loc{margin:0 0 4px;color:var(--ink-soft);font-size:15px}
+.rp-hero{margin:0 0 18px;border-radius:14px;overflow:hidden;background:var(--sage)}
+.rp-hero__img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover}
+.rp-hero__img--empty{aspect-ratio:16/9;background:linear-gradient(135deg,var(--sage),var(--olive))}
+.rp-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(0,0,0,.08);border:1px solid rgba(0,0,0,.08);border-radius:12px;overflow:hidden;margin:16px 0}
+.rp-stat{background:var(--cream-panel);padding:12px 10px;text-align:center;min-width:0}
+.rp-stat__v{display:block;font-family:var(--head-font);font-size:20px;color:var(--ink)}
+.rp-stat__l{display:block;margin-top:3px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
+.rp-actions{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}
+.rp-actions .button{text-decoration:none}
+.rp-start{font-size:14.5px;color:var(--ink-soft);margin:10px 0}
+.wrap h2{font-family:var(--head-font);font-weight:400;font-size:26px;margin:26px 0 8px}
+.rp-desc{font-size:16px;line-height:1.6;color:var(--ink)}
+.rp-map{position:relative;margin:18px 0;border:1px solid rgba(0,0,0,.1);border-radius:12px;overflow:hidden;background:#ece4d2}
+.rp-map__live{width:100%;height:380px}
+.rp-map__shape{position:absolute;top:0;left:0;right:0;height:380px;background:#ece4d2;display:flex}
+.rp-map.is-live .rp-map__shape{display:none}
+.rp-map__svg{display:block;width:100%;height:100%}
+.rp-map__cap{position:relative;padding:9px 13px;font-size:12px;color:var(--ink-soft);border-top:1px solid rgba(0,0,0,.07);background:var(--cream-panel)}
+@media(max-width:560px){.rp-map__live,.rp-map__shape{height:300px}}
+.rp-elev{margin:14px 0;padding:12px 14px;background:var(--cream-panel);border:1px solid rgba(0,0,0,.08);border-radius:12px}
+.rp-elev__head{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.rp-mini{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
+.rp-elev__note{font-size:12.5px;color:var(--ink-soft);white-space:nowrap}
+.rp-elev__svg{display:block;width:100%;height:132px;margin-top:6px}
+.rp-meta{font-size:13px;color:var(--ink-soft)}
+.rp-meta a{color:var(--olive)}
+.rp-faq__item{border-top:1px solid rgba(0,0,0,.1);padding:10px 0}
+.rp-faq__item summary{cursor:pointer;font-weight:600;font-size:15.5px}
+.rp-faq__item p{margin:8px 0 2px;color:var(--ink-soft);line-height:1.55;font-size:14.5px}
+.rp-back{margin:24px 0 0}
+.rp-back a{color:var(--olive);font-weight:600;text-decoration:none}
+.rp-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin:6px 0 4px}
+.rp-gallery__item{display:block;border-radius:10px;overflow:hidden;background:var(--sage)}
+.rp-gallery__item img{display:block;width:100%;height:150px;object-fit:cover}
+.rp-rating{margin:4px 0 12px;font-size:15px;color:var(--ink-soft)}
+.rp-rating__stars{color:#d98a3d;letter-spacing:1px}
+.rp-reviews{display:flex;flex-direction:column;gap:14px}
+.rp-review{border-top:1px solid rgba(0,0,0,.1);padding-top:12px}
+.rp-review__head{margin:0}
+.rp-review__stars{color:#d98a3d;letter-spacing:.5px;font-size:13px}
+.rp-review__text{margin:6px 0 0;color:var(--ink-soft);line-height:1.5;font-size:14.5px}
+.rp-intro{font-size:16px;line-height:1.6;color:var(--ink-soft);max-width:60ch;margin:0 0 22px}
+.rp-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.rp-card{display:flex;flex-direction:column;background:var(--cream-panel);border:1px solid rgba(0,0,0,.08);border-radius:12px;overflow:hidden;text-decoration:none;color:inherit}
+.rp-card:hover{border-color:var(--olive)}
+.rp-card__hero{display:block;width:100%;height:130px;object-fit:cover;background:var(--sage)}
+.rp-card__hero--empty{height:130px;background:linear-gradient(135deg,var(--sage),var(--olive))}
+.rp-card__body{padding:12px 13px}
+.rp-card__name{font-family:var(--head-font);font-weight:400;font-size:19px;margin:0 0 3px;color:var(--ink)}
+.rp-card__loc{margin:0 0 6px;font-size:12.5px;color:var(--ink-soft)}
+.rp-card__stats{margin:0;font-size:12.5px;color:var(--olive);font-weight:600}
+.rp-empty{color:var(--ink-soft)}
+.rp-noresult{color:var(--ink-soft);margin:8px 0}
+/* Pill filter (all-routes index) */
+.rp-filter{margin:0 0 20px;display:flex;flex-direction:column;gap:10px}
+.rp-pills{display:flex;flex-wrap:wrap;gap:8px}
+.rp-pills--region{padding-top:2px}
+.rp-pill{font-family:var(--ui-font);font-size:13px;font-weight:600;padding:7px 14px;border-radius:999px;border:1px solid rgba(0,0,0,.14);background:var(--cream-panel);color:var(--ink);cursor:pointer;line-height:1}
+.rp-pill:hover{border-color:var(--olive)}
+.rp-pill.is-active{background:var(--olive);border-color:var(--olive);color:#fff}
+.rp-pills--region .rp-pill{font-weight:500;font-size:12.5px;padding:6px 12px;color:var(--ink-soft)}
+.rp-pills--region .rp-pill.is-active{color:#fff}
+/* Events directory */
+.ev-list{display:flex;flex-direction:column;gap:14px;margin-bottom:8px}
+.ev-card{background:var(--cream-panel);border:1px solid rgba(0,0,0,.08);border-radius:12px;padding:16px 18px}
+.ev-card.is-past{opacity:.7}
+.ev-card__when{margin:0 0 4px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--card-rust,#b04a24)}
+.ev-card__name{font-family:var(--head-font);font-weight:400;font-size:23px;margin:0 0 6px;color:var(--ink)}
+.ev-card__desc{margin:0 0 10px;font-size:14.5px;line-height:1.5;color:var(--ink-soft)}
+.ev-card__meta{display:flex;flex-direction:column;gap:4px;font-size:13.5px;color:var(--ink-soft)}
+.ev-card__row strong{color:var(--ink);font-weight:600}
+.ev-card__meta a{color:var(--olive);text-decoration:none}
+.ev-card__actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.ev-card__actions .button{text-decoration:none}
+.site-foot{margin-top:30px;padding:22px;border-top:1px solid rgba(0,0,0,.08);background:var(--cream-panel);font-size:12.5px;color:var(--ink-soft);text-align:center}
+.site-foot a{color:var(--olive);text-decoration:none}
+@media(max-width:560px){.rp-title{font-size:30px}.rp-stats{grid-template-columns:repeat(2,1fr)}}
+</style>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css" />
+<script type="application/ld+json">
+[
+  {
+    "@context": "https://schema.org",
+    "@type": "SportsActivityLocation",
+    "name": "Brisbane Valley Rail Trail",
+    "description": "Discover Australia’s longest rail trail. The trail has had extensive upgrades over the years, with a very smooth and hardpacked trail surface.",
+    "url": "https://bushridingmap.com/routes/qld/ipswich/brisbane-valley-rail-trail-ubph6",
+    "sport": "Gravel Cycling",
+    "address": {
+      "@type": "PostalAddress",
+      "addressRegion": "Queensland",
+      "addressCountry": "AU"
+    },
+    "amenityFeature": [
+      {
+        "@type": "LocationFeatureSpecification",
+        "name": "Distance",
+        "value": "162 km"
+      },
+      {
+        "@type": "LocationFeatureSpecification",
+        "name": "Elevation gain",
+        "value": "1,120 m"
+      },
+      {
+        "@type": "LocationFeatureSpecification",
+        "name": "Effort",
+        "value": "Character building"
+      },
+      {
+        "@type": "LocationFeatureSpecification",
+        "name": "Terrain",
+        "value": "Groomed"
+      }
+    ],
+    "image": "https://api.bushridingmap.com/file/photos/brisbane-valley-rail-trail-ubph6.jpg",
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": -27.61331,
+      "longitude": 152.73232
+    }
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Bush Riding Map",
+        "item": "https://bushridingmap.com/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Routes",
+        "item": "https://bushridingmap.com/routes/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": "Queensland",
+        "item": "https://bushridingmap.com/routes/qld/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 4,
+        "name": "Ipswich",
+        "item": "https://bushridingmap.com/routes/qld/ipswich/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 5,
+        "name": "Brisbane Valley Rail Trail",
+        "item": "https://bushridingmap.com/routes/qld/ipswich/brisbane-valley-rail-trail-ubph6"
+      }
+    ]
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "How long is Brisbane Valley Rail Trail?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Brisbane Valley Rail Trail is a 162 km gravel ride with about 1,120 m of climbing, which rates as character building."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Where do you start Brisbane Valley Rail Trail?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Brisbane Valley Rail Trail starts in the Ipswich area, Queensland. Open the interactive map for the exact start point and turn-by-turn track."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How difficult is Brisbane Valley Rail Trail?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Brisbane Valley Rail Trail is Character building — a genuinely demanding ride with big distance and climbing."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What surface is Brisbane Valley Rail Trail?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The terrain is Groomed — mostly smooth, well-formed gravel that rolls fast. Surface breakdown: 92% Gravel 8% Paved."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I download a GPX file for Brisbane Valley Rail Trail?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes — download the GPX for Brisbane Valley Rail Trail to load onto your GPS computer or phone before you ride."
+        }
+      }
+    ]
+  }
+]
+</script>
+</head>
+<body class="seo-page">
+<header class="site-head">
+  <a class="site-brand" href="/">Bush Riding Map</a>
+  <nav class="site-nav">
+    <a href="/routes/">Community Routes</a>
+    <a href="/events/">Bush Events</a>
+    <a href="/">Map</a>
+    <a href="/submit">Submit a route</a>
+  </nav>
+</header>
+<main class="wrap">
+<nav class="crumbs" aria-label="Breadcrumb"><a href="/">Bush Riding Map</a><span class="crumbs__sep">›</span><a href="/routes/">Routes</a><span class="crumbs__sep">›</span><a href="/routes/qld/">Queensland</a><span class="crumbs__sep">›</span><a href="/routes/qld/ipswich/">Ipswich</a><span class="crumbs__sep">›</span><span aria-current="page">Brisbane Valley Rail Trail</span></nav>
+
+<article class="route">
+  <figure class="rp-hero"><img class="rp-hero__img" src="https://api.bushridingmap.com/file/photos/brisbane-valley-rail-trail-ubph6.jpg" alt="Brisbane Valley Rail Trail — gravel route near Ipswich" width="1200" height="675" loading="eager" /></figure>
+
+  <h1 class="rp-title">Brisbane Valley Rail Trail</h1>
+  <p class="rp-loc">Ipswich, Queensland</p>
+
+  <div class="rp-stats">
+    <div class="rp-stat"><span class="rp-stat__v">162 km</span><span class="rp-stat__l">Distance</span></div>
+    <div class="rp-stat"><span class="rp-stat__v">1,120 m</span><span class="rp-stat__l">Elevation</span></div>
+    <div class="rp-stat"><span class="rp-stat__v">Character building</span><span class="rp-stat__l">Effort</span></div>
+    <div class="rp-stat"><span class="rp-stat__v">Groomed</span><span class="rp-stat__l">Terrain</span></div>
+  </div>
+
+  <div class="rp-elev">
+    <div class="rp-elev__head"><span class="rp-mini">Elevation profile</span><span class="rp-elev__note">↑ 1,120 m over 162 km</span></div>
+    <svg class="rp-elev__svg" viewBox="0 0 680 130" preserveAspectRatio="none" role="img" aria-label="Elevation profile">
+    <defs><linearGradient id="rpElev" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c9673f" stop-opacity=".34"/><stop offset="1" stop-color="#c9673f" stop-opacity=".04"/></linearGradient></defs>
+    <path d="M0,120 L0.0,117.0 L1.4,115.0 L3.8,116.6 L6.0,120.0 L9.0,116.9 L11.7,115.7 L12.7,115.0 L13.8,113.9 L15.5,112.7 L17.1,111.3 L19.1,110.9 L20.7,109.3 L22.0,109.9 L23.0,110.4 L27.1,108.8 L31.7,103.1 L35.8,105.2 L37.9,104.9 L41.6,109.3 L47.9,114.3 L53.3,114.4 L55.8,110.7 L59.1,109.1 L62.0,106.3 L64.5,108.9 L65.8,109.7 L67.8,110.0 L71.4,111.3 L73.5,113.2 L76.9,115.9 L78.0,116.6 L79.0,115.9 L81.4,114.6 L84.9,110.5 L86.8,106.4 L90.3,110.5 L91.8,111.5 L93.7,112.1 L95.0,113.0 L101.3,111.7 L103.1,113.1 L110.1,114.7 L112.2,113.1 L116.4,114.8 L117.4,113.5 L119.5,114.1 L121.9,113.5 L123.7,111.0 L125.1,113.4 L126.4,113.0 L128.9,111.2 L130.0,111.2 L132.6,111.5 L137.0,112.7 L139.7,113.6 L142.1,113.8 L146.7,112.1 L149.9,110.9 L153.0,109.3 L156.0,110.5 L158.8,112.1 L162.8,112.3 L178.4,104.2 L191.1,97.4 L198.1,95.9 L205.2,89.7 L209.3,89.0 L213.1,88.7 L216.2,92.6 L219.4,93.1 L222.1,91.3 L224.1,88.7 L227.7,84.2 L229.6,82.2 L231.7,80.5 L234.3,77.7 L235.9,75.1 L238.7,76.4 L241.4,80.0 L243.9,83.0 L246.5,84.9 L249.6,88.5 L251.4,86.9 L255.0,87.5 L258.2,90.1 L260.9,91.6 L263.3,90.8 L266.5,90.0 L270.9,93.0 L275.8,96.0 L279.0,96.8 L280.8,97.0 L282.7,97.4 L288.4,96.2 L293.8,97.9 L296.2,95.3 L299.7,94.2 L300.8,93.6 L302.7,91.4 L304.7,93.4 L305.9,94.9 L309.2,94.3 L314.2,88.8 L317.3,86.2 L320.8,80.7 L325.9,86.4 L332.1,91.3 L339.6,97.6 L343.4,98.9 L349.2,100.2 L351.6,100.6 L353.6,100.9 L354.5,100.5 L357.8,99.7 L365.9,101.0 L372.3,97.8 L376.1,100.7 L380.3,101.9 L384.6,99.4 L388.7,96.4 L393.0,97.5 L395.0,98.9 L396.3,100.4 L398.4,100.9 L400.5,96.8 L402.5,95.7 L405.2,96.5 L408.7,98.1 L415.0,99.1 L419.0,100.8 L421.0,99.0 L424.2,96.1 L425.7,99.9 L429.1,100.7 L433.2,97.6 L436.2,98.4 L438.4,97.4 L443.1,92.0 L445.8,95.5 L449.8,97.7 L451.7,99.1 L454.2,97.5 L458.0,97.8 L461.1,97.4 L466.2,94.2 L468.5,97.5 L471.9,97.0 L474.5,95.2 L476.3,95.3 L479.0,94.3 L484.1,95.7 L488.3,95.1 L490.3,93.9 L494.2,95.5 L497.9,93.8 L501.4,91.1 L503.5,91.5 L507.1,90.0 L509.3,89.0 L511.9,88.5 L515.5,83.0 L517.7,81.7 L519.2,78.7 L521.7,76.0 L523.9,72.7 L526.3,69.6 L528.1,68.3 L530.8,65.7 L532.9,62.9 L535.4,58.7 L538.4,53.0 L539.3,51.4 L540.5,51.0 L542.5,48.8 L545.8,45.2 L548.7,43.1 L551.7,40.0 L553.7,38.3 L556.3,36.9 L560.1,31.8 L563.9,28.2 L567.0,25.1 L570.8,18.3 L574.8,15.3 L580.2,14.7 L583.0,14.8 L586.8,10.9 L592.2,8.0 L595.3,11.9 L597.9,15.1 L600.3,16.5 L603.6,14.7 L607.4,18.6 L609.7,16.7 L612.3,15.7 L614.6,13.9 L619.5,15.9 L622.3,17.0 L624.6,17.8 L625.6,19.1 L628.3,23.5 L630.8,25.9 L633.1,27.1 L636.3,29.7 L638.5,31.1 L640.7,32.1 L643.5,35.4 L646.4,37.1 L649.0,34.4 L651.3,33.5 L653.4,32.3 L654.1,30.8 L657.2,27.6 L659.4,24.6 L662.7,22.8 L665.9,19.0 L668.3,14.6 L672.1,11.4 L676.3,16.1 L677.4,15.8 L680.0,15.9 L680,120 Z" fill="url(#rpElev)"/>
+    <path d="M0.0,117.0 L1.4,115.0 L3.8,116.6 L6.0,120.0 L9.0,116.9 L11.7,115.7 L12.7,115.0 L13.8,113.9 L15.5,112.7 L17.1,111.3 L19.1,110.9 L20.7,109.3 L22.0,109.9 L23.0,110.4 L27.1,108.8 L31.7,103.1 L35.8,105.2 L37.9,104.9 L41.6,109.3 L47.9,114.3 L53.3,114.4 L55.8,110.7 L59.1,109.1 L62.0,106.3 L64.5,108.9 L65.8,109.7 L67.8,110.0 L71.4,111.3 L73.5,113.2 L76.9,115.9 L78.0,116.6 L79.0,115.9 L81.4,114.6 L84.9,110.5 L86.8,106.4 L90.3,110.5 L91.8,111.5 L93.7,112.1 L95.0,113.0 L101.3,111.7 L103.1,113.1 L110.1,114.7 L112.2,113.1 L116.4,114.8 L117.4,113.5 L119.5,114.1 L121.9,113.5 L123.7,111.0 L125.1,113.4 L126.4,113.0 L128.9,111.2 L130.0,111.2 L132.6,111.5 L137.0,112.7 L139.7,113.6 L142.1,113.8 L146.7,112.1 L149.9,110.9 L153.0,109.3 L156.0,110.5 L158.8,112.1 L162.8,112.3 L178.4,104.2 L191.1,97.4 L198.1,95.9 L205.2,89.7 L209.3,89.0 L213.1,88.7 L216.2,92.6 L219.4,93.1 L222.1,91.3 L224.1,88.7 L227.7,84.2 L229.6,82.2 L231.7,80.5 L234.3,77.7 L235.9,75.1 L238.7,76.4 L241.4,80.0 L243.9,83.0 L246.5,84.9 L249.6,88.5 L251.4,86.9 L255.0,87.5 L258.2,90.1 L260.9,91.6 L263.3,90.8 L266.5,90.0 L270.9,93.0 L275.8,96.0 L279.0,96.8 L280.8,97.0 L282.7,97.4 L288.4,96.2 L293.8,97.9 L296.2,95.3 L299.7,94.2 L300.8,93.6 L302.7,91.4 L304.7,93.4 L305.9,94.9 L309.2,94.3 L314.2,88.8 L317.3,86.2 L320.8,80.7 L325.9,86.4 L332.1,91.3 L339.6,97.6 L343.4,98.9 L349.2,100.2 L351.6,100.6 L353.6,100.9 L354.5,100.5 L357.8,99.7 L365.9,101.0 L372.3,97.8 L376.1,100.7 L380.3,101.9 L384.6,99.4 L388.7,96.4 L393.0,97.5 L395.0,98.9 L396.3,100.4 L398.4,100.9 L400.5,96.8 L402.5,95.7 L405.2,96.5 L408.7,98.1 L415.0,99.1 L419.0,100.8 L421.0,99.0 L424.2,96.1 L425.7,99.9 L429.1,100.7 L433.2,97.6 L436.2,98.4 L438.4,97.4 L443.1,92.0 L445.8,95.5 L449.8,97.7 L451.7,99.1 L454.2,97.5 L458.0,97.8 L461.1,97.4 L466.2,94.2 L468.5,97.5 L471.9,97.0 L474.5,95.2 L476.3,95.3 L479.0,94.3 L484.1,95.7 L488.3,95.1 L490.3,93.9 L494.2,95.5 L497.9,93.8 L501.4,91.1 L503.5,91.5 L507.1,90.0 L509.3,89.0 L511.9,88.5 L515.5,83.0 L517.7,81.7 L519.2,78.7 L521.7,76.0 L523.9,72.7 L526.3,69.6 L528.1,68.3 L530.8,65.7 L532.9,62.9 L535.4,58.7 L538.4,53.0 L539.3,51.4 L540.5,51.0 L542.5,48.8 L545.8,45.2 L548.7,43.1 L551.7,40.0 L553.7,38.3 L556.3,36.9 L560.1,31.8 L563.9,28.2 L567.0,25.1 L570.8,18.3 L574.8,15.3 L580.2,14.7 L583.0,14.8 L586.8,10.9 L592.2,8.0 L595.3,11.9 L597.9,15.1 L600.3,16.5 L603.6,14.7 L607.4,18.6 L609.7,16.7 L612.3,15.7 L614.6,13.9 L619.5,15.9 L622.3,17.0 L624.6,17.8 L625.6,19.1 L628.3,23.5 L630.8,25.9 L633.1,27.1 L636.3,29.7 L638.5,31.1 L640.7,32.1 L643.5,35.4 L646.4,37.1 L649.0,34.4 L651.3,33.5 L653.4,32.3 L654.1,30.8 L657.2,27.6 L659.4,24.6 L662.7,22.8 L665.9,19.0 L668.3,14.6 L672.1,11.4 L676.3,16.1 L677.4,15.8 L680.0,15.9" fill="none" stroke="#bd5730" stroke-width="2" stroke-linejoin="round"/>
+  </svg>
+  </div>
+
+  <div class="rp-actions">
+    <a class="button button--primary" href="https://api.bushridingmap.com/file/gpx/brisbane-valley-rail-trail-ubph6.gpx" download>Download GPX</a>
+    <a class="button" id="rp-nav" href="https://www.google.com/maps/dir/?api=1&amp;destination=-27.61331,152.73232" data-apple="https://maps.apple.com/?daddr=-27.61331,152.73232&amp;dirflg=d" target="_blank" rel="noopener">Navigate to start</a>
+    <a class="button" href="/map#brisbane-valley-rail-trail-ubph6">Open in interactive map</a>
+  </div>
+
+  <p class="rp-start"><strong>Start:</strong> Ipswich.</p>
+
+  <h2>About this route</h2>
+  <p class="rp-desc">Discover Australia’s longest rail trail. The trail has had extensive upgrades over the years, with a very smooth and hardpacked trail surface.</p>
+
+  <figure class="rp-map" data-has-map>
+    <div class="rp-map__live" id="rp-livemap"></div>
+    <div class="rp-map__shape"><svg class="rp-map__svg" viewBox="0 0 640 380" role="img" aria-label="Map of the route">
+    <rect width="640" height="380" fill="#ece4d2"/>
+    <path d="M458.6,354.0 L458.6,353.9 L457.9,352.8 L457.5,351.2 L456.3,350.5 L457.2,348.5 L456.5,346.5 L455.8,345.3 L455.4,344.9 L454.9,344.2 L454.4,343.2 L454.1,342.5 L454.2,341.5 L454.2,340.7 L454.1,338.9 L453.5,338.2 L453.4,337.4 L453.6,336.9 L452.2,334.5 L451.1,334.3 L450.3,332.4 L448.4,331.1 L447.4,328.0 L446.7,327.1 L445.2,325.3 L444.3,323.7 L442.6,318.8 L441.5,316.3 L438.8,316.3 L437.5,314.6 L436.1,313.5 L434.8,312.1 L434.0,310.3 L433.3,309.6 L433.8,309.0 L433.6,307.7 L432.7,306.1 L432.0,304.2 L432.3,303.1 L432.2,300.9 L432.3,299.2 L432.5,298.7 L432.8,298.3 L433.7,297.4 L433.9,295.9 L432.4,293.7 L431.9,292.5 L431.9,291.6 L430.2,289.4 L429.4,289.3 L428.8,288.0 L428.0,287.4 L427.4,287.0 L423.4,286.4 L421.2,285.5 L418.8,288.0 L416.4,290.2 L415.0,290.8 L412.0,292.2 L411.1,292.5 L410.7,292.3 L409.8,292.9 L408.2,293.9 L407.2,294.2 L405.8,294.1 L405.0,293.8 L404.1,293.3 L403.8,293.0 L402.8,291.7 L401.8,290.6 L401.8,290.4 L400.2,288.8 L397.7,286.2 L397.3,284.8 L396.0,284.5 L394.5,283.6 L392.5,280.8 L390.2,279.5 L388.8,279.4 L387.5,277.9 L385.7,276.1 L385.2,274.9 L383.9,273.5 L382.4,272.1 L376.3,266.5 L372.4,260.2 L362.5,252.8 L360.8,249.9 L358.6,246.4 L355.3,243.2 L354.0,240.9 L351.7,239.3 L352.2,237.4 L350.7,236.2 L349.3,235.2 L348.2,233.5 L347.4,232.5 L346.2,232.3 L344.7,230.1 L343.7,229.7 L343.0,228.5 L341.8,229.2 L340.9,228.8 L339.4,228.3 L338.9,229.2 L337.1,228.6 L336.6,227.4 L336.8,225.0 L337.8,224.5 L337.5,222.8 L338.3,221.6 L338.9,219.8 L340.5,218.5 L341.9,217.1 L340.7,214.5 L340.5,213.7 L340.6,211.7 L339.9,210.3 L339.8,208.7 L341.0,206.7 L340.4,203.7 L341.0,201.0 L341.9,197.0 L342.0,196.4 L341.7,195.4 L341.0,193.7 L340.6,192.7 L338.9,188.6 L337.6,185.1 L337.3,183.7 L337.2,180.8 L337.0,178.8 L336.9,178.4 L336.7,177.3 L336.7,175.9 L336.1,174.7 L335.8,174.0 L336.7,172.5 L336.9,169.2 L335.4,167.6 L335.2,165.9 L333.9,165.1 L332.0,163.5 L331.5,160.8 L329.6,156.0 L327.5,152.9 L326.1,148.1 L325.6,146.7 L325.5,141.6 L326.9,139.4 L327.1,138.4 L327.0,137.3 L326.8,136.1 L326.5,136.1 L326.2,134.0 L326.0,129.0 L325.6,124.5 L324.6,119.7 L325.0,117.4 L324.0,114.5 L322.8,112.7 L321.9,110.0 L321.9,107.4 L322.1,104.7 L322.2,102.0 L322.8,101.1 L323.1,100.3 L324.1,99.7 L324.5,98.4 L324.8,97.2 L324.9,96.0 L324.0,94.0 L324.3,93.0 L325.8,90.7 L323.7,87.7 L320.1,87.3 L319.9,86.3 L318.9,85.8 L318.1,85.0 L316.7,83.7 L316.9,82.7 L317.2,80.1 L317.3,78.0 L318.1,75.7 L317.1,73.7 L316.2,72.5 L314.8,71.1 L312.3,69.6 L310.9,68.6 L309.7,66.4 L308.1,65.3 L307.4,64.5 L307.4,62.8 L307.0,60.6 L306.4,58.9 L305.5,56.6 L303.3,53.7 L301.3,54.0 L300.3,53.8 L297.5,53.4 L296.2,53.6 L294.9,52.3 L294.5,51.7 L294.7,50.3 L296.5,47.0 L295.4,44.9 L294.1,42.2 L293.7,41.4 L292.0,38.4 L292.0,37.5 L291.8,34.8 L290.4,33.4 L288.8,32.5 L288.0,31.0 L287.1,29.0 L285.9,29.2 L284.3,30.5 L282.6,31.0 L280.8,31.9 L279.4,32.7 L278.9,33.4 L278.3,34.0 L277.0,33.7 L275.8,33.8 L274.3,34.2 L272.8,34.1 L271.8,33.6 L270.5,33.7 L269.3,35.1 L268.0,35.5 L266.0,36.1 L265.2,37.6 L264.0,38.3 L264.1,38.8 L264.2,39.2 L263.4,40.0 L262.2,41.1 L260.3,40.8 L258.7,41.4 L257.0,42.2 L255.6,43.4 L254.7,43.4 L253.6,44.7 L251.9,45.3 L250.5,47.7 L248.6,47.4 L247.2,47.7 L246.2,46.2 L244.5,46.0 L242.7,47.2 L238.7,48.5 L235.9,49.4 L234.3,50.1 L232.0,48.3 L229.9,48.9 L228.5,46.0 L227.1,45.3 L224.9,45.6 L223.5,46.3 L222.6,47.5 L221.6,47.7 L218.2,47.8 L216.1,47.0 L214.9,46.1 L213.5,46.5 L212.6,45.4 L210.7,45.9 L207.9,47.5 L206.2,49.4 L205.4,49.8 L204.2,50.9 L203.7,50.9 L203.6,49.9 L203.1,48.5 L201.6,49.3 L200.8,48.6 L200.0,46.4 L199.5,44.9 L198.9,43.7 L198.1,42.9 L196.4,43.3 L194.9,42.0 L193.2,41.0 L192.4,39.5 L191.5,38.3 L190.8,37.2 L191.8,36.0 L191.7,35.7 L191.1,35.4 L190.1,33.4 L190.8,32.0 L188.8,31.9 L189.3,29.5 L189.5,28.4 L188.9,27.0 L187.4,26.0 L185.0,26.8 L182.7,28.7 L181.6,28.8 L181.4,28.4 L181.7,26.4" fill="none" stroke="#b04a24" stroke-width="3.6" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="458.6" cy="354.0" r="6.5" fill="#6f7c53" stroke="#fff" stroke-width="2.5"/>
+  </svg></div>
+    <figcaption class="rp-map__cap">Brisbane Valley Rail Trail — 162 km near Ipswich, Queensland</figcaption>
+  </figure>
+
+  <p class="rp-meta">Vetted by <a href="https://bq.org.au/" rel="nofollow noopener">BQ</a>.</p>
+
+  
+
+  
+
+  <h2>Frequently asked questions</h2>
+  <div class="rp-faq">
+    <details class="rp-faq__item"><summary>How long is Brisbane Valley Rail Trail?</summary><p>Brisbane Valley Rail Trail is a 162 km gravel ride with about 1,120 m of climbing, which rates as character building.</p></details>
+    <details class="rp-faq__item"><summary>Where do you start Brisbane Valley Rail Trail?</summary><p>Brisbane Valley Rail Trail starts in the Ipswich area, Queensland. Open the interactive map for the exact start point and turn-by-turn track.</p></details>
+    <details class="rp-faq__item"><summary>How difficult is Brisbane Valley Rail Trail?</summary><p>Brisbane Valley Rail Trail is Character building — a genuinely demanding ride with big distance and climbing.</p></details>
+    <details class="rp-faq__item"><summary>What surface is Brisbane Valley Rail Trail?</summary><p>The terrain is Groomed — mostly smooth, well-formed gravel that rolls fast. Surface breakdown: 92% Gravel 8% Paved.</p></details>
+    <details class="rp-faq__item"><summary>Can I download a GPX file for Brisbane Valley Rail Trail?</summary><p>Yes — download the GPX for Brisbane Valley Rail Trail to load onto your GPS computer or phone before you ride.</p></details>
+  </div>
+
+  <p class="rp-back"><a href="/map#brisbane-valley-rail-trail-ubph6">See Brisbane Valley Rail Trail on the full interactive map →</a></p>
+</article>
+<script>window.__brmRoute=[[152.73232,-27.61331],[152.73245,-27.61317],[152.73177,-27.61224],[152.73045,-27.61065],[152.72866,-27.60939],[152.72933,-27.60669],[152.72645,-27.60525],[152.72775,-27.60292],[152.72863,-27.60135],[152.72852,-27.59906],[152.7267,-27.59538],[152.72557,-27.59313],[152.72457,-27.59225],[152.72402,-27.59192],[152.7233,-27.59097],[152.72251,-27.59009],[152.72208,-27.58949],[152.72073,-27.58699],[152.72041,-27.58612],[152.72014,-27.58446],[152.72047,-27.58346],[152.72089,-27.58243],[152.7205,-27.58105],[152.72034,-27.57812],[152.72006,-27.57678],[152.71879,-27.57566],[152.71841,-27.57461],[152.71875,-27.57357],[152.71892,-27.57272],[152.71828,-27.57217],[152.71519,-27.5669],[152.71364,-27.56589],[152.71169,-27.56611],[152.71123,-27.5625],[152.70765,-27.56062],[152.70512,-27.55874],[152.7028,-27.55274],[152.70192,-27.55112],[152.70042,-27.55015],[152.69994,-27.54844],[152.69663,-27.54504],[152.69483,-27.54321],[152.69298,-27.53802],[152.69037,-27.53049],[152.68913,-27.52658],[152.6866,-27.52363],[152.68066,-27.52379],[152.67829,-27.52295],[152.67683,-27.52098],[152.6752,-27.51876],[152.67215,-27.51687],[152.67164,-27.51684],[152.66762,-27.51311],[152.66662,-27.5105],[152.66598,-27.50853],[152.66475,-27.50773],[152.66523,-27.50672],[152.66635,-27.50598],[152.66636,-27.50468],[152.66455,-27.50235],[152.66302,-27.49936],[152.66229,-27.49642],[152.66101,-27.49417],[152.66149,-27.49277],[152.6623,-27.48953],[152.66174,-27.48683],[152.66181,-27.48314],[152.6621,-27.48259],[152.66227,-27.482],[152.66297,-27.48088],[152.66346,-27.48072],[152.66502,-27.48012],[152.66591,-27.47744],[152.66657,-27.47563],[152.6645,-27.47313],[152.66233,-27.46989],[152.66141,-27.46768],[152.66086,-27.46659],[152.6613,-27.46528],[152.65821,-27.46065],[152.65643,-27.45958],[152.65501,-27.45972],[152.65399,-27.45911],[152.65292,-27.45639],[152.65215,-27.45567],[152.65043,-27.45471],[152.65006,-27.45455],[152.64777,-27.4537],[152.6396,-27.45356],[152.63527,-27.44975],[152.63246,-27.45029],[152.63162,-27.45072],[152.62379,-27.45819],[152.62028,-27.46103],[152.61794,-27.46219],[152.61574,-27.46293],[152.61088,-27.46452],[152.60732,-27.46651],[152.60581,-27.46706],[152.60514,-27.46711],[152.60429,-27.46654],[152.60314,-27.46666],[152.60112,-27.46833],[152.59857,-27.46968],[152.59645,-27.47049],[152.59488,-27.47092],[152.59312,-27.47109],[152.59047,-27.47023],[152.58931,-27.46988],[152.588,-27.47012],[152.58646,-27.46881],[152.58591,-27.4683],[152.58569,-27.46812],[152.58531,-27.46755],[152.58127,-27.46297],[152.58056,-27.46232],[152.58049,-27.46219],[152.57938,-27.46076],[152.57674,-27.45838],[152.57394,-27.45684],[152.56954,-27.4519],[152.56972,-27.44994],[152.56785,-27.4486],[152.56529,-27.44827],[152.56432,-27.44718],[152.56083,-27.44578],[152.5576,-27.44261],[152.55497,-27.43837],[152.55054,-27.43615],[152.54864,-27.43615],[152.54579,-27.43566],[152.54354,-27.43369],[152.54013,-27.42998],[152.53745,-27.42786],[152.53676,-27.42725],[152.53602,-27.42496],[152.53374,-27.42314],[152.53157,-27.42082],[152.52913,-27.41886],[152.51779,-27.41056],[152.51212,-27.4051],[152.50264,-27.39088],[152.49892,-27.38812],[152.48146,-27.37665],[152.47327,-27.37076],[152.47074,-27.36544],[152.4683,-27.35998],[152.4599,-27.35355],[152.45681,-27.35081],[152.45527,-27.34765],[152.45246,-27.34404],[152.4476,-27.34222],[152.44623,-27.3396],[152.44764,-27.33679],[152.44718,-27.33407],[152.44365,-27.33299],[152.44183,-27.33191],[152.43907,-27.32988],[152.4373,-27.32702],[152.43584,-27.32562],[152.43491,-27.32405],[152.43326,-27.32341],[152.43129,-27.32335],[152.42839,-27.31934],[152.42688,-27.31766],[152.42493,-27.31737],[152.42406,-27.3156],[152.42243,-27.31461],[152.4206,-27.31558],[152.41905,-27.31657],[152.41752,-27.3154],[152.41436,-27.31376],[152.41326,-27.31459],[152.41253,-27.31608],[152.41027,-27.31669],[152.40741,-27.31492],[152.40632,-27.31375],[152.40605,-27.31004],[152.40622,-27.30676],[152.40754,-27.30584],[152.40932,-27.30509],[152.40849,-27.30292],[152.40869,-27.30022],[152.41017,-27.29861],[152.41199,-27.29476],[152.41215,-27.29399],[152.41293,-27.29251],[152.41814,-27.2901],[152.42029,-27.28795],[152.41981,-27.28616],[152.41712,-27.28119],[152.41694,-27.28087],[152.41652,-27.27859],[152.41659,-27.27716],[152.41677,-27.27319],[152.41498,-27.27134],[152.41455,-27.27027],[152.41485,-27.26647],[152.41747,-27.26374],[152.41719,-27.26025],[152.41625,-27.2555],[152.41674,-27.25282],[152.41856,-27.24607],[152.42015,-27.24013],[152.42042,-27.23893],[152.42051,-27.23831],[152.4201,-27.23656],[152.4193,-27.23493],[152.41918,-27.23469],[152.41755,-27.23136],[152.4167,-27.22935],[152.41301,-27.22133],[152.41058,-27.21671],[152.40938,-27.21306],[152.40808,-27.2088],[152.40788,-27.20793],[152.40713,-27.20406],[152.40758,-27.19998],[152.40704,-27.19662],[152.40701,-27.19609],[152.40683,-27.19529],[152.4064,-27.19378],[152.40603,-27.19193],[152.40612,-27.19002],[152.40632,-27.18808],[152.40471,-27.18661],[152.40386,-27.18558],[152.40391,-27.1846],[152.4061,-27.18166],[152.40731,-27.17996],[152.40678,-27.1734],[152.40464,-27.17038],[152.40224,-27.16941],[152.40177,-27.16627],[152.40183,-27.16383],[152.39871,-27.16366],[152.39599,-27.1627],[152.39358,-27.15928],[152.39339,-27.15593],[152.38961,-27.14823],[152.38731,-27.14203],[152.38497,-27.13849],[152.38118,-27.1339],[152.37874,-27.12552],[152.37734,-27.12183],[152.37674,-27.12],[152.37577,-27.11226],[152.3766,-27.10609],[152.37939,-27.10321],[152.38058,-27.1014],[152.38052,-27.1001],[152.38043,-27.09904],[152.38025,-27.09692],[152.38004,-27.09562],[152.3795,-27.09469],[152.37916,-27.0946],[152.37868,-27.09242],[152.37803,-27.08604],[152.378,-27.08392],[152.37734,-27.07036],[152.37665,-27.06705],[152.3733,-27.06032],[152.37404,-27.05513],[152.37503,-27.05109],[152.37381,-27.04568],[152.37246,-27.04325],[152.37026,-27.04093],[152.36861,-27.03809],[152.36691,-27.03337],[152.36641,-27.03003],[152.3667,-27.0263],[152.36718,-27.02192],[152.3674,-27.01847],[152.36732,-27.01401],[152.36804,-27.01229],[152.36907,-27.01133],[152.36983,-27.01023],[152.3702,-27.00902],[152.3715,-27.00837],[152.37333,-27.00714],[152.3736,-27.00493],[152.37478,-27.00341],[152.37446,-27.00152],[152.37488,-26.99995],[152.37418,-26.99762],[152.37247,-26.99454],[152.37234,-26.99302],[152.3747,-26.99076],[152.37696,-26.98738],[152.37629,-26.98506],[152.37164,-26.97945],[152.36538,-26.97891],[152.36183,-26.97746],[152.36157,-26.97663],[152.35987,-26.97419],[152.35864,-26.97488],[152.35797,-26.97442],[152.35559,-26.97258],[152.35261,-26.97006],[152.35263,-26.96885],[152.35329,-26.96739],[152.35343,-26.96474],[152.35402,-26.96079],[152.35409,-26.9588],[152.35504,-26.95409],[152.35643,-26.95104],[152.3555,-26.9484],[152.35325,-26.94578],[152.35191,-26.9443],[152.35119,-26.94264],[152.34778,-26.94008],[152.34357,-26.93844],[152.34017,-26.93615],[152.33771,-26.93524],[152.33636,-26.9327],[152.33398,-26.9289],[152.33088,-26.92699],[152.32938,-26.92598],[152.32813,-26.92495],[152.32781,-26.9223],[152.32787,-26.92022],[152.32791,-26.91751],[152.32597,-26.91355],[152.32517,-26.91159],[152.32459,-26.90852],[152.32275,-26.90543],[152.31934,-26.90082],[152.31528,-26.89853],[152.31253,-26.89924],[152.30947,-26.89887],[152.30883,-26.89884],[152.30284,-26.89769],[152.30124,-26.89812],[152.29915,-26.89833],[152.29613,-26.897],[152.2944,-26.89527],[152.29353,-26.89423],[152.29325,-26.89289],[152.29356,-26.89086],[152.29658,-26.88777],[152.29869,-26.88263],[152.29677,-26.87931],[152.2954,-26.87707],[152.29281,-26.872],[152.29191,-26.87046],[152.29125,-26.86929],[152.28888,-26.86699],[152.28665,-26.86103],[152.2866,-26.86041],[152.28785,-26.85534],[152.28615,-26.85368],[152.28521,-26.85248],[152.28149,-26.84885],[152.27873,-26.84825],[152.27711,-26.8471],[152.27601,-26.84457],[152.27446,-26.84087],[152.2732,-26.83952],[152.27106,-26.84011],[152.26838,-26.84065],[152.26615,-26.84327],[152.26429,-26.84393],[152.25887,-26.84487],[152.25741,-26.84619],[152.25507,-26.84816],[152.2531,-26.84859],[152.25193,-26.84922],[152.25186,-26.85071],[152.25104,-26.85164],[152.24902,-26.85195],[152.24671,-26.85095],[152.24447,-26.85058],[152.24226,-26.85122],[152.23978,-26.85214],[152.23707,-26.85106],[152.23527,-26.85193],[152.23398,-26.85177],[152.23226,-26.85077],[152.22979,-26.85084],[152.22787,-26.85212],[152.22601,-26.85421],[152.2241,-26.85453],[152.22193,-26.8554],[152.21995,-26.85577],[152.21645,-26.85707],[152.21512,-26.86035],[152.21329,-26.86142],[152.21178,-26.86232],[152.21179,-26.86289],[152.21229,-26.86373],[152.21235,-26.86413],[152.21098,-26.86547],[152.20946,-26.86629],[152.20851,-26.86809],[152.20555,-26.86955],[152.20195,-26.86794],[152.19906,-26.86893],[152.19657,-26.86932],[152.19433,-26.87021],[152.19191,-26.87239],[152.18945,-26.87397],[152.18844,-26.87425],[152.18627,-26.87491],[152.18434,-26.87673],[152.18149,-26.8777],[152.1795,-26.87855],[152.17716,-26.88129],[152.1753,-26.88484],[152.17245,-26.88621],[152.1695,-26.88323],[152.16702,-26.88436],[152.16506,-26.88296],[152.16242,-26.87869],[152.16027,-26.87956],[152.15725,-26.88182],[152.15477,-26.88308],[152.14933,-26.88522],[152.14344,-26.88634],[152.13911,-26.88689],[152.13408,-26.88972],[152.1325,-26.88989],[152.1276,-26.88664],[152.12554,-26.88558],[152.12157,-26.88694],[152.11922,-26.887],[152.11682,-26.88032],[152.11478,-26.87873],[152.11222,-26.87872],[152.10798,-26.87947],[152.10569,-26.87946],[152.10346,-26.88092],[152.10142,-26.88365],[152.10068,-26.88392],[152.09971,-26.88424],[152.09364,-26.88473],[152.08936,-26.88447],[152.08636,-26.88427],[152.08262,-26.88151],[152.08125,-26.88056],[152.07951,-26.88081],[152.07669,-26.88153],[152.07524,-26.87961],[152.07388,-26.87865],[152.07152,-26.8792],[152.06544,-26.88203],[152.06187,-26.8838],[152.05886,-26.88612],[152.05676,-26.88899],[152.05562,-26.88919],[152.0544,-26.89082],[152.052,-26.8918],[152.05098,-26.89179],[152.05055,-26.89173],[152.04992,-26.89045],[152.05066,-26.88678],[152.04891,-26.88615],[152.04598,-26.88726],[152.04415,-26.88807],[152.0429,-26.88717],[152.04278,-26.88391],[152.04054,-26.88116],[152.03953,-26.87909],[152.03857,-26.87697],[152.03765,-26.87558],[152.03713,-26.87336],[152.03556,-26.87277],[152.03259,-26.87315],[152.03053,-26.87366],[152.02846,-26.87159],[152.02468,-26.86947],[152.02247,-26.86823],[152.02105,-26.86682],[152.02004,-26.86369],[152.01889,-26.8623],[152.01647,-26.86117],[152.01602,-26.8594],[152.01857,-26.85704],[152.01861,-26.85621],[152.01869,-26.85572],[152.01806,-26.85557],[152.01681,-26.85501],[152.01588,-26.85247],[152.01429,-26.84951],[152.01597,-26.84773],[152.01505,-26.84606],[152.01078,-26.84661],[152.0097,-26.84547],[152.01241,-26.84001],[152.01266,-26.83883],[152.01246,-26.83628],[152.01106,-26.8351],[152.0089,-26.83387],[152.00601,-26.83265],[152.00144,-26.83431],[151.99645,-26.83632],[151.99433,-26.83907],[151.99176,-26.83948],[151.99132,-26.8392],[151.99109,-26.83901],[151.99118,-26.83638],[151.99179,-26.83367]];</script>
+<script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+<script>
+(function(){
+  var coords=window.__brmRoute;
+  var el=document.getElementById('rp-livemap');
+  if(!el||!window.maplibregl||!coords||coords.length<2) return;
+  fetch('/styles/bush.json').then(function(r){return r.json();}).then(function(style){
+    var map=new maplibregl.Map({container:el,style:style,attributionControl:true,cooperativeGestures:true,dragRotate:false});
+    map.addControl(new maplibregl.NavigationControl({showCompass:false}),'top-right');
+    map.on('load',function(){
+      map.addSource('brm-route',{type:'geojson',data:{type:'Feature',geometry:{type:'LineString',coordinates:coords}}});
+      map.addLayer({id:'brm-route-line',type:'line',source:'brm-route',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#b04a24','line-width':4}});
+      var bounds=new maplibregl.LngLatBounds(coords[0],coords[0]);
+      for(var i=1;i<coords.length;i++) bounds.extend(coords[i]);
+      map.fitBounds(bounds,{padding:36,duration:0});
+      new maplibregl.Marker({color:'#6f7c53'}).setLngLat(coords[0]).addTo(map);
+      var fig=el.closest('.rp-map'); if(fig) fig.classList.add('is-live');
+    });
+  }).catch(function(){});
+})();</script>
+<script>
+(function(){
+  var a=document.getElementById('rp-nav');
+  if(!a||!a.dataset.apple) return;
+  var ua=navigator.userAgent||'';
+  if(/iP(hone|ad|od)/.test(ua)||(/Macintosh/.test(ua)&&(navigator.maxTouchPoints||0)>1)) a.href=a.dataset.apple;
+})();</script></main>
+<footer class="site-foot">
+  <p>Bush Riding Map — community-vetted gravel routes across Australia. Routes are guides only; ride to conditions.</p>
+  <p><a href="/routes/">All routes</a> · <a href="/">Interactive map</a> · <a href="/submit">Submit a route</a></p>
+</footer>
+</body>
+</html>

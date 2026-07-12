@@ -10,3 +10,6 @@ Thumbs.db
 .shopify
 node_modules
 *.zip
+# Cloudflare Wrangler local state / build cache
+.wrangler/
+.dev.vars

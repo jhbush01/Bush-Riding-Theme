@@ -1,0 +1,46 @@
+{
+  // Bush Riding Map — community routes Worker.
+  // Deploy: `wrangler deploy` (after creating the D1 db + R2 bucket below and
+  // setting the ADMIN_TOKEN secret). See README.md.
+  "name": "bush-riding-map-api",
+  "main": "src/index.js",
+  "compatibility_date": "2025-06-01",
+
+  "vars": {
+    // Origins allowed to call /submit and /routes from the browser.
+    "ALLOWED_ORIGINS": "https://bushridingmap.com,https://www.bushridingmap.com",
+    // Public base URL of THIS worker (used to build gpx_url/photo_url).
+    // The worker's own public URL (used to build gpx_url/photo_url).
+    "PUBLIC_URL": "https://api.bushridingmap.com",
+    // The map SITE base URL. The admin Events section reads the base event
+    // list from `${SITE_URL}/data/events.geojson`. Defaults to this if unset.
+    "SITE_URL": "https://bushridingmap.com",
+    // Repo (owner/name) whose "Generate route pages" Action rebuilds the static
+    // route pages when a route changes. Needs the GITHUB_DISPATCH_TOKEN secret.
+    "GITHUB_REPO": "jhbush01/Bush-Riding-Theme"
+  },
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "bush-riding-map",
+      // Fill in after: wrangler d1 create bush-riding-map
+      "database_id": "b6a452ee-c92c-4cfd-beee-959f00109986"
+    }
+  ],
+
+  "r2_buckets": [
+    {
+      "binding": "BUCKET",
+      "bucket_name": "bush-riding-map-routes"
+    }
+  ]
+
+  // Secrets (do NOT put in this file):
+  //   wrangler secret put ADMIN_TOKEN
+  //   wrangler secret put GITHUB_DISPATCH_TOKEN   (optional: a GitHub token with
+  //     'contents' write on GITHUB_REPO — lets a route approval trigger the
+  //     "Generate route pages" Action instantly. See scripts/README.md.)
+  //   wrangler secret put PAGES_DEPLOY_HOOK       (optional alternative: a
+  //     Cloudflare Pages Deploy Hook URL, if you generate at deploy instead.)
+}

@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Gravel Routes in Sunshine Coast, Queensland | Bush Riding Map</title>
+<meta name="description" content="Gravel cycling routes in Sunshine Coast, Queensland — GPX downloads, elevation and surface notes, sorted by distance." />
+<link rel="canonical" href="https://bushridingmap.com/routes/qld/sunshine-coast/" />
+<meta name="theme-color" content="#E9E2D0" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<meta property="og:site_name" content="Bush Riding" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Gravel Routes in Sunshine Coast, Queensland | Bush Riding Map" />
+<meta property="og:description" content="Gravel cycling routes in Sunshine Coast, Queensland — GPX downloads, elevation and surface notes, sorted by distance." />
+<meta property="og:url" content="https://bushridingmap.com/routes/qld/sunshine-coast/" />
+<meta property="og:image" content="https://bushridingmap.com/public/og-card.jpg" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/styles/app.css" />
+<style>
+/* app.css locks the map app to a non-scrolling viewport (html,body{height:100%;
+   overflow:clip}). These are ordinary content pages — undo that so they scroll. */
+html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
+.seo-page{background:var(--cream);color:var(--ink);font-family:var(--ui-font);margin:0;min-height:100vh;display:flex;flex-direction:column}
+.site-head{display:flex;flex-direction:column;align-items:center;gap:12px;padding:16px 22px;border-bottom:1px solid rgba(0,0,0,.08);background:var(--cream-panel);text-align:center}
+.site-brand{font-family:var(--head-font);font-size:26px;color:var(--ink);text-decoration:none}
+.site-nav{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.site-nav a{font-family:var(--ui-font);font-size:13px;font-weight:600;padding:7px 15px;border-radius:999px;border:1px solid rgba(0,0,0,.12);background:var(--cream);color:var(--ink);text-decoration:none;line-height:1}
+.site-nav a:hover{border-color:var(--olive);color:var(--olive)}
+.wrap{width:100%;max-width:760px;margin:0 auto;padding:22px;flex:1}
+.crumbs{font-size:12.5px;color:var(--ink-soft);margin:0 0 14px;display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.crumbs a{color:var(--ink-soft);text-decoration:none}
+.crumbs a:hover{color:var(--olive);text-decoration:underline}
+.crumbs__sep{opacity:.5}
+.rp-title{font-family:var(--head-font);font-weight:400;font-size:38px;line-height:1.05;margin:6px 0 4px;color:var(--ink)}
+.rp-loc{margin:0 0 4px;color:var(--ink-soft);font-size:15px}
+.rp-hero{margin:0 0 18px;border-radius:14px;overflow:hidden;background:var(--sage)}
+.rp-hero__img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover}
+.rp-hero__img--empty{aspect-ratio:16/9;background:linear-gradient(135deg,var(--sage),var(--olive))}
+.rp-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(0,0,0,.08);border:1px solid rgba(0,0,0,.08);border-radius:12px;overflow:hidden;margin:16px 0}
+.rp-stat{background:var(--cream-panel);padding:12px 10px;text-align:center;min-width:0}
+.rp-stat__v{display:block;font-family:var(--head-font);font-size:20px;color:var(--ink)}
+.rp-stat__l{display:block;margin-top:3px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
+.rp-actions{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}
+.rp-actions .button{text-decoration:none}
+.rp-start{font-size:14.5px;color:var(--ink-soft);margin:10px 0}
+.wrap h2{font-family:var(--head-font);font-weight:400;font-size:26px;margin:26px 0 8px}
+.rp-desc{font-size:16px;line-height:1.6;color:var(--ink)}
+.rp-map{position:relative;margin:18px 0;border:1px solid rgba(0,0,0,.1);border-radius:12px;overflow:hidden;background:#ece4d2}
+.rp-map__live{width:100%;height:380px}
+.rp-map__shape{position:absolute;top:0;left:0;right:0;height:380px;background:#ece4d2;display:flex}
+.rp-map.is-live .rp-map__shape{display:none}
+.rp-map__svg{display:block;width:100%;height:100%}
+.rp-map__cap{position:relative;padding:9px 13px;font-size:12px;color:var(--ink-soft);border-top:1px solid rgba(0,0,0,.07);background:var(--cream-panel)}
+@media(max-width:560px){.rp-map__live,.rp-map__shape{height:300px}}
+.rp-elev{margin:14px 0;padding:12px 14px;background:var(--cream-panel);border:1px solid rgba(0,0,0,.08);border-radius:12px}
+.rp-elev__head{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.rp-mini{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
+.rp-elev__note{font-size:12.5px;color:var(--ink-soft);white-space:nowrap}
+.rp-elev__svg{display:block;width:100%;height:132px;margin-top:6px}
+.rp-meta{font-size:13px;color:var(--ink-soft)}
+.rp-meta a{color:var(--olive)}
+.rp-faq__item{border-top:1px solid rgba(0,0,0,.1);padding:10px 0}
+.rp-faq__item summary{cursor:pointer;font-weight:600;font-size:15.5px}
+.rp-faq__item p{margin:8px 0 2px;color:var(--ink-soft);line-height:1.55;font-size:14.5px}
+.rp-back{margin:24px 0 0}
+.rp-back a{color:var(--olive);font-weight:600;text-decoration:none}
+.rp-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin:6px 0 4px}
+.rp-gallery__item{display:block;border-radius:10px;overflow:hidden;background:var(--sage)}
+.rp-gallery__item img{display:block;width:100%;height:150px;object-fit:cover}
+.rp-rating{margin:4px 0 12px;font-size:15px;color:var(--ink-soft)}
+.rp-rating__stars{color:#d98a3d;letter-spacing:1px}
+.rp-reviews{display:flex;flex-direction:column;gap:14px}
+.rp-review{border-top:1px solid rgba(0,0,0,.1);padding-top:12px}
+.rp-review__head{margin:0}
+.rp-review__stars{color:#d98a3d;letter-spacing:.5px;font-size:13px}
+.rp-review__text{margin:6px 0 0;color:var(--ink-soft);line-height:1.5;font-size:14.5px}
+.rp-intro{font-size:16px;line-height:1.6;color:var(--ink-soft);max-width:60ch;margin:0 0 22px}
+.rp-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.rp-card{display:flex;flex-direction:column;background:var(--cream-panel);border:1px solid rgba(0,0,0,.08);border-radius:12px;overflow:hidden;text-decoration:none;color:inherit}
+.rp-card:hover{border-color:var(--olive)}
+.rp-card__hero{display:block;width:100%;height:130px;object-fit:cover;background:var(--sage)}
+.rp-card__hero--empty{height:130px;background:linear-gradient(135deg,var(--sage),var(--olive))}
+.rp-card__body{padding:12px 13px}
+.rp-card__name{font-family:var(--head-font);font-weight:400;font-size:19px;margin:0 0 3px;color:var(--ink)}
+.rp-card__loc{margin:0 0 6px;font-size:12.5px;color:var(--ink-soft)}
+.rp-card__stats{margin:0;font-size:12.5px;color:var(--olive);font-weight:600}
+.rp-empty{color:var(--ink-soft)}
+.rp-noresult{color:var(--ink-soft);margin:8px 0}
+/* Pill filter (all-routes index) */
+.rp-filter{margin:0 0 20px;display:flex;flex-direction:column;gap:10px}
+.rp-pills{display:flex;flex-wrap:wrap;gap:8px}
+.rp-pills--region{padding-top:2px}
+.rp-pill{font-family:var(--ui-font);font-size:13px;font-weight:600;padding:7px 14px;border-radius:999px;border:1px solid rgba(0,0,0,.14);background:var(--cream-panel);color:var(--ink);cursor:pointer;line-height:1}
+.rp-pill:hover{border-color:var(--olive)}
+.rp-pill.is-active{background:var(--olive);border-color:var(--olive);color:#fff}
+.rp-pills--region .rp-pill{font-weight:500;font-size:12.5px;padding:6px 12px;color:var(--ink-soft)}
+.rp-pills--region .rp-pill.is-active{color:#fff}
+/* Events directory */
+.ev-list{display:flex;flex-direction:column;gap:14px;margin-bottom:8px}
+.ev-card{background:var(--cream-panel);border:1px solid rgba(0,0,0,.08);border-radius:12px;padding:16px 18px}
+.ev-card.is-past{opacity:.7}
+.ev-card__when{margin:0 0 4px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--card-rust,#b04a24)}
+.ev-card__name{font-family:var(--head-font);font-weight:400;font-size:23px;margin:0 0 6px;color:var(--ink)}
+.ev-card__desc{margin:0 0 10px;font-size:14.5px;line-height:1.5;color:var(--ink-soft)}
+.ev-card__meta{display:flex;flex-direction:column;gap:4px;font-size:13.5px;color:var(--ink-soft)}
+.ev-card__row strong{color:var(--ink);font-weight:600}
+.ev-card__meta a{color:var(--olive);text-decoration:none}
+.ev-card__actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.ev-card__actions .button{text-decoration:none}
+.site-foot{margin-top:30px;padding:22px;border-top:1px solid rgba(0,0,0,.08);background:var(--cream-panel);font-size:12.5px;color:var(--ink-soft);text-align:center}
+.site-foot a{color:var(--olive);text-decoration:none}
+@media(max-width:560px){.rp-title{font-size:30px}.rp-stats{grid-template-columns:repeat(2,1fr)}}
+</style>
+
+<script type="application/ld+json">
+[
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Bush Riding Map",
+        "item": "https://bushridingmap.com/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Routes",
+        "item": "https://bushridingmap.com/routes/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": "Queensland",
+        "item": "https://bushridingmap.com/routes/qld/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 4,
+        "name": "Sunshine Coast",
+        "item": "https://bushridingmap.com/routes/qld/sunshine-coast/"
+      }
+    ]
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Noosa Enduro 30",
+        "url": "https://bushridingmap.com/routes/qld/sunshine-coast/noosa-enduro-30-kbpe8"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Steak Knives Loop",
+        "url": "https://bushridingmap.com/routes/qld/sunshine-coast/steak-knives-loop-kw259"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": "Noosa Enduro 100",
+        "url": "https://bushridingmap.com/routes/qld/sunshine-coast/noosa-enduro-100-xfydx"
+      },
+      {
+        "@type": "ListItem",
+        "position": 4,
+        "name": "Noosa Enduro Adventure Gravel",
+        "url": "https://bushridingmap.com/routes/qld/sunshine-coast/noosa-enduro-adventure-gravel-b4mv6"
+      },
+      {
+        "@type": "ListItem",
+        "position": 5,
+        "name": "Sunday Creek Gravel Loop",
+        "url": "https://bushridingmap.com/routes/qld/sunshine-coast/sunday-creek-gravel-loop-u3t6t"
+      }
+    ]
+  }
+]
+</script>
+</head>
+<body class="seo-page">
+<header class="site-head">
+  <a class="site-brand" href="/">Bush Riding Map</a>
+  <nav class="site-nav">
+    <a href="/routes/">Community Routes</a>
+    <a href="/events/">Bush Events</a>
+    <a href="/">Map</a>
+    <a href="/submit">Submit a route</a>
+  </nav>
+</header>
+<main class="wrap">
+<nav class="crumbs" aria-label="Breadcrumb"><a href="/">Bush Riding Map</a><span class="crumbs__sep">›</span><a href="/routes/">Routes</a><span class="crumbs__sep">›</span><a href="/routes/qld/">Queensland</a><span class="crumbs__sep">›</span><span aria-current="page">Sunshine Coast</span></nav>
+<h1 class="rp-title">Gravel Routes in Sunshine Coast</h1>
+<p class="rp-intro">Gravel routes in Sunshine Coast, Queensland. Every ride below is community-vetted with a downloadable GPX, elevation profile and surface notes — sorted from shortest to longest so you can pick the right day out.</p>
+
+<div class="rp-cards" id="rp-cards"><a class="rp-card" href="/routes/qld/sunshine-coast/noosa-enduro-30-kbpe8" data-state="qld" data-region="sunshine-coast">
+  <img class="rp-card__hero" src="/public/noosa-enduro-30-kbpe8.jpg" alt="Noosa Enduro 30" loading="lazy" width="640" height="360" />
+  <div class="rp-card__body">
+    <h3 class="rp-card__name">Noosa Enduro 30</h3>
+    <p class="rp-card__loc">Sunshine Coast, QLD</p>
+    <p class="rp-card__stats">26 km · Cruisy · Rocky</p>
+  </div>
+</a>
+<a class="rp-card" href="/routes/qld/sunshine-coast/steak-knives-loop-kw259" data-state="qld" data-region="sunshine-coast">
+  <img class="rp-card__hero" src="https://api.bushridingmap.com/file/photos/steak-knives-loop-kw259.jpg" alt="Steak Knives Loop" loading="lazy" width="640" height="360" />
+  <div class="rp-card__body">
+    <h3 class="rp-card__name">Steak Knives Loop</h3>
+    <p class="rp-card__loc">Sunshine Coast, QLD</p>
+    <p class="rp-card__stats">82 km · Big day out · Groomed</p>
+  </div>
+</a>
+<a class="rp-card" href="/routes/qld/sunshine-coast/noosa-enduro-100-xfydx" data-state="qld" data-region="sunshine-coast">
+  <img class="rp-card__hero" src="/public/noosa-enduro-100-xfydx.jpg" alt="Noosa Enduro 100" loading="lazy" width="640" height="360" />
+  <div class="rp-card__body">
+    <h3 class="rp-card__name">Noosa Enduro 100</h3>
+    <p class="rp-card__loc">Sunshine Coast, QLD</p>
+    <p class="rp-card__stats">102 km · Big day out · Rocky</p>
+  </div>
+</a>
+<a class="rp-card" href="/routes/qld/sunshine-coast/noosa-enduro-adventure-gravel-b4mv6" data-state="qld" data-region="sunshine-coast">
+  <img class="rp-card__hero" src="/public/noosa-enduro-adventure-gravel-b4mv6.jpg" alt="Noosa Enduro Adventure Gravel" loading="lazy" width="640" height="360" />
+  <div class="rp-card__body">
+    <h3 class="rp-card__name">Noosa Enduro Adventure Gravel</h3>
+    <p class="rp-card__loc">Sunshine Coast, QLD</p>
+    <p class="rp-card__stats">111 km · Big day out · Rocky</p>
+  </div>
+</a>
+<a class="rp-card" href="/routes/qld/sunshine-coast/sunday-creek-gravel-loop-u3t6t" data-state="qld" data-region="sunshine-coast">
+  <img class="rp-card__hero" src="https://api.bushridingmap.com/file/photos/sunday-creek-gravel-loop-u3t6t.jpg" alt="Sunday Creek Gravel Loop" loading="lazy" width="640" height="360" />
+  <div class="rp-card__body">
+    <h3 class="rp-card__name">Sunday Creek Gravel Loop</h3>
+    <p class="rp-card__loc">Sunshine Coast, QLD</p>
+    <p class="rp-card__stats">119 km · Big day out · Groomed</p>
+  </div>
+</a></div>
+<p class="rp-noresult" id="rp-noresult" hidden>No routes match — try another state or region.</p>
+</main>
+<footer class="site-foot">
+  <p>Bush Riding Map — community-vetted gravel routes across Australia. Routes are guides only; ride to conditions.</p>
+  <p><a href="/routes/">All routes</a> · <a href="/">Interactive map</a> · <a href="/submit">Submit a route</a></p>
+</footer>
+</body>
+</html>

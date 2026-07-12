@@ -1,0 +1,135 @@
+/* Submit-a-route form. Shares :root + .button from app.css. */
+
+body.submit-page {
+  background: var(--cream);
+  overflow-y: auto;
+}
+
+.form-wrap {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 40px 24px 64px;
+}
+
+.back {
+  display: inline-block;
+  font-size: 13px;
+  color: var(--ink-soft);
+  text-decoration: none;
+  margin-bottom: 22px;
+}
+.back:hover {
+  text-decoration: underline;
+}
+
+.form-title {
+  font-family: var(--head-font);
+  font-weight: 400;
+  font-size: 40px;
+  line-height: 1;
+  margin: 0 0 10px;
+}
+
+.form-intro {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  margin: 0 0 28px;
+}
+
+.route-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field__label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+}
+.field__label .opt {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.field__hint {
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.route-form input[type="text"],
+.route-form input[type="email"],
+.route-form select,
+.route-form textarea {
+  font-family: var(--ui-font);
+  font-size: 14px;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: #fff;
+  color: var(--ink);
+}
+.route-form input[type="file"] {
+  font-family: var(--ui-font);
+  font-size: 13px;
+}
+.route-form textarea {
+  resize: vertical;
+}
+.route-form input:focus,
+.route-form select:focus,
+.route-form textarea:focus {
+  outline: none;
+  border-color: var(--olive);
+}
+
+.rule {
+  border: none;
+  border-top: 1px solid var(--line);
+  margin: 6px 0;
+}
+
+.consent {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+.consent input {
+  margin-top: 2px;
+  flex: 0 0 auto;
+  accent-color: var(--olive);
+}
+
+.route-form .button--primary {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.form-msg {
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 4px 0 0;
+  padding: 12px 14px;
+  border-radius: 3px;
+}
+.form-msg.is-ok {
+  background: #e7ecd9;
+  color: #3a4a25;
+}
+.form-msg.is-err {
+  background: #f3ddd8;
+  color: #9b3a2f;
+}

@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mini Dirty Boonah — 97km Gravel Ride near Scenic Rim | Bush Riding Map</title>
+<meta name="description" content="Mini Dirty Boonah is a 97km gravel route near Scenic Rim, Queensland with 1,330m of climbing (Big day out, Groomed). Download the GPX and ride it." />
+<link rel="canonical" href="https://bushridingmap.com/routes/qld/scenic-rim/mini-dirty-boonah-652ah" />
+<meta name="theme-color" content="#E9E2D0" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<meta property="og:site_name" content="Bush Riding" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Mini Dirty Boonah — 97km Gravel Ride near Scenic Rim | Bush Riding Map" />
+<meta property="og:description" content="Mini Dirty Boonah is a 97km gravel route near Scenic Rim, Queensland with 1,330m of climbing (Big day out, Groomed). Download the GPX and ride it." />
+<meta property="og:url" content="https://bushridingmap.com/routes/qld/scenic-rim/mini-dirty-boonah-652ah" />
+<meta property="og:image" content="https://api.bushridingmap.com/file/photos/mini-dirty-boonah-652ah.jpg" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/styles/app.css" />
+<style>
+/* app.css locks the map app to a non-scrolling viewport (html,body{height:100%;
+   overflow:clip}). These are ordinary content pages — undo that so they scroll. */
+html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
+.seo-page{background:var(--cream);color:var(--ink);font-family:var(--ui-font);margin:0;min-height:100vh;display:flex;flex-direction:column}
+.site-head{display:flex;flex-direction:column;align-items:center;gap:12px;padding:16px 22px;border-bottom:1px solid rgba(0,0,0,.08);background:var(--cream-panel);text-align:center}
+.site-brand{font-family:var(--head-font);font-size:26px;color:var(--ink);text-decoration:none}
+.site-nav{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.site-nav a{font-family:var(--ui-font);font-size:13px;font-weight:600;padding:7px 15px;border-radius:999px;border:1px solid rgba(0,0,0,.12);background:var(--cream);color:var(--ink);text-decoration:none;line-height:1}
+.site-nav a:hover{border-color:var(--olive);color:var(--olive)}
+.wrap{width:100%;max-width:760px;margin:0 auto;padding:22px;flex:1}
+.crumbs{font-size:12.5px;color:var(--ink-soft);margin:0 0 14px;display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.crumbs a{color:var(--ink-soft);text-decoration:none}
+.crumbs a:hover{color:var(--olive);text-decoration:underline}
+.crumbs__sep{opacity:.5}
+.rp-title{font-family:var(--head-font);font-weight:400;font-size:38px;line-height:1.05;margin:6px 0 4px;color:var(--ink)}
+.rp-loc{margin:0 0 4px;color:var(--ink-soft);font-size:15px}
+.rp-hero{margin:0 0 18px;border-radius:14px;overflow:hidden;background:var(--sage)}
+.rp-hero__img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover}
+.rp-hero__img--empty{aspect-ratio:16/9;background:linear-gradient(135deg,var(--sage),var(--olive))}
+.rp-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(0,0,0,.08);border:1px solid rgba(0,0,0,.08);border-radius:12px;overflow:hidden;margin:16px 0}
+.rp-stat{background:var(--cream-panel);padding:12px 10px;text-align:center;min-width:0}
+.rp-stat__v{display:block;font-family:var(--head-font);font-size:20px;color:var(--ink)}
+.rp-stat__l{display:block;margin-top:3px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
+.rp-actions{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}
+.rp-actions .button{text-decoration:none}
+.rp-start{font-size:14.5px;color:var(--ink-soft);margin:10px 0}
+.wrap h2{font-family:var(--head-font);font-weight:400;font-size:26px;margin:26px 0 8px}
+.rp-desc{font-size:16px;line-height:1.6;color:var(--ink)}
+.rp-map{position:relative;margin:18px 0;border:1px solid rgba(0,0,0,.1);border-radius:12px;overflow:hidden;background:#ece4d2}
+.rp-map__live{width:100%;height:380px}
+.rp-map__shape{position:absolute;top:0;left:0;right:0;height:380px;background:#ece4d2;display:flex}
+.rp-map.is-live .rp-map__shape{display:none}
+.rp-map__svg{display:block;width:100%;height:100%}
+.rp-map__cap{position:relative;padding:9px 13px;font-size:12px;color:var(--ink-soft);border-top:1px solid rgba(0,0,0,.07);background:var(--cream-panel)}
+@media(max-width:560px){.rp-map__live,.rp-map__shape{height:300px}}
+.rp-elev{margin:14px 0;padding:12px 14px;background:var(--cream-panel);border:1px solid rgba(0,0,0,.08);border-radius:12px}
+.rp-elev__head{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.rp-mini{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
+.rp-elev__note{font-size:12.5px;color:var(--ink-soft);white-space:nowrap}
+.rp-elev__svg{display:block;width:100%;height:132px;margin-top:6px}
+.rp-meta{font-size:13px;color:var(--ink-soft)}
+.rp-meta a{color:var(--olive)}
+.rp-faq__item{border-top:1px solid rgba(0,0,0,.1);padding:10px 0}
+.rp-faq__item summary{cursor:pointer;font-weight:600;font-size:15.5px}
+.rp-faq__item p{margin:8px 0 2px;color:var(--ink-soft);line-height:1.55;font-size:14.5px}
+.rp-back{margin:24px 0 0}
+.rp-back a{color:var(--olive);font-weight:600;text-decoration:none}
+.rp-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin:6px 0 4px}
+.rp-gallery__item{display:block;border-radius:10px;overflow:hidden;background:var(--sage)}
+.rp-gallery__item img{display:block;width:100%;height:150px;object-fit:cover}
+.rp-rating{margin:4px 0 12px;font-size:15px;color:var(--ink-soft)}
+.rp-rating__stars{color:#d98a3d;letter-spacing:1px}
+.rp-reviews{display:flex;flex-direction:column;gap:14px}
+.rp-review{border-top:1px solid rgba(0,0,0,.1);padding-top:12px}
+.rp-review__head{margin:0}
+.rp-review__stars{color:#d98a3d;letter-spacing:.5px;font-size:13px}
+.rp-review__text{margin:6px 0 0;color:var(--ink-soft);line-height:1.5;font-size:14.5px}
+.rp-intro{font-size:16px;line-height:1.6;color:var(--ink-soft);max-width:60ch;margin:0 0 22px}
+.rp-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.rp-card{display:flex;flex-direction:column;background:var(--cream-panel);border:1px solid rgba(0,0,0,.08);border-radius:12px;overflow:hidden;text-decoration:none;color:inherit}
+.rp-card:hover{border-color:var(--olive)}
+.rp-card__hero{display:block;width:100%;height:130px;object-fit:cover;background:var(--sage)}
+.rp-card__hero--empty{height:130px;background:linear-gradient(135deg,var(--sage),var(--olive))}
+.rp-card__body{padding:12px 13px}
+.rp-card__name{font-family:var(--head-font);font-weight:400;font-size:19px;margin:0 0 3px;color:var(--ink)}
+.rp-card__loc{margin:0 0 6px;font-size:12.5px;color:var(--ink-soft)}
+.rp-card__stats{margin:0;font-size:12.5px;color:var(--olive);font-weight:600}
+.rp-empty{color:var(--ink-soft)}
+.rp-noresult{color:var(--ink-soft);margin:8px 0}
+/* Pill filter (all-routes index) */
+.rp-filter{margin:0 0 20px;display:flex;flex-direction:column;gap:10px}
+.rp-pills{display:flex;flex-wrap:wrap;gap:8px}
+.rp-pills--region{padding-top:2px}
+.rp-pill{font-family:var(--ui-font);font-size:13px;font-weight:600;padding:7px 14px;border-radius:999px;border:1px solid rgba(0,0,0,.14);background:var(--cream-panel);color:var(--ink);cursor:pointer;line-height:1}
+.rp-pill:hover{border-color:var(--olive)}
+.rp-pill.is-active{background:var(--olive);border-color:var(--olive);color:#fff}
+.rp-pills--region .rp-pill{font-weight:500;font-size:12.5px;padding:6px 12px;color:var(--ink-soft)}
+.rp-pills--region .rp-pill.is-active{color:#fff}
+/* Events directory */
+.ev-list{display:flex;flex-direction:column;gap:14px;margin-bottom:8px}
+.ev-card{background:var(--cream-panel);border:1px solid rgba(0,0,0,.08);border-radius:12px;padding:16px 18px}
+.ev-card.is-past{opacity:.7}
+.ev-card__when{margin:0 0 4px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--card-rust,#b04a24)}
+.ev-card__name{font-family:var(--head-font);font-weight:400;font-size:23px;margin:0 0 6px;color:var(--ink)}
+.ev-card__desc{margin:0 0 10px;font-size:14.5px;line-height:1.5;color:var(--ink-soft)}
+.ev-card__meta{display:flex;flex-direction:column;gap:4px;font-size:13.5px;color:var(--ink-soft)}
+.ev-card__row strong{color:var(--ink);font-weight:600}
+.ev-card__meta a{color:var(--olive);text-decoration:none}
+.ev-card__actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.ev-card__actions .button{text-decoration:none}
+.site-foot{margin-top:30px;padding:22px;border-top:1px solid rgba(0,0,0,.08);background:var(--cream-panel);font-size:12.5px;color:var(--ink-soft);text-align:center}
+.site-foot a{color:var(--olive);text-decoration:none}
+@media(max-width:560px){.rp-title{font-size:30px}.rp-stats{grid-template-columns:repeat(2,1fr)}}
+</style>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css" />
+<script type="application/ld+json">
+[
+  {
+    "@context": "https://schema.org",
+    "@type": "SportsActivityLocation",
+    "name": "Mini Dirty Boonah",
+    "description": "There is a reason they call this part of the world “the Scenic Rim”.\r\n\r\nFor this whole ride, the views to the Border Ranges to the south are simply spectacular.\r\n\r\nMake sure that you take a quick breather at the top of every hill, because otherwise you’re missing a major part of what makes this ride memorable.",
+    "url": "https://bushridingmap.com/routes/qld/scenic-rim/mini-dirty-boonah-652ah",
+    "sport": "Gravel Cycling",
+    "address": {
+      "@type": "PostalAddress",
+      "addressRegion": "Queensland",
+      "addressCountry": "AU"
+    },
+    "amenityFeature": [
+      {
+        "@type": "LocationFeatureSpecification",
+        "name": "Distance",
+        "value": "97 km"
+      },
+      {
+        "@type": "LocationFeatureSpecification",
+        "name": "Elevation gain",
+        "value": "1,330 m"
+      },
+      {
+        "@type": "LocationFeatureSpecification",
+        "name": "Effort",
+        "value": "Big day out"
+      },
+      {
+        "@type": "LocationFeatureSpecification",
+        "name": "Terrain",
+        "value": "Groomed"
+      }
+    ],
+    "image": "https://api.bushridingmap.com/file/photos/mini-dirty-boonah-652ah.jpg",
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": -27.99679,
+      "longitude": 152.68079
+    }
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Bush Riding Map",
+        "item": "https://bushridingmap.com/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Routes",
+        "item": "https://bushridingmap.com/routes/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": "Queensland",
+        "item": "https://bushridingmap.com/routes/qld/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 4,
+        "name": "Scenic Rim",
+        "item": "https://bushridingmap.com/routes/qld/scenic-rim/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 5,
+        "name": "Mini Dirty Boonah",
+        "item": "https://bushridingmap.com/routes/qld/scenic-rim/mini-dirty-boonah-652ah"
+      }
+    ]
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "How long is Mini Dirty Boonah?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Mini Dirty Boonah is a 97 km gravel ride with about 1,330 m of climbing, which rates as big day out."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Where do you start Mini Dirty Boonah?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Mini Dirty Boonah starts in the Scenic Rim area, Queensland. Open the interactive map for the exact start point and turn-by-turn track."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How difficult is Mini Dirty Boonah?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Mini Dirty Boonah is Big day out — a solid outing with real distance or climbing — pack for a full day."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What surface is Mini Dirty Boonah?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The terrain is Groomed — mostly smooth, well-formed gravel that rolls fast. Surface breakdown: 51% Gravel 49% Paved."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I download a GPX file for Mini Dirty Boonah?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes — download the GPX for Mini Dirty Boonah to load onto your GPS computer or phone before you ride."
+        }
+      }
+    ]
+  }
+]
+</script>
+</head>
+<body class="seo-page">
+<header class="site-head">
+  <a class="site-brand" href="/">Bush Riding Map</a>
+  <nav class="site-nav">
+    <a href="/routes/">Community Routes</a>
+    <a href="/events/">Bush Events</a>
+    <a href="/">Map</a>
+    <a href="/submit">Submit a route</a>
+  </nav>
+</header>
+<main class="wrap">
+<nav class="crumbs" aria-label="Breadcrumb"><a href="/">Bush Riding Map</a><span class="crumbs__sep">›</span><a href="/routes/">Routes</a><span class="crumbs__sep">›</span><a href="/routes/qld/">Queensland</a><span class="crumbs__sep">›</span><a href="/routes/qld/scenic-rim/">Scenic Rim</a><span class="crumbs__sep">›</span><span aria-current="page">Mini Dirty Boonah</span></nav>
+
+<article class="route">
+  <figure class="rp-hero"><img class="rp-hero__img" src="https://api.bushridingmap.com/file/photos/mini-dirty-boonah-652ah.jpg" alt="Mini Dirty Boonah — gravel route near Scenic Rim" width="1200" height="675" loading="eager" /></figure>
+
+  <h1 class="rp-title">Mini Dirty Boonah</h1>
+  <p class="rp-loc">Scenic Rim, Queensland</p>
+
+  <div class="rp-stats">
+    <div class="rp-stat"><span class="rp-stat__v">97 km</span><span class="rp-stat__l">Distance</span></div>
+    <div class="rp-stat"><span class="rp-stat__v">1,330 m</span><span class="rp-stat__l">Elevation</span></div>
+    <div class="rp-stat"><span class="rp-stat__v">Big day out</span><span class="rp-stat__l">Effort</span></div>
+    <div class="rp-stat"><span class="rp-stat__v">Groomed</span><span class="rp-stat__l">Terrain</span></div>
+  </div>
+
+  <div class="rp-elev">
+    <div class="rp-elev__head"><span class="rp-mini">Elevation profile</span><span class="rp-elev__note">↑ 1,330 m over 97 km</span></div>
+    <svg class="rp-elev__svg" viewBox="0 0 680 130" preserveAspectRatio="none" role="img" aria-label="Elevation profile">
+    <defs><linearGradient id="rpElev" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c9673f" stop-opacity=".34"/><stop offset="1" stop-color="#c9673f" stop-opacity=".04"/></linearGradient></defs>
+    <path d="M0,120 L0.0,113.2 L2.8,115.9 L4.2,119.2 L6.7,119.8 L8.7,119.2 L10.6,118.4 L13.4,113.6 L19.1,115.4 L27.6,105.6 L35.5,107.3 L37.0,106.7 L38.2,105.9 L46.7,92.7 L49.8,96.6 L51.4,89.6 L56.3,80.7 L58.3,88.0 L60.3,87.3 L64.8,80.5 L67.2,70.2 L69.4,63.2 L71.4,54.9 L73.6,47.8 L77.2,54.2 L79.0,47.1 L80.5,52.2 L81.8,56.9 L83.4,63.2 L85.0,66.4 L87.5,75.6 L91.0,82.7 L93.6,85.0 L95.9,89.1 L98.0,89.9 L101.3,88.2 L102.5,89.4 L104.4,88.3 L106.3,87.1 L109.0,85.0 L111.5,84.0 L113.4,81.8 L117.8,78.8 L121.3,75.4 L123.7,72.3 L125.1,72.7 L130.4,68.5 L135.9,47.3 L141.1,41.7 L144.0,40.8 L148.1,39.2 L150.4,37.3 L152.6,41.1 L156.2,47.3 L159.4,50.9 L161.4,50.6 L164.2,49.2 L168.7,66.0 L174.8,75.7 L178.6,90.5 L183.9,101.3 L188.2,98.4 L194.1,98.6 L196.4,98.0 L198.9,95.5 L201.2,94.2 L204.4,87.8 L207.3,86.1 L208.9,85.3 L210.2,85.3 L212.0,84.2 L213.4,84.0 L214.2,83.4 L215.4,81.5 L217.7,77.4 L219.3,74.0 L221.6,70.2 L229.3,60.3 L230.8,51.4 L233.2,64.5 L233.9,69.0 L234.2,70.9 L235.8,76.4 L236.4,76.7 L237.2,74.2 L237.6,72.0 L238.0,72.8 L238.6,68.6 L248.0,83.5 L250.9,75.9 L254.2,70.2 L258.8,67.6 L261.0,72.8 L263.0,68.0 L266.8,68.3 L271.6,64.1 L276.0,74.1 L277.9,73.7 L278.4,75.8 L280.1,70.8 L282.9,68.1 L285.3,76.9 L288.5,74.4 L290.9,74.6 L295.2,72.2 L301.0,73.0 L303.7,69.3 L307.3,71.8 L309.6,69.1 L312.9,67.4 L314.8,68.9 L317.5,66.3 L322.2,64.4 L323.8,64.1 L325.5,64.1 L331.7,60.4 L334.5,59.5 L336.2,55.4 L337.3,50.6 L338.4,41.5 L341.7,26.5 L343.0,22.1 L344.1,20.1 L346.4,14.6 L349.4,19.3 L351.5,11.0 L352.0,8.0 L353.2,13.4 L354.6,21.1 L356.0,24.2 L357.9,25.3 L360.6,30.1 L361.9,31.9 L364.9,34.1 L366.5,37.8 L368.9,41.5 L372.2,41.5 L374.8,47.5 L376.6,49.0 L379.0,51.5 L380.9,54.3 L381.8,54.3 L383.9,55.7 L386.4,56.5 L388.1,54.3 L390.5,47.8 L391.8,51.8 L393.5,58.4 L396.7,66.8 L402.2,74.2 L405.3,73.1 L407.9,63.3 L411.3,66.7 L413.2,68.8 L417.5,74.9 L421.1,82.7 L424.5,84.6 L427.0,85.7 L429.7,85.5 L432.9,79.6 L435.6,86.1 L440.0,89.8 L443.0,86.7 L446.1,81.0 L448.1,80.1 L453.3,63.2 L456.4,57.5 L459.0,59.9 L466.3,69.0 L472.6,72.9 L474.8,73.6 L484.6,77.3 L488.4,79.6 L507.3,90.1 L516.2,92.9 L521.3,94.0 L526.5,92.3 L529.6,89.6 L533.1,94.5 L539.2,91.8 L543.7,85.9 L549.7,85.4 L553.0,81.6 L556.0,68.0 L561.1,63.7 L564.4,73.2 L567.3,89.7 L577.0,103.3 L580.5,105.9 L583.3,106.5 L586.8,108.5 L588.9,110.8 L592.7,109.6 L598.2,112.6 L606.7,113.8 L608.7,109.6 L611.1,113.0 L613.2,113.7 L617.4,112.6 L620.9,111.1 L622.9,113.8 L625.8,107.9 L628.6,111.1 L630.2,114.1 L634.1,116.1 L639.3,116.8 L643.8,116.5 L645.0,117.5 L648.5,117.0 L650.9,117.0 L652.5,117.6 L654.5,118.3 L656.5,117.6 L660.3,116.7 L662.7,118.6 L666.1,120.0 L667.6,119.7 L670.6,119.4 L672.6,119.7 L675.2,118.6 L676.5,115.0 L680.0,114.6 L680,120 Z" fill="url(#rpElev)"/>
+    <path d="M0.0,113.2 L2.8,115.9 L4.2,119.2 L6.7,119.8 L8.7,119.2 L10.6,118.4 L13.4,113.6 L19.1,115.4 L27.6,105.6 L35.5,107.3 L37.0,106.7 L38.2,105.9 L46.7,92.7 L49.8,96.6 L51.4,89.6 L56.3,80.7 L58.3,88.0 L60.3,87.3 L64.8,80.5 L67.2,70.2 L69.4,63.2 L71.4,54.9 L73.6,47.8 L77.2,54.2 L79.0,47.1 L80.5,52.2 L81.8,56.9 L83.4,63.2 L85.0,66.4 L87.5,75.6 L91.0,82.7 L93.6,85.0 L95.9,89.1 L98.0,89.9 L101.3,88.2 L102.5,89.4 L104.4,88.3 L106.3,87.1 L109.0,85.0 L111.5,84.0 L113.4,81.8 L117.8,78.8 L121.3,75.4 L123.7,72.3 L125.1,72.7 L130.4,68.5 L135.9,47.3 L141.1,41.7 L144.0,40.8 L148.1,39.2 L150.4,37.3 L152.6,41.1 L156.2,47.3 L159.4,50.9 L161.4,50.6 L164.2,49.2 L168.7,66.0 L174.8,75.7 L178.6,90.5 L183.9,101.3 L188.2,98.4 L194.1,98.6 L196.4,98.0 L198.9,95.5 L201.2,94.2 L204.4,87.8 L207.3,86.1 L208.9,85.3 L210.2,85.3 L212.0,84.2 L213.4,84.0 L214.2,83.4 L215.4,81.5 L217.7,77.4 L219.3,74.0 L221.6,70.2 L229.3,60.3 L230.8,51.4 L233.2,64.5 L233.9,69.0 L234.2,70.9 L235.8,76.4 L236.4,76.7 L237.2,74.2 L237.6,72.0 L238.0,72.8 L238.6,68.6 L248.0,83.5 L250.9,75.9 L254.2,70.2 L258.8,67.6 L261.0,72.8 L263.0,68.0 L266.8,68.3 L271.6,64.1 L276.0,74.1 L277.9,73.7 L278.4,75.8 L280.1,70.8 L282.9,68.1 L285.3,76.9 L288.5,74.4 L290.9,74.6 L295.2,72.2 L301.0,73.0 L303.7,69.3 L307.3,71.8 L309.6,69.1 L312.9,67.4 L314.8,68.9 L317.5,66.3 L322.2,64.4 L323.8,64.1 L325.5,64.1 L331.7,60.4 L334.5,59.5 L336.2,55.4 L337.3,50.6 L338.4,41.5 L341.7,26.5 L343.0,22.1 L344.1,20.1 L346.4,14.6 L349.4,19.3 L351.5,11.0 L352.0,8.0 L353.2,13.4 L354.6,21.1 L356.0,24.2 L357.9,25.3 L360.6,30.1 L361.9,31.9 L364.9,34.1 L366.5,37.8 L368.9,41.5 L372.2,41.5 L374.8,47.5 L376.6,49.0 L379.0,51.5 L380.9,54.3 L381.8,54.3 L383.9,55.7 L386.4,56.5 L388.1,54.3 L390.5,47.8 L391.8,51.8 L393.5,58.4 L396.7,66.8 L402.2,74.2 L405.3,73.1 L407.9,63.3 L411.3,66.7 L413.2,68.8 L417.5,74.9 L421.1,82.7 L424.5,84.6 L427.0,85.7 L429.7,85.5 L432.9,79.6 L435.6,86.1 L440.0,89.8 L443.0,86.7 L446.1,81.0 L448.1,80.1 L453.3,63.2 L456.4,57.5 L459.0,59.9 L466.3,69.0 L472.6,72.9 L474.8,73.6 L484.6,77.3 L488.4,79.6 L507.3,90.1 L516.2,92.9 L521.3,94.0 L526.5,92.3 L529.6,89.6 L533.1,94.5 L539.2,91.8 L543.7,85.9 L549.7,85.4 L553.0,81.6 L556.0,68.0 L561.1,63.7 L564.4,73.2 L567.3,89.7 L577.0,103.3 L580.5,105.9 L583.3,106.5 L586.8,108.5 L588.9,110.8 L592.7,109.6 L598.2,112.6 L606.7,113.8 L608.7,109.6 L611.1,113.0 L613.2,113.7 L617.4,112.6 L620.9,111.1 L622.9,113.8 L625.8,107.9 L628.6,111.1 L630.2,114.1 L634.1,116.1 L639.3,116.8 L643.8,116.5 L645.0,117.5 L648.5,117.0 L650.9,117.0 L652.5,117.6 L654.5,118.3 L656.5,117.6 L660.3,116.7 L662.7,118.6 L666.1,120.0 L667.6,119.7 L670.6,119.4 L672.6,119.7 L675.2,118.6 L676.5,115.0 L680.0,114.6" fill="none" stroke="#bd5730" stroke-width="2" stroke-linejoin="round"/>
+  </svg>
+  </div>
+
+  <div class="rp-actions">
+    <a class="button button--primary" href="https://api.bushridingmap.com/file/gpx/mini-dirty-boonah-652ah.gpx" download>Download GPX</a>
+    <a class="button" id="rp-nav" href="https://www.google.com/maps/dir/?api=1&amp;destination=-27.99679,152.68079" data-apple="https://maps.apple.com/?daddr=-27.99679,152.68079&amp;dirflg=d" target="_blank" rel="noopener">Navigate to start</a>
+    <a class="button" href="/map#mini-dirty-boonah-652ah">Open in interactive map</a>
+  </div>
+
+  <p class="rp-start"><strong>Start:</strong> Scenic Rim.</p>
+
+  <h2>About this route</h2>
+  <p class="rp-desc">There is a reason they call this part of the world “the Scenic Rim”.</p>
+  <p class="rp-desc">For this whole ride, the views to the Border Ranges to the south are simply spectacular.</p>
+  <p class="rp-desc">Make sure that you take a quick breather at the top of every hill, because otherwise you’re missing a major part of what makes this ride memorable.</p>
+
+  <figure class="rp-map" data-has-map>
+    <div class="rp-map__live" id="rp-livemap"></div>
+    <div class="rp-map__shape"><svg class="rp-map__svg" viewBox="0 0 640 380" role="img" aria-label="Map of the route">
+    <rect width="640" height="380" fill="#ece4d2"/>
+    <path d="M383.7,26.0 L384.6,29.4 L385.0,31.1 L384.7,33.1 L383.9,36.4 L383.3,39.0 L382.4,41.5 L383.4,42.4 L385.1,44.4 L389.0,49.3 L400.3,55.7 L399.7,60.7 L400.7,69.2 L400.7,71.1 L402.7,71.7 L402.5,73.4 L401.5,79.0 L399.3,92.0 L399.4,93.1 L401.7,93.7 L408.5,94.8 L409.1,91.9 L409.5,89.6 L410.1,86.7 L416.5,87.8 L418.2,87.7 L420.9,90.4 L422.0,93.5 L421.4,95.0 L423.0,98.6 L422.4,100.5 L421.5,106.1 L422.4,108.0 L423.8,109.2 L425.7,109.6 L426.5,110.6 L428.4,112.4 L429.4,113.5 L431.4,114.4 L432.6,114.8 L436.8,118.7 L438.2,122.2 L439.9,125.0 L440.6,127.4 L441.0,130.5 L442.2,133.0 L443.9,136.8 L442.8,138.5 L441.6,140.0 L439.9,141.0 L438.5,142.2 L436.3,144.7 L433.5,146.2 L431.6,148.5 L430.1,151.7 L429.1,152.9 L425.3,158.4 L423.0,163.0 L422.6,165.5 L421.5,168.3 L420.4,169.5 L418.4,177.5 L421.1,184.9 L421.3,188.3 L420.1,195.3 L422.3,199.3 L421.1,203.3 L421.9,206.7 L424.7,208.1 L427.6,209.1 L430.8,211.9 L431.1,214.9 L432.3,218.9 L434.9,220.5 L436.1,222.6 L439.2,224.5 L437.2,228.7 L433.0,237.4 L434.3,243.0 L436.4,245.0 L439.3,249.9 L437.9,256.8 L432.4,259.8 L425.6,261.2 L423.0,259.6 L419.3,258.8 L418.2,258.6 L416.3,261.3 L415.2,263.5 L411.7,265.6 L409.2,268.4 L408.6,270.7 L408.1,271.8 L406.4,273.5 L405.5,274.4 L403.5,275.9 L403.0,277.4 L402.6,277.8 L401.2,278.6 L398.4,280.6 L396.3,281.2 L395.3,281.9 L395.0,284.3 L384.0,292.5 L383.3,293.4 L382.0,295.2 L378.4,295.9 L377.4,295.9 L376.8,296.1 L376.4,295.9 L375.9,293.5 L375.9,293.0 L375.3,292.6 L374.2,292.5 L373.7,292.3 L373.9,292.0 L374.3,291.7 L374.0,291.0 L373.4,289.4 L364.5,277.9 L360.9,280.9 L359.5,284.5 L357.4,287.3 L356.4,296.3 L356.0,296.8 L353.9,295.0 L353.1,294.8 L353.0,294.8 L347.0,299.5 L340.0,299.0 L338.5,298.6 L337.0,300.7 L336.3,300.8 L334.5,299.6 L333.2,299.6 L329.5,301.8 L326.3,302.9 L322.4,302.6 L319.6,302.8 L317.0,304.9 L313.7,309.0 L308.3,313.6 L304.7,317.5 L304.4,321.6 L299.5,323.3 L298.4,324.3 L297.4,328.2 L295.2,332.3 L293.9,334.2 L292.5,336.7 L291.7,339.8 L285.6,343.9 L283.4,344.4 L281.2,344.2 L279.6,344.9 L273.8,352.4 L272.3,354.0 L269.8,351.0 L268.1,349.9 L267.7,348.3 L266.2,348.4 L264.8,348.1 L261.0,345.0 L261.1,343.6 L260.6,342.4 L259.3,342.6 L256.4,342.5 L254.0,341.1 L252.4,338.1 L250.4,335.6 L249.8,335.3 L249.2,334.9 L250.2,333.4 L251.6,332.3 L253.4,331.4 L254.8,329.9 L256.3,328.8 L258.6,325.1 L257.6,323.6 L257.6,322.0 L257.5,318.0 L257.2,316.1 L256.5,313.6 L256.5,309.5 L255.2,307.1 L251.9,304.6 L251.4,301.5 L250.5,300.4 L247.5,298.3 L246.7,297.4 L245.1,295.4 L244.9,294.1 L245.2,292.0 L245.8,287.0 L245.0,285.8 L243.4,284.8 L239.9,283.6 L239.0,284.0 L236.5,284.5 L234.7,283.8 L233.7,282.7 L230.0,275.5 L223.5,273.8 L221.4,271.3 L220.6,267.9 L221.6,265.3 L225.7,262.9 L227.3,261.3 L227.9,257.9 L228.0,252.8 L231.0,248.1 L234.6,245.5 L237.1,243.4 L239.2,241.4 L240.6,238.3 L242.6,234.2 L243.1,231.4 L245.2,227.8 L247.8,223.7 L243.6,223.3 L240.7,223.8 L236.2,223.9 L234.2,225.2 L227.0,226.9 L223.2,227.6 L219.7,227.9 L216.6,227.9 L212.0,228.4 L204.3,221.6 L203.4,214.1 L202.9,210.9 L203.2,207.8 L201.1,193.1 L198.1,187.8 L196.1,164.8 L196.3,152.3 L200.1,139.8 L203.4,134.9 L207.5,128.0 L207.2,123.5 L208.6,120.7 L213.0,120.0 L219.2,115.5 L222.1,110.7 L227.9,109.9 L236.3,111.2 L239.0,114.2 L241.6,116.2 L243.3,119.5 L247.1,123.3 L252.6,128.1 L255.0,127.1 L258.1,126.2 L273.9,128.6 L276.6,127.8 L277.6,123.0 L282.0,122.5 L282.5,121.4 L283.5,115.6 L283.2,113.1 L284.6,109.7 L286.8,104.8 L292.2,97.8 L300.7,89.0 L302.2,88.0 L304.7,87.3 L307.3,84.5 L309.1,83.6 L315.0,84.7 L320.7,87.7 L322.7,87.5 L324.7,86.7 L327.1,86.8 L331.0,83.2 L333.8,82.3 L335.6,81.8 L337.5,79.3 L340.3,75.1 L345.9,71.0 L353.6,69.6 L355.4,68.5 L356.1,67.2 L356.7,62.5 L358.8,60.9 L360.8,58.9 L360.8,57.0 L361.9,54.6 L363.1,52.6 L365.0,51.6 L367.6,46.1 L369.3,45.3 L373.1,44.7 L376.5,42.4 L378.3,42.2 L382.7,39.7 L383.3,38.5 L384.2,35.4 L385.0,32.3 L384.9,30.4 L384.6,28.7 L384.6,28.5" fill="none" stroke="#b04a24" stroke-width="3.6" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="383.7" cy="26.0" r="6.5" fill="#6f7c53" stroke="#fff" stroke-width="2.5"/>
+  </svg></div>
+    <figcaption class="rp-map__cap">Mini Dirty Boonah — 97 km near Scenic Rim, Queensland</figcaption>
+  </figure>
+
+  <p class="rp-meta">Vetted by <a href="https://bq.org.au/" rel="nofollow noopener">BQ</a>.</p>
+
+  
+
+  
+
+  <h2>Frequently asked questions</h2>
+  <div class="rp-faq">
+    <details class="rp-faq__item"><summary>How long is Mini Dirty Boonah?</summary><p>Mini Dirty Boonah is a 97 km gravel ride with about 1,330 m of climbing, which rates as big day out.</p></details>
+    <details class="rp-faq__item"><summary>Where do you start Mini Dirty Boonah?</summary><p>Mini Dirty Boonah starts in the Scenic Rim area, Queensland. Open the interactive map for the exact start point and turn-by-turn track.</p></details>
+    <details class="rp-faq__item"><summary>How difficult is Mini Dirty Boonah?</summary><p>Mini Dirty Boonah is Big day out — a solid outing with real distance or climbing — pack for a full day.</p></details>
+    <details class="rp-faq__item"><summary>What surface is Mini Dirty Boonah?</summary><p>The terrain is Groomed — mostly smooth, well-formed gravel that rolls fast. Surface breakdown: 51% Gravel 49% Paved.</p></details>
+    <details class="rp-faq__item"><summary>Can I download a GPX file for Mini Dirty Boonah?</summary><p>Yes — download the GPX for Mini Dirty Boonah to load onto your GPS computer or phone before you ride.</p></details>
+  </div>
+
+  <p class="rp-back"><a href="/map#mini-dirty-boonah-652ah">See Mini Dirty Boonah on the full interactive map →</a></p>
+</article>
+<script>window.__brmRoute=[[152.68079,-27.99679],[152.68148,-27.99853],[152.68153,-27.99954],[152.68182,-28.00037],[152.68193,-28.00101],[152.68156,-28.00212],[152.68122,-28.00337],[152.68079,-28.00505],[152.68038,-28.00626],[152.68037,-28.00707],[152.67968,-28.00837],[152.68,-28.00888],[152.68074,-28.00928],[152.68159,-28.0101],[152.68371,-28.01273],[152.68528,-28.01423],[152.69546,-28.01589],[152.69487,-28.01918],[152.69477,-28.02069],[152.69628,-28.02364],[152.6952,-28.02913],[152.69508,-28.03039],[152.69548,-28.03064],[152.69687,-28.03091],[152.69699,-28.03147],[152.69667,-28.03231],[152.69629,-28.03442],[152.69554,-28.0381],[152.69412,-28.0456],[152.69385,-28.0468],[152.69407,-28.04701],[152.69572,-28.0473],[152.69615,-28.04753],[152.69851,-28.04787],[152.7021,-28.0471],[152.70229,-28.04611],[152.70251,-28.045],[152.7027,-28.04388],[152.70311,-28.04231],[152.70405,-28.04234],[152.70859,-28.04303],[152.70973,-28.04307],[152.71054,-28.04353],[152.71218,-28.04483],[152.71268,-28.04574],[152.71323,-28.04729],[152.71284,-28.04803],[152.71292,-28.04889],[152.71392,-28.05077],[152.71413,-28.05145],[152.71364,-28.05258],[152.71316,-28.05506],[152.71284,-28.05701],[152.71332,-28.05789],[152.71401,-28.05865],[152.71476,-28.05911],[152.7157,-28.05922],[152.71656,-28.05948],[152.71701,-28.05997],[152.71756,-28.06052],[152.71873,-28.06145],[152.7193,-28.06209],[152.71971,-28.06241],[152.72095,-28.0629],[152.72188,-28.06304],[152.7223,-28.06324],[152.72469,-28.06511],[152.72615,-28.06668],[152.72671,-28.06812],[152.72739,-28.06953],[152.72845,-28.07093],[152.729,-28.07206],[152.72913,-28.07302],[152.72931,-28.07466],[152.72958,-28.07546],[152.73041,-28.07689],[152.73138,-28.07828],[152.7316,-28.08042],[152.73114,-28.08087],[152.73054,-28.08124],[152.72987,-28.08216],[152.72924,-28.0828],[152.72822,-28.08299],[152.72751,-28.08356],[152.72655,-28.08471],[152.72544,-28.08569],[152.72406,-28.0864],[152.72287,-28.08689],[152.72184,-28.08776],[152.72067,-28.08998],[152.72014,-28.09089],[152.71967,-28.0913],[152.71867,-28.09278],[152.71645,-28.0953],[152.71473,-28.09841],[152.71408,-28.09937],[152.71417,-28.10074],[152.71321,-28.10193],[152.71303,-28.10285],[152.7122,-28.10389],[152.71192,-28.10422],[152.71146,-28.10651],[152.71013,-28.11054],[152.71227,-28.11379],[152.71225,-28.11702],[152.71267,-28.11833],[152.71228,-28.12219],[152.71172,-28.1238],[152.71347,-28.12648],[152.7135,-28.12693],[152.71251,-28.12951],[152.7126,-28.1311],[152.7132,-28.13226],[152.71475,-28.13291],[152.71637,-28.13362],[152.71804,-28.13389],[152.7188,-28.13418],[152.72095,-28.13666],[152.72087,-28.13791],[152.72164,-28.13951],[152.72201,-28.14124],[152.72275,-28.14193],[152.72442,-28.14248],[152.72511,-28.14382],[152.7262,-28.14447],[152.72783,-28.1454],[152.72798,-28.14706],[152.725,-28.14978],[152.72303,-28.15366],[152.72256,-28.15637],[152.7237,-28.15922],[152.72482,-28.16017],[152.72637,-28.16117],[152.72801,-28.16431],[152.72733,-28.16519],[152.72678,-28.16958],[152.72448,-28.17017],[152.72146,-28.17228],[152.71899,-28.17283],[152.71569,-28.17271],[152.71414,-28.17165],[152.7119,-28.17127],[152.71071,-28.17096],[152.71014,-28.17055],[152.70969,-28.172],[152.70844,-28.17295],[152.70807,-28.17432],[152.70636,-28.17504],[152.7051,-28.17572],[152.70297,-28.17761],[152.70238,-28.17828],[152.70222,-28.1791],[152.70181,-28.18011],[152.70155,-28.18059],[152.7012,-28.18101],[152.70004,-28.18208],[152.69959,-28.1825],[152.69825,-28.18318],[152.69798,-28.18336],[152.6973,-28.18435],[152.69712,-28.18497],[152.69694,-28.18523],[152.69668,-28.18538],[152.69569,-28.18587],[152.69444,-28.1862],[152.69319,-28.18739],[152.69267,-28.18761],[152.69104,-28.18792],[152.69065,-28.18816],[152.69053,-28.18937],[152.69037,-28.19016],[152.68633,-28.19284],[152.68095,-28.19638],[152.68047,-28.19689],[152.68012,-28.19763],[152.67928,-28.19833],[152.6783,-28.19866],[152.67608,-28.19888],[152.67548,-28.19884],[152.67518,-28.19895],[152.67486,-28.199],[152.67468,-28.19894],[152.67451,-28.19884],[152.6741,-28.1975],[152.67419,-28.19688],[152.67416,-28.19667],[152.67383,-28.19641],[152.67313,-28.19625],[152.67274,-28.19626],[152.67254,-28.19632],[152.67228,-28.19614],[152.67228,-28.19596],[152.67253,-28.19587],[152.67271,-28.19575],[152.6727,-28.19548],[152.6725,-28.19522],[152.67222,-28.19438],[152.6647,-28.18526],[152.66448,-28.18529],[152.66421,-28.18581],[152.66142,-28.18764],[152.66055,-28.18975],[152.65942,-28.19104],[152.65846,-28.19231],[152.6582,-28.19445],[152.65755,-28.19916],[152.65742,-28.19945],[152.65709,-28.19959],[152.65666,-28.19943],[152.65496,-28.198],[152.65476,-28.19802],[152.65445,-28.19577],[152.65462,-28.19806],[152.6499,-28.20142],[152.64704,-28.20151],[152.64364,-28.20121],[152.64276,-28.2008],[152.6423,-28.20091],[152.64137,-28.20208],[152.64085,-28.20251],[152.64047,-28.20253],[152.63978,-28.20217],[152.63887,-28.20163],[152.63815,-28.20153],[152.63667,-28.20212],[152.63474,-28.2033],[152.63396,-28.20357],[152.6317,-28.20413],[152.63017,-28.20406],[152.62707,-28.20375],[152.62635,-28.20401],[152.6247,-28.20514],[152.62379,-28.20599],[152.62183,-28.20823],[152.61988,-28.20986],[152.61672,-28.2121],[152.61375,-28.21481],[152.61365,-28.21526],[152.61375,-28.2175],[152.61281,-28.21845],[152.60925,-28.21934],[152.60847,-28.21981],[152.60824,-28.2206],[152.60768,-28.22264],[152.60629,-28.22486],[152.60558,-28.22607],[152.60499,-28.22674],[152.60433,-28.22787],[152.60351,-28.22903],[152.60304,-28.23024],[152.60268,-28.23169],[152.60074,-28.23283],[152.59716,-28.23496],[152.59592,-28.23517],[152.59501,-28.23522],[152.59371,-28.235],[152.59296,-28.23525],[152.59224,-28.23563],[152.58825,-28.24003],[152.58664,-28.2418],[152.58618,-28.24235],[152.58468,-28.24061],[152.58358,-28.23995],[152.58268,-28.23944],[152.58255,-28.23836],[152.5823,-28.23805],[152.58169,-28.23812],[152.58067,-28.23828],[152.58026,-28.23823],[152.57841,-28.23701],[152.57657,-28.23564],[152.57668,-28.23523],[152.57673,-28.23429],[152.57644,-28.23374],[152.5759,-28.23363],[152.57518,-28.23379],[152.57382,-28.23357],[152.5723,-28.23373],[152.57114,-28.23329],[152.56987,-28.2315],[152.56929,-28.23044],[152.56813,-28.22919],[152.56749,-28.22851],[152.56714,-28.22841],[152.56692,-28.22825],[152.56657,-28.22808],[152.56718,-28.22746],[152.56755,-28.22677],[152.56844,-28.2262],[152.56932,-28.22599],[152.57017,-28.22546],[152.57043,-28.22497],[152.5718,-28.22398],[152.57235,-28.22363],[152.57376,-28.2222],[152.57456,-28.22074],[152.5744,-28.2204],[152.57361,-28.21947],[152.57359,-28.21909],[152.57381,-28.21712],[152.57361,-28.21539],[152.5734,-28.21454],[152.57332,-28.21372],[152.57287,-28.21247],[152.57282,-28.21089],[152.57279,-28.20904],[152.57256,-28.20786],[152.57036,-28.20648],[152.569,-28.20562],[152.56869,-28.20447],[152.56843,-28.20304],[152.568,-28.20249],[152.56747,-28.20212],[152.56527,-28.20083],[152.56481,-28.20041],[152.56449,-28.2],[152.56318,-28.19868],[152.56302,-28.19834],[152.56291,-28.19763],[152.56306,-28.19712],[152.56317,-28.1959],[152.56341,-28.19395],[152.56364,-28.19202],[152.56335,-28.19161],[152.56238,-28.19079],[152.56161,-28.19051],[152.55895,-28.18962],[152.55851,-28.18975],[152.55802,-28.18997],[152.55766,-28.19001],[152.55575,-28.19032],[152.55539,-28.1903],[152.55392,-28.18964],[152.55358,-28.18927],[152.55222,-28.18629],[152.55026,-28.18358],[152.5489,-28.18307],[152.54453,-28.18222],[152.54349,-28.18114],[152.54258,-28.1797],[152.54227,-28.17788],[152.54252,-28.17673],[152.54352,-28.17559],[152.54622,-28.17434],[152.54719,-28.17379],[152.54795,-28.17297],[152.54842,-28.17179],[152.54843,-28.1682],[152.5485,-28.16673],[152.54882,-28.16594],[152.55108,-28.16306],[152.55217,-28.16226],[152.55493,-28.16068],[152.556,-28.15982],[152.5569,-28.15906],[152.55804,-28.15805],[152.55882,-28.15691],[152.55953,-28.1551],[152.56083,-28.15291],[152.5611,-28.15178],[152.56142,-28.15056],[152.56264,-28.14844],[152.56505,-28.14582],[152.56582,-28.14487],[152.56291,-28.14447],[152.56183,-28.14452],[152.56014,-28.14477],[152.55888,-28.14492],[152.55597,-28.14495],[152.55488,-28.14509],[152.55384,-28.14595],[152.55214,-28.14639],[152.54705,-28.14735],[152.54557,-28.14763],[152.54357,-28.14767],[152.54156,-28.14792],[152.53901,-28.14767],[152.53865,-28.14854],[152.53781,-28.14866],[152.53212,-28.14779],[152.52847,-28.14325],[152.52794,-28.14033],[152.52766,-28.13696],[152.52736,-28.13563],[152.52736,-28.13442],[152.5275,-28.1329],[152.52668,-28.12992],[152.52546,-28.12145],[152.52322,-28.11824],[152.52249,-28.1141],[152.52147,-28.10069],[152.52111,-28.09369],[152.52222,-28.08982],[152.52431,-28.0831],[152.52584,-28.08065],[152.52765,-28.07834],[152.52962,-28.07562],[152.53144,-28.07235],[152.53117,-28.07048],[152.53096,-28.06884],[152.5321,-28.0677],[152.53439,-28.06703],[152.53666,-28.06703],[152.54052,-28.06429],[152.542,-28.06278],[152.54358,-28.06019],[152.54548,-28.05929],[152.55199,-28.06014],[152.55501,-28.06058],[152.55655,-28.06083],[152.5579,-28.06285],[152.55887,-28.06363],[152.56035,-28.06483],[152.5611,-28.06646],[152.56275,-28.06733],[152.56479,-28.06963],[152.56783,-28.0722],[152.56983,-28.07327],[152.57097,-28.07285],[152.57266,-28.07193],[152.5741,-28.07177],[152.58105,-28.07271],[152.58839,-28.07373],[152.58955,-28.07337],[152.59006,-28.07239],[152.59072,-28.06942],[152.59146,-28.06917],[152.5946,-28.06903],[152.59481,-28.06879],[152.59513,-28.06534],[152.59565,-28.06384],[152.59571,-28.06338],[152.59548,-28.06174],[152.59588,-28.06081],[152.59734,-28.05803],[152.59852,-28.05577],[152.59973,-28.05359],[152.60431,-28.04939],[152.60829,-28.04578],[152.61078,-28.04355],[152.61154,-28.04318],[152.61327,-28.04281],[152.61393,-28.04256],[152.61539,-28.04113],[152.61642,-28.04021],[152.61744,-28.03995],[152.6216,-28.04054],[152.62259,-28.04075],[152.62608,-28.04243],[152.62811,-28.04308],[152.62896,-28.04285],[152.63029,-28.04226],[152.63098,-28.04228],[152.6321,-28.04241],[152.63403,-28.04148],[152.63598,-28.03963],[152.63685,-28.03907],[152.63877,-28.03892],[152.63974,-28.03867],[152.64048,-28.0381],[152.64155,-28.03673],[152.64306,-28.03456],[152.6441,-28.03338],[152.64809,-28.03059],[152.65171,-28.02999],[152.65524,-28.02943],[152.65622,-28.02909],[152.65691,-28.02837],[152.65745,-28.02801],[152.65725,-28.02706],[152.65783,-28.02412],[152.65868,-28.02341],[152.6604,-28.02241],[152.66114,-28.02177],[152.66145,-28.02088],[152.66131,-28.01997],[152.66134,-28.0195],[152.66243,-28.01776],[152.66307,-28.01685],[152.66388,-28.01646],[152.66488,-28.01594],[152.66581,-28.01419],[152.66723,-28.01164],[152.66792,-28.01122],[152.67011,-28.01132],[152.67175,-28.01079],[152.67371,-28.00961],[152.67482,-28.009],[152.67582,-28.00897],[152.67713,-28.00865],[152.67988,-28.00701],[152.68037,-28.0066],[152.68043,-28.00597],[152.681,-28.00448],[152.68136,-28.00266],[152.68183,-28.0015],[152.68192,-28.00076],[152.68164,-27.99992],[152.68149,-27.99925],[152.6815,-27.99722],[152.68148,-27.99866]];</script>
+<script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+<script>
+(function(){
+  var coords=window.__brmRoute;
+  var el=document.getElementById('rp-livemap');
+  if(!el||!window.maplibregl||!coords||coords.length<2) return;
+  fetch('/styles/bush.json').then(function(r){return r.json();}).then(function(style){
+    var map=new maplibregl.Map({container:el,style:style,attributionControl:true,cooperativeGestures:true,dragRotate:false});
+    map.addControl(new maplibregl.NavigationControl({showCompass:false}),'top-right');
+    map.on('load',function(){
+      map.addSource('brm-route',{type:'geojson',data:{type:'Feature',geometry:{type:'LineString',coordinates:coords}}});
+      map.addLayer({id:'brm-route-line',type:'line',source:'brm-route',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#b04a24','line-width':4}});
+      var bounds=new maplibregl.LngLatBounds(coords[0],coords[0]);
+      for(var i=1;i<coords.length;i++) bounds.extend(coords[i]);
+      map.fitBounds(bounds,{padding:36,duration:0});
+      new maplibregl.Marker({color:'#6f7c53'}).setLngLat(coords[0]).addTo(map);
+      var fig=el.closest('.rp-map'); if(fig) fig.classList.add('is-live');
+    });
+  }).catch(function(){});
+})();</script>
+<script>
+(function(){
+  var a=document.getElementById('rp-nav');
+  if(!a||!a.dataset.apple) return;
+  var ua=navigator.userAgent||'';
+  if(/iP(hone|ad|od)/.test(ua)||(/Macintosh/.test(ua)&&(navigator.maxTouchPoints||0)>1)) a.href=a.dataset.apple;
+})();</script></main>
+<footer class="site-foot">
+  <p>Bush Riding Map — community-vetted gravel routes across Australia. Routes are guides only; ride to conditions.</p>
+  <p><a href="/routes/">All routes</a> · <a href="/">Interactive map</a> · <a href="/submit">Submit a route</a></p>
+</footer>
+</body>
+</html>

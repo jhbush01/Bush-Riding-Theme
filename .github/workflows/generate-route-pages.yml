@@ -1,0 +1,68 @@
+name: Generate route pages
+
+# Builds the static SEO route pages (map/routes/**) from the LIVE routes API and
+# commits them to the production branch, so Cloudflare Pages serves them as
+# static files — no Pages build command required.
+#
+# GitHub's runners can reach the public api.bushridingmap.com (unlike the local
+# dev sandbox), so this is where generation actually happens.
+#
+# Runs: on every push to the prod branch, on a schedule (to pick up newly
+# approved routes), and on demand. Commits only when the output changes; the
+# push uses GITHUB_TOKEN, which does not re-trigger workflows (no loop).
+
+on:
+  push:
+    branches: [claude/bush-riding-routes-map-ycmgw6]
+    paths:
+      - "scripts/generate-route-pages.js"
+      - "package.json"
+      - "map/data/routes.geojson"
+      - ".github/workflows/generate-route-pages.yml"
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch: {}
+  # Fired by the community Worker when a route is approved/edited/removed, so a
+  # new route's page appears within ~a minute (needs a GitHub token on the
+  # Worker — see scripts/README.md). Optional; without it, pages also refresh on
+  # each deploy and on the schedule above.
+  repository_dispatch:
+    types: [routes-changed]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: route-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/bush-riding-routes-map-ycmgw6
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Generate pages from the live API
+        run: npm run build:seo
+
+      - name: Commit if changed
+        run: |
+          git config user.name "route-pages-bot"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add map/routes map/events
+          if git diff --cached --quiet; then
+            echo "No route-page changes."
+          else
+            # No "[skip ci]" — Cloudflare Pages honours it and would NOT deploy
+            # the new pages. GitHub already avoids a workflow loop: a GITHUB_TOKEN
+            # push doesn't trigger workflows, and this commit only touches
+            # map/routes/** (outside this workflow's push path filter).
+            git commit -m "Regenerate route pages"
+            git push origin HEAD:claude/bush-riding-routes-map-ycmgw6
+          fi

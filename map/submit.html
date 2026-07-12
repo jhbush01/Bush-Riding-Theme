@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Submit a route — Bush Riding Map</title>
+    <meta name="description" content="Share a gravel route with the Bush Riding community." />
+    <link rel="canonical" href="https://bushridingmap.com/submit" />
+    <meta name="theme-color" content="#E9E2D0" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+
+    <!-- Open Graph / Twitter -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Bush Riding" />
+    <meta property="og:title" content="Submit a route — Bush Riding Map" />
+    <meta property="og:description" content="Share a gravel route with the Bush Riding community." />
+    <meta property="og:url" content="https://bushridingmap.com/submit" />
+    <meta property="og:image" content="https://bushridingmap.com/public/og-card.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Submit a route — Bush Riding Map" />
+    <meta name="twitter:description" content="Share a gravel route with the Bush Riding community." />
+    <meta name="twitter:image" content="https://bushridingmap.com/public/og-card.jpg" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles/app.css" />
+    <link rel="stylesheet" href="styles/submit.css" />
+
+    <script>
+      // The community routes Worker + the accounts Worker (same-origin proxy).
+      window.BRM_CONFIG = {
+        communityApi: "https://api.bushridingmap.com",
+        diaryApi: "/diary-api",
+      };
+    </script>
+  </head>
+  <body class="submit-page">
+    <main class="form-wrap">
+      <a class="back" href="/">← Back to the map</a>
+      <h1 class="form-title">Submit a route</h1>
+      <p class="form-intro">
+        Share a gravel route with the community. Upload a GPX (exported from your computer or
+        head unit) and we'll review it before it goes on the map. Distance and elevation are
+        worked out from the file.
+      </p>
+
+      <form id="route-form" class="route-form">
+        <label class="field">
+          <span class="field__label">GPX file *</span>
+          <input type="file" name="gpx" accept=".gpx,application/gpx+xml" required />
+        </label>
+
+        <label class="field">
+          <span class="field__label">Route name *</span>
+          <input type="text" name="name" maxlength="80" required placeholder="e.g. Pomona Weekend Gravel" />
+        </label>
+
+        <label class="field">
+          <span class="field__label">Region *</span>
+          <input type="text" name="region" maxlength="80" required placeholder="e.g. Southern Downs" />
+          <span class="field__hint">The riding area — keep it broad (e.g. Southern Downs, Glass House Mountains).</span>
+        </label>
+
+        <label class="field">
+          <span class="field__label">State *</span>
+          <select name="state" required>
+            <option value="">Choose…</option>
+            <option value="QLD">Queensland (QLD)</option>
+            <option value="NSW">New South Wales (NSW)</option>
+            <option value="VIC">Victoria (VIC)</option>
+            <option value="TAS">Tasmania (TAS)</option>
+            <option value="SA">South Australia (SA)</option>
+            <option value="WA">Western Australia (WA)</option>
+            <option value="NT">Northern Territory (NT)</option>
+            <option value="ACT">ACT</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span class="field__label">Terrain *</span>
+          <select name="difficulty" required>
+            <option value="">Choose…</option>
+            <option value="groomed">Groomed</option>
+            <option value="rocky">Rocky</option>
+            <option value="proper-mud">Proper Mud</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span class="field__label">Surface <span class="opt">(optional)</span></span>
+          <input type="text" name="surface" maxlength="120" placeholder="e.g. 85% gravel, 15% sealed" />
+        </label>
+
+        <label class="field">
+          <span class="field__label">Notes <span class="opt">(optional)</span></span>
+          <textarea name="description" maxlength="4000" rows="8" placeholder="Tell riders about the route — the terrain, the highlights, where to start, what to watch for. A few paragraphs is great; this becomes the write-up on the route's own page."></textarea>
+          <span class="field__hint">The full text appears on the route's dedicated page. The card shows a short preview.</span>
+        </label>
+
+        <label class="field">
+          <span class="field__label">Photo <span class="opt">(optional)</span></span>
+          <input type="file" name="photo" accept="image/*" />
+          <span class="field__hint">Becomes the hero image on the route card and its page. JPG or PNG, up to 12 MB. You can also add or change this later.</span>
+        </label>
+
+        <hr class="rule" />
+
+        <label class="field">
+          <span class="field__label">Contributed by <span class="opt">(shown publicly)</span></span>
+          <input type="text" name="contributor" maxlength="80" placeholder="Your name, club or organisation" />
+          <span class="field__hint">The full name credited on the route card.</span>
+        </label>
+
+        <label class="field">
+          <span class="field__label">Your link <span class="opt">(optional)</span></span>
+          <input type="url" name="contributor_url" maxlength="300" placeholder="Strava / RideWithGPS / website" />
+          <span class="field__hint">Adds a “Check them out” button next to your name. Leave blank to just show the name.</span>
+        </label>
+
+        <label class="consent">
+          <input type="checkbox" name="consent" required />
+          <span
+            >I have the right to share this route, it doesn't cross private land or closed
+            trails without permission, and I understand it will be published publicly. Routes
+            are guides only — riders use them at their own risk.</span
+          >
+        </label>
+
+        <p class="field__hint" id="account-note">
+          You'll sign in or create a free account when you submit — that's how you track your
+          route's approval status under “My Submissions”.
+        </p>
+        <button type="submit" class="button button--primary" id="submit-btn">Submit route</button>
+        <p id="form-msg" class="form-msg" role="status" hidden></p>
+      </form>
+    </main>
+
+    <!-- ============ Diary: auth modal ============ -->
+    <div id="auth-modal" class="modal" aria-hidden="true">
+      <div class="modal__backdrop" data-auth-close></div>
+      <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+        <button class="modal__close" data-auth-close aria-label="Close">&times;</button>
+        <h2 id="auth-title" class="modal__title">Your account</h2>
+        <div class="tabs" role="tablist">
+          <button class="tab is-active" id="tab-login" data-auth-tab="login">Sign in</button>
+          <button class="tab" id="tab-register" data-auth-tab="register">Create account</button>
+        </div>
+        <form id="auth-form" class="modal__form">
+          <input id="auth-email" class="field-input" type="email" required autocomplete="email" placeholder="you@email.com" aria-label="Email" />
+          <input id="auth-username" class="field-input" type="text" hidden autocomplete="username" placeholder="Username" aria-label="Username" maxlength="20" />
+          <input id="auth-password" class="field-input" type="password" required autocomplete="current-password" placeholder="Password" aria-label="Password" />
+          <button type="submit" class="button button--primary" id="auth-submit">Sign in</button>
+          <p id="auth-error" class="modal__error" role="alert" hidden></p>
+        </form>
+      </div>
+    </div>
+
+    <!-- ============ Username prompt (backfill for older accounts) ============ -->
+    <div id="username-modal" class="modal" aria-hidden="true">
+      <div class="modal__backdrop"></div>
+      <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="username-title">
+        <h2 id="username-title" class="modal__title">Choose a username</h2>
+        <p class="modal__sub">This is the name shown on your reviews. 3–20 letters, numbers, _ or -.</p>
+        <form id="username-form" class="modal__form">
+          <input id="username-input" class="field-input" type="text" maxlength="20" required placeholder="e.g. gravelgrinder" aria-label="Username" />
+          <button type="submit" class="button button--primary" id="username-submit">Save username</button>
+          <p id="username-error" class="modal__error" role="alert" hidden></p>
+        </form>
+      </div>
+    </div>
+
+
+    <!-- Accounts module: provides window.brmAuth + wires the auth/username
+         modals. Loaded before the submit module below so brmAuth is ready. -->
+    <script type="module" src="src/diary.js"></script>
+    <script type="module">
+      const API = (window.BRM_CONFIG.communityApi || "").replace(/\/$/, "");
+      const form = document.getElementById("route-form");
+      const btn = document.getElementById("submit-btn");
+      const msg = document.getElementById("form-msg");
+
+      function show(text, ok) {
+        msg.hidden = false;
+        msg.textContent = text;
+        msg.className = "form-msg " + (ok ? "is-ok" : "is-err");
+      }
+
+      if (!API) {
+        btn.disabled = true;
+        show("Submissions aren't live yet — check back soon.", false);
+      }
+
+      let pendingSubmit = false;
+
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        if (!API) return;
+        if (!form.reportValidity()) return; // native required-field checks first
+        const auth = window.brmAuth;
+        // Gate: you must have an account, so your submission is tracked under
+        // "My Submissions". Fill the form, then sign in / create an account.
+        if (!auth || !auth.isSignedIn()) {
+          if (!auth) return show("Accounts aren't available right now — try again shortly.", false);
+          pendingSubmit = true;
+          show("Almost there — sign in or create a free account to finish submitting.", true);
+          auth.openAuth();
+          return;
+        }
+        doSubmit();
+      });
+
+      // Finish a pending submit once the account is created / signed in.
+      if (window.brmAuth && window.brmAuth.onChange) {
+        window.brmAuth.onChange(() => {
+          if (pendingSubmit && window.brmAuth.isSignedIn()) {
+            pendingSubmit = false;
+            doSubmit();
+          }
+        });
+      }
+
+      async function doSubmit() {
+        btn.disabled = true;
+        btn.textContent = "Submitting…";
+        msg.hidden = true;
+        try {
+          const fd = new FormData(form);
+          const user = window.brmAuth && window.brmAuth.user();
+          if (user && user.email) fd.set("email", user.email); // link to the account
+          const res = await fetch(API + "/submit", { method: "POST", body: fd });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.error || "Submission failed.");
+          form.reset();
+          show(
+            `Thanks! Got it — ${data.distance_km} km, ${data.elevation_gain_m} m climb. ` +
+              `We'll review it — track its status under “My Submissions”.`,
+            true
+          );
+        } catch (err) {
+          show(err.message || "Something went wrong — try again.", false);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Submit route";
+        }
+      }
+    </script>
+  </body>
+</html>

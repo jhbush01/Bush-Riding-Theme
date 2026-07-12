@@ -1,0 +1,32 @@
+# Bush Riding Map — cache policy.
+#
+# The app is a hand-written static site with NO build step, so asset filenames
+# aren't fingerprinted (no app.<hash>.css). To make every deploy show up
+# immediately — no hard-refresh, no "clear cached data" — we tell browsers to
+# revalidate a stored copy before using it.
+#
+# `no-cache` does NOT mean "don't store". The browser keeps the file and sends
+# a cheap conditional request; if nothing changed it gets a tiny 304 and reuses
+# its copy, and if the file changed it downloads the fresh one. Cloudflare adds
+# ETags automatically, so this is both correct and inexpensive.
+
+# HTML entry points — clean URLs (/, /map, /submit) and their .html forms.
+# These carry the page markup, so they MUST revalidate or a structural change
+# (new DOM) keeps serving stale until the user clears their cache.
+/
+  Cache-Control: no-cache
+/map
+  Cache-Control: no-cache
+/submit
+  Cache-Control: no-cache
+/*.html
+  Cache-Control: no-cache
+
+# App code, styles and route data — revalidate so new deploys and newly
+# approved routes propagate without anyone clearing their cache.
+/src/*
+  Cache-Control: no-cache
+/styles/*
+  Cache-Control: no-cache
+/data/*
+  Cache-Control: no-cache

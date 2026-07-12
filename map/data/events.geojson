@@ -1,0 +1,30 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [152.8231, -27.1969]
+      },
+      "properties": {
+        "id": "cbr-range-road-ridge-ride",
+        "name": "Community Bush Ride",
+        "subtitle": "Range Road Ridge Ride",
+        "date_iso": "2026-08-15",
+        "date_display": "Saturday 15 August",
+        "time": "6:30am",
+        "meeting_point": "Meeting point — set in admin",
+        "pace": "Social pace. No one gets dropped.",
+        "strava_url": "https://strava.app.link/O6iybPbyp4b",
+        "interested_count": 0,
+        "route_id": "range-road-ridge-ride",
+        "route_name": "Range Road Ridge Ride",
+        "description": "Placeholder — edit the details in the admin panel.",
+        "kit_note": "Bring a light layer for the ridge.",
+        "hero_image": "",
+        "status": "upcoming"
+      }
+    }
+  ]
+}

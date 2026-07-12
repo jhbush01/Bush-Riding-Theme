@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Range Road Ridge Ride — 53km Gravel Ride near Brisbane Metro | Bush Riding Map</title>
+<meta name="description" content="Range Road Ridge Ride is a 53km gravel route near Brisbane Metro, Queensland with 1,010m of climbing (Big day out, Groomed). Download the GPX and ride it." />
+<link rel="canonical" href="https://bushridingmap.com/routes/qld/brisbane-metro/range-road-ridge-ride-ojrk3" />
+<meta name="theme-color" content="#E9E2D0" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<meta property="og:site_name" content="Bush Riding" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Range Road Ridge Ride — 53km Gravel Ride near Brisbane Metro | Bush Riding Map" />
+<meta property="og:description" content="Range Road Ridge Ride is a 53km gravel route near Brisbane Metro, Queensland with 1,010m of climbing (Big day out, Groomed). Download the GPX and ride it." />
+<meta property="og:url" content="https://bushridingmap.com/routes/qld/brisbane-metro/range-road-ridge-ride-ojrk3" />
+<meta property="og:image" content="https://api.bushridingmap.com/file/photos/range-road-ridge-ride-ojrk3.jpg" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/styles/app.css" />
+<style>
+/* app.css locks the map app to a non-scrolling viewport (html,body{height:100%;
+   overflow:clip}). These are ordinary content pages — undo that so they scroll. */
+html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
+.seo-page{background:var(--cream);color:var(--ink);font-family:var(--ui-font);margin:0;min-height:100vh;display:flex;flex-direction:column}
+.site-head{display:flex;flex-direction:column;align-items:center;gap:12px;padding:16px 22px;border-bottom:1px solid rgba(0,0,0,.08);background:var(--cream-panel);text-align:center}
+.site-brand{font-family:var(--head-font);font-size:26px;color:var(--ink);text-decoration:none}
+.site-nav{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.site-nav a{font-family:var(--ui-font);font-size:13px;font-weight:600;padding:7px 15px;border-radius:999px;border:1px solid rgba(0,0,0,.12);background:var(--cream);color:var(--ink);text-decoration:none;line-height:1}
+.site-nav a:hover{border-color:var(--olive);color:var(--olive)}
+.wrap{width:100%;max-width:760px;margin:0 auto;padding:22px;flex:1}
+.crumbs{font-size:12.5px;color:var(--ink-soft);margin:0 0 14px;display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.crumbs a{color:var(--ink-soft);text-decoration:none}
+.crumbs a:hover{color:var(--olive);text-decoration:underline}
+.crumbs__sep{opacity:.5}
+.rp-title{font-family:var(--head-font);font-weight:400;font-size:38px;line-height:1.05;margin:6px 0 4px;color:var(--ink)}
+.rp-loc{margin:0 0 4px;color:var(--ink-soft);font-size:15px}
+.rp-hero{margin:0 0 18px;border-radius:14px;overflow:hidden;background:var(--sage)}
+.rp-hero__img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover}
+.rp-hero__img--empty{aspect-ratio:16/9;background:linear-gradient(135deg,var(--sage),var(--olive))}
+.rp-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(0,0,0,.08);border:1px solid rgba(0,0,0,.08);border-radius:12px;overflow:hidden;margin:16px 0}
+.rp-stat{background:var(--cream-panel);padding:12px 10px;text-align:center;min-width:0}
+.rp-stat__v{display:block;font-family:var(--head-font);font-size:20px;color:var(--ink)}
+.rp-stat__l{display:block;margin-top:3px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
+.rp-actions{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}
+.rp-actions .button{text-decoration:none}
+.rp-start{font-size:14.5px;color:var(--ink-soft);margin:10px 0}
+.wrap h2{font-family:var(--head-font);font-weight:400;font-size:26px;margin:26px 0 8px}
+.rp-desc{font-size:16px;line-height:1.6;color:var(--ink)}
+.rp-map{position:relative;margin:18px 0;border:1px solid rgba(0,0,0,.1);border-radius:12px;overflow:hidden;background:#ece4d2}
+.rp-map__live{width:100%;height:380px}
+.rp-map__shape{position:absolute;top:0;left:0;right:0;height:380px;background:#ece4d2;display:flex}
+.rp-map.is-live .rp-map__shape{display:none}
+.rp-map__svg{display:block;width:100%;height:100%}
+.rp-map__cap{position:relative;padding:9px 13px;font-size:12px;color:var(--ink-soft);border-top:1px solid rgba(0,0,0,.07);background:var(--cream-panel)}
+@media(max-width:560px){.rp-map__live,.rp-map__shape{height:300px}}
+.rp-elev{margin:14px 0;padding:12px 14px;background:var(--cream-panel);border:1px solid rgba(0,0,0,.08);border-radius:12px}
+.rp-elev__head{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.rp-mini{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
+.rp-elev__note{font-size:12.5px;color:var(--ink-soft);white-space:nowrap}
+.rp-elev__svg{display:block;width:100%;height:132px;margin-top:6px}
+.rp-meta{font-size:13px;color:var(--ink-soft)}
+.rp-meta a{color:var(--olive)}
+.rp-faq__item{border-top:1px solid rgba(0,0,0,.1);padding:10px 0}
+.rp-faq__item summary{cursor:pointer;font-weight:600;font-size:15.5px}
+.rp-faq__item p{margin:8px 0 2px;color:var(--ink-soft);line-height:1.55;font-size:14.5px}
+.rp-back{margin:24px 0 0}
+.rp-back a{color:var(--olive);font-weight:600;text-decoration:none}
+.rp-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin:6px 0 4px}
+.rp-gallery__item{display:block;border-radius:10px;overflow:hidden;background:var(--sage)}
+.rp-gallery__item img{display:block;width:100%;height:150px;object-fit:cover}
+.rp-rating{margin:4px 0 12px;font-size:15px;color:var(--ink-soft)}
+.rp-rating__stars{color:#d98a3d;letter-spacing:1px}
+.rp-reviews{display:flex;flex-direction:column;gap:14px}
+.rp-review{border-top:1px solid rgba(0,0,0,.1);padding-top:12px}
+.rp-review__head{margin:0}
+.rp-review__stars{color:#d98a3d;letter-spacing:.5px;font-size:13px}
+.rp-review__text{margin:6px 0 0;color:var(--ink-soft);line-height:1.5;font-size:14.5px}
+.rp-intro{font-size:16px;line-height:1.6;color:var(--ink-soft);max-width:60ch;margin:0 0 22px}
+.rp-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.rp-card{display:flex;flex-direction:column;background:var(--cream-panel);border:1px solid rgba(0,0,0,.08);border-radius:12px;overflow:hidden;text-decoration:none;color:inherit}
+.rp-card:hover{border-color:var(--olive)}
+.rp-card__hero{display:block;width:100%;height:130px;object-fit:cover;background:var(--sage)}
+.rp-card__hero--empty{height:130px;background:linear-gradient(135deg,var(--sage),var(--olive))}
+.rp-card__body{padding:12px 13px}
+.rp-card__name{font-family:var(--head-font);font-weight:400;font-size:19px;margin:0 0 3px;color:var(--ink)}
+.rp-card__loc{margin:0 0 6px;font-size:12.5px;color:var(--ink-soft)}
+.rp-card__stats{margin:0;font-size:12.5px;color:var(--olive);font-weight:600}
+.rp-empty{color:var(--ink-soft)}
+.rp-noresult{color:var(--ink-soft);margin:8px 0}
+/* Pill filter (all-routes index) */
+.rp-filter{margin:0 0 20px;display:flex;flex-direction:column;gap:10px}
+.rp-pills{display:flex;flex-wrap:wrap;gap:8px}
+.rp-pills--region{padding-top:2px}
+.rp-pill{font-family:var(--ui-font);font-size:13px;font-weight:600;padding:7px 14px;border-radius:999px;border:1px solid rgba(0,0,0,.14);background:var(--cream-panel);color:var(--ink);cursor:pointer;line-height:1}
+.rp-pill:hover{border-color:var(--olive)}
+.rp-pill.is-active{background:var(--olive);border-color:var(--olive);color:#fff}
+.rp-pills--region .rp-pill{font-weight:500;font-size:12.5px;padding:6px 12px;color:var(--ink-soft)}
+.rp-pills--region .rp-pill.is-active{color:#fff}
+/* Events directory */
+.ev-list{display:flex;flex-direction:column;gap:14px;margin-bottom:8px}
+.ev-card{background:var(--cream-panel);border:1px solid rgba(0,0,0,.08);border-radius:12px;padding:16px 18px}
+.ev-card.is-past{opacity:.7}
+.ev-card__when{margin:0 0 4px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--card-rust,#b04a24)}
+.ev-card__name{font-family:var(--head-font);font-weight:400;font-size:23px;margin:0 0 6px;color:var(--ink)}
+.ev-card__desc{margin:0 0 10px;font-size:14.5px;line-height:1.5;color:var(--ink-soft)}
+.ev-card__meta{display:flex;flex-direction:column;gap:4px;font-size:13.5px;color:var(--ink-soft)}
+.ev-card__row strong{color:var(--ink);font-weight:600}
+.ev-card__meta a{color:var(--olive);text-decoration:none}
+.ev-card__actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.ev-card__actions .button{text-decoration:none}
+.site-foot{margin-top:30px;padding:22px;border-top:1px solid rgba(0,0,0,.08);background:var(--cream-panel);font-size:12.5px;color:var(--ink-soft);text-align:center}
+.site-foot a{color:var(--olive);text-decoration:none}
+@media(max-width:560px){.rp-title{font-size:30px}.rp-stats{grid-template-columns:repeat(2,1fr)}}
+</style>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css" />
+<script type="application/ld+json">
+[
+  {
+    "@context": "https://schema.org",
+    "@type": "SportsActivityLocation",
+    "name": "Range Road Ridge Ride",
+    "description": "The route starts and finishes in Dayboro, where there is parking opposite the bakery, along with water, toilets and a parking area. There’s also a small supermarket and a myriad of cafes to enjoy post ride. Make sure you take enough water – there are no options to refill on the route.",
+    "url": "https://bushridingmap.com/routes/qld/brisbane-metro/range-road-ridge-ride-ojrk3",
+    "sport": "Gravel Cycling",
+    "address": {
+      "@type": "PostalAddress",
+      "addressRegion": "Queensland",
+      "addressCountry": "AU"
+    },
+    "amenityFeature": [
+      {
+        "@type": "LocationFeatureSpecification",
+        "name": "Distance",
+        "value": "53 km"
+      },
+      {
+        "@type": "LocationFeatureSpecification",
+        "name": "Elevation gain",
+        "value": "1,010 m"
+      },
+      {
+        "@type": "LocationFeatureSpecification",
+        "name": "Effort",
+        "value": "Big day out"
+      },
+      {
+        "@type": "LocationFeatureSpecification",
+        "name": "Terrain",
+        "value": "Groomed"
+      }
+    ],
+    "image": "https://api.bushridingmap.com/file/photos/range-road-ridge-ride-ojrk3.jpg",
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": -27.19581,
+      "longitude": 152.82593
+    }
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Bush Riding Map",
+        "item": "https://bushridingmap.com/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Routes",
+        "item": "https://bushridingmap.com/routes/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": "Queensland",
+        "item": "https://bushridingmap.com/routes/qld/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 4,
+        "name": "Brisbane Metro",
+        "item": "https://bushridingmap.com/routes/qld/brisbane-metro/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 5,
+        "name": "Range Road Ridge Ride",
+        "item": "https://bushridingmap.com/routes/qld/brisbane-metro/range-road-ridge-ride-ojrk3"
+      }
+    ]
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "How long is Range Road Ridge Ride?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Range Road Ridge Ride is a 53 km gravel ride with about 1,010 m of climbing, which rates as big day out."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Where do you start Range Road Ridge Ride?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Range Road Ridge Ride starts in the Brisbane Metro area, Queensland. Open the interactive map for the exact start point and turn-by-turn track."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How difficult is Range Road Ridge Ride?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Range Road Ridge Ride is Big day out — a solid outing with real distance or climbing — pack for a full day."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What surface is Range Road Ridge Ride?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The terrain is Groomed — mostly smooth, well-formed gravel that rolls fast. Surface breakdown: 59% Gravel 41% Paved."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I download a GPX file for Range Road Ridge Ride?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes — download the GPX for Range Road Ridge Ride to load onto your GPS computer or phone before you ride."
+        }
+      }
+    ]
+  }
+]
+</script>
+</head>
+<body class="seo-page">
+<header class="site-head">
+  <a class="site-brand" href="/">Bush Riding Map</a>
+  <nav class="site-nav">
+    <a href="/routes/">Community Routes</a>
+    <a href="/events/">Bush Events</a>
+    <a href="/">Map</a>
+    <a href="/submit">Submit a route</a>
+  </nav>
+</header>
+<main class="wrap">
+<nav class="crumbs" aria-label="Breadcrumb"><a href="/">Bush Riding Map</a><span class="crumbs__sep">›</span><a href="/routes/">Routes</a><span class="crumbs__sep">›</span><a href="/routes/qld/">Queensland</a><span class="crumbs__sep">›</span><a href="/routes/qld/brisbane-metro/">Brisbane Metro</a><span class="crumbs__sep">›</span><span aria-current="page">Range Road Ridge Ride</span></nav>
+
+<article class="route">
+  <figure class="rp-hero"><img class="rp-hero__img" src="https://api.bushridingmap.com/file/photos/range-road-ridge-ride-ojrk3.jpg" alt="Range Road Ridge Ride — gravel route near Brisbane Metro" width="1200" height="675" loading="eager" /></figure>
+
+  <h1 class="rp-title">Range Road Ridge Ride</h1>
+  <p class="rp-loc">Brisbane Metro, Queensland</p>
+
+  <div class="rp-stats">
+    <div class="rp-stat"><span class="rp-stat__v">53 km</span><span class="rp-stat__l">Distance</span></div>
+    <div class="rp-stat"><span class="rp-stat__v">1,010 m</span><span class="rp-stat__l">Elevation</span></div>
+    <div class="rp-stat"><span class="rp-stat__v">Big day out</span><span class="rp-stat__l">Effort</span></div>
+    <div class="rp-stat"><span class="rp-stat__v">Groomed</span><span class="rp-stat__l">Terrain</span></div>
+  </div>
+
+  <div class="rp-elev">
+    <div class="rp-elev__head"><span class="rp-mini">Elevation profile</span><span class="rp-elev__note">↑ 1,010 m over 53 km</span></div>
+    <svg class="rp-elev__svg" viewBox="0 0 680 130" preserveAspectRatio="none" role="img" aria-label="Elevation profile">
+    <defs><linearGradient id="rpElev" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c9673f" stop-opacity=".34"/><stop offset="1" stop-color="#c9673f" stop-opacity=".04"/></linearGradient></defs>
+    <path d="M0,120 L0.0,119.5 L0.6,119.6 L2.5,120.0 L4.8,119.1 L7.1,118.9 L11.6,118.0 L14.8,115.7 L16.8,114.3 L18.8,114.3 L21.4,113.5 L24.9,112.9 L28.0,110.9 L30.4,108.5 L33.4,107.7 L34.1,107.5 L38.4,108.0 L41.2,113.7 L43.8,116.1 L45.9,117.2 L48.3,116.9 L50.4,116.3 L55.6,114.4 L58.7,114.5 L62.7,114.9 L67.0,113.5 L71.8,115.0 L75.1,115.0 L78.3,115.8 L82.6,113.7 L88.0,112.8 L92.1,112.2 L96.0,112.1 L97.9,110.5 L101.0,110.7 L103.9,113.2 L106.4,112.4 L109.5,112.9 L111.8,112.3 L115.5,113.1 L119.2,112.1 L123.4,111.6 L126.9,111.4 L129.3,112.5 L132.5,111.7 L137.4,111.5 L143.0,110.7 L147.1,109.3 L149.1,109.6 L153.0,108.2 L156.3,108.6 L159.1,107.8 L161.0,106.9 L163.1,106.7 L165.4,105.5 L168.1,106.8 L168.9,106.3 L170.9,105.9 L174.5,106.1 L176.7,107.6 L178.7,107.1 L180.9,106.5 L184.7,106.1 L188.4,104.4 L190.3,105.1 L194.1,105.2 L197.1,104.5 L199.1,103.9 L202.4,104.4 L204.9,103.6 L208.7,102.7 L210.9,101.5 L213.2,101.2 L216.6,99.6 L219.9,96.6 L223.1,91.5 L226.2,85.1 L228.8,81.7 L233.0,72.5 L238.2,60.3 L241.3,52.6 L243.8,47.4 L246.1,47.9 L248.4,49.0 L250.3,51.3 L252.0,52.6 L255.4,46.6 L258.7,43.7 L261.5,48.0 L263.8,49.0 L267.8,49.3 L270.4,49.8 L273.5,48.1 L276.7,42.4 L280.3,37.0 L282.1,37.5 L284.4,42.1 L287.9,36.1 L289.8,32.5 L291.5,29.0 L294.0,29.5 L297.6,32.9 L301.1,27.5 L304.6,23.5 L307.6,22.7 L310.8,24.4 L315.2,22.1 L318.5,17.5 L321.9,12.8 L324.9,10.6 L327.9,8.0 L329.8,10.0 L331.5,13.2 L335.1,15.6 L337.4,18.5 L339.4,20.7 L341.8,28.9 L344.4,36.1 L347.2,35.7 L350.0,36.5 L352.7,38.6 L355.4,34.0 L358.8,33.1 L363.1,35.1 L366.8,38.6 L369.9,41.1 L374.8,46.1 L377.5,48.4 L380.7,54.8 L385.3,53.9 L387.0,51.8 L389.4,49.3 L391.5,48.2 L394.0,46.4 L396.8,46.8 L399.5,44.8 L402.6,43.9 L405.5,42.8 L407.5,42.9 L408.5,43.5 L410.9,42.5 L414.9,43.7 L416.4,45.4 L419.5,46.5 L422.6,51.0 L427.0,58.2 L431.0,67.9 L436.2,61.1 L440.8,53.7 L444.6,55.7 L449.4,49.2 L454.6,52.1 L459.2,56.9 L462.2,56.7 L467.8,58.2 L472.0,58.0 L477.0,63.9 L481.6,68.2 L486.0,76.1 L488.2,74.9 L489.8,72.7 L492.7,77.8 L494.5,79.7 L496.4,82.9 L498.2,85.4 L499.1,87.0 L500.6,89.7 L501.8,91.0 L503.6,94.1 L506.1,96.4 L507.3,98.4 L508.7,100.5 L510.7,102.1 L515.0,103.1 L518.6,103.2 L520.9,104.9 L523.8,105.9 L527.0,107.0 L531.2,107.3 L535.2,108.3 L538.2,108.6 L541.2,106.5 L544.3,108.1 L545.9,108.5 L550.1,108.8 L554.3,110.4 L558.4,111.5 L562.7,111.7 L566.3,111.9 L571.3,111.4 L574.4,112.9 L578.2,113.5 L580.9,112.7 L584.3,114.0 L586.9,113.5 L589.5,112.6 L593.4,111.7 L597.5,110.0 L600.9,108.2 L606.0,107.5 L610.2,106.6 L613.0,106.1 L617.2,104.1 L621.8,106.5 L626.7,108.0 L632.5,108.9 L636.9,108.2 L640.9,107.7 L645.1,106.6 L647.6,107.5 L649.9,108.8 L652.8,111.6 L655.5,112.8 L659.0,113.8 L662.0,114.2 L663.3,114.4 L666.8,116.5 L670.9,117.7 L675.0,119.1 L677.5,120.0 L679.4,119.6 L680.0,119.5 L680,120 Z" fill="url(#rpElev)"/>
+    <path d="M0.0,119.5 L0.6,119.6 L2.5,120.0 L4.8,119.1 L7.1,118.9 L11.6,118.0 L14.8,115.7 L16.8,114.3 L18.8,114.3 L21.4,113.5 L24.9,112.9 L28.0,110.9 L30.4,108.5 L33.4,107.7 L34.1,107.5 L38.4,108.0 L41.2,113.7 L43.8,116.1 L45.9,117.2 L48.3,116.9 L50.4,116.3 L55.6,114.4 L58.7,114.5 L62.7,114.9 L67.0,113.5 L71.8,115.0 L75.1,115.0 L78.3,115.8 L82.6,113.7 L88.0,112.8 L92.1,112.2 L96.0,112.1 L97.9,110.5 L101.0,110.7 L103.9,113.2 L106.4,112.4 L109.5,112.9 L111.8,112.3 L115.5,113.1 L119.2,112.1 L123.4,111.6 L126.9,111.4 L129.3,112.5 L132.5,111.7 L137.4,111.5 L143.0,110.7 L147.1,109.3 L149.1,109.6 L153.0,108.2 L156.3,108.6 L159.1,107.8 L161.0,106.9 L163.1,106.7 L165.4,105.5 L168.1,106.8 L168.9,106.3 L170.9,105.9 L174.5,106.1 L176.7,107.6 L178.7,107.1 L180.9,106.5 L184.7,106.1 L188.4,104.4 L190.3,105.1 L194.1,105.2 L197.1,104.5 L199.1,103.9 L202.4,104.4 L204.9,103.6 L208.7,102.7 L210.9,101.5 L213.2,101.2 L216.6,99.6 L219.9,96.6 L223.1,91.5 L226.2,85.1 L228.8,81.7 L233.0,72.5 L238.2,60.3 L241.3,52.6 L243.8,47.4 L246.1,47.9 L248.4,49.0 L250.3,51.3 L252.0,52.6 L255.4,46.6 L258.7,43.7 L261.5,48.0 L263.8,49.0 L267.8,49.3 L270.4,49.8 L273.5,48.1 L276.7,42.4 L280.3,37.0 L282.1,37.5 L284.4,42.1 L287.9,36.1 L289.8,32.5 L291.5,29.0 L294.0,29.5 L297.6,32.9 L301.1,27.5 L304.6,23.5 L307.6,22.7 L310.8,24.4 L315.2,22.1 L318.5,17.5 L321.9,12.8 L324.9,10.6 L327.9,8.0 L329.8,10.0 L331.5,13.2 L335.1,15.6 L337.4,18.5 L339.4,20.7 L341.8,28.9 L344.4,36.1 L347.2,35.7 L350.0,36.5 L352.7,38.6 L355.4,34.0 L358.8,33.1 L363.1,35.1 L366.8,38.6 L369.9,41.1 L374.8,46.1 L377.5,48.4 L380.7,54.8 L385.3,53.9 L387.0,51.8 L389.4,49.3 L391.5,48.2 L394.0,46.4 L396.8,46.8 L399.5,44.8 L402.6,43.9 L405.5,42.8 L407.5,42.9 L408.5,43.5 L410.9,42.5 L414.9,43.7 L416.4,45.4 L419.5,46.5 L422.6,51.0 L427.0,58.2 L431.0,67.9 L436.2,61.1 L440.8,53.7 L444.6,55.7 L449.4,49.2 L454.6,52.1 L459.2,56.9 L462.2,56.7 L467.8,58.2 L472.0,58.0 L477.0,63.9 L481.6,68.2 L486.0,76.1 L488.2,74.9 L489.8,72.7 L492.7,77.8 L494.5,79.7 L496.4,82.9 L498.2,85.4 L499.1,87.0 L500.6,89.7 L501.8,91.0 L503.6,94.1 L506.1,96.4 L507.3,98.4 L508.7,100.5 L510.7,102.1 L515.0,103.1 L518.6,103.2 L520.9,104.9 L523.8,105.9 L527.0,107.0 L531.2,107.3 L535.2,108.3 L538.2,108.6 L541.2,106.5 L544.3,108.1 L545.9,108.5 L550.1,108.8 L554.3,110.4 L558.4,111.5 L562.7,111.7 L566.3,111.9 L571.3,111.4 L574.4,112.9 L578.2,113.5 L580.9,112.7 L584.3,114.0 L586.9,113.5 L589.5,112.6 L593.4,111.7 L597.5,110.0 L600.9,108.2 L606.0,107.5 L610.2,106.6 L613.0,106.1 L617.2,104.1 L621.8,106.5 L626.7,108.0 L632.5,108.9 L636.9,108.2 L640.9,107.7 L645.1,106.6 L647.6,107.5 L649.9,108.8 L652.8,111.6 L655.5,112.8 L659.0,113.8 L662.0,114.2 L663.3,114.4 L666.8,116.5 L670.9,117.7 L675.0,119.1 L677.5,120.0 L679.4,119.6 L680.0,119.5" fill="none" stroke="#bd5730" stroke-width="2" stroke-linejoin="round"/>
+  </svg>
+  </div>
+
+  <div class="rp-actions">
+    <a class="button button--primary" href="https://api.bushridingmap.com/file/gpx/range-road-ridge-ride-ojrk3.gpx" download>Download GPX</a>
+    <a class="button" id="rp-nav" href="https://www.google.com/maps/dir/?api=1&amp;destination=-27.19581,152.82593" data-apple="https://maps.apple.com/?daddr=-27.19581,152.82593&amp;dirflg=d" target="_blank" rel="noopener">Navigate to start</a>
+    <a class="button" href="/map#range-road-ridge-ride-ojrk3">Open in interactive map</a>
+  </div>
+
+  <p class="rp-start"><strong>Start:</strong> Brisbane Metro.</p>
+
+  <h2>About this route</h2>
+  <p class="rp-desc">The route starts and finishes in Dayboro, where there is parking opposite the bakery, along with water, toilets and a parking area. There’s also a small supermarket and a myriad of cafes to enjoy post ride. Make sure you take enough water – there are no options to refill on the route.</p>
+
+  <figure class="rp-map" data-has-map>
+    <div class="rp-map__live" id="rp-livemap"></div>
+    <div class="rp-map__shape"><svg class="rp-map__svg" viewBox="0 0 640 380" role="img" aria-label="Map of the route">
+    <rect width="640" height="380" fill="#ece4d2"/>
+    <path d="M487.9,221.2 L487.3,221.3 L484.0,222.0 L483.5,222.3 L479.9,224.6 L478.6,222.6 L475.9,217.5 L471.0,212.4 L467.4,211.0 L464.0,209.8 L462.1,208.7 L458.6,208.2 L456.0,207.8 L451.9,205.2 L447.0,203.5 L444.2,201.8 L440.4,200.7 L437.3,200.9 L433.9,198.7 L433.7,199.1 L428.7,200.2 L424.4,201.7 L422.2,205.7 L421.9,207.9 L420.2,211.8 L417.0,212.9 L415.0,211.2 L413.4,208.6 L408.1,204.8 L401.9,201.7 L399.6,199.2 L397.2,193.5 L393.7,189.4 L388.0,185.7 L382.5,183.6 L378.1,180.2 L374.3,177.2 L371.3,176.8 L366.1,180.7 L359.7,185.1 L353.8,188.1 L348.3,188.9 L341.6,189.6 L340.4,191.3 L340.5,195.3 L338.4,198.8 L335.0,200.9 L330.5,200.4 L327.8,202.4 L324.1,203.8 L321.2,205.2 L319.6,209.2 L315.9,213.6 L312.3,217.4 L308.7,219.3 L302.8,222.4 L299.5,226.1 L298.5,228.2 L299.1,232.9 L299.3,237.6 L296.4,243.9 L290.2,249.8 L286.5,253.6 L282.4,259.0 L281.6,260.7 L282.6,264.6 L281.3,270.0 L277.7,273.1 L278.1,275.9 L279.5,279.4 L277.6,280.4 L275.8,279.0 L272.9,281.0 L269.4,280.6 L266.8,280.2 L266.1,281.3 L265.7,284.2 L263.9,284.5 L258.8,288.0 L257.4,291.2 L254.6,292.6 L255.7,295.7 L255.6,297.4 L251.5,301.5 L245.6,303.4 L241.4,303.5 L238.8,305.1 L235.8,308.0 L233.0,311.7 L231.6,315.7 L229.9,317.2 L225.6,321.1 L224.0,323.2 L220.3,323.9 L214.2,325.0 L210.9,326.6 L210.6,328.5 L209.2,331.3 L205.9,335.4 L207.0,338.3 L203.4,342.3 L202.6,346.0 L198.6,345.4 L193.3,345.1 L191.1,345.2 L184.8,348.0 L177.4,350.6 L176.7,353.8 L172.1,351.4 L168.5,350.0 L165.7,349.5 L163.0,350.5 L159.6,351.1 L158.5,352.9 L156.2,354.0 L155.2,353.4 L158.3,348.8 L158.0,343.2 L156.6,339.7 L155.1,337.1 L154.6,334.1 L152.1,330.4 L154.7,325.9 L152.7,322.8 L153.8,321.6 L156.8,323.7 L162.3,322.5 L166.3,322.4 L169.3,321.9 L171.3,321.2 L175.4,318.2 L179.0,313.9 L180.6,313.2 L181.6,312.0 L181.9,308.4 L183.1,306.1 L180.9,302.2 L178.5,295.4 L179.0,291.4 L179.2,286.8 L179.6,282.2 L178.9,280.6 L182.5,275.4 L184.9,270.6 L185.8,264.6 L186.7,261.3 L188.0,256.8 L186.6,253.6 L186.0,246.9 L185.0,245.9 L182.0,245.7 L181.1,243.8 L181.4,240.2 L185.0,236.7 L182.0,235.1 L184.0,233.9 L186.0,231.9 L187.8,228.4 L189.3,225.7 L191.3,222.9 L194.2,220.8 L196.2,216.9 L198.4,213.1 L200.2,210.9 L204.3,211.7 L206.4,207.0 L207.8,203.0 L211.4,198.2 L213.3,194.8 L216.3,196.0 L220.1,190.8 L222.4,183.9 L223.1,182.7 L228.2,181.5 L233.5,178.7 L235.3,174.6 L234.9,173.1 L237.8,171.2 L240.4,169.4 L241.9,167.6 L245.7,168.3 L248.4,166.0 L249.8,162.1 L248.6,159.0 L251.6,154.8 L255.1,154.8 L256.9,154.7 L258.6,152.2 L259.2,151.2 L257.0,148.4 L255.5,145.0 L252.7,140.8 L251.8,139.1 L250.2,136.2 L247.9,132.8 L244.0,133.2 L247.8,129.6 L250.0,126.0 L255.3,121.9 L259.2,115.3 L262.6,112.7 L267.1,108.4 L268.5,104.0 L269.5,97.5 L272.1,90.1 L270.0,85.6 L269.8,80.3 L268.9,76.7 L263.7,73.4 L262.0,65.8 L260.2,59.5 L260.0,53.1 L258.4,47.2 L254.3,41.9 L253.3,37.1 L253.8,32.3 L253.5,31.4 L252.5,29.1 L257.4,28.8 L258.7,28.0 L261.6,27.1 L264.1,28.5 L266.1,28.5 L268.3,29.1 L269.6,29.9 L271.4,30.1 L272.8,29.0 L273.3,26.9 L276.5,26.0 L279.3,26.9 L280.5,28.1 L281.6,26.6 L282.9,26.0 L284.1,27.7 L287.3,32.9 L290.4,37.3 L292.1,40.9 L292.2,45.1 L292.0,47.7 L295.6,49.9 L299.4,52.6 L302.9,57.9 L304.8,62.8 L307.0,67.8 L308.0,70.2 L308.7,74.8 L312.0,79.7 L314.4,80.9 L316.5,81.5 L321.4,80.4 L326.5,81.7 L332.8,80.3 L338.8,79.9 L342.8,82.9 L346.9,88.2 L350.9,91.2 L351.5,96.3 L349.2,103.6 L350.9,107.2 L350.3,112.9 L353.2,117.1 L354.5,118.8 L357.7,122.7 L361.9,123.3 L363.7,125.0 L367.2,129.4 L372.6,130.9 L376.8,134.0 L382.7,135.5 L383.9,141.6 L386.9,146.0 L390.5,151.9 L391.2,152.7 L398.2,155.0 L404.1,155.0 L408.6,156.2 L413.5,162.0 L419.4,167.0 L422.8,172.7 L426.1,180.0 L428.3,185.8 L430.1,189.5 L432.8,195.7 L434.0,198.7 L436.8,200.7 L440.4,200.7 L443.7,201.5 L447.0,203.5 L451.9,205.2 L455.3,207.6 L460.3,208.3 L462.9,209.1 L464.0,209.8 L469.4,211.6 L474.2,215.6 L476.9,219.2 L479.6,224.3 L483.5,222.3 L484.0,222.0 L487.3,221.3 L487.9,221.2" fill="none" stroke="#b04a24" stroke-width="3.6" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="487.9" cy="221.2" r="6.5" fill="#6f7c53" stroke="#fff" stroke-width="2.5"/>
+  </svg></div>
+    <figcaption class="rp-map__cap">Range Road Ridge Ride — 53 km near Brisbane Metro, Queensland</figcaption>
+  </figure>
+
+  <p class="rp-meta">Vetted by <a href="https://bq.org.au/" rel="nofollow noopener">BQ</a>.</p>
+
+  
+
+  
+
+  <h2>Frequently asked questions</h2>
+  <div class="rp-faq">
+    <details class="rp-faq__item"><summary>How long is Range Road Ridge Ride?</summary><p>Range Road Ridge Ride is a 53 km gravel ride with about 1,010 m of climbing, which rates as big day out.</p></details>
+    <details class="rp-faq__item"><summary>Where do you start Range Road Ridge Ride?</summary><p>Range Road Ridge Ride starts in the Brisbane Metro area, Queensland. Open the interactive map for the exact start point and turn-by-turn track.</p></details>
+    <details class="rp-faq__item"><summary>How difficult is Range Road Ridge Ride?</summary><p>Range Road Ridge Ride is Big day out — a solid outing with real distance or climbing — pack for a full day.</p></details>
+    <details class="rp-faq__item"><summary>What surface is Range Road Ridge Ride?</summary><p>The terrain is Groomed — mostly smooth, well-formed gravel that rolls fast. Surface breakdown: 59% Gravel 41% Paved.</p></details>
+    <details class="rp-faq__item"><summary>Can I download a GPX file for Range Road Ridge Ride?</summary><p>Yes — download the GPX for Range Road Ridge Ride to load onto your GPS computer or phone before you ride.</p></details>
+  </div>
+
+  <p class="rp-back"><a href="/map#range-road-ridge-ride-ojrk3">See Range Road Ridge Ride on the full interactive map →</a></p>
+</article>
+<script>window.__brmRoute=[[152.82593,-27.19581],[152.82584,-27.19573],[152.82558,-27.19584],[152.82441,-27.19608],[152.82429,-27.1961],[152.82416,-27.19621],[152.82274,-27.19699],[152.82266,-27.197],[152.82255,-27.19692],[152.82183,-27.19569],[152.8211,-27.19446],[152.81973,-27.19321],[152.81891,-27.19252],[152.81846,-27.19233],[152.81679,-27.19193],[152.81625,-27.1917],[152.81615,-27.19165],[152.81535,-27.19127],[152.81474,-27.19116],[152.81336,-27.19103],[152.81303,-27.19098],[152.81248,-27.19077],[152.81079,-27.18967],[152.81029,-27.1895],[152.80896,-27.18928],[152.80825,-27.1888],[152.80781,-27.18859],[152.80646,-27.18842],[152.80542,-27.18846],[152.80495,-27.18827],[152.80406,-27.18767],[152.80409,-27.1877],[152.80396,-27.18781],[152.80193,-27.18822],[152.80075,-27.18852],[152.8002,-27.18876],[152.79974,-27.1892],[152.79931,-27.19019],[152.7992,-27.191],[152.79869,-27.19189],[152.7985,-27.19241],[152.79797,-27.1928],[152.79721,-27.19279],[152.79663,-27.19247],[152.79614,-27.19184],[152.79574,-27.19124],[152.79509,-27.19071],[152.79358,-27.18987],[152.79196,-27.18911],[152.79051,-27.18834],[152.79013,-27.18785],[152.78948,-27.18649],[152.78902,-27.18557],[152.78827,-27.18482],[152.78674,-27.18348],[152.78545,-27.18301],[152.78365,-27.18243],[152.78291,-27.18208],[152.78198,-27.18142],[152.78087,-27.18059],[152.77991,-27.17994],[152.77913,-27.17977],[152.77812,-27.17992],[152.77703,-27.18077],[152.77602,-27.18155],[152.77397,-27.18278],[152.77246,-27.18358],[152.77109,-27.18396],[152.76996,-27.1841],[152.76834,-27.18418],[152.76664,-27.1844],[152.76623,-27.18479],[152.7661,-27.18525],[152.76625,-27.18615],[152.7661,-27.18672],[152.76534,-27.18773],[152.76434,-27.1884],[152.76341,-27.18846],[152.76239,-27.18826],[152.76184,-27.18837],[152.76105,-27.18902],[152.76018,-27.18945],[152.75914,-27.18959],[152.75854,-27.18985],[152.75814,-27.19046],[152.75771,-27.19146],[152.75736,-27.19221],[152.75564,-27.19345],[152.75509,-27.19403],[152.75455,-27.19455],[152.75328,-27.19512],[152.75186,-27.19575],[152.75065,-27.19662],[152.74991,-27.19739],[152.74935,-27.19778],[152.74915,-27.19831],[152.74908,-27.1993],[152.74953,-27.20044],[152.74947,-27.20171],[152.74913,-27.20321],[152.7483,-27.204],[152.74702,-27.205],[152.7458,-27.20612],[152.74429,-27.20748],[152.7435,-27.20838],[152.74263,-27.20942],[152.74257,-27.20948],[152.7423,-27.21005],[152.7427,-27.21145],[152.74238,-27.21259],[152.74217,-27.2134],[152.74136,-27.21404],[152.74071,-27.21453],[152.74087,-27.21552],[152.741,-27.21644],[152.74144,-27.21679],[152.74139,-27.21723],[152.74068,-27.21715],[152.74018,-27.21673],[152.73943,-27.21695],[152.73876,-27.21738],[152.73806,-27.21741],[152.7367,-27.21704],[152.73639,-27.21703],[152.73615,-27.21718],[152.73603,-27.21746],[152.7359,-27.21844],[152.73577,-27.21862],[152.73534,-27.21861],[152.73448,-27.21899],[152.73305,-27.2199],[152.73264,-27.22087],[152.73245,-27.22113],[152.73146,-27.22147],[152.73132,-27.22166],[152.73179,-27.22268],[152.7318,-27.22313],[152.73119,-27.22396],[152.73062,-27.22447],[152.72956,-27.22506],[152.72772,-27.22544],[152.72671,-27.22558],[152.72561,-27.22548],[152.72531,-27.22563],[152.72453,-27.22651],[152.72372,-27.22711],[152.72272,-27.22813],[152.72249,-27.2289],[152.72217,-27.22971],[152.72202,-27.22986],[152.72133,-27.23041],[152.72019,-27.23142],[152.71947,-27.23197],[152.71912,-27.23255],[152.71843,-27.23265],[152.71745,-27.23283],[152.71548,-27.23311],[152.71436,-27.23347],[152.71383,-27.23367],[152.71357,-27.23392],[152.71352,-27.23449],[152.71321,-27.23538],[152.71213,-27.23564],[152.71185,-27.23671],[152.71154,-27.23728],[152.71205,-27.23802],[152.71121,-27.23881],[152.71049,-27.24005],[152.71028,-27.24081],[152.70985,-27.2409],[152.70866,-27.2406],[152.70744,-27.24048],[152.70651,-27.24047],[152.7056,-27.24053],[152.70435,-27.24089],[152.70307,-27.24152],[152.7017,-27.24208],[152.70007,-27.24246],[152.69979,-27.24362],[152.69886,-27.24322],[152.69792,-27.24275],[152.69703,-27.24278],[152.69646,-27.24224],[152.69532,-27.24208],[152.6948,-27.24234],[152.69421,-27.24241],[152.69358,-27.2425],[152.69286,-27.24263],[152.69263,-27.24284],[152.69185,-27.24367],[152.69146,-27.24369],[152.69084,-27.24378],[152.69133,-27.2432],[152.69212,-27.24222],[152.69245,-27.2409],[152.69218,-27.2398],[152.69185,-27.2392],[152.69155,-27.23837],[152.69108,-27.2379],[152.69117,-27.2369],[152.6908,-27.23652],[152.69044,-27.23556],[152.68979,-27.23491],[152.69095,-27.23374],[152.69056,-27.23345],[152.69005,-27.23244],[152.69001,-27.23187],[152.6908,-27.23223],[152.69144,-27.23285],[152.69214,-27.2325],[152.69392,-27.23233],[152.69472,-27.23237],[152.69643,-27.23223],[152.69648,-27.23221],[152.697,-27.23214],[152.6976,-27.23185],[152.69877,-27.23122],[152.69969,-27.23032],[152.70024,-27.22953],[152.70086,-27.22905],[152.70137,-27.22899],[152.7018,-27.22873],[152.7016,-27.2281],[152.70173,-27.22748],[152.70227,-27.22682],[152.70239,-27.22641],[152.7018,-27.22548],[152.70126,-27.22417],[152.70058,-27.22286],[152.70046,-27.22221],[152.70071,-27.22111],[152.70072,-27.22034],[152.70112,-27.21877],[152.70109,-27.21803],[152.70071,-27.21768],[152.70067,-27.21723],[152.70147,-27.21636],[152.70237,-27.21494],[152.70309,-27.21362],[152.70354,-27.21262],[152.70348,-27.21146],[152.70359,-27.21086],[152.70379,-27.20974],[152.70437,-27.20865],[152.70438,-27.20826],[152.70377,-27.20747],[152.70376,-27.20635],[152.70355,-27.20506],[152.70316,-27.20471],[152.70237,-27.2048],[152.70194,-27.20463],[152.70159,-27.20406],[152.70157,-27.20396],[152.70168,-27.20264],[152.70248,-27.20194],[152.70313,-27.2014],[152.70266,-27.2009],[152.70193,-27.2008],[152.70244,-27.20044],[152.70327,-27.20022],[152.70353,-27.19965],[152.70376,-27.19891],[152.70429,-27.19838],[152.70473,-27.19759],[152.70544,-27.19666],[152.70569,-27.1964],[152.70656,-27.19581],[152.70708,-27.19543],[152.70753,-27.19461],[152.70828,-27.19326],[152.70858,-27.19287],[152.7089,-27.19227],[152.70977,-27.19206],[152.71046,-27.1923],[152.71128,-27.19206],[152.7118,-27.19066],[152.71233,-27.18987],[152.71234,-27.1886],[152.71327,-27.18753],[152.71402,-27.18729],[152.71461,-27.18627],[152.71535,-27.18667],[152.71629,-27.18645],[152.71695,-27.18537],[152.71798,-27.18428],[152.71832,-27.18235],[152.71843,-27.18186],[152.7189,-27.18212],[152.71997,-27.18183],[152.72126,-27.18144],[152.7228,-27.18047],[152.72345,-27.17926],[152.72349,-27.17883],[152.7233,-27.17856],[152.72379,-27.17834],[152.72456,-27.17775],[152.72546,-27.17726],[152.72576,-27.17692],[152.72606,-27.17648],[152.72679,-27.17656],[152.72777,-27.17671],[152.72829,-27.17661],[152.72927,-27.17539],[152.72946,-27.17474],[152.72925,-27.17412],[152.72891,-27.17338],[152.72933,-27.17264],[152.73049,-27.17137],[152.73126,-27.17142],[152.73178,-27.17192],[152.73231,-27.17182],[152.73271,-27.17151],[152.73309,-27.17081],[152.73321,-27.17057],[152.73306,-27.17026],[152.73234,-27.16954],[152.73225,-27.16908],[152.73172,-27.1683],[152.73058,-27.16681],[152.7301,-27.16653],[152.73022,-27.16619],[152.72979,-27.16549],[152.72957,-27.16516],[152.72864,-27.16393],[152.72787,-27.16442],[152.72707,-27.16406],[152.72739,-27.16339],[152.72861,-27.16275],[152.72949,-27.16147],[152.73053,-27.16086],[152.73164,-27.15997],[152.73284,-27.15885],[152.73322,-27.1576],[152.73434,-27.15727],[152.73578,-27.15589],[152.73643,-27.15511],[152.73654,-27.15408],[152.73745,-27.15296],[152.73766,-27.15179],[152.73798,-27.15014],[152.73844,-27.14851],[152.73814,-27.14744],[152.73705,-27.14639],[152.73757,-27.14551],[152.7375,-27.14446],[152.73717,-27.1437],[152.73575,-27.1429],[152.73495,-27.14171],[152.73459,-27.14019],[152.73414,-27.13936],[152.73365,-27.13747],[152.73335,-27.13601],[152.73326,-27.13496],[152.73285,-27.13365],[152.73234,-27.13248],[152.73123,-27.13115],[152.73069,-27.13025],[152.73085,-27.12903],[152.73117,-27.12797],[152.731,-27.12764],[152.73092,-27.12735],[152.73046,-27.12661],[152.73103,-27.12668],[152.73184,-27.12664],[152.73265,-27.12635],[152.73304,-27.12612],[152.734,-27.12578],[152.73432,-27.12583],[152.73508,-27.12627],[152.73576,-27.12627],[152.73601,-27.1263],[152.73657,-27.12653],[152.73704,-27.12651],[152.73726,-27.1266],[152.73753,-27.12685],[152.73817,-27.12687],[152.73865,-27.12668],[152.73868,-27.12636],[152.73868,-27.12616],[152.73906,-27.12562],[152.74022,-27.1254],[152.74095,-27.12551],[152.74155,-27.12585],[152.74185,-27.12617],[152.74203,-27.1261],[152.74229,-27.12561],[152.74251,-27.12533],[152.74285,-27.12541],[152.74331,-27.12601],[152.74366,-27.12698],[152.74462,-27.12788],[152.74534,-27.12855],[152.74589,-27.12948],[152.74657,-27.13076],[152.74668,-27.13195],[152.74661,-27.13229],[152.74644,-27.1327],[152.74653,-27.13324],[152.74799,-27.13401],[152.74882,-27.13425],[152.74951,-27.13498],[152.75025,-27.13596],[152.75093,-27.1369],[152.75148,-27.13809],[152.75212,-27.13987],[152.75259,-27.14049],[152.75301,-27.14106],[152.75289,-27.14193],[152.75301,-27.14237],[152.75378,-27.14386],[152.75465,-27.14476],[152.7551,-27.14503],[152.75612,-27.14538],[152.75626,-27.14541],[152.75751,-27.14501],[152.75846,-27.14502],[152.75986,-27.14551],[152.76076,-27.1454],[152.7624,-27.14494],[152.76372,-27.14502],[152.76548,-27.14485],[152.76672,-27.14542],[152.76754,-27.14652],[152.76835,-27.14733],[152.76921,-27.14805],[152.77041,-27.14892],[152.77084,-27.15005],[152.77048,-27.15144],[152.76984,-27.15305],[152.76986,-27.15374],[152.7704,-27.1547],[152.77021,-27.15647],[152.77025,-27.15702],[152.77089,-27.15782],[152.77135,-27.15824],[152.77188,-27.15885],[152.77297,-27.16015],[152.77332,-27.16027],[152.77472,-27.16046],[152.77505,-27.16061],[152.77561,-27.16109],[152.77653,-27.16235],[152.77758,-27.16289],[152.77877,-27.16308],[152.77971,-27.1635],[152.78091,-27.16435],[152.782,-27.1645],[152.78349,-27.16517],[152.78358,-27.16639],[152.78423,-27.16785],[152.78501,-27.16869],[152.78622,-27.1699],[152.7867,-27.17105],[152.78675,-27.1711],[152.78816,-27.17139],[152.78957,-27.17193],[152.79085,-27.17208],[152.7928,-27.17209],[152.79378,-27.17235],[152.79513,-27.1732],[152.79579,-27.17445],[152.79682,-27.17535],[152.79818,-27.17624],[152.79956,-27.17831],[152.80028,-27.17977],[152.80089,-27.18094],[152.80128,-27.18181],[152.80178,-27.18303],[152.8025,-27.18435],[152.80312,-27.18551],[152.8036,-27.1866],[152.80381,-27.18735],[152.80409,-27.1877],[152.80495,-27.18827],[152.80579,-27.18849],[152.80669,-27.18842],[152.80781,-27.18859],[152.80825,-27.1888],[152.80896,-27.18928],[152.81048,-27.18954],[152.81135,-27.19004],[152.81248,-27.19077],[152.81303,-27.19098],[152.81413,-27.19111],[152.81535,-27.19127],[152.81581,-27.19145],[152.81616,-27.19169],[152.81654,-27.19184],[152.81762,-27.19213],[152.81882,-27.19247],[152.82038,-27.19378],[152.8211,-27.19446],[152.82183,-27.19569],[152.82255,-27.19692],[152.82266,-27.197],[152.82416,-27.19621],[152.82429,-27.1961],[152.82441,-27.19608],[152.82558,-27.19584],[152.82584,-27.19573],[152.82593,-27.19581]];</script>
+<script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+<script>
+(function(){
+  var coords=window.__brmRoute;
+  var el=document.getElementById('rp-livemap');
+  if(!el||!window.maplibregl||!coords||coords.length<2) return;
+  fetch('/styles/bush.json').then(function(r){return r.json();}).then(function(style){
+    var map=new maplibregl.Map({container:el,style:style,attributionControl:true,cooperativeGestures:true,dragRotate:false});
+    map.addControl(new maplibregl.NavigationControl({showCompass:false}),'top-right');
+    map.on('load',function(){
+      map.addSource('brm-route',{type:'geojson',data:{type:'Feature',geometry:{type:'LineString',coordinates:coords}}});
+      map.addLayer({id:'brm-route-line',type:'line',source:'brm-route',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#b04a24','line-width':4}});
+      var bounds=new maplibregl.LngLatBounds(coords[0],coords[0]);
+      for(var i=1;i<coords.length;i++) bounds.extend(coords[i]);
+      map.fitBounds(bounds,{padding:36,duration:0});
+      new maplibregl.Marker({color:'#6f7c53'}).setLngLat(coords[0]).addTo(map);
+      var fig=el.closest('.rp-map'); if(fig) fig.classList.add('is-live');
+    });
+  }).catch(function(){});
+})();</script>
+<script>
+(function(){
+  var a=document.getElementById('rp-nav');
+  if(!a||!a.dataset.apple) return;
+  var ua=navigator.userAgent||'';
+  if(/iP(hone|ad|od)/.test(ua)||(/Macintosh/.test(ua)&&(navigator.maxTouchPoints||0)>1)) a.href=a.dataset.apple;
+})();</script></main>
+<footer class="site-foot">
+  <p>Bush Riding Map — community-vetted gravel routes across Australia. Routes are guides only; ride to conditions.</p>
+  <p><a href="/routes/">All routes</a> · <a href="/">Interactive map</a> · <a href="/submit">Submit a route</a></p>
+</footer>
+</body>
+</html>
