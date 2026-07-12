@@ -1,5 +1,5 @@
 /**
- * Bush Riding Map — static route page generator (SEO Phase 1).
+ * Bush Map — static route page generator (SEO Phase 1).
  *
  * Reads the published community routes and emits one crawlable, JS-free HTML
  * page per route under map/routes/{state}/{region}/{id}/, plus aggregation
@@ -242,7 +242,7 @@ ${siteFooter()}
 }
 function siteHeader() {
   return `<header class="site-head">
-  <a class="site-brand" href="/">Bush Riding Map</a>
+  <a class="site-brand" href="/">Bush Map</a>
   <nav class="site-nav">
     <a href="/routes/">Community Routes</a>
     <a href="/events/">Bush Events</a>
@@ -253,7 +253,7 @@ function siteHeader() {
 }
 function siteFooter() {
   return `<footer class="site-foot">
-  <p>Bush Riding Map — community-vetted gravel routes across Australia. Routes are guides only; ride to conditions.</p>
+  <p>Bush Map — community-vetted gravel routes across Australia. Routes are guides only; ride to conditions.</p>
   <p><a href="/routes/">All routes</a> · <a href="/">Interactive map</a> · <a href="/submit">Submit a route</a></p>
 </footer>`;
 }
@@ -430,13 +430,13 @@ function routePage(r, reviews, gpx) {
   const url = routePath(r);
   const dist = fmt(r.distance), elev = fmt(r.elevation);
   const locLine = [r.regionLabel, r.stateFull].filter(Boolean).join(", ");
-  const title = `${r.name} — ${dist}km Gravel Ride near ${r.regionLabel} | Bush Riding Map`;
+  const title = `${r.name} — ${dist}km Gravel Ride near ${r.regionLabel} | Bush Map`;
   const description = clampDesc(
     `${r.name} is a ${dist}km gravel route near ${r.regionLabel}, ${r.stateFull} with ${elev}m of climbing (${r.effort || "gravel"}, ${r.terrain || "gravel"}). Download the GPX and ride it.`
   );
 
   const crumbItems = [
-    { name: "Bush Riding Map", url: "/" },
+    { name: "Bush Map", url: "/" },
     { name: "Routes", url: "/routes/" },
     { name: r.stateFull, url: `/routes/${r.stateSlug}/` },
     { name: r.regionLabel, url: `/routes/${r.stateSlug}/${r.regionSlug}/` },
@@ -675,7 +675,7 @@ function faqPageLd(faqs) {
 
 /* ---------------- aggregation pages ---------------- */
 const ALL_INTRO =
-  "Bush Riding Map is a community-vetted collection of gravel-cycling routes across Australia. Every route is ridden and checked before it goes on the map, with a downloadable GPX, elevation and surface notes. Find your next dirt adventure below.";
+  "Bush Map is a community-vetted collection of gravel-cycling routes across Australia. Every route is ridden and checked before it goes on the map, with a downloadable GPX, elevation and surface notes. Find your next dirt adventure below.";
 
 function stateIntro(stateFull) {
   if (stateFull === "Queensland")
@@ -810,7 +810,7 @@ function eventLd(e, routeById) {
     eventStatus: "https://schema.org/EventScheduled",
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     url: SITE + "/events/",
-    organizer: { "@type": "Organization", name: "Bush Riding Map", url: SITE },
+    organizer: { "@type": "Organization", name: "Bush Map", url: SITE },
   };
   if (e.date_iso) obj.startDate = e.time ? `${e.date_iso}` : e.date_iso;
   if (e.meeting_point) {
@@ -825,7 +825,7 @@ function eventsPage(events, routeById) {
   const upcoming = events.filter((e) => e.status !== "past").sort((a, b) => String(a.date_iso).localeCompare(String(b.date_iso)));
   const past = events.filter((e) => e.status === "past").sort((a, b) => String(b.date_iso).localeCompare(String(a.date_iso)));
   const crumbItems = [
-    { name: "Bush Riding Map", url: "/" },
+    { name: "Bush Map", url: "/" },
     { name: "Bush Events", url: "/events/" },
   ];
   const ld_ = ld([breadcrumbLd(crumbItems)].concat(upcoming.map((e) => eventLd(e, routeById))));
@@ -842,8 +842,8 @@ ${crumbs(crumbItems)}
 <p class="rp-intro">${esc(EVENTS_INTRO)}</p>
 ${bodyInner}`;
   return head({
-    title: "Community Bush Rides — Gravel Events | Bush Riding Map",
-    description: clampDesc("Upcoming community gravel rides across Queensland with Bush Riding Map — social pace, no one gets dropped. See the route and come along."),
+    title: "Community Bush Rides — Gravel Events | Bush Map",
+    description: clampDesc("Upcoming community gravel rides across Queensland with Bush Map — social pace, no one gets dropped. See the route and come along."),
     path: "/events/",
     jsonld: ld_,
   }) + body + foot();
@@ -955,7 +955,7 @@ function writePage(relPath, html) {
 }
 
 async function main() {
-  console.log("Bush Riding Map — generating static route pages…");
+  console.log("Bush Map — generating static route pages…");
   const features = await loadFeatures();
   const routes = features.map(normalize).filter((r) => r.id && r.name);
 
@@ -987,13 +987,13 @@ async function main() {
   written.push(
     writePage("routes/index.html",
       aggregatePage({
-        title: "Curated Gravel Routes Across Australia | Bush Riding Map",
+        title: "Curated Gravel Routes Across Australia | Bush Map",
         description: clampDesc("Browse community-vetted gravel cycling routes across Australia — GPX downloads, elevation and surface notes for every ride."),
         path: "/routes/",
         h1: "Gravel Routes",
         intro: ALL_INTRO,
         routes: [...routes].sort((a, b) => a.name.localeCompare(b.name)),
-        crumbItems: [{ name: "Bush Riding Map", url: "/" }, { name: "Routes", url: "/routes/" }],
+        crumbItems: [{ name: "Bush Map", url: "/" }, { name: "Routes", url: "/routes/" }],
         filter: true,
       }))
   );
@@ -1005,14 +1005,14 @@ async function main() {
     written.push(
       writePage(`routes/${stateSlug}/index.html`,
         aggregatePage({
-          title: `Gravel Routes in ${sample.stateFull} | Bush Riding Map`,
+          title: `Gravel Routes in ${sample.stateFull} | Bush Map`,
           description: clampDesc(`Community-vetted gravel cycling routes in ${sample.stateFull} — GPX downloads, elevation and surface notes for every ride.`),
           path: `/routes/${stateSlug}/`,
           h1: `Gravel Routes in ${sample.stateFull}`,
           intro: stateIntro(sample.stateFull),
           routes: [...stateRoutes].sort((a, b) => a.name.localeCompare(b.name)),
           crumbItems: [
-            { name: "Bush Riding Map", url: "/" },
+            { name: "Bush Map", url: "/" },
             { name: "Routes", url: "/routes/" },
             { name: sample.stateFull, url: `/routes/${stateSlug}/` },
           ],
@@ -1026,14 +1026,14 @@ async function main() {
       written.push(
         writePage(`routes/${stateSlug}/${regionSlug}/index.html`,
           aggregatePage({
-            title: `Gravel Routes in ${rs.regionLabel}, ${rs.stateFull} | Bush Riding Map`,
+            title: `Gravel Routes in ${rs.regionLabel}, ${rs.stateFull} | Bush Map`,
             description: clampDesc(`Gravel cycling routes in ${rs.regionLabel}, ${rs.stateFull} — GPX downloads, elevation and surface notes, sorted by distance.`),
             path: `/routes/${stateSlug}/${regionSlug}/`,
             h1: `Gravel Routes in ${rs.regionLabel}`,
             intro: regionIntro(rs.regionLabel, rs.stateFull),
             routes: sorted,
             crumbItems: [
-              { name: "Bush Riding Map", url: "/" },
+              { name: "Bush Map", url: "/" },
               { name: "Routes", url: "/routes/" },
               { name: rs.stateFull, url: `/routes/${stateSlug}/` },
               { name: rs.regionLabel, url: `/routes/${stateSlug}/${regionSlug}/` },

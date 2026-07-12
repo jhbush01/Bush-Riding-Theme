@@ -1,4 +1,4 @@
-// Bush Riding Map — contributor account surface (additive).
+// Bush Map — contributor account surface (additive).
 // Sign in / create an account, and see the routes you've submitted with their
 // moderation status (Pending approval / Rejected — see comments / Approved).
 // Personal ride logging, the "ink the map" animation and the ochre ride lines

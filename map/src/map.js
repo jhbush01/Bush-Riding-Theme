@@ -1146,49 +1146,25 @@ function clearCardX() {
   }
 }
 
-// Animate to a new deck index: the current card continues out in `dir`, the new
-// card slides in from the other side. Starts from wherever the card currently
-// sits (finger position), so a released drag flows straight into the transition.
+// Switch to a new deck index. No slide animation — the card content is
+// swapped instantly and efficiently. `dir` is unused (kept for call sites).
 function advanceTo(newIndex, dir) {
-  if (sliding) return;
-  const nodes = cardNodes();
-  if (!nodes.length) {
-    deck.index = newIndex;
-    renderDeck();
-    return;
-  }
-  sliding = true;
-  const W = els.detail.offsetWidth || 340;
-  setCardAnim(true);
-  setCardX(dir > 0 ? -W : W, 0); // slide current out
-  setTimeout(() => {
-    deck.index = newIndex;
-    renderDeck();
-    setCardAnim(false);
-    setCardX(dir > 0 ? W : -W, 0); // place incoming off the other edge
-    requestAnimationFrame(() => {
-      setCardAnim(true);
-      setCardX(0, 1); // slide it in
-      setTimeout(() => {
-        clearCardX();
-        sliding = false;
-      }, 260);
-    });
-  }, 210);
+  clearCardX();
+  deck.index = newIndex;
+  renderDeck();
 }
 function deckGo(dir) {
-  if (!deck || deck.items.length < 2 || sliding) return;
+  if (!deck || deck.items.length < 2) return;
   advanceTo((deck.index + dir + deck.items.length) % deck.items.length, dir);
 }
 function deckJump(i) {
-  if (!deck || i === deck.index || sliding) return;
+  if (!deck || i === deck.index) return;
   advanceTo(i, i > deck.index ? 1 : -1);
 }
-// Released a horizontal drag without crossing the threshold — ease back to rest.
+// Released a horizontal drag without crossing the threshold — nothing to undo
+// since the card never moved with the finger.
 function cardSnapBack() {
-  setCardAnim(true);
-  setCardX(0, 1);
-  setTimeout(clearCardX, 240);
+  clearCardX();
 }
 
 // Frame the map to a set of route features (their outlines).
@@ -2000,9 +1976,9 @@ function onDragMove(e) {
   }
 
   if (drag.axis === "x") {
-    // Card tracks the finger — you can hold it anywhere between routes.
+    // Track the swipe distance for direction only — the card no longer moves
+    // with the finger; on release it switches instantly.
     drag.dx = dx;
-    setCardX(dx);
     return;
   }
 
