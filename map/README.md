@@ -2,19 +2,21 @@
 
 Static one-page site recreating the design shown in `reference-frames/` (keyframes from a screen recording). Plain HTML + CSS + vanilla JS — no build step, no frameworks.
 
+This site lives in the `map/` folder (matching the Cloudflare Pages output directory).
+
 ## Run locally
 
 Open `index.html` directly, or serve the folder:
 
 ```
-npx http-server alp1ne
+npx http-server map
 ```
 
 ## Deploy to Cloudflare Pages
 
 - Framework preset: **None**
 - Build command: *(leave empty)*
-- Build output directory: `alp1ne` (or `/` if you deploy this folder as its own repo)
+- Build output directory: `map`
 
 ## Notes
 
