@@ -9,8 +9,8 @@
     <a class="alp-nav-link alp-nav-link--wordmark" href="{{ routes.root_url }}">{{ section.settings.wordmark | default: shop.name | escape }}</a>
     <span
       class="alp-nav-link alp-nav-link--clock"
-      data-alp-clock="{{ section.settings.clock_timezone | default: 'America/Los_Angeles' | escape }}"
-      data-alp-clock-label="{{ section.settings.clock_label | default: 'PST' | escape }}"
+      data-alp-clock="{{ section.settings.clock_timezone | default: 'Australia/Brisbane' | escape }}"
+      data-alp-clock-label="{{ section.settings.clock_label | default: 'AEST' | escape }}"
     ></span>
   </div>
 
@@ -59,14 +59,14 @@
 
 {% schema %}
 {
-  "name": "ALP1NE header",
+  "name": "Bush Riding header",
   "tag": "div",
   "settings": [
     {
       "type": "text",
       "id": "wordmark",
       "label": "Wordmark",
-      "default": "ALP1NE™",
+      "default": "Bush Riding™",
       "info": "Leave blank to use the store name."
     },
     {
@@ -79,13 +79,13 @@
       "type": "text",
       "id": "clock_timezone",
       "label": "Clock time zone (IANA id)",
-      "default": "America/Los_Angeles"
+      "default": "Australia/Brisbane"
     },
     {
       "type": "text",
       "id": "clock_label",
       "label": "Clock zone label",
-      "default": "PST"
+      "default": "AEST"
     },
     {
       "type": "text",

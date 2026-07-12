@@ -80,9 +80,10 @@ button.alp-chip { cursor: pointer; }
 .alp-head__group { display: flex; align-items: center; gap: 10px; }
 .alp-head__nav { display: flex; gap: 6px; }
 
-/* Header text: bare type, no chip, no outline, no fill, no effects — just
-   low-opacity white letters, so the imagery behind shows through the type
-   at all times. A whisper of shadow stops it dissolving on blown-out skies. */
+/* Header text: bare type, no chip, no outline, no fill. White letters with
+   mix-blend-mode: difference, so the type inverts against whatever passes
+   beneath it — integrated with the imagery rather than sitting on top, and
+   legible on any background (bright sky → dark letters, dark bush → light). */
 .alp-nav-link {
   background: transparent;
   border: 0;
@@ -94,11 +95,11 @@ button.alp-chip { cursor: pointer; }
   line-height: 1.2;
   text-decoration: none;
   white-space: nowrap;
-  color: rgba(255, 255, 255, 0.5);
-  text-shadow: 0 1px 4px rgba(22, 21, 15, 0.18);
+  color: #fff;
+  mix-blend-mode: difference;
 }
 
-.alp-nav-link:hover { color: rgba(255, 255, 255, 0.75); }
+.alp-nav-link:hover { opacity: 0.75; }
 
 .alp-nav-link--wordmark { font-weight: 800; font-size: clamp(1.55rem, 2vw + 1rem, 2.85rem); letter-spacing: 0.01em; }
 .alp-nav-link--clock { font-weight: 500; font-variant-numeric: tabular-nums; font-size: clamp(1rem, 1.2vw + 0.7rem, 1.8rem); }

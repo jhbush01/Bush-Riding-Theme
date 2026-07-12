@@ -16,8 +16,8 @@
       "settings": {
         "wordmark": "Bush Riding™",
         "menu": "main-menu",
-        "clock_timezone": "America/Los_Angeles",
-        "clock_label": "PST"
+        "clock_timezone": "Australia/Brisbane",
+        "clock_label": "AEST"
       }
     }
   },

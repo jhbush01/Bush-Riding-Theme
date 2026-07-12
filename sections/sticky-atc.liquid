@@ -1,0 +1,154 @@
+{%- comment -%}
+  Sticky add-to-cart bar — mobile only.
+
+  Appears fixed at the bottom of the viewport once the visitor scrolls past
+  the native add-to-cart button (IntersectionObserver on
+  `.product-form__submit`), and hides again when they scroll back up to it.
+  Adding to cart programmatically submits Dawn's own product form, so the
+  cart drawer / notification behave exactly as a native add. Title and price
+  re-sync from the page whenever the variant changes.
+{%- endcomment -%}
+
+{%- if product != blank -%}
+<div
+  id="StickyATC-{{ section.id }}"
+  class="sticky-atc color-{{ section.settings.color_scheme }} gradient"
+  data-sticky-atc
+  hidden
+>
+  <div class="sticky-atc__info">
+    <span class="sticky-atc__title">{{ product.title | escape }}</span>
+    <span class="sticky-atc__price" data-sticky-atc-price>{{ product.selected_or_first_available_variant.price | money }}</span>
+  </div>
+  <button type="button" class="sticky-atc__button" data-sticky-atc-submit>
+    {{ 'products.product.add_to_cart' | t | default: 'Add to cart' }}
+  </button>
+</div>
+
+<script>
+  (function () {
+    var bar = document.getElementById('StickyATC-{{ section.id }}');
+    if (!bar) return;
+    var mobile = window.matchMedia('(max-width: 749px)');
+    var nativeSubmit = document.querySelector('.product-form__submit');
+    var mainForm = document.querySelector('product-form form[data-type="add-to-cart-form"], form[action*="/cart/add"]');
+    var barSubmit = bar.querySelector('[data-sticky-atc-submit]');
+    var priceEl = bar.querySelector('[data-sticky-atc-price]');
+
+    if (!nativeSubmit || !mainForm) return;
+
+    /* Show only when the native button has scrolled up out of view. */
+    var pastButton = false;
+    function render() {
+      bar.hidden = !(pastButton && mobile.matches);
+    }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        pastButton = !entry.isIntersecting && entry.boundingClientRect.top < 0;
+        render();
+      });
+    }, { threshold: 0 });
+    io.observe(nativeSubmit);
+    mobile.addEventListener ? mobile.addEventListener('change', render) : mobile.addListener(render);
+
+    /* Keep price + availability in sync with the selected variant. */
+    function sync() {
+      var priceSource = document.querySelector('.product__info-container .price__container .price-item--sale, .product__info-container .price__container .price-item--regular, .price .price-item--regular');
+      if (priceSource && priceEl) priceEl.textContent = priceSource.textContent.trim();
+      var soldOut = nativeSubmit.disabled || nativeSubmit.getAttribute('aria-disabled') === 'true';
+      barSubmit.disabled = soldOut;
+      barSubmit.textContent = soldOut
+        ? {{ 'products.product.sold_out' | t | default: 'Sold out' | json }}
+        : {{ 'products.product.add_to_cart' | t | default: 'Add to cart' | json }};
+    }
+    sync();
+    document.addEventListener('change', function (e) {
+      if (e.target.closest('variant-selects, variant-radios, .product-form__input, [name="id"]')) {
+        /* Dawn swaps price/button state asynchronously after the change. */
+        setTimeout(sync, 400);
+      }
+    });
+
+    /* Adding to cart = submitting Dawn's own form, so drawer/notification
+       behave exactly like a native add. */
+    barSubmit.addEventListener('click', function () {
+      if (mainForm.requestSubmit) mainForm.requestSubmit();
+      else mainForm.submit();
+    });
+  })();
+</script>
+
+<style>
+  .sticky-atc {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 40;
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px max(16px, env(safe-area-inset-left)) calc(10px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-right));
+    border-top: 1px solid rgba(22, 21, 15, 0.14);
+    box-shadow: 0 -4px 16px rgba(22, 21, 15, 0.08);
+  }
+
+  @media screen and (max-width: 749px) {
+    .sticky-atc:not([hidden]) { display: flex; }
+  }
+
+  .sticky-atc__info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .sticky-atc__title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .sticky-atc__price { font-size: 0.85rem; opacity: 0.75; }
+
+  .sticky-atc__button {
+    flex-shrink: 0;
+    border: 0;
+    border-radius: 3px;
+    padding: 12px 22px;
+    background: #16150F;
+    color: #FFFFFF;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .sticky-atc__button:disabled { opacity: 0.5; cursor: default; }
+</style>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Sticky add-to-cart bar",
+  "tag": "div",
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Colour scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "paragraph",
+      "content": "Shows on mobile only, once the visitor scrolls past the native add-to-cart button."
+    }
+  ],
+  "presets": [
+    { "name": "Sticky add-to-cart bar" }
+  ],
+  "enabled_on": {
+    "templates": ["product"]
+  }
+}
+{% endschema %}

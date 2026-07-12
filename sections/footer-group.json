@@ -29,10 +29,10 @@
       },
       "block_order": ["col_shop", "col_company", "col_legal"],
       "settings": {
-        "newsletter_heading": "Dispatches",
-        "newsletter_text": "One email a month from the upper air. No noise.",
-        "wordmark": "ALP1NE™",
-        "small_print": "design study — product names and prices are placeholders."
+        "newsletter_heading": "Ride with us.",
+        "newsletter_text": "One email a month from the bush — stories, routes and first looks. No noise.",
+        "wordmark": "Bush Riding™",
+        "small_print": "Designed in Australia. Made for the detour."
       }
     }
   },

@@ -93,11 +93,58 @@
         "padding_top": 36,
         "padding_bottom": 28
       }
+    },
+    "value_bar": {
+      "type": "value-bar",
+      "blocks": {
+        "vb_ship": {
+          "type": "item",
+          "settings": {
+            "icon": "shipping",
+            "text": "Free shipping over $150"
+          }
+        },
+        "vb_returns": {
+          "type": "item",
+          "settings": {
+            "icon": "returns",
+            "text": "30-day returns, no drama"
+          }
+        },
+        "vb_aus": {
+          "type": "item",
+          "settings": {
+            "icon": "star",
+            "text": "Designed in Australia"
+          }
+        }
+      },
+      "block_order": [
+        "vb_ship",
+        "vb_returns",
+        "vb_aus"
+      ],
+      "settings": {}
+    },
+    "specs": {
+      "type": "product-specs",
+      "settings": {
+        "title": "The details"
+      }
+    },
+    "sticky_atc": {
+      "type": "sticky-atc",
+      "settings": {
+        "color_scheme": "scheme-1"
+      }
     }
   },
   "order": [
     "main",
+    "value_bar",
+    "specs",
     "disclosures",
-    "related-products"
+    "related-products",
+    "sticky_atc"
   ]
 }

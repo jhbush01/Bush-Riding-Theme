@@ -31,8 +31,8 @@
               </a>
             {%- else -%}
               <span class="alp-chip-row" {{ block.shopify_attributes }}>
-                <span class="alp-chip">{{ block.settings.placeholder_name | default: 'Summit Haul 40' | escape }} <span class="alp-glyph">✦</span></span>
-                <span class="alp-chip alp-chip--price">{{ block.settings.placeholder_price | default: '$540' | escape }}</span>
+                <span class="alp-chip">{{ block.settings.placeholder_name | default: 'Bush Riding Shorts' | escape }} <span class="alp-glyph">✦</span></span>
+                <span class="alp-chip alp-chip--price">{{ block.settings.placeholder_price | default: '$140' | escape }}</span>
               </span>
             {%- endif -%}
           {%- when 'caption' -%}
@@ -45,7 +45,7 @@
 
 {% schema %}
 {
-  "name": "ALP1NE hero",
+  "name": "Bush Riding hero",
   "tag": "div",
   "settings": [
     {
@@ -79,13 +79,13 @@
           "type": "text",
           "id": "placeholder_name",
           "label": "Placeholder name (if no product picked)",
-          "default": "Summit Haul 40"
+          "default": "Bush Riding Shorts"
         },
         {
           "type": "text",
           "id": "placeholder_price",
           "label": "Placeholder price",
-          "default": "$540"
+          "default": "$140"
         }
       ]
     },
@@ -97,7 +97,7 @@
           "type": "text",
           "id": "text",
           "label": "Text",
-          "default": "Field equipment — est. 2021"
+          "default": "Designed in Australia — made for the detour"
         }
       ]
     }
@@ -105,7 +105,7 @@
   "max_blocks": 3,
   "presets": [
     {
-      "name": "ALP1NE hero",
+      "name": "Bush Riding hero",
       "blocks": [{ "type": "product_tag" }]
     }
   ]
