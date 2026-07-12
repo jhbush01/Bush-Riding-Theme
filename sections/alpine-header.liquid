@@ -6,9 +6,9 @@
 
 <header class="alp alp-head" data-alp-header>
   <div class="alp-head__group">
-    <a class="alp-chip alp-chip--wordmark" href="{{ routes.root_url }}">{{ section.settings.wordmark | default: shop.name | escape }}</a>
+    <a class="alp-nav-link alp-nav-link--wordmark" href="{{ routes.root_url }}">{{ section.settings.wordmark | default: shop.name | escape }}</a>
     <span
-      class="alp-chip alp-chip--clock"
+      class="alp-nav-link alp-nav-link--clock"
       data-alp-clock="{{ section.settings.clock_timezone | escape }}"
       data-alp-clock-label="{{ section.settings.clock_label | escape }}"
     ></span>
@@ -22,15 +22,15 @@
 
   <div class="alp-head__group">
     {%- if section.settings.social_instagram != blank -%}
-      <a class="alp-chip alp-head__social" href="{{ section.settings.social_instagram }}" target="_blank" rel="noopener">Instagram</a>
+      <a class="alp-nav-link alp-head__social" href="{{ section.settings.social_instagram }}" target="_blank" rel="noopener">Instagram</a>
     {%- endif -%}
     {%- if section.settings.social_press_url != blank -%}
-      <a class="alp-chip alp-head__social" href="{{ section.settings.social_press_url }}">{{ section.settings.social_press_label | default: 'Press' | escape }}</a>
+      <a class="alp-nav-link alp-head__social" href="{{ section.settings.social_press_url }}">{{ section.settings.social_press_label | default: 'Press' | escape }}</a>
     {%- endif -%}
-    <a class="alp-chip" href="{{ routes.cart_url }}" id="alp-cart-chip">
+    <a class="alp-nav-link" href="{{ routes.cart_url }}" id="alp-cart-chip">
       Cart{% if cart.item_count > 0 %} ({{ cart.item_count }}){% endif %}
     </a>
-    <button class="alp-chip alp-chip--menu" type="button" data-alp-menu-open aria-expanded="false" aria-controls="alp-menu-overlay">Menu</button>
+    <button class="alp-nav-link alp-nav-link--menu" type="button" data-alp-menu-open aria-expanded="false" aria-controls="alp-menu-overlay">Menu</button>
   </div>
 </header>
 

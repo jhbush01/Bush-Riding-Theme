@@ -61,8 +61,6 @@ body:not(.template-index) #MainContent { padding-top: 84px; }
 a.alp-chip:hover, button.alp-chip:hover { background: var(--alp-ink); color: var(--alp-surface); }
 button.alp-chip { cursor: pointer; }
 
-.alp-chip--wordmark { font-weight: 800; letter-spacing: 0.01em; }
-.alp-chip--clock { font-weight: 500; font-variant-numeric: tabular-nums; }
 .alp-chip--price { font-weight: 500; }
 
 /* ── Header ──────────────────────────────────────────────────────────────── */
@@ -82,12 +80,15 @@ button.alp-chip { cursor: pointer; }
 
 .alp-head__group { display: flex; align-items: center; gap: 10px; }
 .alp-head__nav { display: flex; gap: 6px; }
-.alp-chip--menu { display: none; }
 
-/* Nav links: bare text, no chip. Slightly translucent with a slow shimmer
-   sweeping through the letters; a soft dark drop-shadow keeps them readable
-   over bright skies and photography alike. */
+/* Header text: bare type, no chip, no outline, no fill — just letters over
+   the imagery. Slightly translucent with a slow shimmer sweeping through;
+   a soft dark drop-shadow keeps them readable over bright skies and
+   photography alike. */
 .alp-nav-link {
+  background-color: transparent;
+  border: 0;
+  cursor: pointer;
   padding: 8px 10px;
   font-family: var(--alp-font-ui);
   font-size: 0.875rem;
@@ -112,6 +113,10 @@ button.alp-chip { cursor: pointer; }
 }
 
 .alp-nav-link:hover { filter: drop-shadow(0 1px 4px rgba(22, 21, 15, 0.7)); }
+
+.alp-nav-link--wordmark { font-weight: 800; font-size: 0.95rem; letter-spacing: 0.01em; }
+.alp-nav-link--clock { font-weight: 500; font-variant-numeric: tabular-nums; }
+.alp-nav-link--menu { display: none; }
 
 /* Once the bar gains its cream background on scroll, flip the letters to
    translucent ink so they stay legible on the light ground. */
@@ -396,8 +401,8 @@ button.alp-chip { cursor: pointer; }
 }
 
 @media (max-width: 860px) {
-  .alp-head__nav, .alp-chip--clock, .alp-head__social { display: none; }
-  .alp-chip--menu { display: inline-flex; }
+  .alp-head__nav, .alp-nav-link--clock, .alp-head__social { display: none; }
+  .alp-nav-link--menu { display: inline-flex; }
 
   .alp-collection__duo { grid-template-columns: 1fr; }
   .alp-collection__panel { height: 62vh; }
