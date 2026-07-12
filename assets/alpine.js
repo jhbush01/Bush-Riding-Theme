@@ -8,27 +8,22 @@
 
   var DESIGN_MODE = window.Shopify && window.Shopify.designMode;
 
-  /* ── Live clock — "14:07:59 (PST) Tuesday July 7 2026" ──
+  /* ── Live clock — minimalist: "14:07 AEST" ──
      The element is re-queried every tick so a re-rendered header keeps a
      working clock without re-binding anything. */
   function tick() {
     var clock = document.querySelector('[data-alp-clock]');
     if (!clock) return;
-    var tz = clock.getAttribute('data-alp-clock') || 'America/Los_Angeles';
-    var label = clock.getAttribute('data-alp-clock-label') || 'PST';
-    var now = new Date();
+    var tz = clock.getAttribute('data-alp-clock') || 'Australia/Brisbane';
+    var label = clock.getAttribute('data-alp-clock-label') || 'AEST';
     var time = new Intl.DateTimeFormat('en-GB', {
-      hour: '2-digit', minute: '2-digit', second: '2-digit',
+      hour: '2-digit', minute: '2-digit',
       hour12: false, timeZone: tz
-    }).format(now);
-    var date = new Intl.DateTimeFormat('en-US', {
-      weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
-      timeZone: tz
-    }).format(now).replace(/,/g, '');
-    clock.textContent = time + ' (' + label + ') ' + date;
+    }).format(new Date());
+    clock.textContent = time + ' ' + label;
   }
   tick();
-  setInterval(tick, 1000);
+  setInterval(tick, 10000);
 
   /* ── Mobile: hide the header scrolling down, show it scrolling up.
      The class is toggled everywhere but only styled under the mobile

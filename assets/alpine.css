@@ -68,6 +68,12 @@ button.alp-chip { cursor: pointer; }
   position: fixed;
   top: 0; left: 0; right: 0;
   z-index: 50;
+  /* Blend the whole bar against the page. position:fixed makes the bar its
+     own stacking context, so blending the LINKS only composited them against
+     the bar's transparent background (no visible effect). Blending the bar
+     itself composites everything inside it — the white letters — against
+     the imagery beneath, which is where the inversion happens. */
+  mix-blend-mode: difference;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -80,10 +86,9 @@ button.alp-chip { cursor: pointer; }
 .alp-head__group { display: flex; align-items: center; gap: 10px; }
 .alp-head__nav { display: flex; gap: 6px; }
 
-/* Header text: bare type, no chip, no outline, no fill. White letters with
-   mix-blend-mode: difference, so the type inverts against whatever passes
-   beneath it — integrated with the imagery rather than sitting on top, and
-   legible on any background (bright sky → dark letters, dark bush → light). */
+/* Header text: bare white type — the difference blend on .alp-head inverts
+   it against whatever passes beneath (bright sky → dark letters, dark bush
+   → light), so it reads as part of the imagery and stays legible anywhere. */
 .alp-nav-link {
   background: transparent;
   border: 0;
@@ -96,7 +101,6 @@ button.alp-chip { cursor: pointer; }
   text-decoration: none;
   white-space: nowrap;
   color: #fff;
-  mix-blend-mode: difference;
 }
 
 .alp-nav-link:hover { opacity: 0.75; }
