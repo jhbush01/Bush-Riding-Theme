@@ -82,12 +82,11 @@ button.alp-chip { cursor: pointer; }
 .alp-head__group { display: flex; align-items: center; gap: 10px; }
 .alp-head__nav { display: flex; gap: 6px; }
 
-/* Header text: bare type, no chip, no outline, no fill — just letters over
-   the imagery. Slightly translucent with a slow shimmer sweeping through;
-   a soft dark drop-shadow keeps them readable over bright skies and
-   photography alike. */
+/* Header text: bare type, no chip, no outline, no fill, no effects — just
+   low-opacity white letters, so the imagery behind shows through the type
+   at all times. A whisper of shadow stops it dissolving on blown-out skies. */
 .alp-nav-link {
-  background-color: transparent;
+  background: transparent;
   border: 0;
   cursor: pointer;
   padding: 8px 10px;
@@ -97,49 +96,24 @@ button.alp-chip { cursor: pointer; }
   line-height: 1.2;
   text-decoration: none;
   white-space: nowrap;
-  background-image: linear-gradient(
-    110deg,
-    rgba(255, 255, 255, 0.68) 25%,
-    rgba(255, 255, 255, 1) 50%,
-    rgba(255, 255, 255, 0.68) 75%
-  );
-  background-size: 220% 100%;
-  background-position: 220% 0;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 1px 4px rgba(22, 21, 15, 0.5));
-  animation: alp-shimmer 7s linear infinite;
+  color: rgba(255, 255, 255, 0.42);
+  text-shadow: 0 1px 4px rgba(22, 21, 15, 0.18);
 }
 
-.alp-nav-link:hover { filter: drop-shadow(0 1px 4px rgba(22, 21, 15, 0.7)); }
+.alp-nav-link:hover { color: rgba(255, 255, 255, 0.7); }
 
 .alp-nav-link--wordmark { font-weight: 800; font-size: clamp(1.55rem, 2vw + 1rem, 2.85rem); letter-spacing: 0.01em; }
 .alp-nav-link--clock { font-weight: 500; font-variant-numeric: tabular-nums; font-size: clamp(1rem, 1.2vw + 0.7rem, 1.8rem); }
 .alp-nav-link--menu { display: none; }
 
 /* Once the bar gains its cream background on scroll, flip the letters to
-   translucent ink so they stay legible on the light ground. */
+   translucent ink — low-opacity white would vanish on the light ground. */
 .alp-head.is-scrolled .alp-nav-link {
-  background-image: linear-gradient(
-    110deg,
-    rgba(22, 21, 15, 0.62) 25%,
-    rgba(22, 21, 15, 0.95) 50%,
-    rgba(22, 21, 15, 0.62) 75%
-  );
-  background-size: 220% 100%;
-  filter: none;
+  color: rgba(22, 21, 15, 0.5);
+  text-shadow: none;
 }
 
-@keyframes alp-shimmer {
-  from { background-position: 220% 0; }
-  to   { background-position: -120% 0; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .alp-nav-link { animation: none; background-position: 50% 0; }
-}
+.alp-head.is-scrolled .alp-nav-link:hover { color: rgba(22, 21, 15, 0.85); }
 
 /* ── Menu overlay ────────────────────────────────────────────────────────── */
 .alp-menu {
