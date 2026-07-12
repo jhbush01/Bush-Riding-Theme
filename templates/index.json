@@ -25,8 +25,7 @@
         "tag_1"
       ],
       "settings": {
-        "image": "shopify://shop_images/Bush_Background.jpg",
-        "video_url": ""
+        "video_url": "https://cdn.shopify.com/videos/c/o/v/e3a3e900b3154a1baf53e0a1cb5a2c2e.mov"
       }
     },
     "alpine_manifesto": {
