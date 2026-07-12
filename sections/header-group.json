@@ -22,10 +22,11 @@
         "map_label": "BUSH MAP™",
         "map_url": "",
         "menu_shop_image": "shopify://shop_images/IMG_0683.png",
-        "menu_video_url": "",
-        "menu_video_label": "",
+        "menu_video_url": "https://cdn.shopify.com/videos/c/o/v/e3a3e900b3154a1baf53e0a1cb5a2c2e.mov",
+        "menu_video_label": "Welcome to the bush",
         "menu_video_url_link": "",
-        "signin_sub": "Shop the community"
+        "signin_sub": "Shop the community",
+        "menu_map_image": "shopify://shop_images/IMG_2124.jpg"
       }
     }
   },
