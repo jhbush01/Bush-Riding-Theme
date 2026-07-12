@@ -101,15 +101,8 @@ button.alp-chip { cursor: pointer; }
 .alp-nav-link:hover { color: rgba(255, 255, 255, 0.75); }
 
 .alp-nav-link--wordmark { font-weight: 800; font-size: clamp(1.55rem, 2vw + 1rem, 2.85rem); letter-spacing: 0.01em; }
+.alp-nav-link--clock { font-weight: 500; font-variant-numeric: tabular-nums; font-size: clamp(1rem, 1.2vw + 0.7rem, 1.8rem); }
 .alp-nav-link--menu { display: none; }
-
-/* Gravel tyre clock, far right corner of the bar. */
-.alp-tyre {
-  width: clamp(56px, 4.5vw + 34px, 92px);
-  height: auto;
-  flex-shrink: 0;
-  margin-left: 4px;
-}
 
 /* ── Menu overlay ────────────────────────────────────────────────────────── */
 .alp-menu {
