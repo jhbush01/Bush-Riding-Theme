@@ -78,6 +78,10 @@ button.alp-chip { cursor: pointer; }
   padding: max(10px, env(safe-area-inset-top)) var(--alp-pad-page) 10px;
 }
 
+/* On the one-screen home page the bar sits at the vertical centre of the hero
+   (static — no fade). Inner pages keep it pinned at the top. */
+body.template-index .alp-head { top: 50vh; top: 50svh; transform: translateY(-50%); }
+
 .alp-head__group { display: flex; align-items: center; gap: 10px; }
 .alp-head__nav { display: flex; gap: 6px; }
 
