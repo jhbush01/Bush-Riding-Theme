@@ -3,9 +3,27 @@
   "type": "footer",
   "sections": {
     "footer": {
-      "type": "main-footer",
+      "type": "alpine-footer",
+      "blocks": {
+        "col_shop": {
+          "type": "column",
+          "settings": { "heading": "Shop", "menu": "main-menu" }
+        },
+        "col_company": {
+          "type": "column",
+          "settings": { "heading": "Company", "menu": "main-menu" }
+        },
+        "col_legal": {
+          "type": "column",
+          "settings": { "heading": "Legal", "menu": "main-menu" }
+        }
+      },
+      "block_order": ["col_shop", "col_company", "col_legal"],
       "settings": {
-        "color_scheme": "scheme-1"
+        "newsletter_heading": "Dispatches",
+        "newsletter_text": "One email a month from the upper air. No noise.",
+        "wordmark": "ALP1NE™",
+        "small_print": "design study — product names and prices are placeholders."
       }
     }
   },

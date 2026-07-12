@@ -1,0 +1,42 @@
+{%- comment -%}
+  ALP1NE story / journal teaser — image beside a paragraph with a text CTA.
+{%- endcomment -%}
+
+<section class="alp alp-story" id="journal">
+  <figure class="alp-story__figure alp-reveal">
+    {%- if section.settings.image != blank -%}
+      {{ section.settings.image | image_url: width: 1400 | image_tag: loading: 'lazy', alt: section.settings.image.alt | default: '' }}
+    {%- else -%}
+      <img src="{{ 'alpine-ph-story.svg' | asset_url }}" alt="" width="900" height="1100" loading="lazy" data-asset-note="Journal teaser: tent below a scree slope at dusk, warm light against olive dark">
+    {%- endif -%}
+  </figure>
+  <div class="alp-story__body alp-reveal">
+    <h2>{{ section.settings.heading | escape }}</h2>
+    <p>{{ section.settings.text | escape }}</p>
+    {%- if section.settings.link_url != blank -%}
+      <a class="alp-text-link" href="{{ section.settings.link_url }}">{{ section.settings.link_label | escape }} ↗</a>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "ALP1NE story",
+  "tag": "div",
+  "settings": [
+    { "type": "image_picker", "id": "image", "label": "Image" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "From the Journal" },
+    {
+      "type": "textarea",
+      "id": "text",
+      "label": "Paragraph",
+      "default": "Every piece we make goes up before it goes out. Field notes, route logs and failures worth keeping — written by the people who wore the samples through a season of weather."
+    },
+    { "type": "url", "id": "link_url", "label": "Link URL" },
+    { "type": "text", "id": "link_label", "label": "Link label", "default": "Read the Journal" }
+  ],
+  "presets": [
+    { "name": "ALP1NE story" }
+  ]
+}
+{% endschema %}

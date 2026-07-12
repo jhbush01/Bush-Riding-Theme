@@ -1,55 +1,62 @@
 {
   "sections": {
-    "main_home_hero": {
-      "type": "main-home-hero",
-      "settings": {
-        "image": "https://cdn.shopify.com/s/files/1/0838/6373/2480/files/IMG_2124.jpg?v=1782811182",
-        "wordmark": "BUSH RIDING",
-        "overlay_opacity": 10
-      }
-    },
-    "home_split_1": {
-      "type": "main-home-split",
+    "alpine_hero": {
+      "type": "alpine-hero",
+      "blocks": {
+        "tag_1": { "type": "product_tag", "settings": {} }
+      },
+      "block_order": ["tag_1"],
       "settings": {}
     },
-    "home_shop_1": {
-      "type": "main-home-shop",
+    "alpine_manifesto": {
+      "type": "alpine-manifesto",
       "blocks": {
-        "card_1": { "type": "product_card", "settings": {} },
-        "card_2": { "type": "product_card", "settings": {} },
-        "card_3": { "type": "product_card", "settings": {} },
-        "card_4": { "type": "product_card", "settings": {} }
+        "para_1": {
+          "type": "paragraph",
+          "settings": {
+            "text": "<p>Our gear responds to rain ∧ relentless wind ∧ high-altitude environments.</p>"
+          }
+        },
+        "para_2": {
+          "type": "paragraph",
+          "settings": {
+            "text": "<p>Whether you're heading out on a multi-day expedition ↑ climbing a summit ÷ or hiking before sunrise — our equipment is built to help you move with confidence.</p>"
+          }
+        },
+        "refrain": {
+          "type": "refrain",
+          "settings": {
+            "text": "<p>Because the moments that matter begin where comfort ends ✦ adventure begins.</p>"
+          }
+        }
       },
-      "block_order": ["card_1", "card_2", "card_3", "card_4"],
-      "settings": {
-        "banner_left_label": "Trail Collection",
-        "banner_right_label": "First Ride"
-      }
-    },
-    "home_split_2": {
-      "type": "main-home-split",
+      "block_order": ["para_1", "para_2", "refrain"],
       "settings": {}
     },
-    "home_shop_2": {
-      "type": "main-home-shop",
-      "blocks": {
-        "card_1": { "type": "product_card", "settings": {} },
-        "card_2": { "type": "product_card", "settings": {} },
-        "card_3": { "type": "product_card", "settings": {} },
-        "card_4": { "type": "product_card", "settings": {} }
-      },
-      "block_order": ["card_1", "card_2", "card_3", "card_4"],
+    "alpine_collection": {
+      "type": "alpine-collection",
       "settings": {
-        "banner_left_label": "Womens",
-        "banner_right_label": "New Arrivals"
+        "heading": "Collection",
+        "tagline": "FW26 — weathered nylon, laminated layers, raw shell.",
+        "products_to_show": 4
       }
+    },
+    "alpine_statement": {
+      "type": "alpine-statement",
+      "settings": {
+        "text": "We work in weathered nylon, laminated layers and raw shell."
+      }
+    },
+    "alpine_story": {
+      "type": "alpine-story",
+      "settings": {}
     }
   },
   "order": [
-    "main_home_hero",
-    "home_split_1",
-    "home_shop_1",
-    "home_split_2",
-    "home_shop_2"
+    "alpine_hero",
+    "alpine_manifesto",
+    "alpine_collection",
+    "alpine_statement",
+    "alpine_story"
   ]
 }

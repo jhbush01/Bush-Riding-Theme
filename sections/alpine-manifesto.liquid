@@ -1,0 +1,98 @@
+{%- comment -%}
+  ALP1NE manifesto — olive block, lavender display type with inline glyphs,
+  product cutouts floating ABOVE the letters, refrain + centred figure
+  (frames f_04 / f_13).
+{%- endcomment -%}
+
+<section class="alp alp-manifesto" id="manifesto" aria-label="About">
+  <div class="alp-manifesto__cutouts" aria-hidden="true">
+    {%- if section.settings.cutout_1 != blank -%}
+      <img class="alp-manifesto__cut alp-manifesto__cut--pack" src="{{ section.settings.cutout_1 | image_url: width: 680 }}" alt="" width="420" height="460" loading="lazy">
+    {%- else -%}
+      <img class="alp-manifesto__cut alp-manifesto__cut--pack" src="{{ 'alpine-cut-pack.svg' | asset_url }}" alt="" width="420" height="460" loading="lazy" data-asset-note="Cutout PNG (transparent) of an expedition backpack">
+    {%- endif -%}
+    {%- if section.settings.cutout_2 != blank -%}
+      <img class="alp-manifesto__cut alp-manifesto__cut--boot" src="{{ section.settings.cutout_2 | image_url: width: 460 }}" alt="" width="300" height="260" loading="lazy">
+    {%- else -%}
+      <img class="alp-manifesto__cut alp-manifesto__cut--boot" src="{{ 'alpine-cut-boot.svg' | asset_url }}" alt="" width="300" height="260" loading="lazy" data-asset-note="Cutout PNG (transparent) of a bright blue hiking boot">
+    {%- endif -%}
+    {%- if section.settings.cutout_3 != blank -%}
+      <img class="alp-manifesto__cut alp-manifesto__cut--gaiters" src="{{ section.settings.cutout_3 | image_url: width: 420 }}" alt="" width="300" height="380" loading="lazy">
+    {%- else -%}
+      <img class="alp-manifesto__cut alp-manifesto__cut--gaiters" src="{{ 'alpine-cut-gaiters.svg' | asset_url }}" alt="" width="300" height="380" loading="lazy" data-asset-note="Cutout PNG (transparent) of light grey gaiters">
+    {%- endif -%}
+  </div>
+
+  <div class="alp-manifesto__inner">
+    {%- for block in section.blocks -%}
+      {%- case block.type -%}
+        {%- when 'paragraph' -%}
+          <div class="alp-manifesto__para alp-reveal" {{ block.shopify_attributes }}>{{ block.settings.text }}</div>
+        {%- when 'refrain' -%}
+          <div class="alp-manifesto__para alp-manifesto__para--refrain alp-reveal" {{ block.shopify_attributes }}>{{ block.settings.text }}</div>
+      {%- endcase -%}
+    {%- endfor -%}
+
+    <figure class="alp-manifesto__figure alp-reveal">
+      {%- if section.settings.figure != blank -%}
+        {{ section.settings.figure | image_url: width: 1120 | image_tag: loading: 'lazy', alt: section.settings.figure.alt | default: '' }}
+      {%- else -%}
+        <img src="{{ 'alpine-ph-jacket.svg' | asset_url }}" alt="" width="800" height="1000" loading="lazy" data-asset-note="Mid-shot of a person adjusting a technical shell, soft light — the centred figure in f_13">
+      {%- endif -%}
+    </figure>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "ALP1NE manifesto",
+  "tag": "div",
+  "settings": [
+    { "type": "image_picker", "id": "figure", "label": "Centred figure image" },
+    { "type": "image_picker", "id": "cutout_1", "label": "Floating cutout 1 (top right)" },
+    { "type": "image_picker", "id": "cutout_2", "label": "Floating cutout 2 (left)" },
+    { "type": "image_picker", "id": "cutout_3", "label": "Floating cutout 3 (far right)" }
+  ],
+  "blocks": [
+    {
+      "type": "paragraph",
+      "name": "Paragraph",
+      "settings": [
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "Text",
+          "default": "<p>Our gear responds to rain ∧ relentless wind ∧ high-altitude environments.</p>"
+        }
+      ]
+    },
+    {
+      "type": "refrain",
+      "name": "Refrain (no indent)",
+      "settings": [
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "Text",
+          "default": "<p>Because the moments that matter begin where comfort ends ✦ adventure begins.</p>"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "ALP1NE manifesto",
+      "blocks": [
+        { "type": "paragraph" },
+        {
+          "type": "paragraph",
+          "settings": {
+            "text": "<p>Whether you're heading out on a multi-day expedition ↑ climbing a summit ÷ or hiking before sunrise — our equipment is built to help you move with confidence.</p>"
+          }
+        },
+        { "type": "refrain" }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,113 @@
+{%- comment -%}
+  ALP1NE hero — full-bleed photograph/video filling the viewport under the
+  transparent chip header (frame f_01), with product tag chips anchored over
+  the imagery (frame f_16: "Summit Haul 40 ✦  $540").
+{%- endcomment -%}
+
+<section class="alp alp-hero">
+  <div class="alp-hero__media">
+    {%- if section.settings.image != blank -%}
+      {{ section.settings.image | image_url: width: 3200 | image_tag: loading: 'eager', alt: section.settings.image.alt | default: '' }}
+    {%- elsif section.settings.video_url != blank -%}
+      <video autoplay muted loop playsinline aria-hidden="true"
+        {% if section.settings.poster != blank %}poster="{{ section.settings.poster | image_url: width: 1800 }}"{% endif %}>
+        <source src="{{ section.settings.video_url }}" type="video/mp4">
+      </video>
+    {%- else -%}
+      <img src="{{ 'alpine-ph-hero.svg' | asset_url }}" alt="" loading="eager"
+        data-asset-note="Full-bleed hero: hiker on mossy terrain against a pale blown-out sky, as in frame f_01">
+    {%- endif -%}
+  </div>
+
+  {%- if section.blocks.size > 0 -%}
+    <div class="alp-hero__tags">
+      {%- for block in section.blocks -%}
+        {%- case block.type -%}
+          {%- when 'product_tag' -%}
+            {%- if block.settings.product != blank -%}
+              <a class="alp-chip-row" href="{{ block.settings.product.url }}" {{ block.shopify_attributes }} style="text-decoration: none;">
+                <span class="alp-chip">{{ block.settings.product.title | escape }} <span class="alp-glyph">✦</span></span>
+                <span class="alp-chip alp-chip--price">{{ block.settings.product.price | money }}</span>
+              </a>
+            {%- else -%}
+              <span class="alp-chip-row" {{ block.shopify_attributes }}>
+                <span class="alp-chip">{{ block.settings.placeholder_name | default: 'Summit Haul 40' | escape }} <span class="alp-glyph">✦</span></span>
+                <span class="alp-chip alp-chip--price">{{ block.settings.placeholder_price | default: '$540' | escape }}</span>
+              </span>
+            {%- endif -%}
+          {%- when 'caption' -%}
+            <span class="alp-chip" {{ block.shopify_attributes }}>{{ block.settings.text | escape }}</span>
+        {%- endcase -%}
+      {%- endfor -%}
+    </div>
+  {%- endif -%}
+</section>
+
+{% schema %}
+{
+  "name": "ALP1NE hero",
+  "tag": "div",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Hero image",
+      "info": "Takes priority over the video."
+    },
+    {
+      "type": "url",
+      "id": "video_url",
+      "label": "Background video (MP4 URL)"
+    },
+    {
+      "type": "image_picker",
+      "id": "poster",
+      "label": "Video poster image"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "product_tag",
+      "name": "Product tag chip",
+      "settings": [
+        {
+          "type": "product",
+          "id": "product",
+          "label": "Product"
+        },
+        {
+          "type": "text",
+          "id": "placeholder_name",
+          "label": "Placeholder name (if no product picked)",
+          "default": "Summit Haul 40"
+        },
+        {
+          "type": "text",
+          "id": "placeholder_price",
+          "label": "Placeholder price",
+          "default": "$540"
+        }
+      ]
+    },
+    {
+      "type": "caption",
+      "name": "Caption chip",
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Text",
+          "default": "Field equipment — est. 2021"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 3,
+  "presets": [
+    {
+      "name": "ALP1NE hero",
+      "blocks": [{ "type": "product_tag" }]
+    }
+  ]
+}
+{% endschema %}

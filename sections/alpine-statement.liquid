@@ -1,0 +1,34 @@
+{%- comment -%}
+  ALP1NE statement — full-bleed photograph with the embossed uppercase line
+  low in the frame, blending into the image (frame f_10).
+{%- endcomment -%}
+
+<section class="alp alp-statement" aria-label="Materials">
+  <div class="alp-statement__media">
+    {%- if section.settings.image != blank -%}
+      {{ section.settings.image | image_url: width: 3200 | image_tag: loading: 'lazy', alt: section.settings.image.alt | default: '' }}
+    {%- else -%}
+      <img src="{{ 'alpine-ph-statement.svg' | asset_url }}" alt="" width="1600" height="900" loading="lazy" data-asset-note="Full-bleed landscape: hiker in grey shell and chartreuse cap on a mossy mound, blown-out white sky — the f_10 photograph">
+    {%- endif -%}
+  </div>
+  <p class="alp-statement__text">{{ section.settings.text | escape }}</p>
+</section>
+
+{% schema %}
+{
+  "name": "ALP1NE statement",
+  "tag": "div",
+  "settings": [
+    { "type": "image_picker", "id": "image", "label": "Full-bleed image" },
+    {
+      "type": "text",
+      "id": "text",
+      "label": "Statement line",
+      "default": "We work in weathered nylon, laminated layers and raw shell."
+    }
+  ],
+  "presets": [
+    { "name": "ALP1NE statement" }
+  ]
+}
+{% endschema %}

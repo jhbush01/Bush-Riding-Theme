@@ -1,0 +1,99 @@
+{%- comment -%}
+  ALP1NE collection — split panels with the navy four-point star overlay and
+  chip name/price labels (frame f_07), then a 4-up product rail (horizontal
+  scroll-snap on mobile) wired to a real Shopify collection. Falls back to
+  the design study's placeholder cards when no collection is assigned.
+{%- endcomment -%}
+
+<section class="alp alp-collection" id="collection">
+  <header class="alp-collection__head alp-reveal">
+    <h2>{{ section.settings.heading | escape }}</h2>
+    <p>{{ section.settings.tagline | escape }}</p>
+  </header>
+
+  <div class="alp-collection__duo">
+    <figure class="alp-collection__panel alp-collection__panel--star alp-reveal">
+      {%- if section.settings.panel_left != blank -%}
+        {{ section.settings.panel_left | image_url: width: 1800 | image_tag: loading: 'lazy', alt: section.settings.panel_left.alt | default: '' }}
+      {%- else -%}
+        <img src="{{ 'alpine-ph-panel-portrait.svg' | asset_url }}" alt="" width="900" height="1100" loading="lazy" data-asset-note="Tight portrait, chartreuse cap and sport sunglasses, overcast light — left panel of f_07">
+      {%- endif -%}
+      <svg class="alp-collection__star" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+        <path d="M50 0 C54 32 68 46 100 50 C68 54 54 68 50 100 C46 68 32 54 0 50 C32 46 46 32 50 0 Z"/>
+      </svg>
+    </figure>
+
+    <figure class="alp-collection__panel alp-reveal">
+      {%- if section.settings.panel_right != blank -%}
+        {{ section.settings.panel_right | image_url: width: 1200 | image_tag: loading: 'lazy', alt: section.settings.panel_right.alt | default: '' }}
+      {%- else -%}
+        <img src="{{ 'alpine-ph-panel-mist.svg' | asset_url }}" alt="" width="700" height="1100" loading="lazy" data-asset-note="Vertical shot, figure with expedition pack among mossy rocks and mist — right panel of f_07">
+      {%- endif -%}
+      {%- if section.settings.panel_product != blank -%}
+        <figcaption class="alp-chip-row">
+          <a class="alp-chip" href="{{ section.settings.panel_product.url }}">{{ section.settings.panel_product.title | escape }} <span class="alp-glyph">✦</span></a>
+          <span class="alp-chip alp-chip--price">{{ section.settings.panel_product.price | money }}</span>
+        </figcaption>
+      {%- endif -%}
+    </figure>
+  </div>
+
+  <div class="alp-collection__rail">
+    {%- if section.settings.collection != blank -%}
+      {%- for product in section.settings.collection.products limit: section.settings.products_to_show -%}
+        <article class="alp-card alp-reveal">
+          <a href="{{ product.url }}">
+            {%- if product.featured_image != blank -%}
+              {{ product.featured_image | image_url: width: 900 | image_tag: loading: 'lazy', alt: product.featured_image.alt | default: product.title }}
+            {%- else -%}
+              <img src="{{ 'alpine-ph-card-1.svg' | asset_url }}" alt="" width="750" height="1000" loading="lazy">
+            {%- endif -%}
+            <div class="alp-chip-row">
+              <h3 class="alp-chip">{{ product.title | escape }} <span class="alp-glyph">✦</span></h3>
+              <p class="alp-chip alp-chip--price">{{ product.price | money }}</p>
+            </div>
+          </a>
+        </article>
+      {%- endfor -%}
+    {%- else -%}
+      {%- assign ph_names = 'Ridgeline Shell,Talus Cap,Col Fleece,Scree Gaiter' | split: ',' -%}
+      {%- assign ph_prices = '$480,$85,$310,$120' | split: ',' -%}
+      {%- for i in (1..4) -%}
+        <article class="alp-card alp-reveal">
+          <img src="{{ 'alpine-ph-card-' | append: i | append: '.svg' | asset_url }}" alt="" width="750" height="1000" loading="lazy" data-asset-note="Product still on pale grey seamless — assign a collection to replace these placeholders">
+          <div class="alp-chip-row">
+            <h3 class="alp-chip">{{ ph_names[forloop.index0] }} <span class="alp-glyph">✦</span></h3>
+            <p class="alp-chip alp-chip--price">{{ ph_prices[forloop.index0] }}</p>
+          </div>
+        </article>
+      {%- endfor -%}
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "ALP1NE collection",
+  "tag": "div",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Collection" },
+    { "type": "text", "id": "tagline", "label": "Tagline", "default": "FW26 — weathered nylon, laminated layers, raw shell." },
+    { "type": "collection", "id": "collection", "label": "Collection for the product rail" },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "min": 2,
+      "max": 8,
+      "step": 1,
+      "label": "Products to show",
+      "default": 4
+    },
+    { "type": "image_picker", "id": "panel_left", "label": "Left panel image (star overlay)" },
+    { "type": "image_picker", "id": "panel_right", "label": "Right panel image" },
+    { "type": "product", "id": "panel_product", "label": "Right panel product chip" }
+  ],
+  "presets": [
+    { "name": "ALP1NE collection" }
+  ]
+}
+{% endschema %}
