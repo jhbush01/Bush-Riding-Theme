@@ -16,7 +16,7 @@ name: Deploy Workers
 
 on:
   push:
-    branches: [claude/bush-riding-routes-map-ycmgw6]
+    branches: [main]
     paths:
       - "worker/**"
       - "diary-worker/**"
