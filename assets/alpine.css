@@ -69,10 +69,11 @@ button.alp-chip { cursor: pointer; }
   top: 0; left: 0; right: 0;
   z-index: 50;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 14px var(--alp-pad-page);
+  gap: 0 12px;
+  padding: 10px var(--alp-pad-page);
   transition: background-color 0.25s ease;
 }
 
@@ -91,7 +92,7 @@ button.alp-chip { cursor: pointer; }
   cursor: pointer;
   padding: 8px 10px;
   font-family: var(--alp-font-ui);
-  font-size: 0.875rem;
+  font-size: clamp(1.4rem, 1.8vw + 0.9rem, 2.625rem);
   font-weight: 600;
   line-height: 1.2;
   text-decoration: none;
@@ -114,8 +115,8 @@ button.alp-chip { cursor: pointer; }
 
 .alp-nav-link:hover { filter: drop-shadow(0 1px 4px rgba(22, 21, 15, 0.7)); }
 
-.alp-nav-link--wordmark { font-weight: 800; font-size: 0.95rem; letter-spacing: 0.01em; }
-.alp-nav-link--clock { font-weight: 500; font-variant-numeric: tabular-nums; }
+.alp-nav-link--wordmark { font-weight: 800; font-size: clamp(1.55rem, 2vw + 1rem, 2.85rem); letter-spacing: 0.01em; }
+.alp-nav-link--clock { font-weight: 500; font-variant-numeric: tabular-nums; font-size: clamp(1rem, 1.2vw + 0.7rem, 1.8rem); }
 .alp-nav-link--menu { display: none; }
 
 /* Once the bar gains its cream background on scroll, flip the letters to
@@ -401,7 +402,7 @@ button.alp-chip { cursor: pointer; }
 }
 
 @media (max-width: 860px) {
-  .alp-head__nav, .alp-nav-link--clock, .alp-head__social { display: none; }
+  .alp-head__nav, .alp-head__social { display: none; }
   .alp-nav-link--menu { display: inline-flex; }
 
   .alp-collection__duo { grid-template-columns: 1fr; }
