@@ -1,12 +1,33 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "sections": {
     "alpine_hero": {
       "type": "alpine-hero",
       "blocks": {
-        "tag_1": { "type": "product_tag", "settings": {} }
+        "tag_1": {
+          "type": "product_tag",
+          "settings": {
+            "product": "",
+            "placeholder_name": "Summit Haul 40",
+            "placeholder_price": "$540"
+          }
+        }
       },
-      "block_order": ["tag_1"],
-      "settings": {}
+      "block_order": [
+        "tag_1"
+      ],
+      "settings": {
+        "image": "shopify://shop_images/IMG_2124.jpg",
+        "video_url": ""
+      }
     },
     "alpine_manifesto": {
       "type": "alpine-manifesto",
@@ -30,7 +51,11 @@
           }
         }
       },
-      "block_order": ["para_1", "para_2", "refrain"],
+      "block_order": [
+        "para_1",
+        "para_2",
+        "refrain"
+      ],
       "settings": {}
     },
     "alpine_collection": {
@@ -38,7 +63,9 @@
       "settings": {
         "heading": "Collection",
         "tagline": "FW26 — weathered nylon, laminated layers, raw shell.",
-        "products_to_show": 4
+        "collection": "",
+        "products_to_show": 4,
+        "panel_product": ""
       }
     },
     "alpine_statement": {
@@ -49,7 +76,12 @@
     },
     "alpine_story": {
       "type": "alpine-story",
-      "settings": {}
+      "settings": {
+        "heading": "From the Journal",
+        "text": "Every piece we make goes up before it goes out. Field notes, route logs and failures worth keeping — written by the people who wore the samples through a season of weather.",
+        "link_url": "",
+        "link_label": "Read the Journal"
+      }
     }
   },
   "order": [
