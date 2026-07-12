@@ -11,22 +11,13 @@
   "sections": {
     "alpine_hero": {
       "type": "alpine-hero",
-      "blocks": {
-        "tag_1": {
-          "type": "product_tag",
-          "settings": {
-            "product": "",
-            "placeholder_name": "Bush Riding Shorts",
-            "placeholder_price": "$140"
-          }
-        }
-      },
-      "block_order": [
-        "tag_1"
-      ],
       "settings": {
         "image": "shopify://shop_images/IMG_2419.jpg",
-        "video_url": "https://cdn.shopify.com/videos/c/o/v/e3a3e900b3154a1baf53e0a1cb5a2c2e.mov"
+        "video_url": "https://cdn.shopify.com/videos/c/o/v/e3a3e900b3154a1baf53e0a1cb5a2c2e.mov",
+        "shorts_label": "Bush Riding Shorts",
+        "map_label": "BUSH MAP™",
+        "map_url": "https://map.bushriding.cc",
+        "shorts_fallback_url": "/products/bush-riding-shorts"
       }
     },
     "alpine_manifesto": {

@@ -76,16 +76,17 @@ button.alp-chip { cursor: pointer; }
   /* With viewport-fit=cover the page draws under the notch; keep the bar's
      text below it. */
   padding: max(10px, env(safe-area-inset-top)) var(--alp-pad-page) 10px;
-  transition: opacity 0.3s ease, visibility 0.3s ease;
+  transition: opacity 0.4s ease, visibility 0.4s ease, transform 0.4s ease;
 }
 
 /* On the home page the bar floats at the vertical centre of the hero, part
    of the composition rather than pinned to the top edge. */
 body.template-index .alp-head { top: 50vh; top: 50svh; transform: translateY(-50%); }
 
-/* Scrolled: the bar fades away (all screen sizes) and the hamburger takes
-   over, top right. */
-.alp-head.is-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+/* Scrolled: the bar fades UP and out (drifting toward the top of the screen)
+   while the hamburger takes over. */
+.alp-head.is-hidden { opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(-40px); }
+body.template-index .alp-head.is-hidden { transform: translateY(calc(-50% - 60vh)); }
 
 .alp-burger {
   position: fixed;
@@ -146,7 +147,14 @@ body.template-index .alp-head { top: 50vh; top: 50svh; transform: translateY(-50
 
 .alp-nav-link--wordmark { font-weight: 800; font-size: clamp(1.55rem, 2vw + 1rem, 2.85rem); letter-spacing: 0.01em; }
 .alp-nav-link--clock { font-weight: 500; font-variant-numeric: tabular-nums; font-size: clamp(1rem, 1.2vw + 0.7rem, 1.8rem); }
-.alp-nav-link--menu { display: none; }
+
+/* Inline hamburger button (shown in place of the nav on mobile). */
+.alp-nav-link--menu { display: none; flex-direction: column; justify-content: center; gap: 5px; padding: 8px; }
+.alp-nav-link--menu span {
+  display: block; width: 26px; height: 2px; border-radius: 1px;
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 1px 3px rgba(22, 21, 15, 0.4);
+}
 
 /* ── Menu overlay ────────────────────────────────────────────────────────── */
 .alp-menu {
@@ -183,18 +191,17 @@ body.template-index .alp-head { top: 50vh; top: 50svh; transform: translateY(-50
   object-fit: cover;
 }
 
-.alp-hero__tags {
+.alp-hero__cta {
   position: absolute;
-  left: var(--alp-pad-page);
-  bottom: clamp(20px, 5vh, 48px);
+  top: calc(50% + clamp(44px, 8vh, 90px));
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 2;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  justify-content: center;
+  flex-wrap: wrap;
   gap: 10px;
 }
-
-.alp-hero__tags .alp-chip-row { position: static; }
 
 /* ── Manifesto (f_04 / f_13) ─────────────────────────────────────────────── */
 .alp-manifesto {
@@ -291,7 +298,7 @@ body.template-index .alp-head { top: 50vh; top: 50svh; transform: translateY(-50
 
 .alp-statement__text {
   position: absolute;
-  left: 50%; bottom: 7%;
+  left: 50%; top: 7%;
   transform: translateX(-50%);
   width: min(94%, 1400px);
   text-align: center;
@@ -409,7 +416,8 @@ body.template-index .alp-head { top: 50vh; top: 50svh; transform: translateY(-50
 }
 
 @media (max-width: 860px) {
-  .alp-head__nav, .alp-head__social { display: none; }
+  /* Mobile bar: wordmark + clock + hamburger only. */
+  .alp-head__nav, .alp-head__social, .alp-head__cart { display: none; }
   .alp-nav-link--menu { display: inline-flex; }
 
 

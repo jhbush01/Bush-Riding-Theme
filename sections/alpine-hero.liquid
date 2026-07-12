@@ -1,7 +1,8 @@
 {%- comment -%}
-  ALP1NE hero — full-bleed photograph/video filling the viewport under the
-  transparent chip header (frame f_01), with product tag chips anchored over
-  the imagery (frame f_16: "Summit Haul 40 ✦  $540").
+  Bush Riding hero — full-bleed photograph/video filling the viewport under
+  the floating nav. Two chip buttons sit centred just below the nav: one
+  linking to the featured product (Bush Riding Shorts), one to the map
+  (BUSH MAP™ → map.bushriding.cc).
 {%- endcomment -%}
 
 <section class="alp alp-hero">
@@ -19,28 +20,16 @@
     {%- endif -%}
   </div>
 
-  {%- if section.blocks.size > 0 -%}
-    <div class="alp-hero__tags">
-      {%- for block in section.blocks -%}
-        {%- case block.type -%}
-          {%- when 'product_tag' -%}
-            {%- if block.settings.product != blank -%}
-              <a class="alp-chip-row" href="{{ block.settings.product.url }}" {{ block.shopify_attributes }} style="text-decoration: none;">
-                <span class="alp-chip">{{ block.settings.product.title | escape }} <span class="alp-glyph">✦</span></span>
-                <span class="alp-chip alp-chip--price">{{ block.settings.product.price | money }}</span>
-              </a>
-            {%- else -%}
-              <span class="alp-chip-row" {{ block.shopify_attributes }}>
-                <span class="alp-chip">{{ block.settings.placeholder_name | default: 'Bush Riding Shorts' | escape }} <span class="alp-glyph">✦</span></span>
-                <span class="alp-chip alp-chip--price">{{ block.settings.placeholder_price | default: '$140' | escape }}</span>
-              </span>
-            {%- endif -%}
-          {%- when 'caption' -%}
-            <span class="alp-chip" {{ block.shopify_attributes }}>{{ block.settings.text | escape }}</span>
-        {%- endcase -%}
-      {%- endfor -%}
-    </div>
-  {%- endif -%}
+  <div class="alp-hero__cta">
+    {%- if section.settings.shorts_product != blank -%}
+      <a class="alp-chip" href="{{ section.settings.shorts_product.url }}">{{ section.settings.shorts_label | default: section.settings.shorts_product.title | escape }} <span class="alp-glyph">✦</span></a>
+    {%- elsif section.settings.shorts_label != blank -%}
+      <a class="alp-chip" href="{{ section.settings.shorts_fallback_url | default: '#' }}">{{ section.settings.shorts_label | escape }} <span class="alp-glyph">✦</span></a>
+    {%- endif -%}
+    {%- if section.settings.map_label != blank -%}
+      <a class="alp-chip" href="{{ section.settings.map_url | default: 'https://map.bushriding.cc' }}">{{ section.settings.map_label | escape }}</a>
+    {%- endif -%}
+  </div>
 </section>
 
 {% schema %}
@@ -63,51 +52,42 @@
       "type": "image_picker",
       "id": "poster",
       "label": "Video poster image"
-    }
-  ],
-  "blocks": [
-    {
-      "type": "product_tag",
-      "name": "Product tag chip",
-      "settings": [
-        {
-          "type": "product",
-          "id": "product",
-          "label": "Product"
-        },
-        {
-          "type": "text",
-          "id": "placeholder_name",
-          "label": "Placeholder name (if no product picked)",
-          "default": "Bush Riding Shorts"
-        },
-        {
-          "type": "text",
-          "id": "placeholder_price",
-          "label": "Placeholder price",
-          "default": "$140"
-        }
-      ]
     },
     {
-      "type": "caption",
-      "name": "Caption chip",
-      "settings": [
-        {
-          "type": "text",
-          "id": "text",
-          "label": "Text",
-          "default": "Designed in Australia — made for the detour"
-        }
-      ]
+      "type": "header",
+      "content": "Buttons"
+    },
+    {
+      "type": "product",
+      "id": "shorts_product",
+      "label": "Featured product"
+    },
+    {
+      "type": "text",
+      "id": "shorts_label",
+      "label": "Product button label",
+      "default": "Bush Riding Shorts"
+    },
+    {
+      "type": "url",
+      "id": "shorts_fallback_url",
+      "label": "Product button URL (if no product picked)"
+    },
+    {
+      "type": "text",
+      "id": "map_label",
+      "label": "Map button label",
+      "default": "BUSH MAP™"
+    },
+    {
+      "type": "url",
+      "id": "map_url",
+      "label": "Map button URL",
+      "info": "Defaults to https://map.bushriding.cc when blank."
     }
   ],
-  "max_blocks": 3,
   "presets": [
-    {
-      "name": "Bush Riding hero",
-      "blocks": [{ "type": "product_tag" }]
-    }
+    { "name": "Bush Riding hero" }
   ]
 }
 {% endschema %}

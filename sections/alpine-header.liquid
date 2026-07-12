@@ -31,10 +31,12 @@
     {%- if section.settings.social_press_url != blank -%}
       <a class="alp-nav-link alp-head__social" href="{{ section.settings.social_press_url }}">{{ section.settings.social_press_label | default: 'Press' | escape }}</a>
     {%- endif -%}
-    <a class="alp-nav-link" href="{{ routes.cart_url }}" id="alp-cart-chip">
+    <a class="alp-nav-link alp-head__cart" href="{{ routes.cart_url }}" id="alp-cart-chip">
       Cart{% if cart.item_count > 0 %} ({{ cart.item_count }}){% endif %}
     </a>
-    <button class="alp-nav-link alp-nav-link--menu" type="button" data-alp-menu-open aria-expanded="false" aria-controls="alp-menu-overlay">Menu</button>
+    <button class="alp-nav-link alp-nav-link--menu" type="button" data-alp-menu-open aria-expanded="false" aria-controls="alp-menu-overlay" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </header>
 
