@@ -19,70 +19,9 @@
         "map_url": "https://map.bushriding.cc",
         "shorts_fallback_url": "/products/bush-riding-shorts"
       }
-    },
-    "alpine_manifesto": {
-      "type": "alpine-manifesto",
-      "blocks": {
-        "para_1": {
-          "type": "paragraph",
-          "settings": {
-            "text": "<p>We ride for the detour ∧ the café stop ∧ the track that didn't make the map.</p>"
-          }
-        },
-        "para_2": {
-          "type": "paragraph",
-          "settings": {
-            "text": "<p>Kit that moves with you ↑ over gravel, dust ÷ and the long way home — built so you forget what you're wearing.</p>"
-          }
-        },
-        "refrain": {
-          "type": "refrain",
-          "settings": {
-            "text": "<p>The best rides begin where the bitumen ends ✦ ride with us.</p>"
-          }
-        }
-      },
-      "block_order": [
-        "para_1",
-        "para_2",
-        "refrain"
-      ],
-      "settings": {
-        "figure": "shopify://shop_images/IMG_2124.jpg"
-      }
-    },
-    "alpine_collection": {
-      "type": "alpine-collection",
-      "settings": {
-        "heading": "Collection",
-        "tagline": "First release — designed in Australia, made for every surface.",
-        "collection": "",
-        "products_to_show": 4,
-        "panel_left": "shopify://shop_images/IMG_0682-removebg-preview.png",
-        "panel_product": ""
-      }
-    },
-    "alpine_statement": {
-      "type": "alpine-statement",
-      "settings": {
-        "text": "Built for dust, distance and the ride home."
-      }
-    },
-    "alpine_story": {
-      "type": "alpine-story",
-      "settings": {
-        "heading": "From the Journal",
-        "text": "We document, we don't advertise. Ride notes, wrong turns and the places they led — told by the riders who were there.",
-        "link_url": "",
-        "link_label": "Read the Journal"
-      }
     }
   },
   "order": [
-    "alpine_hero",
-    "alpine_manifesto",
-    "alpine_collection",
-    "alpine_statement",
-    "alpine_story"
+    "alpine_hero"
   ]
 }

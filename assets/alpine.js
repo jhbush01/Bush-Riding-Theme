@@ -25,18 +25,6 @@
   tick();
   setInterval(tick, 10000);
 
-  /* ── Scrolled: the bar fades away and the hamburger takes over.
-     Back near the top, the bar returns. */
-  function headerSwap() {
-    var scrolled = window.scrollY > 140;
-    var header = document.querySelector('[data-alp-header]');
-    var burger = document.querySelector('[data-alp-burger]');
-    if (header) header.classList.toggle('is-hidden', scrolled);
-    if (burger) burger.classList.toggle('is-on', scrolled);
-  }
-  headerSwap();
-  window.addEventListener('scroll', headerSwap, { passive: true });
-
   /* ── Menu overlay — delegated, so re-rendered headers keep working ── */
   document.addEventListener('click', function (e) {
     var overlay = document.querySelector('[data-alp-menu]');
