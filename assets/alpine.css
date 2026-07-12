@@ -79,9 +79,9 @@ button.alp-chip { cursor: pointer; }
   transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
-/* On the home page the bar floats a third of the way down the hero, part of
-   the composition rather than pinned to the top edge. */
-body.template-index .alp-head { top: 27vh; top: 27svh; }
+/* On the home page the bar floats at the vertical centre of the hero, part
+   of the composition rather than pinned to the top edge. */
+body.template-index .alp-head { top: 50vh; top: 50svh; transform: translateY(-50%); }
 
 /* Scrolled: the bar fades away (all screen sizes) and the hamburger takes
    over, top right. */
@@ -90,7 +90,7 @@ body.template-index .alp-head { top: 27vh; top: 27svh; }
 .alp-burger {
   position: fixed;
   top: max(14px, env(safe-area-inset-top));
-  right: max(16px, env(safe-area-inset-right));
+  left: max(16px, env(safe-area-inset-left));
   z-index: 55;
   display: flex;
   flex-direction: column;
