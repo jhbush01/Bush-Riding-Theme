@@ -84,6 +84,57 @@ button.alp-chip { cursor: pointer; }
 .alp-head__nav { display: flex; gap: 6px; }
 .alp-chip--menu { display: none; }
 
+/* Nav links: bare text, no chip. Slightly translucent with a slow shimmer
+   sweeping through the letters; a soft dark drop-shadow keeps them readable
+   over bright skies and photography alike. */
+.alp-nav-link {
+  padding: 8px 10px;
+  font-family: var(--alp-font-ui);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  white-space: nowrap;
+  background-image: linear-gradient(
+    110deg,
+    rgba(255, 255, 255, 0.68) 25%,
+    rgba(255, 255, 255, 1) 50%,
+    rgba(255, 255, 255, 0.68) 75%
+  );
+  background-size: 220% 100%;
+  background-position: 220% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 1px 4px rgba(22, 21, 15, 0.5));
+  animation: alp-shimmer 7s linear infinite;
+}
+
+.alp-nav-link:hover { filter: drop-shadow(0 1px 4px rgba(22, 21, 15, 0.7)); }
+
+/* Once the bar gains its cream background on scroll, flip the letters to
+   translucent ink so they stay legible on the light ground. */
+.alp-head.is-scrolled .alp-nav-link {
+  background-image: linear-gradient(
+    110deg,
+    rgba(22, 21, 15, 0.62) 25%,
+    rgba(22, 21, 15, 0.95) 50%,
+    rgba(22, 21, 15, 0.62) 75%
+  );
+  background-size: 220% 100%;
+  filter: none;
+}
+
+@keyframes alp-shimmer {
+  from { background-position: 220% 0; }
+  to   { background-position: -120% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .alp-nav-link { animation: none; background-position: 50% 0; }
+}
+
 /* ── Menu overlay ────────────────────────────────────────────────────────── */
 .alp-menu {
   position: fixed; inset: 0; z-index: 60;

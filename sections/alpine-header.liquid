@@ -16,7 +16,7 @@
 
   <nav class="alp-head__nav" aria-label="Primary">
     {%- for link in section.settings.menu.links -%}
-      <a class="alp-chip" href="{{ link.url }}">{{ link.title | escape }}</a>
+      <a class="alp-nav-link" href="{{ link.url }}">{{ link.title | escape }}</a>
     {%- endfor -%}
   </nav>
 
