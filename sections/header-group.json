@@ -17,8 +17,15 @@
         "wordmark": "Bush Riding™",
         "clock_timezone": "Australia/Brisbane",
         "clock_label": "AEST",
+        "shop_label": "Shop",
+        "shop_url": "",
         "map_label": "BUSH MAP™",
-        "shop_label": "Shop"
+        "map_url": "",
+        "menu_shop_image": "shopify://shop_images/IMG_0683.png",
+        "menu_video_url": "",
+        "menu_video_label": "",
+        "menu_video_url_link": "",
+        "signin_sub": "Shop the community"
       }
     }
   },
