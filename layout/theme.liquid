@@ -3,8 +3,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="theme-color" content="">
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+    {%- comment -%} Safari tints the notch/status-bar area with theme-color.
+        Dark over the home hero video, page cream everywhere else. {%- endcomment -%}
+    <meta name="theme-color" content="{% if template.name == 'index' %}#16150F{% else %}#F2F0E8{% endif %}">
     <link rel="canonical" href="{{ canonical_url }}">
 
     {%- if settings.favicon != blank -%}

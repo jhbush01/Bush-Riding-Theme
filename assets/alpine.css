@@ -79,7 +79,9 @@ button.alp-chip { cursor: pointer; }
   align-items: center;
   justify-content: space-between;
   gap: 0 12px;
-  padding: 10px var(--alp-pad-page);
+  /* With viewport-fit=cover the page draws under the notch; keep the bar's
+     text below it. */
+  padding: max(10px, env(safe-area-inset-top)) var(--alp-pad-page) 10px;
   transition: transform 0.3s ease;
 }
 
