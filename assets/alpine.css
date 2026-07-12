@@ -68,12 +68,6 @@ button.alp-chip { cursor: pointer; }
   position: fixed;
   top: 0; left: 0; right: 0;
   z-index: 50;
-  /* Blend the whole bar against the page. position:fixed makes the bar its
-     own stacking context, so blending the LINKS only composited them against
-     the bar's transparent background (no visible effect). Blending the bar
-     itself composites everything inside it — the white letters — against
-     the imagery beneath, which is where the inversion happens. */
-  mix-blend-mode: difference;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -82,15 +76,57 @@ button.alp-chip { cursor: pointer; }
   /* With viewport-fit=cover the page draws under the notch; keep the bar's
      text below it. */
   padding: max(10px, env(safe-area-inset-top)) var(--alp-pad-page) 10px;
-  transition: transform 0.3s ease;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+/* On the home page the bar floats a third of the way down the hero, part of
+   the composition rather than pinned to the top edge. */
+body.template-index .alp-head { top: 27vh; top: 27svh; }
+
+/* Scrolled: the bar fades away (all screen sizes) and the hamburger takes
+   over, top right. */
+.alp-head.is-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+.alp-burger {
+  position: fixed;
+  top: max(14px, env(safe-area-inset-top));
+  right: max(16px, env(safe-area-inset-right));
+  z-index: 55;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.alp-burger.is-on { opacity: 1; visibility: visible; pointer-events: auto; }
+
+.alp-burger span {
+  display: block;
+  width: 26px;
+  height: 2px;
+  border-radius: 1px;
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 1px 3px rgba(22, 21, 15, 0.45);
 }
 
 .alp-head__group { display: flex; align-items: center; gap: 10px; }
 .alp-head__nav { display: flex; gap: 6px; }
 
-/* Header text: bare white type — the difference blend on .alp-head inverts
-   it against whatever passes beneath (bright sky → dark letters, dark bush
-   → light), so it reads as part of the imagery and stays legible anywhere. */
+/* Header text: bare translucent white type — the imagery reads through the
+   letters; a faint shadow keeps them from dissolving on bright sky. (A
+   difference blend was tried here: iOS renders video in a separate plane
+   that CSS blending cannot sample, so it silently fails over the hero.) */
 .alp-nav-link {
   background: transparent;
   border: 0;
@@ -102,10 +138,11 @@ button.alp-chip { cursor: pointer; }
   line-height: 1.2;
   text-decoration: none;
   white-space: nowrap;
-  color: #fff;
+  color: rgba(255, 255, 255, 0.6);
+  text-shadow: 0 1px 4px rgba(22, 21, 15, 0.25);
 }
 
-.alp-nav-link:hover { opacity: 0.75; }
+.alp-nav-link:hover { color: rgba(255, 255, 255, 0.9); }
 
 .alp-nav-link--wordmark { font-weight: 800; font-size: clamp(1.55rem, 2vw + 1rem, 2.85rem); letter-spacing: 0.01em; }
 .alp-nav-link--clock { font-weight: 500; font-variant-numeric: tabular-nums; font-size: clamp(1rem, 1.2vw + 0.7rem, 1.8rem); }
@@ -375,8 +412,6 @@ button.alp-chip { cursor: pointer; }
   .alp-head__nav, .alp-head__social { display: none; }
   .alp-nav-link--menu { display: inline-flex; }
 
-  /* Mobile: the bar slides away scrolling down, returns scrolling up. */
-  .alp-head.is-hidden { transform: translateY(-110%); }
 
   .alp-collection__duo { grid-template-columns: 1fr; }
   .alp-collection__panel { height: 62vh; }

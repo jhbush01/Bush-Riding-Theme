@@ -38,6 +38,12 @@
   </div>
 </header>
 
+{%- comment -%} Scrolled state: the bar fades out and this minimal
+    hamburger (no background) takes over, top right. {%- endcomment -%}
+<button class="alp alp-burger" type="button" data-alp-burger data-alp-menu-open aria-expanded="false" aria-controls="alp-menu-overlay" aria-label="Menu">
+  <span></span><span></span><span></span>
+</button>
+
 <div class="alp alp-menu" id="alp-menu-overlay" data-alp-menu hidden>
   <button class="alp-chip alp-menu__close" type="button" data-alp-menu-close>Close</button>
   <nav aria-label="Overlay">

@@ -25,22 +25,17 @@
   tick();
   setInterval(tick, 10000);
 
-  /* ── Mobile: hide the header scrolling down, show it scrolling up.
-     The class is toggled everywhere but only styled under the mobile
-     breakpoint, so desktop is unaffected. */
-  var lastY = window.scrollY;
-
-  window.addEventListener('scroll', function () {
+  /* ── Scrolled: the bar fades away and the hamburger takes over.
+     Back near the top, the bar returns. */
+  function headerSwap() {
+    var scrolled = window.scrollY > 140;
     var header = document.querySelector('[data-alp-header]');
-    if (!header) return;
-    var y = window.scrollY;
-    if (y > lastY + 4 && y > 90) {
-      header.classList.add('is-hidden');
-    } else if (y < lastY - 4 || y <= 90) {
-      header.classList.remove('is-hidden');
-    }
-    lastY = y;
-  }, { passive: true });
+    var burger = document.querySelector('[data-alp-burger]');
+    if (header) header.classList.toggle('is-hidden', scrolled);
+    if (burger) burger.classList.toggle('is-on', scrolled);
+  }
+  headerSwap();
+  window.addEventListener('scroll', headerSwap, { passive: true });
 
   /* ── Menu overlay — delegated, so re-rendered headers keep working ── */
   document.addEventListener('click', function (e) {
