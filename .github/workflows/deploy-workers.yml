@@ -1,7 +1,7 @@
 # Auto-deploy the Cloudflare Workers on push to the map's production branch.
 #
-# The map front-end (bushridingmap.com) is a Cloudflare Pages project that
-# auto-builds from this repo. The Workers (api.bushridingmap.com and the diary
+# The map front-end (map.bushriding.cc) is a Cloudflare Pages project that
+# auto-builds from this repo. The Workers (map-api.bushriding.cc and the diary
 # worker) are separate and don't auto-deploy on their own — this workflow does
 # it, so a push that changes worker code goes live like the site does.
 #
@@ -39,7 +39,7 @@ jobs:
             diary:
               - 'diary-worker/**'
 
-      - name: Deploy community worker (api.bushridingmap.com)
+      - name: Deploy community worker (map-api.bushriding.cc)
         if: steps.changes.outputs.community == 'true' || github.event_name == 'workflow_dispatch'
         uses: cloudflare/wrangler-action@v3
         with:

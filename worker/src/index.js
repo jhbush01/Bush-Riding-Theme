@@ -254,7 +254,7 @@ async function seedEventsIfEmpty(env) {
     return;
   }
 
-  const site = (env.SITE_URL || "https://bushridingmap.com").replace(/\/$/, "");
+  const site = (env.SITE_URL || "https://map.bushriding.cc").replace(/\/$/, "");
   let fc;
   try {
     const res = await fetch(site + "/data/events.geojson", { cf: { cacheTtl: 0 } });
@@ -428,7 +428,7 @@ async function resolveRoutePoint(env, routeId) {
     /* fall through to curated */
   }
   try {
-    const site = (env.SITE_URL || "https://bushridingmap.com").replace(/\/$/, "");
+    const site = (env.SITE_URL || "https://map.bushriding.cc").replace(/\/$/, "");
     const res = await fetch(site + "/data/routes.geojson", { cf: { cacheTtl: 0 } });
     if (res.ok) {
       const fc = await res.json();
@@ -474,7 +474,7 @@ async function routeOptions(env) {
   } catch {
     /* ignore */
   }
-  const site = (env.SITE_URL || "https://bushridingmap.com").replace(/\/$/, "");
+  const site = (env.SITE_URL || "https://map.bushriding.cc").replace(/\/$/, "");
   try {
     const res = await fetch(site + "/data/routes.geojson", { cf: { cacheTtl: 0 } });
     if (res.ok) {

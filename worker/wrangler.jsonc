@@ -8,13 +8,13 @@
 
   "vars": {
     // Origins allowed to call /submit and /routes from the browser.
-    "ALLOWED_ORIGINS": "https://bushridingmap.com,https://www.bushridingmap.com",
+    "ALLOWED_ORIGINS": "https://map.bushriding.cc",
     // Public base URL of THIS worker (used to build gpx_url/photo_url).
     // The worker's own public URL (used to build gpx_url/photo_url).
-    "PUBLIC_URL": "https://api.bushridingmap.com",
+    "PUBLIC_URL": "https://map-api.bushriding.cc",
     // The map SITE base URL. The admin Events section reads the base event
     // list from `${SITE_URL}/data/events.geojson`. Defaults to this if unset.
-    "SITE_URL": "https://bushridingmap.com",
+    "SITE_URL": "https://map.bushriding.cc",
     // Repo (owner/name) whose "Generate route pages" Action rebuilds the static
     // route pages when a route changes. Needs the GITHUB_DISPATCH_TOKEN secret.
     "GITHUB_REPO": "jhbush01/Bush-Riding-Theme"

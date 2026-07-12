@@ -33,8 +33,8 @@ map/                  # static front-end (Cloudflare Pages)
   public/<id>.jpg     # hero/landing photos
   favicon.svg, _redirects, _headers
 
-worker/               # community routes Worker (api.bushridingmap.com) — see worker/README.md
-diary-worker/         # personal ride diary Worker (diary.bushridingmap.com) — see diary-worker/README.md
+worker/               # community routes Worker (map-api.bushriding.cc) — see worker/README.md
+diary-worker/         # personal ride diary Worker (diary.bushriding.cc) — see diary-worker/README.md
 ```
 
 ### System overview

@@ -8,7 +8,7 @@
  * Data source (single source of truth = the live community API, so current and
  * future routes are structured identically):
  *   1. BRM_ROUTES_FILE env  → read that local GeoJSON/JSON file (used for tests)
- *   2. else fetch BRM_ROUTES_API (default https://api.bushridingmap.com/routes)
+ *   2. else fetch BRM_ROUTES_API (default https://map-api.bushriding.cc/routes)
  *   3. else fall back to the committed map/data/routes.geojson
  * A fetch failure never fails the build — it falls back so a deploy still ships.
  *
@@ -22,15 +22,15 @@ const path = require("path");
 const ROOT = path.join(__dirname, "..");
 const MAP_DIR = path.join(ROOT, "map");
 const OUT_DIR = path.join(MAP_DIR, "routes");
-const SITE = (process.env.BRM_SITE || "https://bushridingmap.com").replace(/\/$/, "");
-const ROUTES_API = process.env.BRM_ROUTES_API || "https://api.bushridingmap.com/routes";
+const SITE = (process.env.BRM_SITE || "https://map.bushriding.cc").replace(/\/$/, "");
+const ROUTES_API = process.env.BRM_ROUTES_API || "https://map-api.bushriding.cc/routes";
 const ROUTES_FILE = process.env.BRM_ROUTES_FILE || "";
 // GPX (for the route-shape map + elevation profile). Fetched from each route's
 // gpx_url at build; BRM_GPX_DIR points at local <id>.gpx files for offline tests.
 const GPX_DIR = process.env.BRM_GPX_DIR || "";
 // Community events (for the /events/ directory). Live from the Worker; falls
 // back to the committed seed. BRM_EVENTS_FILE overrides for offline tests.
-const EVENTS_API = process.env.BRM_EVENTS_API || "https://api.bushridingmap.com/events";
+const EVENTS_API = process.env.BRM_EVENTS_API || "https://map-api.bushriding.cc/events";
 const EVENTS_FILE = process.env.BRM_EVENTS_FILE || "";
 
 async function loadEvents() {

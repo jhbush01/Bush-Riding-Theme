@@ -26,7 +26,7 @@ map/routes/{state}/{region}/{route-id}/index.html      → /routes/qld/southern-
 The generator resolves routes in this order:
 
 1. `BRM_ROUTES_FILE=/path/to/routes.geojson` — read a local file (used for tests).
-2. Otherwise **fetch `BRM_ROUTES_API`** (default `https://api.bushridingmap.com/routes`) —
+2. Otherwise **fetch `BRM_ROUTES_API`** (default `https://map-api.bushriding.cc/routes`) —
    the live published community routes. This keeps current and future routes
    structured identically with no manual step.
 3. If the fetch fails, fall back to the committed `map/data/routes.geojson` so a
@@ -57,7 +57,7 @@ next deploy/schedule), let the community Worker trigger the Action:
 
 1. Create a GitHub token with **contents: write** on this repo (fine-grained
    token scoped to the repo is ideal).
-2. On the **community Worker** (api.bushridingmap.com):
+2. On the **community Worker** (map-api.bushriding.cc):
    `wrangler secret put GITHUB_DISPATCH_TOKEN` → paste the token.
    (`GITHUB_REPO` is already set in `wrangler.jsonc`.)
 

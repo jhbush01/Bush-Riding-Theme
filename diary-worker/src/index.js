@@ -12,7 +12,7 @@ export default {
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
 
     try {
-      // Works whether reached directly (diary.bushridingmap.com/...) or via a
+      // Works whether reached directly (diary.bushriding.cc/...) or via a
       // /diary-api/* proxy or Worker Route on the Pages domain.
       let p = url.pathname;
       if (p.startsWith("/diary-api")) p = p.slice("/diary-api".length) || "/";

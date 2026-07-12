@@ -37,20 +37,20 @@ npm run deploy
 ```
 
 Then map a custom domain to the Worker (Cloudflare dashboard → your Worker →
-Settings → Domains & Routes → add `api.bushridingmap.com`) and make sure
+Settings → Domains & Routes → add `map-api.bushriding.cc`) and make sure
 `wrangler.jsonc` `vars` are right:
 
-- `PUBLIC_URL` = the Worker's public URL (e.g. `https://api.bushridingmap.com`) —
+- `PUBLIC_URL` = the Worker's public URL (e.g. `https://map-api.bushriding.cc`) —
   used to build `gpx_url` / `photo_url`.
 - `ALLOWED_ORIGINS` = comma-separated origins allowed to call it from the browser
-  (the Pages site): `https://bushridingmap.com,https://www.bushridingmap.com`.
+  (the Pages site): `https://map.bushriding.cc,https://map.bushriding.cc`.
 
 Finally, point the front-end at it: set `communityApi` in **`map/map.html`** and
 **`map/submit.html`** to the Worker URL, commit, and let Pages redeploy.
 
 ## Moderation
 
-Visit `https://api.bushridingmap.com/admin`. The browser prompts for a username
+Visit `https://map-api.bushriding.cc/admin`. The browser prompts for a username
 (`admin`) and password (your `ADMIN_TOKEN`). You'll see each submission with a
 shape preview; Approve to publish it to the map, Reject to hide, Delete to remove
 it and its files.

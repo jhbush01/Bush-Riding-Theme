@@ -1,6 +1,8 @@
-# Canonicalise to the apex domain. Requires www.bushridingmap.com to be added
-# as a custom domain on the Pages project so requests reach Pages.
-https://www.bushridingmap.com/* https://bushridingmap.com/:splat 301!
+# Legacy domain: bushridingmap.com (and www) stay attached to this Pages
+# project so old links, search results and QR codes keep working — everything
+# permanently redirects to the site's home at map.bushriding.cc.
+https://www.bushridingmap.com/* https://map.bushriding.cc/:splat 301!
+https://bushridingmap.com/* https://map.bushriding.cc/:splat 301!
 
 # The map is now the homepage; keep old /map links (and deep links /map#id,
 # whose hash the browser preserves) working.

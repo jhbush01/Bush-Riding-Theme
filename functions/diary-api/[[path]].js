@@ -1,13 +1,13 @@
 // Same-origin proxy to the diary worker.
 //
-// The browser kept failing cross-origin requests to diary.bushridingmap.com
+// The browser kept failing cross-origin requests to diary.bushriding.cc
 // ("Load failed"). This Cloudflare Pages Function serves /diary-api/* on
-// bushridingmap.com itself and forwards to the diary worker server-side, so the
+// map.bushriding.cc itself and forwards to the diary worker server-side, so the
 // browser never makes a cross-origin request at all.
 export async function onRequest(context) {
   const { request, params, env } = context;
   try {
-    const origin = (env && env.DIARY_ORIGIN) || "https://diary.bushridingmap.com";
+    const origin = (env && env.DIARY_ORIGIN) || "https://diary.bushriding.cc";
     const url = new URL(request.url);
     const sub = Array.isArray(params.path) ? params.path.join("/") : params.path || "";
     const target = origin.replace(/\/$/, "") + "/" + sub + url.search;

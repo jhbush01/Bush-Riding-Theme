@@ -25,10 +25,10 @@ wrangler secret put JWT_SECRET
 npm run deploy
 ```
 
-Then add the custom domain **`diary.bushridingmap.com`** to the Worker
+Then add the custom domain **`diary.bushriding.cc`** to the Worker
 (Settings → Domains & Routes), and confirm `wrangler.jsonc` vars:
-- `PUBLIC_URL` = `https://diary.bushridingmap.com`
-- `ALLOWED_ORIGINS` = `https://bushridingmap.com,https://www.bushridingmap.com`
+- `PUBLIC_URL` = `https://diary.bushriding.cc`
+- `ALLOWED_ORIGINS` = `https://map.bushriding.cc,https://map.bushriding.cc`
 
 Front-end uses it via `BRM_CONFIG.diaryApi` with `credentials: "include"` so the
 httpOnly session cookie is sent.

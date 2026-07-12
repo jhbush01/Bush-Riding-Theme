@@ -8,9 +8,9 @@
 
   "vars": {
     // Origins allowed to call the diary API from the browser (credentialed).
-    "ALLOWED_ORIGINS": "https://bushridingmap.com,https://www.bushridingmap.com",
+    "ALLOWED_ORIGINS": "https://map.bushriding.cc",
     // Photo URLs are built same-origin via the Pages proxy (/diary-api), so the
-    // browser fetches them from bushridingmap.com, not cross-origin.
+    // browser fetches them from map.bushriding.cc, not cross-origin.
     "PUBLIC_URL": "/diary-api",
     // Accounts (comma-separated emails) that can delete ANY review from the
     // route card. Everyone can still delete their own. Set to your login email.
