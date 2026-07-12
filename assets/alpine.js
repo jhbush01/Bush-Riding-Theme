@@ -30,6 +30,14 @@
   tick();
   setInterval(tick, 1000);
 
+  /* ── Header background on scroll ── */
+  function onScroll() {
+    var header = document.querySelector('[data-alp-header]');
+    if (header) header.classList.toggle('is-scrolled', window.scrollY > 24);
+  }
+  onScroll();
+  window.addEventListener('scroll', onScroll, { passive: true });
+
   /* ── Menu overlay — delegated, so re-rendered headers keep working ── */
   document.addEventListener('click', function (e) {
     var overlay = document.querySelector('[data-alp-menu]');
