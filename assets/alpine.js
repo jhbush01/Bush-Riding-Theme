@@ -45,6 +45,15 @@
     if (!overlay) return;
 
     if (e.target.closest('[data-alp-menu-open]')) {
+      /* Expand from the Menu button's centre. */
+      if (openBtn) {
+        var r = openBtn.getBoundingClientRect();
+        overlay.style.setProperty('--alp-cx', (r.left + r.width / 2) + 'px');
+        overlay.style.setProperty('--alp-cy', (r.top + r.height / 2) + 'px');
+      }
+      /* Lazy-load the live map only the first time the menu opens. */
+      var mapFrame = overlay.querySelector('[data-alp-map-src]');
+      if (mapFrame && !mapFrame.src) mapFrame.src = mapFrame.getAttribute('data-alp-map-src');
       overlay.classList.add('is-open');
       overlay.setAttribute('aria-hidden', 'false');
       if (openBtn) openBtn.setAttribute('aria-expanded', 'true');
