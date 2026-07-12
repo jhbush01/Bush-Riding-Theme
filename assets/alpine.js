@@ -8,35 +8,52 @@
 
   var DESIGN_MODE = window.Shopify && window.Shopify.designMode;
 
-  /* ── Live clock — "14:07:59 (PST) Tuesday July 7 2026" ──
-     The element is re-queried every tick so a re-rendered header keeps a
-     working clock without re-binding anything. */
-  function tick() {
-    var clock = document.querySelector('[data-alp-clock]');
-    if (!clock) return;
-    var tz = clock.getAttribute('data-alp-clock') || 'America/Los_Angeles';
-    var label = clock.getAttribute('data-alp-clock-label') || 'PST';
-    var now = new Date();
-    var time = new Intl.DateTimeFormat('en-GB', {
-      hour: '2-digit', minute: '2-digit', second: '2-digit',
+  /* ── Gravel tyre clock ──
+     Analog hands on the tyre SVG, ticking in the timezone configured on the
+     element. Elements are re-queried every tick so a re-rendered header
+     keeps a working clock without re-binding anything. */
+  function tzParts(tz) {
+    var parts = new Intl.DateTimeFormat('en-GB', {
+      hour: 'numeric', minute: 'numeric', second: 'numeric',
       hour12: false, timeZone: tz
-    }).format(now);
-    var date = new Intl.DateTimeFormat('en-US', {
-      weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
-      timeZone: tz
-    }).format(now).replace(/,/g, '');
-    clock.textContent = time + ' (' + label + ') ' + date;
+    }).formatToParts(new Date());
+    var out = {};
+    parts.forEach(function (p) { if (p.type !== 'literal') out[p.type] = parseInt(p.value, 10); });
+    return out;
+  }
+
+  function tick() {
+    document.querySelectorAll('[data-alp-tyre]').forEach(function (tyre) {
+      var tz = tyre.getAttribute('data-alp-tyre') || 'America/Los_Angeles';
+      var t;
+      try { t = tzParts(tz); } catch (_) { t = tzParts('UTC'); }
+      var hour = tyre.querySelector('[data-alp-hand="hour"]');
+      var minute = tyre.querySelector('[data-alp-hand="minute"]');
+      var second = tyre.querySelector('[data-alp-hand="second"]');
+      if (hour) hour.setAttribute('transform', 'rotate(' + ((t.hour % 12) * 30 + t.minute * 0.5) + ' 50 50)');
+      if (minute) minute.setAttribute('transform', 'rotate(' + (t.minute * 6 + t.second * 0.1) + ' 50 50)');
+      if (second) second.setAttribute('transform', 'rotate(' + (t.second * 6) + ' 50 50)');
+    });
   }
   tick();
   setInterval(tick, 1000);
 
-  /* ── Header background on scroll ── */
-  function onScroll() {
+  /* ── Mobile: hide the header scrolling down, show it scrolling up.
+     The class is toggled everywhere but only styled under the mobile
+     breakpoint, so desktop is unaffected. */
+  var lastY = window.scrollY;
+
+  window.addEventListener('scroll', function () {
     var header = document.querySelector('[data-alp-header]');
-    if (header) header.classList.toggle('is-scrolled', window.scrollY > 24);
-  }
-  onScroll();
-  window.addEventListener('scroll', onScroll, { passive: true });
+    if (!header) return;
+    var y = window.scrollY;
+    if (y > lastY + 4 && y > 90) {
+      header.classList.add('is-hidden');
+    } else if (y < lastY - 4 || y <= 90) {
+      header.classList.remove('is-hidden');
+    }
+    lastY = y;
+  }, { passive: true });
 
   /* ── Menu overlay — delegated, so re-rendered headers keep working ── */
   document.addEventListener('click', function (e) {

@@ -74,10 +74,8 @@ button.alp-chip { cursor: pointer; }
   justify-content: space-between;
   gap: 0 12px;
   padding: 10px var(--alp-pad-page);
-  transition: background-color 0.25s ease;
+  transition: transform 0.3s ease;
 }
-
-.alp-head.is-scrolled { background: var(--alp-bg); box-shadow: 0 1px 0 var(--alp-line); }
 
 .alp-head__group { display: flex; align-items: center; gap: 10px; }
 .alp-head__nav { display: flex; gap: 6px; }
@@ -96,24 +94,22 @@ button.alp-chip { cursor: pointer; }
   line-height: 1.2;
   text-decoration: none;
   white-space: nowrap;
-  color: rgba(255, 255, 255, 0.42);
+  color: rgba(255, 255, 255, 0.5);
   text-shadow: 0 1px 4px rgba(22, 21, 15, 0.18);
 }
 
-.alp-nav-link:hover { color: rgba(255, 255, 255, 0.7); }
+.alp-nav-link:hover { color: rgba(255, 255, 255, 0.75); }
 
 .alp-nav-link--wordmark { font-weight: 800; font-size: clamp(1.55rem, 2vw + 1rem, 2.85rem); letter-spacing: 0.01em; }
-.alp-nav-link--clock { font-weight: 500; font-variant-numeric: tabular-nums; font-size: clamp(1rem, 1.2vw + 0.7rem, 1.8rem); }
 .alp-nav-link--menu { display: none; }
 
-/* Once the bar gains its cream background on scroll, flip the letters to
-   translucent ink — low-opacity white would vanish on the light ground. */
-.alp-head.is-scrolled .alp-nav-link {
-  color: rgba(22, 21, 15, 0.5);
-  text-shadow: none;
+/* Gravel tyre clock, far right corner of the bar. */
+.alp-tyre {
+  width: clamp(56px, 4.5vw + 34px, 92px);
+  height: auto;
+  flex-shrink: 0;
+  margin-left: 4px;
 }
-
-.alp-head.is-scrolled .alp-nav-link:hover { color: rgba(22, 21, 15, 0.85); }
 
 /* ── Menu overlay ────────────────────────────────────────────────────────── */
 .alp-menu {
@@ -378,6 +374,9 @@ button.alp-chip { cursor: pointer; }
 @media (max-width: 860px) {
   .alp-head__nav, .alp-head__social { display: none; }
   .alp-nav-link--menu { display: inline-flex; }
+
+  /* Mobile: the bar slides away scrolling down, returns scrolling up. */
+  .alp-head.is-hidden { transform: translateY(-110%); }
 
   .alp-collection__duo { grid-template-columns: 1fr; }
   .alp-collection__panel { height: 62vh; }
