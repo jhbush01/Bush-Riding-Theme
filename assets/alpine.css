@@ -386,6 +386,10 @@ button.alp-chip { cursor: pointer; }
   .alp-reveal { opacity: 1; transform: none; transition: none; }
 }
 
+/* In the theme editor, sections are re-rendered on every tweak; never hide
+   content behind the reveal animation there. */
+.shopify-design-mode .alp-reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+
 /* ── Breakpoints ─────────────────────────────────────────────────────────── */
 @media (max-width: 989px) {
   .alp-collection__rail { grid-template-columns: repeat(2, 1fr); }

@@ -1,11 +1,19 @@
-/* ALP1NE™ theme skin — behaviour, translated from the alp1ne/ design study. */
+/* ALP1NE™ theme skin — behaviour, translated from the alp1ne/ design study.
+   Written to survive the Shopify theme editor: the editor re-renders section
+   HTML in place, so everything here either re-initialises on
+   shopify:section:load or works via delegation/polling that doesn't care
+   when the DOM is swapped out. */
 (function () {
   'use strict';
 
-  /* ── Live clock — "14:07:59 (PST) Tuesday July 7 2026" ── */
-  var clock = document.querySelector('[data-alp-clock]');
+  var DESIGN_MODE = window.Shopify && window.Shopify.designMode;
 
+  /* ── Live clock — "14:07:59 (PST) Tuesday July 7 2026" ──
+     The element is re-queried every tick so a re-rendered header keeps a
+     working clock without re-binding anything. */
   function tick() {
+    var clock = document.querySelector('[data-alp-clock]');
+    if (!clock) return;
     var tz = clock.getAttribute('data-alp-clock') || 'America/Los_Angeles';
     var label = clock.getAttribute('data-alp-clock-label') || 'PST';
     var now = new Date();
@@ -19,70 +27,74 @@
     }).format(now).replace(/,/g, '');
     clock.textContent = time + ' (' + label + ') ' + date;
   }
-
-  if (clock) {
-    tick();
-    setInterval(tick, 1000);
-  }
+  tick();
+  setInterval(tick, 1000);
 
   /* ── Header background on scroll ── */
-  var header = document.querySelector('[data-alp-header]');
-
   function onScroll() {
-    header.classList.toggle('is-scrolled', window.scrollY > 24);
+    var header = document.querySelector('[data-alp-header]');
+    if (header) header.classList.toggle('is-scrolled', window.scrollY > 24);
   }
+  onScroll();
+  window.addEventListener('scroll', onScroll, { passive: true });
 
-  if (header) {
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-  }
+  /* ── Menu overlay — delegated, so re-rendered headers keep working ── */
+  document.addEventListener('click', function (e) {
+    var overlay = document.querySelector('[data-alp-menu]');
+    var openBtn = document.querySelector('[data-alp-menu-open]');
+    if (!overlay) return;
 
-  /* ── Menu overlay ── */
-  var overlay = document.querySelector('[data-alp-menu]');
-  var openBtn = document.querySelector('[data-alp-menu-open]');
-  var closeBtn = document.querySelector('[data-alp-menu-close]');
-
-  function openMenu() {
-    overlay.hidden = false;
-    openBtn.setAttribute('aria-expanded', 'true');
-    closeBtn.focus();
-  }
-
-  function closeMenu() {
-    overlay.hidden = true;
-    openBtn.setAttribute('aria-expanded', 'false');
-    openBtn.focus();
-  }
-
-  if (overlay && openBtn && closeBtn) {
-    openBtn.addEventListener('click', openMenu);
-    closeBtn.addEventListener('click', closeMenu);
-    overlay.querySelectorAll('[data-alp-menu-link]').forEach(function (link) {
-      link.addEventListener('click', function () {
-        overlay.hidden = true;
+    if (e.target.closest('[data-alp-menu-open]')) {
+      overlay.hidden = false;
+      if (openBtn) openBtn.setAttribute('aria-expanded', 'true');
+      var closeBtn = overlay.querySelector('[data-alp-menu-close]');
+      if (closeBtn) closeBtn.focus();
+    } else if (e.target.closest('[data-alp-menu-close]') || e.target.closest('[data-alp-menu-link]')) {
+      overlay.hidden = true;
+      if (openBtn) {
         openBtn.setAttribute('aria-expanded', 'false');
-      });
-    });
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && !overlay.hidden) closeMenu();
-    });
-  }
+        if (e.target.closest('[data-alp-menu-close]')) openBtn.focus();
+      }
+    }
+  });
 
-  /* ── Scroll reveal ── */
+  document.addEventListener('keydown', function (e) {
+    var overlay = document.querySelector('[data-alp-menu]');
+    if (e.key === 'Escape' && overlay && !overlay.hidden) {
+      overlay.hidden = true;
+      var openBtn = document.querySelector('[data-alp-menu-open]');
+      if (openBtn) { openBtn.setAttribute('aria-expanded', 'false'); openBtn.focus(); }
+    }
+  });
+
+  /* ── Scroll reveal ──
+     Skipped entirely in the theme editor (sections are re-rendered on every
+     tweak and would come back opacity-0); alpine.css also forces visibility
+     under .shopify-design-mode as a belt-and-suspenders. */
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var targets = document.querySelectorAll('.alp-reveal');
+  var io = null;
 
-  if (reduceMotion || !('IntersectionObserver' in window)) {
-    targets.forEach(function (el) { el.classList.add('is-in'); });
-  } else {
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('is-in');
-          io.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.15 });
+  function initReveals() {
+    var targets = document.querySelectorAll('.alp-reveal:not(.is-in)');
+    if (DESIGN_MODE || reduceMotion || !('IntersectionObserver' in window)) {
+      targets.forEach(function (el) { el.classList.add('is-in'); });
+      return;
+    }
+    if (!io) {
+      io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-in');
+            io.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.15 });
+    }
     targets.forEach(function (el) { io.observe(el); });
   }
+
+  initReveals();
+
+  /* Editor hooks: re-run reveal setup whenever a section is (re)loaded. */
+  document.addEventListener('shopify:section:load', initReveals);
 })();
