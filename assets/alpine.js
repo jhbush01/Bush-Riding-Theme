@@ -33,6 +33,7 @@
     if (!overlay) return;
     overlay.classList.remove('is-open');
     overlay.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('alp-menu-open');
     if (openBtn) {
       openBtn.setAttribute('aria-expanded', 'false');
       if (focusBtn) openBtn.focus();
@@ -56,6 +57,7 @@
       if (mapFrame && !mapFrame.src) mapFrame.src = mapFrame.getAttribute('data-alp-map-src');
       overlay.classList.add('is-open');
       overlay.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('alp-menu-open');
       if (openBtn) openBtn.setAttribute('aria-expanded', 'true');
       var closeBtn = overlay.querySelector('[data-alp-menu-close]');
       if (closeBtn) closeBtn.focus();

@@ -485,8 +485,11 @@ body.template-index .alp-nav-link:hover { color: #fff; }
 
 /* ── Home page: one non-scrolling screen ─────────────────────────────────────
    The hero fills the viewport and the footer is laid over its base in small
-   dark-grey type. Applies to the home template only; inner pages keep the
-   normal stacked footer. */
+   dark-grey type. The footer appears ONLY on the home page (hidden on every
+   other template), and it disappears while the menu overlay is open. */
+body:not(.template-index) .alp-foot { display: none; }
+body.alp-menu-open .alp-foot { display: none; }
+
 body.template-index { overflow: hidden; }
 body.template-index .alp-hero { height: 100svh; min-height: 100svh; }
 
