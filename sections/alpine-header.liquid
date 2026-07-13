@@ -4,11 +4,11 @@
   Bar (both platforms, one line): Bush Riding™ + clock on the left,
   Shop + Explore on the right.
 
-  Explore menu (expands from the button):
-  · Desktop/tablet — 2×2 quarters: Discover Launch Collection, Shop,
-    Bush Map (live feed), Video + socials. Scroll below for nav/legal links.
-  · Mobile — vertical scroll of 16:9 cards (Discover, Bush Map, Video);
-    titles are chip buttons bottom-left; nav/legal links underneath.
+  Explore menu (expands from the button): a vertical scroll of full-width
+  16:9 landscape sections on every platform — Discover Launch Collection,
+  Shop (desktop only; mobile has Shop in the bar), Bush Map (live feed, or
+  image/video when set), Video + socials — titled by off-white chip buttons
+  bottom-right, with nav/legal links underneath.
 
   Panel media: image via image_tag (so the focal point set in the editor is
   honoured) and/or a video — video plays when set, with the image as poster.
@@ -65,7 +65,6 @@
         {%- else -%}
           <span class="alp-menu__media alp-menu__media--ph"></span>
         {%- endif -%}
-        <span class="alp-menu__label">{{ discover_label | escape }}</span>
         <span class="alp-chip alp-menu__chip">{{ discover_label | escape }} <span class="alp-glyph">✦</span></span>
       </a>
 
@@ -81,14 +80,21 @@
         {%- else -%}
           <span class="alp-menu__media alp-menu__media--ph"></span>
         {%- endif -%}
-        <span class="alp-menu__label">{{ shop_label | escape }}</span>
         <span class="alp-chip alp-menu__chip">{{ shop_label | escape }} <span class="alp-glyph">✦</span></span>
       </a>
 
       {%- comment -%} Bush Map — live feed background {%- endcomment -%}
       <a class="alp-menu__q alp-menu__q--map" href="{{ map_url }}" data-alp-menu-link>
-        <iframe class="alp-menu__map" data-alp-map-src="{{ map_url }}" title="Live map" tabindex="-1" loading="lazy" referrerpolicy="no-referrer"></iframe>
-        <span class="alp-menu__label">{{ map_label | escape }}</span>
+        {%- if section.settings.map_video_url != blank -%}
+          <video class="alp-menu__media" autoplay muted loop playsinline aria-hidden="true"
+            {% if section.settings.map_image != blank %}poster="{{ section.settings.map_image | image_url: width: 1600 }}"{% endif %}>
+            <source src="{{ section.settings.map_video_url }}" type="video/mp4">
+          </video>
+        {%- elsif section.settings.map_image != blank -%}
+          {{ section.settings.map_image | image_url: width: 1800 | image_tag: class: 'alp-menu__media', loading: 'lazy', alt: '' }}
+        {%- else -%}
+          <iframe class="alp-menu__map" data-alp-map-src="{{ map_url }}" title="Live map" tabindex="-1" loading="lazy" referrerpolicy="no-referrer"></iframe>
+        {%- endif -%}
         <span class="alp-chip alp-menu__chip">{{ map_label | escape }}</span>
       </a>
 
@@ -105,7 +111,7 @@
           <span class="alp-menu__media alp-menu__media--ph"></span>
         {%- endif -%}
         {%- if section.settings.menu_video_label != blank -%}
-          <span class="alp-menu__label">{{ section.settings.menu_video_label | escape }}</span>
+          <span class="alp-chip alp-menu__chip">{{ section.settings.menu_video_label | escape }}</span>
         {%- endif -%}
         <div class="alp-menu__social">
           {%- if section.settings.youtube_url != blank -%}
@@ -184,7 +190,9 @@
     { "type": "url", "id": "menu_shop_video_url", "label": "Video MP4 URL" },
     { "type": "header", "content": "Explore — Bush Map panel" },
     { "type": "text", "id": "map_label", "label": "Label", "default": "BUSH MAP™" },
-    { "type": "url", "id": "map_url", "label": "URL", "info": "Defaults to https://map.bushriding.cc. Shown as a live feed." },
+    { "type": "url", "id": "map_url", "label": "URL", "info": "Defaults to https://map.bushriding.cc." },
+    { "type": "image_picker", "id": "map_image", "label": "Image", "info": "Image/video replace the live map feed when set." },
+    { "type": "url", "id": "map_video_url", "label": "Video MP4 URL" },
     { "type": "header", "content": "Explore — Video panel" },
     { "type": "url", "id": "menu_video_url", "label": "Video MP4 URL" },
     { "type": "image_picker", "id": "menu_video_poster", "label": "Image / poster" },
