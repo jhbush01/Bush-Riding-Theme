@@ -46,11 +46,15 @@
     if (!overlay) return;
 
     if (e.target.closest('[data-alp-menu-open]')) {
-      /* Expand from the Menu button's centre. */
+      /* Expand from the Explore button's centre. Set the origin, then force a
+         style flush so the CLOSED clip-path is recomputed at the new origin
+         before we open — otherwise the very first click interpolates position
+         from the default top-right corner instead of growing from the button. */
       if (openBtn) {
         var r = openBtn.getBoundingClientRect();
         overlay.style.setProperty('--alp-cx', (r.left + r.width / 2) + 'px');
         overlay.style.setProperty('--alp-cy', (r.top + r.height / 2) + 'px');
+        void overlay.offsetWidth; /* flush: commit the new origin to the closed state */
       }
       /* Lazy-load the live map only the first time the menu opens. */
       var mapFrame = overlay.querySelector('[data-alp-map-src]');

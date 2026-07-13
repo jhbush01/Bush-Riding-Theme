@@ -529,24 +529,11 @@ body.template-index .alp-foot {
 }
 
 /* Trim the full footer down to a compact overlaid strip on home. */
+/* Home footer: only the copyright line, at double size. Everything else goes. */
 body.template-index .alp-foot__wordmark,
-body.template-index .alp-foot__dispatch { display: none; }
-
-body.template-index .alp-foot__columns {
-  border: 0;
-  padding: 0;
-  grid-template-columns: none;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: baseline;
-  gap: 4px 20px;
-}
-body.template-index .alp-foot__columns nav { display: flex; align-items: baseline; gap: 8px; }
-body.template-index .alp-foot__columns h3 { margin: 0; font-size: 0.6rem; color: var(--alp-citrus); opacity: 0.75; }
-body.template-index .alp-foot__columns ul { flex-direction: row; gap: 12px; }
-body.template-index .alp-foot__columns a { font-size: 0.72rem; color: var(--alp-citrus); }
-body.template-index .alp-foot__small { padding: 2px 0 0; text-align: center; font-size: 0.62rem; color: var(--alp-citrus); }
+body.template-index .alp-foot__dispatch,
+body.template-index .alp-foot__columns { display: none; }
+body.template-index .alp-foot__small { padding: 0; text-align: center; font-size: 1.24rem; color: var(--alp-citrus); }
 
 /* ── Scroll reveal ───────────────────────────────────────────────────────── */
 .alp-reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.55s ease-out, transform 0.55s ease-out; }
@@ -574,10 +561,10 @@ body.template-index .alp-foot__small { padding: 2px 0 0; text-align: center; fon
   .alp-head { flex-wrap: nowrap; gap: 0 6px; }
   .alp-head__group { gap: 2px; }
 
-  /* Mobile Explore menu: the Shop card hides — Shop lives in the bar. Room
-     for the corner icons above the first card. */
+  /* Mobile Explore menu: the Shop card hides — Shop lives in the bar. The
+     first section runs to the very top (no white gap); the fixed corner icons
+     float over it, kept legible by their drop-shadow. */
   .alp-menu__q--shop { display: none; }
-  .alp-menu__scroll { padding-top: calc(56px + env(safe-area-inset-top)); background: #fff; }
 
 
   .alp-collection__duo { grid-template-columns: 1fr; }
