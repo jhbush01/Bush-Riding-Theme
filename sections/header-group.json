@@ -19,16 +19,20 @@
         "clock_label": "AEST",
         "shop_label": "Shop",
         "shop_url": "",
+        "explore_label": "Explore",
+        "discover_label": "Discover Launch Collection",
+        "discover_url": "",
+        "discover_image": "shopify://shop_images/Bush_Background.jpg",
+        "discover_video_url": "",
+        "menu_shop_image": "shopify://shop_images/IMG_0671.jpg",
+        "menu_shop_video_url": "",
         "map_label": "BUSH MAP™",
         "map_url": "",
-        "menu_shop_image": "shopify://shop_images/IMG_0671.jpg",
         "menu_video_url": "https://cdn.shopify.com/videos/c/o/v/e3a3e900b3154a1baf53e0a1cb5a2c2e.mov",
         "menu_video_label": "",
-        "menu_video_url_link": "",
         "youtube_url": "https://youtube.com/@bushriding?si=VWl6Uo2-b05HPzZc",
         "strava_url": "https://www.strava.com/clubs/1814797",
-        "instagram_url": "https://www.instagram.com/bushriding?igsh=MW1tdjBodmZweDltdg%3D%3D&utm_source=qr",
-        "signin_sub": "Shop the community"
+        "instagram_url": "https://www.instagram.com/bushriding?igsh=MW1tdjBodmZweDltdg%3D%3D&utm_source=qr"
       }
     }
   },
