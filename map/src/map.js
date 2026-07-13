@@ -692,6 +692,7 @@ function startPulse() {
   ];
   // event/famous each have two ring layers → phase them half a cycle apart.
   const rings = specs.map((r, i) => ({ ...r, phase: i % 2 === 0 ? 0 : 0.5 }));
+  const VIS = 0.58; // fade fully out by ~58% of the cycle, then a quiet gap
   const PERIOD = 3600; // slow
   const t0 = performance.now();
   (function frame(now) {
@@ -702,8 +703,11 @@ function startPulse() {
       for (const r of live) {
         const ph = (base + r.phase) % 1; // 0..1 within this ring's cycle
         map.setPaintProperty(r.layer, "circle-radius", r.base + r.grow * ph);
-        // sin(π·ph): 0 at ph=0, peak at ph=0.5, 0 at ph=1 — no visible reset.
-        map.setPaintProperty(r.layer, "circle-stroke-opacity", r.peak * Math.sin(Math.PI * ph));
+        // Fade in then OUT over the first VIS of the cycle (sin curve, 0 at
+        // both ends of that window), invisible for the rest — so the ring
+        // vanishes well before the edge and there's still no visible reset.
+        var op = ph < VIS ? r.peak * Math.sin(Math.PI * (ph / VIS)) : 0;
+        map.setPaintProperty(r.layer, "circle-stroke-opacity", op);
       }
     }
     requestAnimationFrame(frame);
@@ -1014,6 +1018,7 @@ function famousRouteRow(route, ev) {
   btn.type = "button";
   btn.className = "famous-route";
   const text = document.createElement("span");
+  text.className = "famous-route__text";
   const nm = document.createElement("span");
   nm.className = "famous-route__name";
   nm.textContent = p.name || "Route";
@@ -1546,23 +1551,28 @@ function fillEventDetail(feature) {
 // ---- Card field helpers --------------------------------------------------
 function setCardHero(src, alt, fallbackSrc) {
   const hero = els.detail.querySelector("#detail-photo");
+  const frame = hero.closest(".card__hero");
+  const setEmpty = (empty) => frame && frame.classList.toggle("is-empty", empty);
   hero.dataset.fellback = "";
-  hero.onload = () => (hero.hidden = false);
+  hero.onload = () => { hero.hidden = false; setEmpty(false); };
   hero.onerror = () => {
     if (!hero.dataset.fellback && fallbackSrc && fallbackSrc !== hero.getAttribute("src")) {
       hero.dataset.fellback = "1";
       hero.src = fallbackSrc;
     } else {
-      hero.hidden = true; // leave the sage hero block
+      hero.hidden = true; // no image — collapse the hero (see .card__hero.is-empty)
+      setEmpty(true);
     }
   };
   hero.alt = alt || "";
   if (src) {
     hero.hidden = false;
+    setEmpty(false);
     hero.src = src;
   } else {
     hero.removeAttribute("src");
     hero.hidden = true;
+    setEmpty(true);
   }
 }
 
