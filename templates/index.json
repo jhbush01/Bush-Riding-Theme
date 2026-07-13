@@ -14,10 +14,11 @@
       "settings": {
         "image": "shopify://shop_images/IMG_2419.jpg",
         "video_url": "https://cdn.shopify.com/videos/c/o/v/e3a3e900b3154a1baf53e0a1cb5a2c2e.mov",
-        "shorts_label": "Bush Riding Shorts",
-        "map_label": "BUSH MAP™",
-        "map_url": "https://map.bushriding.cc",
-        "shorts_fallback_url": "/products/bush-riding-shorts"
+        "shorts_product": "",
+        "shorts_label": "",
+        "shorts_fallback_url": "/products/bush-riding-shorts",
+        "map_label": "",
+        "map_url": "https://map.bushriding.cc"
       }
     }
   },
