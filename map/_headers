@@ -1,4 +1,4 @@
-# Bush Riding Map — cache policy.
+# Bush Map — cache policy.
 #
 # The app is a hand-written static site with NO build step, so asset filenames
 # aren't fingerprinted (no app.<hash>.css). To make every deploy show up
