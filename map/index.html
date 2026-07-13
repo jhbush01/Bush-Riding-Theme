@@ -71,13 +71,6 @@
   <body>
     <div id="map" aria-label="Map of curated gravel routes"></div>
 
-    <!-- Minimal floating nav over the map (top-center; clears the left sidebar
-         and the top-left mobile toggle). -->
-    <nav class="map-nav" aria-label="Browse">
-      <a href="/routes/" target="_blank" rel="noopener">Community Routes</a>
-      <a href="/events/" target="_blank" rel="noopener">Bush Events</a>
-    </nav>
-
     <!-- Filter / list panel -->
     <aside id="sidebar" class="sidebar" aria-label="Route filters and list">
       <header class="sidebar__head">
@@ -137,13 +130,49 @@
       </div>
     </aside>
 
-    <button id="sidebar-toggle" class="sidebar-toggle" aria-controls="sidebar" aria-expanded="false" aria-label="Open filters and routes">
-      <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false">
-        <line x1="3" y1="6" x2="21" y2="6" />
-        <line x1="3" y1="12" x2="21" y2="12" />
-        <line x1="3" y1="18" x2="21" y2="18" />
-      </svg>
-    </button>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-controls="sidebar" aria-expanded="false" aria-label="Open filters and routes">Filters</button>
+
+    <!-- Bush Riding menu — the seamless nav shared with bushriding.cc. Opens a
+         quartered overlay: account, Shop, Bush Map, socials. -->
+    <button id="brm-menu-open" class="brm-menu-btn" aria-controls="brm-menu" aria-expanded="false">Menu</button>
+
+    <div id="brm-menu" class="brm-menu" aria-hidden="true">
+      <div class="brm-menu__corner">
+        <button type="button" id="brm-menu-close" class="brm-menu__icon" aria-label="Close menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+        </button>
+      </div>
+
+      <div class="brm-menu__grid">
+        <!-- Top-left: account (map sign-in via the diary auth) -->
+        <button type="button" class="brm-q brm-q--account" id="brm-q-account">
+          <span class="brm-q__label" data-brm-account-label>Sign in</span>
+          <span class="brm-q__sub" data-brm-account-sub>My Submissions</span>
+        </button>
+
+        <!-- Top-right: Shop -->
+        <a class="brm-q brm-q--shop" href="https://bushriding.cc" target="_blank" rel="noopener">
+          <span class="brm-q__media brm-q__media--shop"></span>
+          <span class="brm-q__label">Shop</span>
+        </a>
+
+        <!-- Bottom-left: Bush Map (this site) -->
+        <a class="brm-q brm-q--map" href="/">
+          <span class="brm-q__label">Bush Map™</span>
+        </a>
+
+        <!-- Bottom-right: socials -->
+        <div class="brm-q brm-q--social">
+          <span class="brm-q__label">Follow</span>
+          <div class="brm-q__social">
+            <!-- Replace the # hrefs with the real Bush Riding profile URLs. -->
+            <a href="#" data-brm-social="youtube" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23 12s0-3.2-.4-4.7a2.5 2.5 0 0 0-1.7-1.7C19.4 5.2 12 5.2 12 5.2s-7.4 0-8.9.4A2.5 2.5 0 0 0 1.4 7.3C1 8.8 1 12 1 12s0 3.2.4 4.7a2.5 2.5 0 0 0 1.7 1.7c1.5.4 8.9.4 8.9.4s7.4 0 8.9-.4a2.5 2.5 0 0 0 1.7-1.7C23 15.2 23 12 23 12zM9.8 15.3V8.7l5.7 3.3-5.7 3.3z" /></svg></a>
+            <a href="#" data-brm-social="strava" aria-label="Strava"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.8 2 7.3 14.6h3.9L13.8 9l2.6 5.6h3.8L13.8 2zM16.4 14.6 14.6 18l-1.8-3.4H10l4.6 8.4L19 14.6h-2.6z" /></svg></a>
+            <a href="#" data-brm-social="instagram" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="4.5" /><circle cx="12" cy="12" r="3.6" /><circle cx="17.2" cy="6.8" r="1" fill="currentColor" stroke="none" /></svg></a>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Detail surface: bottom sheet (mobile/tablet) or inset floating panel
          (desktop). Snap states driven by map.js. ONE redesigned card shared by
@@ -436,5 +465,6 @@
     <script type="module" src="src/map.js"></script>
     <script type="module" src="src/diary.js"></script>
     <script type="module" src="src/reviews.js"></script>
+    <script src="src/menu.js" defer></script>
   </body>
 </html>
