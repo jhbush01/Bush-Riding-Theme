@@ -112,3 +112,9 @@ first, publish by merging `develop` → `main`. `feature/*` for experiments;
 5. The map site and Workers changed domain from bushridingmap.com to
    map.bushriding.cc / map-api.bushriding.cc — old-domain references only
    belong in `map/_redirects` (301s) and nowhere else.
+6. **Theme design changes are scoped per platform.** Mobile and desktop are
+   deliberately designed differently. If a request doesn't say whether it
+   applies to mobile, desktop/tablet, or both, ASK before building — don't
+   assume both.
+7. Render theme images with `image_url | image_tag` (never CSS
+   background-image) so the focal point set in the Shopify editor is honoured.
