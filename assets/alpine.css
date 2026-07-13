@@ -542,7 +542,9 @@ body.template-index .alp-foot__small { padding: 2px 0 0; text-align: center; fon
   /* Mobile bar: wordmark + Shop/BUSH MAP + hamburger. Clock hides to save room. */
   .alp-nav-link--clock { display: none; }
   .alp-head__nav { gap: 2px; }
-  .alp-menu__grid { grid-template-rows: 1fr 1fr; }
+  /* Keep the quarters square-ish on mobile (each cell ~half the width tall)
+     rather than stretching to tall crops; centre the block in the viewport. */
+  .alp-menu__grid { grid-template-rows: none; grid-auto-rows: 50vw; align-content: center; }
 
 
   .alp-collection__duo { grid-template-columns: 1fr; }
