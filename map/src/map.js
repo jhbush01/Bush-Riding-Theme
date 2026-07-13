@@ -677,19 +677,22 @@ function makeFlagIcon() {
 // on each layer stay and we do nothing.
 function startPulse() {
   if (reduceMotion) return;
-  // Purely outward ripples. Each ring is BORN bright at the pin core, expands
-  // and fades to nothing by 75% of its cycle, then stays invisible (a gap)
-  // until it resets. Because nothing is ever visible near the reset, and radius
-  // only ever grows while visible, the eye never sees anything move inward.
-  // Two rings offset half a cycle keep it continuous, like ripples in water.
-  const VIS = 0.75; // visible for the first 75% of each cycle, then a gap
-  const rings = [
-    { layer: "event-pulse", base: 10, grow: 40, peak: 0.55, phase: 0 },
-    { layer: "event-pulse-b", base: 10, grow: 40, peak: 0.55, phase: 0.5 },
-    { layer: "famous-pulse", base: 11, grow: 40, peak: 0.55, phase: 0 },
-    { layer: "famous-pulse-b", base: 11, grow: 40, peak: 0.55, phase: 0.5 },
+  // Smooth, slow, outward-only sonar pulse. Each ring's radius grows linearly
+  // from the pin core to its max while its opacity follows sin(π·ph): exactly
+  // ZERO at birth (ph=0, small radius) AND at death (ph=1, max radius). Because
+  // the ring is fully transparent at both ends of every cycle, the radius reset
+  // is never visible — the eye only ever sees a ring fade in near the core,
+  // drift outward, and fade out at the edge. No pop, no inward jolt. Three
+  // rings evenly phased keep it continuous, like ripples in still water.
+  const specs = [
+    { layer: "event-pulse", base: 10, grow: 44, peak: 0.5 },
+    { layer: "event-pulse-b", base: 10, grow: 44, peak: 0.5 },
+    { layer: "famous-pulse", base: 11, grow: 44, peak: 0.5 },
+    { layer: "famous-pulse-b", base: 11, grow: 44, peak: 0.5 },
   ];
-  const PERIOD = 3200; // slow
+  // event/famous each have two ring layers → phase them half a cycle apart.
+  const rings = specs.map((r, i) => ({ ...r, phase: i % 2 === 0 ? 0 : 0.5 }));
+  const PERIOD = 3600; // slow
   const t0 = performance.now();
   (function frame(now) {
     const live = rings.filter((r) => map.getLayer(r.layer));
@@ -699,9 +702,8 @@ function startPulse() {
       for (const r of live) {
         const ph = (base + r.phase) % 1; // 0..1 within this ring's cycle
         map.setPaintProperty(r.layer, "circle-radius", r.base + r.grow * ph);
-        // Bright at birth (ph 0), fading to 0 by VIS, invisible until reset.
-        const op = ph < VIS ? r.peak * (1 - ph / VIS) : 0;
-        map.setPaintProperty(r.layer, "circle-stroke-opacity", op);
+        // sin(π·ph): 0 at ph=0, peak at ph=0.5, 0 at ph=1 — no visible reset.
+        map.setPaintProperty(r.layer, "circle-stroke-opacity", r.peak * Math.sin(Math.PI * ph));
       }
     }
     requestAnimationFrame(frame);

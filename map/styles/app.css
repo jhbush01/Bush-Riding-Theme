@@ -72,7 +72,9 @@ body {
 
 .sidebar__head {
   position: relative;
-  padding: 20px 20px 12px;
+  /* Extra top room so the fixed brand cluster (hamburger + logo) sits above
+     the header without covering its content. */
+  padding: 56px 20px 12px;
   border-bottom: 1px solid var(--line);
 }
 
@@ -344,174 +346,58 @@ body {
   color: var(--olive);
 }
 
-/* "Filters" text button, top-left — opens the filter/list panel. */
-.sidebar-toggle {
+/* Top-left brand cluster: hamburger toggle + Bush Riding wordmark, stuck to
+   the filter drawer's corner. Always visible so both stay reachable whether
+   the drawer is open or closed. */
+.map-brand {
   position: absolute;
   top: 10px;
   left: 10px;
-  z-index: 6;
-  display: block; /* shown whenever the panel is collapsed (see rules below) */
-  padding: 8px 16px;
-  background: rgba(244, 239, 226, 0.82);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 999px;
-  box-shadow: 0 2px 10px rgba(28, 26, 21, 0.14);
-  cursor: pointer;
-  color: var(--ink);
-  font-family: var(--ui-font);
-  font-size: 13.5px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  -webkit-tap-highlight-color: transparent;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-/* Bush Riding "Menu" text button, top-right — opens the quartered overlay. */
-.brm-menu-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 6;
-  padding: 8px 16px;
-  background: rgba(244, 239, 226, 0.82);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 999px;
-  box-shadow: 0 2px 10px rgba(28, 26, 21, 0.14);
-  cursor: pointer;
-  color: var(--ink);
-  font-family: var(--ui-font);
-  font-size: 13.5px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* ── Quartered menu overlay (shared design with bushriding.cc) ──────────────── */
-.brm-menu {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  background: #fff;
-  visibility: hidden;
-  pointer-events: none;
-  clip-path: circle(0% at var(--brm-cx, 100%) var(--brm-cy, 0%));
-  transition: clip-path 0.6s cubic-bezier(0.76, 0, 0.24, 1), visibility 0s linear 0.6s;
-}
-.brm-menu.is-open {
-  visibility: visible;
-  pointer-events: auto;
-  clip-path: circle(150% at var(--brm-cx, 100%) var(--brm-cy, 0%));
-  transition: clip-path 0.6s cubic-bezier(0.76, 0, 0.24, 1), visibility 0s;
-}
-
-.brm-menu__corner {
-  position: absolute;
-  top: max(16px, env(safe-area-inset-top));
-  right: max(14px, env(safe-area-inset-right));
-  z-index: 4;
-}
-.brm-menu__icon {
-  display: inline-flex;
+.sidebar-toggle {
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
-  color: #fff;
-  background: transparent;
-  border: 0;
+  padding: 6px;
+  background: rgba(244, 239, 226, 0.82);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(28, 26, 21, 0.14);
   cursor: pointer;
+  color: var(--ink);
+  -webkit-tap-highlight-color: transparent;
 }
-.brm-menu__icon svg { width: 24px; height: 24px; filter: drop-shadow(0 1px 3px rgba(28, 26, 21, 0.5)); }
-
-.brm-menu__grid {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-  gap: 1px;
-  background: #fff; /* thin white gridlines through the 1px gaps */
+.sidebar-toggle svg {
+  display: block;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  filter: drop-shadow(0 1px 2px rgba(255, 255, 255, 0.9));
 }
 
-.brm-q {
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: clamp(18px, 4vw, 40px);
-  text-align: left;
-  text-decoration: none;
-  background: var(--olive);
-  border: 0;
-  cursor: pointer;
-  isolation: isolate;
-}
-.brm-q::after { content: ""; position: absolute; inset: 0; z-index: -1; background: rgba(28, 26, 21, 0.28); }
-
-.brm-q__media {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background-size: cover;
-  background-position: center;
-}
-.brm-q__media--shop { background: linear-gradient(135deg, #7c8a5b, #545f3b); }
-
-.brm-q--account { justify-content: center; background: var(--cream-panel); }
-.brm-q--account::after { background: none; }
-.brm-q--map { background: linear-gradient(135deg, #6f7c53, #566147); }
-
-.brm-q__label {
+.map-brand__logo {
+  padding: 7px 14px;
+  background: rgba(244, 239, 226, 0.82);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 999px;
+  box-shadow: 0 2px 10px rgba(28, 26, 21, 0.14);
   font-family: var(--head-font);
-  font-size: clamp(1.9rem, 5vw, 3.4rem);
-  line-height: 1.05;
-  color: #fff;
+  font-size: 19px;
+  line-height: 1;
+  color: var(--ink);
+  text-decoration: none;
+  white-space: nowrap;
 }
-.brm-q--account .brm-q__label { color: var(--ink); }
-.brm-q__sub {
-  margin-top: 6px;
-  font-family: var(--ui-font);
-  font-size: 0.78rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.82);
-}
-.brm-q--account .brm-q__sub { color: var(--ink-soft); }
-
-/* content fades/lifts in once the wipe is nearly complete */
-.brm-q__label, .brm-q__sub, .brm-q__social {
-  opacity: 0;
-  transform: translateY(14px);
-  transition: opacity 0.4s ease 0.25s, transform 0.4s ease 0.25s;
-}
-.brm-menu.is-open .brm-q__label,
-.brm-menu.is-open .brm-q__sub,
-.brm-menu.is-open .brm-q__social { opacity: 1; transform: none; }
-
-.brm-q__social {
-  position: absolute;
-  left: clamp(18px, 4vw, 40px);
-  bottom: clamp(18px, 4vw, 40px);
-  display: flex;
-  gap: 14px;
-}
-.brm-q__social a { display: inline-flex; color: #fff; }
-.brm-q__social svg { width: 24px; height: 24px; filter: drop-shadow(0 1px 3px rgba(28, 26, 21, 0.5)); }
-.brm-q__social a:hover { color: var(--lemon); }
-.brm-q--social { justify-content: flex-start; }
-
-@media (prefers-reduced-motion: reduce) {
-  .brm-menu, .brm-menu.is-open { transition: visibility 0s; clip-path: none; }
-  .brm-menu:not(.is-open) { clip-path: circle(0%); }
-  .brm-q__label, .brm-q__sub, .brm-q__social { transition: none; }
-}
-@media (max-width: 700px) {
-  .brm-menu__grid { grid-template-rows: none; grid-auto-rows: 50vw; align-content: center; }
-}
+.map-brand__logo:hover { color: var(--olive); }
 
 /* ---------- Route detail surface (sheet / panel) ---------- */
 /* One node, three layouts: a draggable bottom sheet on mobile, a roomier
@@ -873,17 +759,9 @@ body {
 
 /* ---------- Responsive ---------- */
 
-/* Tablet + desktop: the panel is docked open by default. The burger only shows
-   once it's been collapsed (.is-closed), to bring it back. */
-@media (min-width: 721px) {
-  .sidebar-toggle {
-    display: none;
-  }
-  .sidebar.is-closed ~ .sidebar-toggle {
-    display: block;
-  }
-}
-
+/* The brand cluster (hamburger + Bush Riding logo) stays visible in every
+   state — docked-open on desktop, and open OR closed on mobile — so the logo
+   is always available and stays stuck to the drawer's top-left corner. */
 @media (max-width: 720px) {
   .sidebar {
     width: 300px;
@@ -892,14 +770,6 @@ body {
   }
   .sidebar.is-open {
     transform: translateX(0);
-  }
-  /* Hide the burger once the panel is open so it doesn't overlap the text. */
-  .sidebar.is-open ~ .sidebar-toggle {
-    display: none;
-  }
-  /* Nav pill would sit under the overlay drawer — hide it while it's open. */
-  body.sidebar-open .map-nav {
-    display: none;
   }
 }
 
