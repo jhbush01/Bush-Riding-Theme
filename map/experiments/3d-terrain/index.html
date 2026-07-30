@@ -106,16 +106,66 @@
         line-height: 1.4;
         color: #8a3f18;
       }
+
+      /* Standalone compass control — separate from the HUD panel, top-right
+         above MapLibre's own NavigationControl, since this is the primary
+         rotate affordance, not a minor toggle buried in a list. */
+      .compass {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        z-index: 5;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: rgba(244, 239, 226, 0.86);
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(0, 0, 0, 0.12);
+        box-shadow: 0 2px 12px rgba(28, 26, 21, 0.18);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: grab;
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      .compass:active {
+        cursor: grabbing;
+      }
+      .compass__needle {
+        font-size: 22px;
+        color: var(--terracotta);
+        line-height: 1;
+        will-change: transform;
+      }
+      .compass__label {
+        position: absolute;
+        top: 100%;
+        margin-top: 4px;
+        font-size: 9.5px;
+        text-align: center;
+        width: 100%;
+        color: var(--cream-panel);
+        letter-spacing: 0.06em;
+      }
     </style>
   </head>
   <body>
     <div id="map"></div>
+
+    <div class="compass" id="compass" title="Drag to rotate · click to reset north">
+      <span class="compass__needle" id="compass-needle">▲</span>
+      <span class="compass__label">rotate</span>
+    </div>
 
     <div class="hud">
       <h1>3D terrain spike — experimental</h1>
       <p>
         Mercator projection, native MapLibre 3D terrain + hillshade from Mapterhorn.
         No globe, no custom pin layer — dropped by decision after the first spike.
+        Drag the compass (top-right) to rotate, click it to reset north.
         Desktop/tablet only. Not linked from the live map.
       </p>
       <div class="hud__row">

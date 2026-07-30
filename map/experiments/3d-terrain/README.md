@@ -92,6 +92,56 @@ the site's own bot protection, not a one-off), but two things got through:
   sources server-side), but the visual result — is the D'Aguilar Range crisp
   5m relief or softer 30m relief — is worth actually looking at.
 
+## Is this the full extent of what Mapterhorn offers?
+
+Yes — **Mapterhorn is a raster elevation source, nothing else.** The full
+source catalog (pasted into this project by the site owner, from
+`mapterhorn.com/data-access/`) lists regional DEM datasets and licences, not
+a menu of map features. Terrain displacement and hillshade — both already
+here — are the complete set of things a raster-dem source can drive; there's
+no additional toggle or tier on Mapterhorn's side being left unused.
+
+**Contours are a different thing entirely, not a missing Mapterhorn feature.**
+MapLibre has no built-in "draw contour lines from a DEM" layer type. Getting
+real contour lines needs one of:
+- a dedicated contour **vector tile** source (new data infrastructure —
+  Mapterhorn doesn't provide one), or
+- computing them client-side from the same DEM raster (marching-squares over
+  decoded elevation data — real engineering, not a config change).
+
+Not attempted here. If contours are wanted, that's worth scoping as its own
+piece of work once there's a view on which of the two approaches to take —
+not something to bolt on speculatively into this spike.
+
+**One thing added here that Mapterhorn *does* make free, since the DEM tiles
+are already loaded for the terrain geometry:** a live elevation readout at
+map centre via `map.queryTerrainElevation()`, shown in the HUD stat line.
+Small, but it's the kind of "built for an explorer" detail that costs nothing
+extra once terrain is already on.
+
+## Rotate control
+
+`dragRotate` was already enabled but not discoverable — right-click-drag or a
+two-finger twist, neither obvious. Added a standalone **compass control**
+(top-right, separate from the small MapLibre `NavigationControl`): drag the
+needle to spin the map's bearing directly, tap/click it to reset to north.
+Own pointer-event code (`app.js`, "Compass / rotate control" section) — not
+relying on `NavigationControl`'s compass, which only resets north on click
+and does not support drag-to-rotate in stock MapLibre.
+
+## Zoom-out limit — "dead space"
+
+At low zoom with `pitch: 65`, the camera looks far enough across the terrain
+that you can see past the loaded/rendered relief into flat background colour
+at the horizon — reads as broken, not as a wide view. Added `minZoom: 7` to
+the map config to stay out of that zone. **This number is reasoned, not
+visually tuned** — I can't render a browser from this sandbox, so it's a
+starting point based on how that horizon artifact typically behaves at
+pitch 60+, not a confirmed threshold. Once you've seen it live: if dead space
+is still visible at `minZoom: 7`, raise the number (or lower `maxPitch` from
+its current `85`, which is the other lever on the same problem); if there's
+room to zoom out further before it appears, lower it.
+
 ## What to look at
 
 - **Hillshade toggle** — flip it off and the terrain should go flat-shaded and
@@ -106,6 +156,11 @@ the site's own bot protection, not a one-off), but two things got through:
 - **Top-down / Tilt to 3D** — sanity-checks that the terrain and hillshade
   still look right at pitch 0, where 3D relief obviously isn't visible but the
   hillshade layer's texture still is.
+- **Compass drag** — should spin the map smoothly with no jump at the drag
+  start; a plain click/tap should ease back to north.
+- **Zoom all the way out** — the real test of the `minZoom: 7` guess. Does
+  dead space still show at the floor? Is there room to allow more zoom-out
+  before it appears?
 
 ## Honest caveats
 
