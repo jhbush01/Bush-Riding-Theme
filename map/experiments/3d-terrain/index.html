@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>3D pin spike — Bush Riding (experimental)</title>
+    <title>3D terrain spike — Bush Riding (experimental)</title>
     <meta name="robots" content="noindex, nofollow" />
 
     <!-- Same MapLibre build as production (map/index.html): v5.24.0 from unpkg. -->
@@ -14,20 +14,6 @@
       href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-
-    <!--
-      Three.js as a plain ES module from a CDN — no npm, no bundler, so this page
-      works under Cloudflare Pages' existing "no build command" config exactly
-      like the production map does. See README.md for why this spike is plain
-      Three.js rather than React-Three-Fiber.
-    -->
-    <script type="importmap">
-      {
-        "imports": {
-          "three": "https://unpkg.com/three@0.169.0/build/three.module.js"
-        }
-      }
-    </script>
 
     <style>
       :root {
@@ -100,6 +86,16 @@
       .hud button:hover {
         border-color: var(--terracotta);
       }
+      .hud button.is-off {
+        opacity: 0.55;
+      }
+      .hud__label {
+        font-size: 10.5px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--ink-soft);
+        margin-top: 2px;
+      }
       .hud__stat {
         font-size: 11px;
         color: var(--ink-soft);
@@ -116,15 +112,21 @@
     <div id="map"></div>
 
     <div class="hud">
-      <h1>3D pin spike — experimental</h1>
+      <h1>3D terrain spike — experimental</h1>
       <p>
-        Native globe + native terrain, with extruded Three.js pins drawn through a
-        MapLibre custom layer. Desktop/tablet only. Not linked from the live map.
+        Mercator projection, native MapLibre 3D terrain + hillshade from Mapterhorn.
+        No globe, no custom pin layer — dropped by decision after the first spike.
+        Desktop/tablet only. Not linked from the live map.
       </p>
       <div class="hud__row">
-        <button id="toggle-projection" type="button">Switch to mercator</button>
-        <button id="toggle-spin" type="button">Stop spin</button>
-        <button id="fly-pins" type="button">Fly to pins</button>
+        <button id="toggle-terrain" type="button">Flatten terrain</button>
+        <button id="toggle-hillshade" type="button">Hide hillshade</button>
+        <button id="toggle-pitch" type="button">Top-down</button>
+      </div>
+      <div class="hud__label">Exaggeration</div>
+      <div class="hud__row">
+        <button id="exag-down" type="button">−</button>
+        <button id="exag-up" type="button">+</button>
       </div>
       <div class="hud__stat" id="stat">booting…</div>
       <div class="hud__warn" id="warn" hidden></div>
