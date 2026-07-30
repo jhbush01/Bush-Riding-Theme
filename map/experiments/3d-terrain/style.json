@@ -16,7 +16,7 @@
       "encoding": "terrarium",
       "tileSize": 512,
       "maxzoom": 14,
-      "attribution": "Terrain: Mapterhorn (mapterhorn.com/attribution)"
+      "attribution": "Terrain: © Geoscience Australia (CC BY 4.0), contains modified Copernicus DEM data (COPERNICUS full, free and open licence), via Mapterhorn (mapterhorn.com/attribution)"
     }
   },
   "layers": [

@@ -54,36 +54,43 @@ https://feature-3d-pin-experiment.bush-riding-theme.pages.dev/experiments/3d-ter
   "encoding": "terrarium",
   "tileSize": 512,
   "maxzoom": 14,
-  "attribution": "Terrain: Mapterhorn (mapterhorn.com/attribution)"
+  "attribution": "Terrain: © Geoscience Australia (CC BY 4.0), contains modified Copernicus DEM data (COPERNICUS full, free and open licence), via Mapterhorn (mapterhorn.com/attribution)"
 }
 ```
 
-**What's confirmed, and how:** `mapterhorn.com` itself 403s to every fetch path
-tried from this sandbox (direct fetch, a reader-proxy fetch, and the GitHub
-API all got blocked the same way — reads as the site's own bot protection,
-not a one-off). Mapterhorn's own GitHub README
-(`raw.githubusercontent.com/mapterhorn/mapterhorn/main/README.md`, which *did*
-load) has a "Migration Guide" aimed at exactly this situation — people moving
-off the old AWS/Tilezen Joerd terrain tiles — and it states the tile URL
-above, the tileSize change from 256→512, and terrarium encoding explicitly.
-No API key or account is mentioned anywhere in that repo, consistent with
-"public terrain tiles" being the project's stated purpose. That's a solid
-enough source to build against.
+**Confirmed, two ways.** `mapterhorn.com` itself 403s to every fetch path this
+sandbox tried (direct fetch, a reader-proxy fetch, the GitHub API — reads as
+the site's own bot protection, not a one-off), but two things got through:
 
-**What isn't confirmed, and needs a human with a working browser:**
-- **`maxzoom: 14` is a guess**, not read from any doc. Open the Network tab,
-  filter for `tiles.mapterhorn.com`, and watch what happens at your deepest
-  practical zoom. 200s all the way down: raise the number or drop it
-  entirely. 404s past some point: set `maxzoom` to the last zoom that
-  actually returned 200 — MapLibre needs the real ceiling to overzoom
-  correctly instead of repeatedly requesting tiles that don't exist.
-- **Attribution text.** The field above is a placeholder. Open
-  `https://mapterhorn.com/attribution` in your own browser and copy the
-  required wording in verbatim before this goes anywhere public.
-- **Coverage over Australia specifically.** The underlying data (Copernicus
-  GLO-30) is genuinely global, so this should be fine, but "should be" isn't
-  "confirmed" — the D'Aguilar Range default view is exactly the kind of
-  Australian terrain to sanity-check visually.
+1. Mapterhorn's own GitHub README (`raw.githubusercontent.com`, which *does*
+   load) has a "Migration Guide" for people moving off the old AWS/Tilezen
+   terrain tiles — it states the tile URL above, the tileSize change from
+   256→512, and terrarium encoding explicitly. No API key or account
+   anywhere in that repo.
+2. The site owner pasted this experiment's actual source catalog (fetched
+   from their own browser, where the sandbox's block doesn't apply) — the
+   full list of every regional dataset Mapterhorn merges tiles from, each
+   with its licence. No pricing or account gate mentioned anywhere in it
+   either. **For our region**, the relevant entries are `au5a`–`au5i`
+   (Geoscience Australia 5m LiDAR, **CC BY 4.0**) and `glo30` (Copernicus
+   GLO-30, 30m, global — the fallback wherever LiDAR hasn't been flown). The
+   attribution field above credits both, since crediting the aggregator alone
+   wouldn't satisfy either licence's actual attribution requirement.
+
+**Still not confirmed — needs a human with a working browser:**
+- **`maxzoom: 14`.** Reasoned, not read off a doc: 5m native LiDAR resolution
+  stops adding real detail somewhere around z14–15 at this latitude for
+  512px tiles, so 14 is a defensible ceiling, not a guess pulled from air —
+  but "defensible" isn't "verified." Open the Network tab, filter for
+  `tiles.mapterhorn.com`, and check what happens at your deepest practical
+  zoom. 404s past some point: set `maxzoom` to the last zoom that actually
+  returned 200.
+- **Coverage at this exact spot.** Geoscience Australia's 5m LiDAR is flown
+  region-by-region, not continent-wide — SE Queensland may or may not be in
+  one of the `au5a`–`au5i` tiles. If it isn't, Mapterhorn should fall back to
+  the 30m Copernicus layer automatically (that's the point of merging
+  sources server-side), but the visual result — is the D'Aguilar Range crisp
+  5m relief or softer 30m relief — is worth actually looking at.
 
 ## What to look at
 
