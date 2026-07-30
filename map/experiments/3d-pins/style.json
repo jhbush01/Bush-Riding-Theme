@@ -13,12 +13,12 @@
     "terrain-dem": {
       "type": "raster-dem",
       "tiles": [
-        "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"
+        "https://tiles.mapterhorn.com/{z}/{x}/{y}.webp"
       ],
       "encoding": "terrarium",
-      "tileSize": 256,
-      "maxzoom": 13,
-      "attribution": "Terrain: Mapzen / AWS Open Data"
+      "tileSize": 512,
+      "maxzoom": 14,
+      "attribution": "Terrain: Mapterhorn (mapterhorn.com/attribution)"
     }
   },
   "layers": [

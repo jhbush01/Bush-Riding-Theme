@@ -13,15 +13,28 @@
 // startPulse() in map/src/map.js.
 
 import * as THREE from "three";
+// Procedural environment (not an external HDRI file) so MeshStandardMaterial's
+// metalness has something to reflect. Full CDN URL, not a bare specifier, so it
+// needs no import-map entry; it resolves its own "three" import from the map
+// already declared in index.html.
+import { RoomEnvironment } from "https://unpkg.com/three@0.169.0/examples/jsm/environments/RoomEnvironment.js";
 
-/* ── Pin geometry constants (metres) ──────────────────────────────────────── */
-const TOWER_HEIGHT = 2600; // tall enough to read at country zoom
-const TOWER_RADIUS = 320;
-const HEAD_RADIUS = 620;
+/* ── Pin geometry constants (metres) ──────────────────────────────────────────
+   A real map pin, not a lollipop: sharp red tip staked into the terrain, a
+   metal neck, a metal ball head. Built from three primitives rather than a
+   hand-authored Lathe curve, so proportions are easy to reason about sight
+   unseen — the first browser run is still the real test (see README). */
+const TIP_HEIGHT = 900; // red point, apex touches the ground
+const TIP_RADIUS = 260;
+const NECK_HEIGHT = 1400; // metal shaft between point and head
+const NECK_RADIUS = 130;
+const HEAD_RADIUS = 620; // metal ball head
 const PULSE_PERIOD_MS = 2600;
 
-const PIN_COLOR = 0xc1572e; // --terracotta, matching production bush-event pins
-const HEAD_COLOR = 0xd7e04b; // --lemon, the "active" accent
+const METAL_COLOR = 0xc7cbd1; // chrome head — needs scene.environment to read as metal at all
+const METAL_COLOR_DARK = 0x9a9ea4; // neck, slightly darker so the two read as one assembly
+const TIP_COLOR = 0xd62b22; // red tip — painted metal, not chrome (lower metalness)
+const RING_COLOR = 0xd7e04b; // --lemon, ground pulse ring (the old "active" accent, moved off the pin itself)
 
 /* ── Sample coordinates ───────────────────────────────────────────────────────
    map/data/events.geojson is a seed file that currently holds ONE feature; the
@@ -156,7 +169,7 @@ document.getElementById("fly-pins").addEventListener("click", () => {
    args.defaultProjectionData.mainMatrix, which is what makes the meshes track
    the map under both projections and under terrain. */
 function makePinLayer(pinList) {
-  let scene, camera, renderer, heads;
+  let scene, camera, renderer, rings;
   const groups = [];
 
   return {
@@ -167,16 +180,49 @@ function makePinLayer(pinList) {
     onAdd(mapInstance, gl) {
       camera = new THREE.Camera();
       scene = new THREE.Scene();
-      heads = [];
+      rings = [];
 
-      scene.add(new THREE.AmbientLight(0xffffff, 1.5));
-      const key = new THREE.DirectionalLight(0xfff4e2, 2.2);
+      // Renderer first: metalness needs scene.environment, and generating that
+      // needs a renderer to run the PMREM pass through.
+      renderer = new THREE.WebGLRenderer({
+        canvas: mapInstance.getCanvas(),
+        context: gl,
+        antialias: true,
+      });
+      renderer.autoClear = false;
+
+      const pmrem = new THREE.PMREMGenerator(renderer);
+      scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+      pmrem.dispose();
+
+      // Lights stay modest — the environment map is what actually sells "metal"
+      // via reflections; a bright key light on top of that just blows it out.
+      scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+      const key = new THREE.DirectionalLight(0xfff4e2, 1.6);
       key.position.set(0.6, -1, 1).normalize();
       scene.add(key);
 
-      const towerGeo = new THREE.CylinderGeometry(TOWER_RADIUS * 0.55, TOWER_RADIUS, TOWER_HEIGHT, 20);
-      const towerMat = new THREE.MeshStandardMaterial({ color: PIN_COLOR, roughness: 0.55, metalness: 0.05 });
-      const headGeo = new THREE.SphereGeometry(HEAD_RADIUS, 24, 18);
+      // Real map-pin silhouette, built bottom-up: red point staked into the
+      // ground, metal neck, metal ball head. See the rotation notes below for
+      // why the tip needs the opposite X-rotation to the neck.
+      const tipGeo = new THREE.ConeGeometry(TIP_RADIUS, TIP_HEIGHT, 20);
+      const tipMat = new THREE.MeshStandardMaterial({ color: TIP_COLOR, metalness: 0.35, roughness: 0.32 });
+      const neckGeo = new THREE.CylinderGeometry(NECK_RADIUS, NECK_RADIUS * 1.15, NECK_HEIGHT, 20);
+      const neckMat = new THREE.MeshStandardMaterial({ color: METAL_COLOR_DARK, metalness: 1, roughness: 0.3 });
+      const headGeo = new THREE.SphereGeometry(HEAD_RADIUS, 32, 24);
+      const headMat = new THREE.MeshStandardMaterial({ color: METAL_COLOR, metalness: 1, roughness: 0.22 });
+
+      // Flat ground-pulse ring — a thumbtack doesn't breathe, but the spike
+      // still needs a pulse to validate, so it moved off the pin and onto the
+      // ground under it, radar-style. Unit ring, scaled per frame in render().
+      const ringGeo = new THREE.RingGeometry(0.92, 1, 48);
+      const ringMat = new THREE.MeshBasicMaterial({
+        color: RING_COLOR,
+        transparent: true,
+        opacity: 0,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+      });
 
       for (const pin of pinList) {
         const group = new THREE.Group();
@@ -189,37 +235,36 @@ function makePinLayer(pinList) {
         group.scale.set(scale, -scale, scale);
         group.userData = { lngLat: pin.lngLat, name: pin.name };
 
-        // Geometry authored in metres, standing on the ground plane.
-        const tower = new THREE.Mesh(towerGeo, towerMat);
-        tower.rotation.x = Math.PI / 2; // cylinder's +Y → map's +Z (up)
-        tower.position.z = TOWER_HEIGHT / 2;
-        group.add(tower);
+        // Cone apex points +Y locally by default. rotation.x = +90° would send
+        // that to +Z (up) — backwards for a point that has to touch the ground
+        // — so the tip gets -90° instead, sending the apex to -Z (down) while
+        // the neck/head keep the +90° used throughout this file.
+        const tip = new THREE.Mesh(tipGeo, tipMat);
+        tip.rotation.x = -Math.PI / 2;
+        tip.position.z = TIP_HEIGHT / 2;
+        group.add(tip);
 
-        const head = new THREE.Mesh(
-          headGeo,
-          new THREE.MeshStandardMaterial({
-            color: HEAD_COLOR,
-            emissive: HEAD_COLOR,
-            emissiveIntensity: 0.5,
-            transparent: true,
-            opacity: 0.9,
-            roughness: 0.3,
-          })
-        );
-        head.position.z = TOWER_HEIGHT + HEAD_RADIUS * 0.6;
+        const neck = new THREE.Mesh(neckGeo, neckMat);
+        neck.rotation.x = Math.PI / 2;
+        neck.position.z = TIP_HEIGHT + NECK_HEIGHT / 2;
+        group.add(neck);
+
+        const head = new THREE.Mesh(headGeo, headMat);
+        head.position.z = TIP_HEIGHT + NECK_HEIGHT + HEAD_RADIUS;
         group.add(head);
-        heads.push(head);
+
+        // Ring lies flat in the group's local XY plane already (its natural
+        // orientation), which is "flat on the ground" under this file's Z-up
+        // convention — no extra rotation needed, just lift it clear of the
+        // terrain mesh to avoid z-fighting.
+        const ring = new THREE.Mesh(ringGeo, ringMat.clone());
+        ring.position.z = 4;
+        group.add(ring);
+        rings.push(ring);
 
         scene.add(group);
         groups.push(group);
       }
-
-      renderer = new THREE.WebGLRenderer({
-        canvas: mapInstance.getCanvas(),
-        context: gl,
-        antialias: true,
-      });
-      renderer.autoClear = false;
 
       // Once terrain tiles are in, lift each pin onto the actual ground.
       mapInstance.once("idle", () => settleOnTerrain(mapInstance));
@@ -229,15 +274,15 @@ function makePinLayer(pinList) {
     },
 
     render(gl, args) {
-      // Pulse: the head breathes on a sine, zero-crossing at both ends of the
-      // cycle so there is no visible pop when it resets. (Independent of the
-      // production ring pulse — same idea, separate code.)
+      // Pulse: a ground ring grows and fades on a sine that zero-crosses at
+      // both ends of the cycle, so there's no pop on reset. Same idea as the
+      // production ring pulse in map/src/map.js, separate code, not imported.
       const phase = (performance.now() % PULSE_PERIOD_MS) / PULSE_PERIOD_MS;
       const wave = Math.sin(Math.PI * phase);
-      for (const head of heads) {
-        const s = 1 + wave * 0.55;
-        head.scale.set(s, s, s);
-        head.material.opacity = 0.35 + wave * 0.55;
+      const ringScale = HEAD_RADIUS * 1.3 + wave * HEAD_RADIUS * 4.2;
+      for (const ring of rings) {
+        ring.scale.set(ringScale, ringScale, ringScale);
+        ring.material.opacity = wave * 0.6;
       }
 
       // MapLibre v5 hands the current projection's matrix here; using it keeps

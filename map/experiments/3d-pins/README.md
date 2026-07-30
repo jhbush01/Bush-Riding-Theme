@@ -47,33 +47,63 @@ expected to deploy through the current Pages setup. The underlying technique —
 a MapLibre custom layer sharing the WebGL context — is identical either way;
 R3F only changes how you author the scene graph.
 
-## Terrain source — needs live verification
+## Terrain source — switched to Mapterhorn
 
-`style.json` currently uses **AWS Open Data Terrain Tiles** (Terrarium
-encoding, no API key):
+`style.json` now uses **Mapterhorn**, per the brief:
 
 ```json
 "terrain-dem": {
   "type": "raster-dem",
-  "tiles": ["https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"],
+  "tiles": ["https://tiles.mapterhorn.com/{z}/{x}/{y}.webp"],
   "encoding": "terrarium",
-  "tileSize": 256,
-  "maxzoom": 13,
-  "attribution": "Terrain: Mapzen / AWS Open Data"
+  "tileSize": 512,
+  "maxzoom": 14,
+  "attribution": "Terrain: Mapterhorn (mapterhorn.com/attribution)"
 }
 ```
 
-The brief recommended **Mapterhorn** instead. Neither endpoint could be reached
-from the sandbox this was written in, so the longer-established of the two was
-chosen as the default and Mapterhorn is left as a documented one-block swap.
-**Verify whichever you use actually serves tiles over Australia before drawing
-conclusions from this spike** — if the DEM 404s, the globe still renders and the
-terrain silently looks flat, which reads as "terrain doesn't work" when really
-the tiles just aren't arriving. The page shows a warning banner if it detects
-DEM errors.
+Confirmed free, no API key, from Mapterhorn's own README
+(`github.com/mapterhorn/mapterhorn`): XYZ raster-dem tiles, WebP, Terrarium
+encoding, 512px tiles, global coverage (derived from Copernicus GLO-30, which
+includes Australia). `mapterhorn.com` itself 403s to this sandbox's fetcher —
+same proxy block noted below — so two things are unverified and worth a look
+in the Network tab on first run:
 
-Latency note: the AWS mirror is us-east; from Australia it may be slow even
-when it is working.
+- **`maxzoom: 14`** is a reasonable guess, not confirmed. If tiles 404 at deep
+  zoom, MapLibre won't auto-overzoom past a wrong maxzoom — lower this number
+  to whatever the highest zoom is that actually returns tiles.
+- **Attribution wording.** The field above is a placeholder. Open
+  `mapterhorn.com/attribution` directly (you already have that tab open) and
+  copy the required text/HTML in verbatim before this goes anywhere public.
+
+Same rule as before applies: if the DEM 404s, the globe still renders and
+terrain silently looks flat, which reads as "terrain doesn't work" when really
+the tiles just aren't arriving. The page's warning banner fires on DEM errors.
+
+## Pin design — real map-pin silhouette, not a lollipop
+
+First pass (cylinder + glowing sphere) read as a toy, not a map pin. Rebuilt as
+three primitives stacked bottom-up: a red cone tip staked into the terrain, a
+dark metal neck, a chrome ball head — plus a procedural environment map
+(`RoomEnvironment` run through `THREE.PMREMGenerator`, generated at runtime,
+no external HDRI file to host or fetch) so `metalness` actually has something
+to reflect. Without an environment map, `metalness: 1` just renders as dark
+flat grey — that was never going to look metallic no matter what colour was
+picked.
+
+The "breathing" animation moved **off** the pin and onto a flat ring on the
+ground underneath it, radar-style — a thumbtack doesn't pulse, but the spike
+still needs a pulse to validate against `PULSE_PERIOD_MS`. Same zero-at-both-
+ends sine as before, same idea as production's ring pulse, still separate code
+from `map/src/map.js`.
+
+This was **sourced from primitives, not an external asset** — no glTF/OBJ
+pin model was pulled in. If a procedural chrome-and-red pin still doesn't read
+as "real" once you've seen it render, the next step up is a small downloadable
+pin/marker model (glTF, a few hundred KB) committed into this folder and loaded
+with `GLTFLoader` — that's a deliberate escalation, not done here, because it
+adds a binary asset and a loader dependency for a look that primitives + a
+metal material might already deliver. Judge in-browser first.
 
 ## What to look at
 
@@ -85,8 +115,11 @@ when it is working.
 - **Fly to pins** — drops to a pitched view where terrain relief is visible and
   the pins should sit *on* the ground, not float. Pin altitude is set from
   `map.queryTerrainElevation()` once DEM tiles land.
-- **Pulse** — the sphere breathes on a sine that hits zero at both ends of the
-  cycle, so there's no pop on reset.
+- **Metal reflections** — the head and neck should visibly catch light and show
+  some environment reflection, not read as flat grey plastic. If they still
+  look flat, the PMREM environment likely isn't attaching — check the console.
+- **Pulse** — the ground ring under each pin grows and fades on a sine that
+  hits zero at both ends of the cycle, so there's no pop on reset.
 
 ## Honest caveats
 
@@ -102,10 +135,25 @@ when it is working.
   than a bug.
 - `style.json` is a **throwaway fork** of `map/styles/bush.json`. It is not kept
   in sync. If production styling changes, this file does not follow.
-- Sample coordinates: `map/data/events.geojson` holds only **one** feature (the
-  real events live in D1 behind `map-api.bushriding.cc`), so the page reads that
-  seed and tops up from a small hardcoded list of real Bush Riding ride
-  locations to reach 3–5 pins.
+- **Sample coordinates — a data gap the brief didn't know about, resolved by
+  not fixing it here.** `map/data/events.geojson` holds one placeholder feature
+  near Toowoomba; `routes.geojson` is empty. The real events live in D1 behind
+  `map-api.bushriding.cc`. The page reads the seed file (as instructed) and
+  tops up from a small hardcoded list of **real** Bush Riding ride locations to
+  reach five — so the pins sit over genuine terrain relief in genuine places,
+  just not fetched live. Deliberately **not** wired to the live API for this
+  spike:
+  - the spike's job is validating globe + terrain + the custom layer, not data
+    plumbing;
+  - a preview URL is a different origin
+    (`<hash>.bush-riding-theme.pages.dev`) than production, and whether
+    `map-api.bushriding.cc`'s CORS policy allows arbitrary preview
+    subdomains is untested — chasing that down would mean touching the
+    production Worker's CORS config for an experimental page, which is
+    exactly the shared-config risk this spike was built to avoid;
+  - if this graduates past a spike, wiring live D1 data is its own explicit
+    task, same category as the clustering/hit-testing/mobile-budget work
+    already listed below under "If this goes somewhere."
 
 ## Guarantees about production
 
