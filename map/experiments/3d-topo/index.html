@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Vintage 3D topo demo — Bush Riding (experimental)</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#e6dfcb" />
+
+    <!-- MapLibre pinned to the SAME version production uses. Verified with
+         `grep -n 'maplibre-gl@' map/index.html` → v5.24.0, not assumed. -->
+    <link href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css" rel="stylesheet" />
+    <script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+
+    <link href="./topo.css" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="map"></div>
+
+    <div class="paper-grain" aria-hidden="true"></div>
+    <div class="vignette" aria-hidden="true"></div>
+    <div class="sheet-frame" aria-hidden="true"></div>
+
+    <div class="titleblock">
+      <div class="titleblock__eyebrow">Bush Riding — experimental</div>
+      <div class="titleblock__title">South East Queensland</div>
+      <div class="titleblock__sub">Gravel &amp; Bush Route Sheet</div>
+      <div class="titleblock__rule"></div>
+      <div class="titleblock__meta">
+        Relief from Mapterhorn DEM · hypsometric tint + Igor hillshade<br />
+        Demo only — not linked from the live map
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel__title">Tuning</div>
+
+      <div class="field">
+        <div class="field__label">
+          <span>Exaggeration</span>
+          <span class="field__value" id="exag-val">1.6</span>
+        </div>
+        <input id="exag" type="range" min="1" max="3" step="0.1" value="1.6" />
+      </div>
+
+      <div class="field">
+        <div class="field__label">
+          <span>Pitch</span>
+          <span class="field__value" id="pitch-val">55°</span>
+        </div>
+        <input id="pitch" type="range" min="0" max="75" step="1" value="55" />
+      </div>
+
+      <div class="toggles">
+        <label class="toggle"><input type="checkbox" id="t-terrain" checked /> 3D terrain</label>
+        <label class="toggle"><input type="checkbox" id="t-hillshade" checked /> Hillshade</label>
+        <label class="toggle"><input type="checkbox" id="t-relief" checked /> Hypsometric tint</label>
+        <label class="toggle"><input type="checkbox" id="t-grid" checked /> Graticule</label>
+        <label class="toggle"><input type="checkbox" id="t-paper" checked /> Paper grain</label>
+      </div>
+
+      <div class="legend">
+        <div class="legend__row"><span class="legend__dot" style="background:#6f7c53"></span> Community routes</div>
+        <div class="legend__row"><span class="legend__dot" style="background:#8a4f7d"></span> Famous events</div>
+        <div class="legend__row"><span class="legend__dot" style="background:#c1572e"></span> Bush events</div>
+      </div>
+
+      <div class="panel__readout" id="readout">booting…</div>
+      <div class="panel__warn" id="warn" hidden></div>
+    </div>
+
+    <script type="module" src="./topo.js"></script>
+  </body>
+</html>

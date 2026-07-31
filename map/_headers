@@ -30,3 +30,9 @@
   Cache-Control: no-cache
 /data/*
   Cache-Control: no-cache
+
+# Internal experiment pages (map/experiments/**). Same reasoning as above —
+# no fingerprinting, and these iterate fast, so a stale copy is worse than a
+# cheap revalidation. Not linked from the live map; noindex in their markup.
+/experiments/*
+  Cache-Control: no-cache
