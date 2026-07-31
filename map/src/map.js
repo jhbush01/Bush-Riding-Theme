@@ -50,10 +50,13 @@ const TERRAIN_PREF_KEY = "brm.view3d";
             and goes soft close in; at ride-through altitude expect mush.
      "esri" Esri World Imagery. Sub-metre in populated areas, tiles to z19, so
             it still looks photographic at orbit and ride-through zooms.
-            Free and keyless, BUT Esri's terms arguably expect an ArcGIS
-            subscription for commercial use. Read them before shipping this to
-            a storefront. */
-const SAT_PROVIDER = "s2"; // "s2" | "esri"
+            Free and keyless. NOTE: Esri's terms arguably expect an ArcGIS
+            subscription for commercial use — this was chosen deliberately with
+            that flagged, because Sentinel-2 is unusably soft at the zooms this
+            map's orbit and ride-through actually run at. If that licensing
+            position ever needs to change, MapTiler Satellite is the drop-in
+            that is both sharp and unambiguously licensed (needs an API key). */
+const SAT_PROVIDER = "esri"; // "s2" | "esri"
 const SAT_LAYERS = { s2: "satellite", esri: "satellite-esri" };
 
 // Basemap layers that need restyling when photography is underneath them.
