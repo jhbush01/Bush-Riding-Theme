@@ -9,7 +9,8 @@ const TILES_URL = CONFIG.tilesUrl;
 // Bush-lemon highlights the selected pin; the route line is dark green for
 // legibility against the muted basemap.
 const LEMON = "#d7e04b";
-const ROUTE_LINE = "#234a25";
+const ROUTE_LINE = "#234a25"; // route casing / outline
+const ROUTE_CORE = "#F6F1E4"; // off-white core — legible on cream AND on imagery
 const OLIVE = "#6f7c53";
 const SAGE = "#aeb995";
 // Community Bush Ride event accent — deep terracotta so event pins win the
@@ -57,6 +58,56 @@ const TERRAIN_PREF_KEY = "brm.view3d";
             position ever needs to change, MapTiler Satellite is the drop-in
             that is both sharp and unambiguously licensed (needs an API key). */
 const SAT_PROVIDER = "esri"; // "s2" | "esri"
+const SAT_PREF_KEY = "brm.satellite";
+
+/* DEM depth probe.
+   `maxzoom` on the terrain source was a guess, and guessing it wrong is
+   costly in both directions: too low and MapLibre stretches shallow data, so
+   the ground goes smooth and putty-like close up (which it did); too high and
+   every deep tile 404s. So don't guess — ask the server once and remember.
+
+   The probe runs in the BACKGROUND and only affects the NEXT load, so it adds
+   zero latency to this one. A cached answer is used immediately. Any failure
+   (offline, CORS, 404) simply leaves the shipped fallback in place. */
+const DEM_PREF_KEY = "brm.demMaxzoom";
+const DEM_PROBE_TTL = 7 * 24 * 60 * 60 * 1000;
+const DEM_PROBE_CEILING = 16; // 5 m LiDAR stops adding real detail around here
+// A tile over the D'Aguilar Range — real SEQ riding country, and inside the
+// Geoscience Australia LiDAR footprint if anywhere is.
+const DEM_PROBE_TILE = { z: 14, x: 15143, y: 9486 };
+
+function cachedDemMaxzoom() {
+  try {
+    const c = JSON.parse(localStorage.getItem(DEM_PREF_KEY) || "null");
+    if (c && typeof c.z === "number" && Date.now() - c.t < DEM_PROBE_TTL) return c.z;
+  } catch (_) {
+    /* unreadable cache — fall through to the shipped default */
+  }
+  return null;
+}
+
+async function probeDemMaxzoom(from) {
+  if (cachedDemMaxzoom() !== null) return;
+  let best = from;
+  for (let z = from + 1; z <= DEM_PROBE_CEILING; z++) {
+    const f = 2 ** (z - DEM_PROBE_TILE.z);
+    const url = `https://tiles.mapterhorn.com/${z}/${Math.floor(DEM_PROBE_TILE.x * f)}/${Math.floor(DEM_PROBE_TILE.y * f)}.webp`;
+    try {
+      const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
+      if (!res.ok) break;
+      best = z;
+    } catch (_) {
+      break;
+    }
+  }
+  try {
+    localStorage.setItem(DEM_PREF_KEY, JSON.stringify({ z: best, t: Date.now() }));
+  } catch (_) {
+    /* private mode — we'll just re-probe next time */
+  }
+}
+// Topographic relief: the DEFAULT 3D look. Imagery is opt-in and replaces it.
+const RELIEF_LAYERS = ["color-relief", "hillshade"];
 const SAT_LAYERS = { s2: "satellite", esri: "satellite-esri" };
 
 // Basemap layers that need restyling when photography is underneath them.
@@ -160,6 +211,26 @@ function simplifyPath(coords, tolerance) {
 // together. Persisted so a rider's choice survives a reload. Phones default to
 // 2D and opt in; see the top-right view switch.
 let view3d = loadView3d();
+// Imagery is off by default: the terrain + elevation tint is the house style,
+// and aerial photography is the thing a rider reaches for when they want to
+// see the actual ground.
+let satOn = loadSat();
+
+function loadSat() {
+  try {
+    return localStorage.getItem(SAT_PREF_KEY) === "1";
+  } catch (_) {
+    return false;
+  }
+}
+
+function saveSat() {
+  try {
+    localStorage.setItem(SAT_PREF_KEY, satOn ? "1" : "0");
+  } catch (_) {
+    /* private mode / quota */
+  }
+}
 
 function loadView3d() {
   try {
@@ -325,6 +396,15 @@ async function initMap() {
   // schema, whole-planet, no key). To self-host Protomaps PMTiles later, point
   // bush.json at bush-protomaps.json and set BRM_CONFIG.tilesUrl to the R2 URL.
   const style = await fetch("styles/bush.json").then((r) => r.json());
+
+  // Use the deepest DEM level this server is known to serve. Falls back to the
+  // value shipped in bush.json until the background probe has answered once.
+  const dem = style.sources && style.sources["terrain-dem"];
+  if (dem) {
+    const known = cachedDemMaxzoom();
+    if (known !== null) dem.maxzoom = known;
+    probeDemMaxzoom(dem.maxzoom || 14); // deliberately not awaited
+  }
   if (TILES_URL && style.sources.protomaps) {
     style.sources.protomaps.url = "pmtiles://" + TILES_URL;
   }
@@ -406,12 +486,29 @@ function onLoad() {
   });
 
   // --- Layers --------------------------------------------------------------
+  // Two layers, casing first so it draws underneath: a dark-green outline
+  // around an off-white core. A single dark line vanished against green
+  // satellite imagery; this treatment holds up on both cream paper and
+  // photography, so there is no mode-dependent styling to keep in sync.
+  map.addLayer({
+    id: "selected-route-casing",
+    type: "line",
+    source: "selected-route",
+    layout: { "line-cap": "round", "line-join": "round" },
+    paint: {
+      "line-color": ROUTE_LINE,
+      "line-width": ["interpolate", ["linear"], ["zoom"], 8, 5, 16, 9.5],
+    },
+  });
   map.addLayer({
     id: "selected-route-line",
     type: "line",
     source: "selected-route",
     layout: { "line-cap": "round", "line-join": "round" },
-    paint: { "line-color": ROUTE_LINE, "line-width": 3 },
+    paint: {
+      "line-color": ROUTE_CORE,
+      "line-width": ["interpolate", ["linear"], ["zoom"], 8, 2.2, 16, 4.6],
+    },
   });
 
   map.addLayer({
@@ -1482,13 +1579,24 @@ function applyRelief() {
     view3d = false;
   }
 
+  // Relief is the default 3D look; imagery replaces it rather than stacking on
+  // top, so only one of the two ever draws.
+  for (const id of RELIEF_LAYERS) setLayerVisible(id, view3d && !satOn);
+
   // Show only the selected provider's layer; the other never requests a tile.
   const active = SAT_LAYERS[SAT_PROVIDER] || SAT_LAYERS.s2;
-  for (const id of Object.values(SAT_LAYERS)) setLayerVisible(id, view3d && id === active);
+  for (const id of Object.values(SAT_LAYERS)) setLayerVisible(id, satOn && id === active);
 
-  restyleForImagery(view3d);
+  restyleForImagery(satOn);
   document.body.classList.toggle("is-3d", view3d);
+  document.body.classList.toggle("is-sat", satOn);
   syncViewSwitch();
+}
+
+function setSatellite(on) {
+  satOn = on;
+  applyRelief();
+  saveSat();
 }
 
 /* The basemap's ink-on-cream typography is tuned for a pale vector map. Over
@@ -1534,9 +1642,12 @@ function setView3d(on) {
 function initViewSwitch() {
   const b2 = document.getElementById("view-2d");
   const b3 = document.getElementById("view-3d");
-  if (!b2 || !b3) return;
-  b2.addEventListener("click", () => setView3d(false));
-  b3.addEventListener("click", () => setView3d(true));
+  const sat = document.getElementById("view-sat");
+  if (b2 && b3) {
+    b2.addEventListener("click", () => setView3d(false));
+    b3.addEventListener("click", () => setView3d(true));
+  }
+  if (sat) sat.addEventListener("click", () => setSatellite(!satOn));
   syncViewSwitch();
 }
 
@@ -1548,6 +1659,12 @@ function syncViewSwitch() {
   b3.classList.toggle("is-active", view3d);
   b2.setAttribute("aria-pressed", String(!view3d));
   b3.setAttribute("aria-pressed", String(view3d));
+
+  const sat = document.getElementById("view-sat");
+  if (sat) {
+    sat.classList.toggle("is-active", satOn);
+    sat.setAttribute("aria-pressed", String(satOn));
+  }
 }
 
 /* ── Cinematics: orbit + ride-through ─────────────────────────────────────────
@@ -1563,11 +1680,11 @@ let rideRAF = null;
 let rideStopFn = null;
 
 const ORBIT_DEG_PER_SEC = 4.2; // slow enough to read as a reveal, not a spin
-// Zoom is logarithmic, so this is not "+3.4x" — each level doubles the scale.
-// 1.8 levels was ~3.5x closer than the fitted view; 3.4 is ~10.5x, i.e. about
-// 3x closer again, which is what "at least 3x more zoomed" asks for.
-const ORBIT_ZOOM_BOOST = 3.4;
-const ORBIT_MAX_ZOOM = 15.6; // don't punch through the DEM's useful detail
+// Ceiling only. Orbit zoom is now derived from the route's own size (see
+// frameForOrbit) rather than a fixed boost, so a short route still gets close
+// and a long one stays wholly in frame. This just stops a tiny route punching
+// past the DEM's useful detail.
+const ORBIT_MAX_ZOOM = 15.6;
 const ORBIT_LEG_DEGREES = 30; // arc per easeTo leg; short enough to stop promptly
 const ORBIT_START_DELAY = 1100; // let the fit settle first
 
@@ -1600,14 +1717,55 @@ function startOrbit() {
   if (!map || !view3d || !mapReady) return;
   stopCinematics();
 
-  map.easeTo({
-    zoom: Math.min(ORBIT_MAX_ZOOM, map.getZoom() + ORBIT_ZOOM_BOOST),
-    pitch: TERRAIN_PITCH,
-    duration: 1200,
-  });
-  // Begin rotating once the push-in has landed; easing and setBearing at the
-  // same time fight each other.
+  const feature = selectedId && routeById.get(selectedId);
+  if (feature) frameForOrbit(feature, 1200);
+  // Begin rotating once the framing move has landed; easing and rotating at
+  // the same time fight each other.
   orbitStartTimer = setTimeout(spinOrbit, 1250);
+}
+
+/* Frame a route so it stays FULLY visible at every bearing.
+
+   The previous version just added a fixed zoom boost to whatever the fit had
+   produced, which is why the orbit appeared to jump to a random spot and then
+   swing parts of the route off screen.
+
+   Fitting the route's bounding BOX only guarantees visibility at the current
+   bearing — rotate a long thin route 90 degrees and its ends leave the frame.
+   So fit its bounding CIRCLE instead: the centre, plus the distance to the
+   furthest point on the line. A circle looks the same from every angle, so
+   once it fits, it fits at all 360 degrees of the orbit. Implemented by
+   fitting the square that circumscribes that circle, which is conservative
+   and lets MapLibre do the zoom maths. */
+function frameForOrbit(feature, duration) {
+  const coords = lineCoords(displayGeometry(feature));
+  if (!coords.length) return;
+
+  const b = new maplibregl.LngLatBounds();
+  for (const c of coords) b.extend(c);
+  const centre = b.getCenter();
+
+  // Work in "latitude degrees" so both axes share a scale: a degree of
+  // longitude is shorter than a degree of latitude everywhere but the equator.
+  const k = Math.cos((centre.lat * Math.PI) / 180) || 1;
+  let radius = 0;
+  for (const p of coords) {
+    radius = Math.max(radius, Math.hypot((p[0] - centre.lng) * k, p[1] - centre.lat));
+  }
+  if (!radius) radius = 0.0015; // degenerate/point route — give it something to look at
+
+  const square = new maplibregl.LngLatBounds(
+    [centre.lng - radius / k, centre.lat - radius],
+    [centre.lng + radius / k, centre.lat + radius]
+  );
+
+  map.fitBounds(square, {
+    padding: fitPadding(),
+    pitch: TERRAIN_PITCH,
+    bearing: map.getBearing(),
+    maxZoom: ORBIT_MAX_ZOOM,
+    duration,
+  });
 }
 
 /* Rotate by handing MapLibre one long, linear easeTo per leg and chaining the

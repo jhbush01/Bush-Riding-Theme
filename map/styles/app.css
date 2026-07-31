@@ -1656,6 +1656,16 @@ textarea.field-input {
   border-color: var(--terracotta);
   color: var(--terracotta);
 }
+/* Toggle variant: reads as pressed when its layer is showing. */
+.map-tools__btn--toggle.is-active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--cream-panel);
+}
+.map-tools__btn--toggle.is-active:hover {
+  color: var(--cream-panel);
+  border-color: var(--ink);
+}
 
 .view-switch {
   display: flex;

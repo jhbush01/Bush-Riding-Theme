@@ -49,6 +49,66 @@
       }
     },
     {
+      "id": "color-relief",
+      "type": "color-relief",
+      "source": "terrain-dem",
+      "layout": {
+        "visibility": "none"
+      },
+      "paint": {
+        "color-relief-opacity": 0.85,
+        "color-relief-color": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "elevation"
+          ],
+          -10,
+          "#A7BFBD",
+          0,
+          "#C9D3B2",
+          80,
+          "#D3DABC",
+          180,
+          "#DEE2C4",
+          300,
+          "#E9E2D0",
+          450,
+          "#E4D9BA",
+          600,
+          "#DCCAA3",
+          780,
+          "#D2B386",
+          950,
+          "#C69B70",
+          1150,
+          "#B8845C",
+          1400,
+          "#A76D48",
+          1800,
+          "#93583A"
+        ]
+      }
+    },
+    {
+      "id": "hillshade",
+      "type": "hillshade",
+      "source": "terrain-dem",
+      "layout": {
+        "visibility": "none"
+      },
+      "paint": {
+        "hillshade-method": "igor",
+        "hillshade-exaggeration": 0.5,
+        "hillshade-illumination-direction": 315,
+        "hillshade-shadow-color": "#6B5A42",
+        "hillshade-highlight-color": "#FBF6E6",
+        "hillshade-accent-color": "#8A7A5C"
+      }
+    },
+    {
       "id": "landcover-wood",
       "type": "fill",
       "source": "openmaptiles",
