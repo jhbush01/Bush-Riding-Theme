@@ -71,12 +71,6 @@
   <body>
     <div id="map" aria-label="Map of curated gravel routes"></div>
 
-    <!-- Aged-paper treatment over the basemap. Purely decorative, sits above
-         the canvas but below every panel, and never takes pointer events.
-         Shown only while <body> carries .has-paper (the "Paper" toggle in the
-         Map view controls). -->
-    <div class="paper-grain" aria-hidden="true"></div>
-    <div class="paper-vignette" aria-hidden="true"></div>
 
     <!-- Filter / list panel -->
     <aside id="sidebar" class="sidebar" aria-label="Route filters and list">
@@ -161,7 +155,7 @@
 
     <!-- Top-right map tools: get back to the wide view, and flat vs 3D relief.
          The view switch is one control for the whole relief presentation
-         (terrain + hillshade + elevation tint + paper). -->
+         (3D terrain + satellite imagery). -->
     <div class="map-tools">
       <!-- One click back out to every route, so picking a different pin never
            means scrolling the wheel repeatedly. Shown only once the camera is

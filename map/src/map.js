@@ -25,9 +25,12 @@ const SERIES = "#8a4f7d";
    LiDAR over much of SEQ, Copernicus GLO-30 global fallback). The DEM drives
    three things, each independently toggleable from the sidebar:
 
-     terrain       — displaces the ground so routes drape over real relief
-     hillshade     — Igor-method shading; the cartographic "texture"
-     color-relief  — hypsometric tint (green lowland → tan → brown highland)
+     terrain    — displaces the ground so routes drape over real relief
+     satellite  — aerial photography draped over that relief
+
+   No synthetic shading: real imagery already carries the sun's shadows, so a
+   hillshade layer on top double-shades it and reads as fake. Dropping it also
+   removes a full DEM raster pass per frame.
 
    Phones default to the old flat map: terrain plus two DEM-reading raster
    layers is real GPU and bandwidth cost, and the phone layout (bottom sheet,
@@ -38,7 +41,24 @@ const TERRAIN_SOURCE = "terrain-dem";
 const TERRAIN_EXAGGERATION = 2.0;
 const TERRAIN_PITCH = 68;
 const TERRAIN_PREF_KEY = "brm.view3d";
-const RELIEF_LAYERS = ["hillshade", "color-relief"];
+/* Satellite imagery provider for the realistic 3D view.
+   Flip this one constant to switch — both layers ship in bush.json, and only
+   the visible one requests tiles, so the unused provider costs nothing.
+
+     "s2"   Sentinel-2 cloudless (EOX). CC BY 4.0, free, no key, no commercial
+            ambiguity — the safe default. 10 m/px, so it is crisp at wide zooms
+            and goes soft close in; at ride-through altitude expect mush.
+     "esri" Esri World Imagery. Sub-metre in populated areas, tiles to z19, so
+            it still looks photographic at orbit and ride-through zooms.
+            Free and keyless, BUT Esri's terms arguably expect an ArcGIS
+            subscription for commercial use. Read them before shipping this to
+            a storefront. */
+const SAT_PROVIDER = "s2"; // "s2" | "esri"
+const SAT_LAYERS = { s2: "satellite", esri: "satellite-esri" };
+
+// Basemap layers that need restyling when photography is underneath them.
+const LABEL_LAYERS = ["place-town", "place-state"];
+const ROAD_LAYERS = ["road-minor", "road-secondary", "road-primary", "road-motorway"];
 
 // Pulse repaint budget. The cycle is 3.6s, so ~20fps is visually identical to
 // 60 and costs a third of the full-map re-renders. 2D frames are cheap, so
@@ -133,9 +153,9 @@ function simplifyPath(coords, tolerance) {
   return out;
 }
 
-// One switch for the whole relief presentation — terrain, hillshade, elevation
-// tint and paper move together. Persisted so a rider's choice survives a
-// reload. Phones default to 2D and opt in; see the top-right view switch.
+// One switch for the whole presentation — terrain and satellite imagery move
+// together. Persisted so a rider's choice survives a reload. Phones default to
+// 2D and opt in; see the top-right view switch.
 let view3d = loadView3d();
 
 function loadView3d() {
@@ -331,10 +351,9 @@ async function initMap() {
     fadeDuration: 0,
     refreshExpiredTiles: false,
     // Cap the drawing buffer on high-density touch screens. A retina tablet
-    // asks for ~2x the pixels of its CSS size, and terrain + hillshade +
-    // colour-relief are all fragment-bound, so that doubles the most expensive
-    // work on the least capable GPUs. Desktop and standard-density screens are
-    // untouched.
+    // asks for ~2x the pixels of its CSS size, and terrain + draped imagery
+    // are fragment-bound, so that doubles the most expensive work on the least
+    // capable GPUs. Desktop and standard-density screens are untouched.
     maxCanvasSize: canvasCap(),
   };
   if (startBounds) {
@@ -868,8 +887,8 @@ function startPulse() {
 
     // Every setPaintProperty marks the map dirty, so this loop used to force a
     // FULL re-render 60 times a second, forever. Flat that was cheap; with 3D
-    // terrain each of those frames also rebuilds the terrain mesh and repaints
-    // hillshade + colour-relief, which is what made tablets crawl.
+    // terrain each of those frames also rebuilds the terrain mesh and redraws
+    // the draped imagery, which is what made tablets crawl.
     //
     // Two brakes, neither visible: the cycle is 3.6s long, so stepping it at
     // ~20fps looks identical to 60fps; and during a guided camera move the
@@ -1460,10 +1479,32 @@ function applyRelief() {
     view3d = false;
   }
 
-  for (const id of RELIEF_LAYERS) setLayerVisible(id, view3d);
-  document.body.classList.toggle("has-paper", view3d);
+  // Show only the selected provider's layer; the other never requests a tile.
+  const active = SAT_LAYERS[SAT_PROVIDER] || SAT_LAYERS.s2;
+  for (const id of Object.values(SAT_LAYERS)) setLayerVisible(id, view3d && id === active);
+
+  restyleForImagery(view3d);
   document.body.classList.toggle("is-3d", view3d);
   syncViewSwitch();
+}
+
+/* The basemap's ink-on-cream typography is tuned for a pale vector map. Over
+   aerial photography — dark forest, dark water — it disappears. Swap to white
+   text on a dark halo while imagery is showing, and pull the roads back so
+   they read as an overlay on the landscape rather than painted lines across
+   it. Both revert exactly in 2D. */
+function restyleForImagery(on) {
+  if (!map) return;
+  for (const id of LABEL_LAYERS) {
+    if (!map.getLayer(id)) continue;
+    const muted = id === "place-state";
+    map.setPaintProperty(id, "text-color", on ? "#FFFFFF" : muted ? "#8A8068" : "#5A5346");
+    map.setPaintProperty(id, "text-halo-color", on ? "rgba(18, 20, 16, 0.82)" : "#EDE7D7");
+    map.setPaintProperty(id, "text-halo-width", on ? 1.7 : muted ? 1.2 : 1.3);
+  }
+  for (const id of ROAD_LAYERS) {
+    if (map.getLayer(id)) map.setPaintProperty(id, "line-opacity", on ? 0.6 : 1);
+  }
 }
 
 function setLayerVisible(id, visible) {

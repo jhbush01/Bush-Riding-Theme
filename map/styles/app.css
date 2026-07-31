@@ -1848,49 +1848,7 @@ body:not(.is-3d) .card__experience {
   }
 }
 
-/* Decorative paper grain + vignette over the basemap canvas.
-   z-index 1: above #map (auto), below every panel (>= 2). pointer-events
-   none so map interaction is completely unaffected. Hidden entirely unless
-   <body> carries .has-paper. */
-.paper-grain,
-.paper-vignette {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  display: none;
-  pointer-events: none;
-}
-body.has-paper .paper-grain,
-body.has-paper .paper-vignette {
-  display: block;
-}
 
-/* Inline SVG turbulence — self-contained, no image asset to host or fetch. */
-/* No mix-blend-mode here on purpose. A viewport-sized multiply layer forces
-   the compositor into an extra full-screen pass on EVERY frame, which during
-   an orbit or fly-through is every frame — one of the more expensive things
-   on a tablet GPU for something purely decorative. Plain alpha reads almost
-   identically over this palette and costs nothing per frame. */
-.paper-grain {
-  opacity: 0.1;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='220' height='220' filter='url(%23n)' opacity='0.55'/></svg>");
-  background-size: 220px 220px;
-}
-.paper-vignette {
-  background: radial-gradient(
-    124% 90% at 50% 46%,
-    rgba(0, 0, 0, 0) 54%,
-    rgba(92, 74, 48, 0.26) 100%
-  );
-}
-
-/* Respect reduced-motion/transparency preferences — the grain is pure
-   decoration and the map is entirely legible without it. */
-@media (prefers-reduced-transparency: reduce) {
-  body.has-paper .paper-grain {
-    display: none;
-  }
-}
 
 /* ── Orbit pause / resume ─────────────────────────────────────────────────
    Bottom centre, deliberately small — it should be findable without competing
