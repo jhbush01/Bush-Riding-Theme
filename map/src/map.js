@@ -37,8 +37,8 @@ const SERIES = "#8a4f7d";
 const TERRAIN_SOURCE = "terrain-dem";
 const TERRAIN_EXAGGERATION = 2.0;
 const TERRAIN_PITCH = 68;
-const TERRAIN_PREF_KEY = "brm.relief";
-const RELIEF_LAYERS = { hillshade: "hillshade", tint: "color-relief" };
+const TERRAIN_PREF_KEY = "brm.view3d";
+const RELIEF_LAYERS = ["hillshade", "color-relief"];
 
 // Tablet and up. Matches the 720px breakpoint fitPadding() already uses to
 // tell "phone" from "everything else", so the two never disagree.
@@ -46,25 +46,27 @@ function terrainDefaultOn() {
   return window.innerWidth > 720;
 }
 
-// Sidebar toggle state. Persisted so a rider's choice survives a reload.
-const relief = loadReliefPrefs();
+// One switch for the whole relief presentation — terrain, hillshade, elevation
+// tint and paper move together. Persisted so a rider's choice survives a
+// reload. Phones default to 2D and opt in; see the top-right view switch.
+let view3d = loadView3d();
 
-function loadReliefPrefs() {
-  const on = terrainDefaultOn();
-  const fallback = { terrain: on, hillshade: on, tint: on, paper: on };
+function loadView3d() {
   try {
-    const saved = JSON.parse(localStorage.getItem(TERRAIN_PREF_KEY) || "null");
-    return saved && typeof saved === "object" ? { ...fallback, ...saved } : fallback;
+    const saved = localStorage.getItem(TERRAIN_PREF_KEY);
+    if (saved === "1") return true;
+    if (saved === "0") return false;
   } catch (_) {
-    return fallback;
+    /* private mode — fall through to the default */
   }
+  return terrainDefaultOn();
 }
 
-function saveReliefPrefs() {
+function saveView3d() {
   try {
-    localStorage.setItem(TERRAIN_PREF_KEY, JSON.stringify(relief));
+    localStorage.setItem(TERRAIN_PREF_KEY, view3d ? "1" : "0");
   } catch (_) {
-    /* private mode / quota — preferences just won't persist */
+    /* private mode / quota — preference just won't persist */
   }
 }
 
@@ -231,7 +233,7 @@ async function initMap() {
     // 3D relief view. Rotation stays disabled — this is a fixed oblique
     // "diorama" camera, not an orbit control. Phones open flat and opt in
     // through the drawer (see terrainDefaultOn).
-    pitch: relief.terrain ? TERRAIN_PITCH : 0,
+    pitch: view3d ? TERRAIN_PITCH : 0,
     maxPitch: TERRAIN_PITCH,
   };
   if (startBounds) {
@@ -253,7 +255,9 @@ function onLoad() {
   // 3D relief first, so terrain is attached before the route/pin layers below
   // are added and start draping over it.
   applyRelief();
-  initReliefControls();
+  initViewSwitch();
+  initCinematicCancel();
+  initDetailChrome();
 
   // --- Sources -------------------------------------------------------------
   // Clustered point source (pins). Clustering is on from day one so
@@ -811,9 +815,8 @@ function selectRoute(id, fly) {
   }
 
   selectedId = id;
-  // Selecting from the results list on a phone leaves the filters drawer over
-  // the map; collapse it so the map + detail sheet are visible.
-  collapseSidebarOnMobile();
+  // Picking a route means "show me this route" — clear the drawer off the map.
+  collapseSidebarOnSelect();
   // openDetail opens the sheet at peek and frames the route above it (with the
   // correct dynamic padding). Framing here would use stale padding, so we let
   // the sheet own the camera.
@@ -1274,7 +1277,7 @@ function fitPadding() {
     return pitchAdjusted({
       top: 60,
       bottom: Math.min(reserve, Math.round(vh * 0.55)),
-      left: 360,
+      left: sidebarDocked() ? 360 : 40,
       right: 40,
     });
   }
@@ -1283,12 +1286,24 @@ function fitPadding() {
   // Reserve the right edge for the panel so the route stays clear of it. The
   // event panel is wider (440px) than the route panel (380px), so it needs a
   // deeper reserve or the route line slips under the card.
+  // A minimised card is a title bar, not a panel — it needs no side reserve, so
+  // the route recentres across the full canvas. Same for a collapsed sidebar.
+  const cardReserve = detailOpen && !detailMinimised ? (detailMode === "event" ? 500 : 430) : 80;
   return pitchAdjusted({
     top: 60,
     bottom: 60,
-    left: 380,
-    right: detailOpen ? (detailMode === "event" ? 500 : 430) : 80,
+    left: sidebarDocked() ? 380 : 80,
+    right: cardReserve,
   });
+}
+
+// Whether the filters sidebar is currently taking up horizontal space. It is
+// docked (not overlaid) from 721px up, and setSidebarOpen marks it .is-closed
+// when collapsed.
+function sidebarDocked() {
+  const el = document.getElementById("sidebar");
+  if (!el) return false;
+  return !el.classList.contains("is-closed") && window.matchMedia("(min-width: 721px)").matches;
 }
 
 // Compensate the padding above for a pitched camera.
@@ -1304,7 +1319,7 @@ function fitPadding() {
 // pitch so a flat map (phones, or terrain toggled off) is completely
 // unaffected — at pitch 0 this returns the object untouched.
 function pitchAdjusted(pad) {
-  const pitch = map ? map.getPitch() : relief.terrain ? TERRAIN_PITCH : 0;
+  const pitch = map ? map.getPitch() : view3d ? TERRAIN_PITCH : 0;
   if (!pitch) return pad;
   const vh = viewportHeight();
   const extra = Math.round(vh * (pitch / 90) * 0.42);
@@ -1314,24 +1329,25 @@ function pitchAdjusted(pad) {
   return { ...pad, top: pad.top + Math.min(extra, room) };
 }
 
-/* ── 3D relief: apply state, wire the sidebar toggles ─────────────────────── */
+/* ── 3D relief: apply state, wire the top-right view switch ───────────────── */
 
-// Push the current `relief` state onto the map. Safe to call repeatedly.
+// Push the current view mode onto the map. Safe to call repeatedly.
 function applyRelief() {
   if (!map) return;
 
   try {
-    map.setTerrain(relief.terrain ? { source: TERRAIN_SOURCE, exaggeration: TERRAIN_EXAGGERATION } : null);
+    map.setTerrain(view3d ? { source: TERRAIN_SOURCE, exaggeration: TERRAIN_EXAGGERATION } : null);
   } catch (e) {
     // A DEM outage must never take the map down — it is decoration over a
     // basemap that works fine flat.
     console.warn("Terrain unavailable, continuing flat:", e.message);
-    relief.terrain = false;
+    view3d = false;
   }
 
-  setLayerVisible(RELIEF_LAYERS.hillshade, relief.hillshade);
-  setLayerVisible(RELIEF_LAYERS.tint, relief.tint);
-  document.body.classList.toggle("has-paper", !!relief.paper);
+  for (const id of RELIEF_LAYERS) setLayerVisible(id, view3d);
+  document.body.classList.toggle("has-paper", view3d);
+  document.body.classList.toggle("is-3d", view3d);
+  syncViewSwitch();
 }
 
 function setLayerVisible(id, visible) {
@@ -1340,38 +1356,299 @@ function setLayerVisible(id, visible) {
   }
 }
 
-// Ease pitch to match the terrain toggle. Re-fit afterwards so the new
-// padding from pitchAdjusted() actually gets applied to the current view.
-function setTerrainEnabled(on) {
-  relief.terrain = on;
+// Switching view mode is a camera change too: 3D tilts to the oblique pitch,
+// 2D returns to flat and straightens any bearing left over from an orbit.
+function setView3d(on) {
+  view3d = on;
+  stopCinematics(); // orbit/fly-through are meaningless flat
   applyRelief();
-  map.easeTo({ pitch: on ? TERRAIN_PITCH : 0, duration: 600 });
+  saveView3d();
+  if (!map) return;
+  map.easeTo({
+    pitch: on ? TERRAIN_PITCH : 0,
+    bearing: on ? map.getBearing() : 0,
+    duration: 700,
+  });
 }
 
-function initReliefControls() {
-  const group = document.getElementById("f-relief");
-  if (!group) return;
+function initViewSwitch() {
+  const b2 = document.getElementById("view-2d");
+  const b3 = document.getElementById("view-3d");
+  if (!b2 || !b3) return;
+  b2.addEventListener("click", () => setView3d(false));
+  b3.addEventListener("click", () => setView3d(true));
+  syncViewSwitch();
+}
 
-  for (const btn of group.querySelectorAll(".toggle")) {
-    const key = btn.dataset.relief;
-    syncReliefButton(btn, !!relief[key]);
+function syncViewSwitch() {
+  const b2 = document.getElementById("view-2d");
+  const b3 = document.getElementById("view-3d");
+  if (!b2 || !b3) return;
+  b2.classList.toggle("is-active", !view3d);
+  b3.classList.toggle("is-active", view3d);
+  b2.setAttribute("aria-pressed", String(!view3d));
+  b3.setAttribute("aria-pressed", String(view3d));
+}
 
-    btn.addEventListener("click", () => {
-      const next = !relief[key];
-      if (key === "terrain") setTerrainEnabled(next);
+/* ── Cinematics: orbit + ride-through ─────────────────────────────────────────
+   Both drive the camera programmatically. Note this does NOT re-open the
+   rotation decision: dragRotate / pitchWithRotate / touchZoomRotate stay
+   disabled, so a rider still can't spin the map by hand. These are guided
+   camera moves the map performs, and any real input cancels them. */
+
+let orbitRAF = null;
+let orbitStartTimer = null;
+let rideRAF = null;
+let rideStopFn = null;
+
+const ORBIT_DEG_PER_SEC = 4.2; // slow enough to read as a reveal, not a spin
+const ORBIT_START_DELAY = 1100; // let the fit settle first
+
+function cinematicsRunning() {
+  return orbitRAF !== null || rideRAF !== null;
+}
+
+// Cancel everything and restore normal interaction state.
+function stopCinematics() {
+  clearTimeout(orbitStartTimer);
+  orbitStartTimer = null;
+  if (orbitRAF !== null) {
+    cancelAnimationFrame(orbitRAF);
+    orbitRAF = null;
+  }
+  if (rideRAF !== null) {
+    cancelAnimationFrame(rideRAF);
+    rideRAF = null;
+  }
+  if (rideStopFn) {
+    const fn = rideStopFn;
+    rideStopFn = null;
+    fn();
+  }
+}
+
+// Slowly circle the framed route. Bearing only — no centre or zoom change — so
+// this never fights fitBounds, and stopping leaves the map exactly where the
+// rider can carry on from.
+function startOrbit() {
+  if (!map || !view3d || !mapReady) return;
+  stopCinematics();
+
+  let last = performance.now();
+  const step = (now) => {
+    const dt = (now - last) / 1000;
+    last = now;
+    map.setBearing(map.getBearing() + ORBIT_DEG_PER_SEC * dt);
+    orbitRAF = requestAnimationFrame(step);
+  };
+  orbitRAF = requestAnimationFrame(step);
+}
+
+// Kick off an orbit a beat after a route is framed, so the fit animation
+// finishes first. Skipped entirely in 2D.
+function scheduleOrbit() {
+  clearTimeout(orbitStartTimer);
+  if (!view3d) return;
+  orbitStartTimer = setTimeout(startOrbit, ORBIT_START_DELAY);
+}
+
+/* Ride-through: fly the camera along the route.
+
+   Implemented as a rAF loop over the route's own coordinates rather than a
+   chain of easeTo calls — easeTo per segment stutters at every hand-off, and
+   route segments are wildly uneven in length. Interpolating along cumulative
+   distance gives constant ground speed regardless of how the GPX was sampled. */
+const RIDE_MIN_MS = 18000;
+const RIDE_MAX_MS = 55000;
+const RIDE_ZOOM = 14.2;
+const RIDE_PITCH = 74;
+
+function rideThrough(feature) {
+  if (!map || !mapReady || !feature) return;
+  const coords = lineCoords(feature.geometry);
+  if (coords.length < 2) return;
+
+  // Ride-through only makes sense over terrain.
+  if (!view3d) setView3d(true);
+  stopCinematics();
+  // Get the card out of the way for the flight, but remember how the rider had
+  // it so stopping restores their state rather than forcing the card open.
+  const wasMinimised = detailMinimised;
+  minimiseDetail(true);
+
+  // Cumulative ground distance so speed is even along the whole line.
+  const cum = [0];
+  for (let i = 1; i < coords.length; i++) {
+    cum[i] = cum[i - 1] + haversine(coords[i - 1], coords[i]);
+  }
+  const total = cum[cum.length - 1];
+  if (!total) return;
+
+  // Longer routes get longer flights, clamped so a 200 km epic doesn't run
+  // for minutes.
+  const duration = Math.min(RIDE_MAX_MS, Math.max(RIDE_MIN_MS, total * 260));
+
+  const hud = document.getElementById("ride-hud");
+  const fill = document.getElementById("ride-hud-fill");
+  if (hud) hud.hidden = false;
+  document.body.classList.add("riding");
+
+  const prev = { pitch: map.getPitch(), zoom: map.getZoom(), center: map.getCenter(), bearing: map.getBearing() };
+
+  rideStopFn = () => {
+    if (hud) hud.hidden = true;
+    if (fill) fill.style.width = "0%";
+    document.body.classList.remove("riding");
+    minimiseDetail(wasMinimised);
+    // Ease back to the whole route rather than snapping — abrupt cuts after a
+    // flight are disorienting.
+    if (mapReady && selectedId) {
+      map.easeTo({ pitch: prev.pitch, duration: 600 });
+      scheduleReframe();
+    }
+  };
+
+  const start = performance.now();
+  map.easeTo({
+    center: coords[0],
+    zoom: RIDE_ZOOM,
+    pitch: RIDE_PITCH,
+    bearing: bearingBetween(coords[0], coords[Math.min(3, coords.length - 1)]),
+    duration: 1400,
+  });
+
+  const begin = () => {
+    const t0 = performance.now();
+    const step = (now) => {
+      const t = Math.min(1, (now - t0) / duration);
+      const target = t * total;
+
+      // Walk the cumulative table to the current distance.
+      let i = 1;
+      while (i < cum.length - 1 && cum[i] < target) i++;
+      const seg = cum[i] - cum[i - 1] || 1;
+      const f = (target - cum[i - 1]) / seg;
+      const here = lerpCoord(coords[i - 1], coords[i], f);
+
+      // Aim a little further down the trail so the camera leads the rider
+      // rather than snapping to each vertex.
+      const ahead = coords[Math.min(coords.length - 1, i + 2)];
+
+      map.jumpTo({
+        center: here,
+        zoom: RIDE_ZOOM,
+        pitch: RIDE_PITCH,
+        bearing: bearingBetween(here, ahead),
+      });
+
+      if (fill) fill.style.width = (t * 100).toFixed(1) + "%";
+
+      if (t < 1) rideRAF = requestAnimationFrame(step);
       else {
-        relief[key] = next;
-        applyRelief();
+        rideRAF = null;
+        stopCinematics();
       }
-      syncReliefButton(btn, next);
-      saveReliefPrefs();
+    };
+    rideRAF = requestAnimationFrame(step);
+  };
+
+  // Start the flight once the approach easeTo has landed.
+  setTimeout(() => {
+    if (document.body.classList.contains("riding")) begin();
+  }, 1450);
+}
+
+function lineCoords(geom) {
+  if (!geom) return [];
+  if (geom.type === "LineString") return geom.coordinates;
+  if (geom.type === "MultiLineString") return geom.coordinates.flat();
+  return [];
+}
+
+function lerpCoord(a, b, f) {
+  return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f];
+}
+
+// Kilometres between two [lng, lat] pairs.
+function haversine(a, b) {
+  const R = 6371;
+  const dLat = ((b[1] - a[1]) * Math.PI) / 180;
+  const dLng = ((b[0] - a[0]) * Math.PI) / 180;
+  const la1 = (a[1] * Math.PI) / 180;
+  const la2 = (b[1] * Math.PI) / 180;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(la1) * Math.cos(la2) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+// Compass bearing a → b, degrees.
+function bearingBetween(a, b) {
+  const la1 = (a[1] * Math.PI) / 180;
+  const la2 = (b[1] * Math.PI) / 180;
+  const dLng = ((b[0] - a[0]) * Math.PI) / 180;
+  const y = Math.sin(dLng) * Math.cos(la2);
+  const x = Math.cos(la1) * Math.sin(la2) - Math.sin(la1) * Math.cos(la2) * Math.cos(dLng);
+  return (Math.atan2(y, x) * 180) / Math.PI;
+}
+
+/* ── Minimised detail card ────────────────────────────────────────────────
+   On tablet/desktop, picking a route collapses the card to a slim title bar so
+   the route itself is the only thing on screen. The "+" button brings the full
+   card back. Phones are unaffected — they already have snap states (peek /
+   half / full) that do this job, and re-using them here would fight the drag
+   gesture. */
+let detailMinimised = false;
+
+function minimiseDetail(on) {
+  detailMinimised = !!on;
+  if (!els.detail) return;
+
+  if (isSheetMode()) {
+    // Tablet: the sheet is transform-positioned and already has a minimal
+    // snap state. Drive that instead of adding a competing height class —
+    // two systems fighting over the same element is how sheets get stuck.
+    if (detailOpen) setSheetState(detailMinimised ? "peek" : "full");
+  } else {
+    // Desktop inset panel: no transform to respect, so collapse it directly.
+    els.detail.classList.toggle("is-min", detailMinimised);
+    scheduleReframe(); // padding changes with the card's footprint
+  }
+
+  const btn = document.getElementById("detail-expand");
+  if (btn) btn.setAttribute("aria-expanded", String(!detailMinimised));
+}
+
+// Tablet and desktop only, matching the stated scope for this behaviour.
+function shouldAutoMinimise() {
+  return window.matchMedia("(min-width: 721px)").matches;
+}
+
+function initDetailChrome() {
+  const expand = document.getElementById("detail-expand");
+  if (expand) {
+    expand.addEventListener("click", () => {
+      stopCinematics(); // reading the card means the reveal has done its job
+      minimiseDetail(false);
+    });
+  }
+
+  const ride = document.getElementById("detail-ride");
+  if (ride) {
+    ride.addEventListener("click", () => {
+      const f = selectedId && routeById.get(selectedId);
+      if (f) rideThrough(f);
     });
   }
 }
 
-function syncReliefButton(btn, on) {
-  btn.classList.toggle("is-active", on);
-  btn.setAttribute("aria-pressed", on ? "true" : "false");
+// Any genuine input cancels a guided camera move. Registered on the canvas so
+// UI clicks (buttons, the card) don't count as "take back control".
+function initCinematicCancel() {
+  const canvas = map.getCanvas();
+  for (const ev of ["mousedown", "wheel", "touchstart", "dblclick"]) {
+    canvas.addEventListener(ev, () => stopCinematics(), { passive: true });
+  }
+  const stopBtn = document.getElementById("ride-stop");
+  if (stopBtn) stopBtn.addEventListener("click", () => stopCinematics());
 }
 
 // LngLatBounds covering every route, or null if there are none.
@@ -1521,6 +1798,14 @@ function openDetail(feature) {
   fillDetail(feature);
   // Route detail opens at peek (browsing), event detail opens at half.
   openSheet("peek");
+
+  // Tablet/desktop: collapse the card to its title bar so the framed route is
+  // the only thing competing for attention, then let the camera circle it. The
+  // "+" on the card brings the detail back; any map input stops the orbit.
+  if (shouldAutoMinimise()) {
+    minimiseDetail(true);
+    scheduleOrbit();
+  }
 }
 
 // Open a Community Bush Ride event in the same sheet, with event content and
@@ -1574,6 +1859,10 @@ function openSheet(initialState) {
 function closeDetail() {
   if (!detailOpen) return;
   detailOpen = false;
+  // Closing the card ends any guided camera move and clears the minimised
+  // state, so the next route opens from a known position.
+  stopCinematics();
+  minimiseDetail(false);
   deck = null;
   backTarget = null;
   updateDeckNav();
@@ -2361,12 +2650,15 @@ function setupSidebarToggle() {
   requestAnimationFrame(() => sidebar.classList.remove("no-anim"));
 }
 
-// On phones the filters drawer overlays the map, so collapse it when a route
-// is picked — otherwise the drawer covers the map and the new detail sheet.
-// Only applies in the mobile overlay range; the docked sidebar (tablet/desktop)
-// doesn't block anything and stays put.
-function collapseSidebarOnMobile() {
-  if (window.matchMedia("(max-width: 720px)").matches) setSidebarOpen(false);
+// Collapse the filters drawer when a route is picked, at every width.
+//
+// On phones this has always been necessary — the drawer overlays the map. On
+// tablet/desktop the docked sidebar doesn't *block* the map, but it does crowd
+// it: picking a route is a request to look at that route, so the drawer gets
+// out of the way and the route takes the whole canvas. The hamburger brings it
+// straight back.
+function collapseSidebarOnSelect() {
+  setSidebarOpen(false);
 }
 
 // ---- Helpers -------------------------------------------------------------

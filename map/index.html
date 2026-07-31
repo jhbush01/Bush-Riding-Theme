@@ -109,17 +109,6 @@
           </ul>
         </div>
 
-        <div class="filter filter--view">
-          <span class="filter__label">Map view</span>
-          <div id="f-relief" class="toggle-group" role="group" aria-label="Map view options">
-            <button type="button" class="toggle" data-relief="terrain" aria-pressed="false">3D terrain</button>
-            <button type="button" class="toggle" data-relief="hillshade" aria-pressed="false">Hillshade</button>
-            <button type="button" class="toggle" data-relief="tint" aria-pressed="false">Elevation tint</button>
-            <button type="button" class="toggle" data-relief="paper" aria-pressed="false">Paper</button>
-          </div>
-          <p class="filter__hint">Relief from Geoscience Australia &amp; Copernicus elevation data.</p>
-        </div>
-
         <div class="filter">
           <label class="filter__label" for="f-distance">
             Distance <span id="f-distance-val" class="filter__val">any</span>
@@ -170,6 +159,20 @@
       <a class="map-brand__logo" href="https://bushriding.cc" aria-label="Bush Riding home">Bush Riding™</a>
     </div>
 
+    <!-- Top-right: flat map vs 3D relief. One control for the whole relief
+         presentation (terrain + hillshade + elevation tint + paper), replacing
+         the old per-layer "Map view" filter group. -->
+    <div class="view-switch" role="group" aria-label="Map view">
+      <button type="button" id="view-2d" class="view-switch__btn" aria-pressed="false">2D</button>
+      <button type="button" id="view-3d" class="view-switch__btn" aria-pressed="false">3D</button>
+    </div>
+
+    <!-- Ride-through HUD. Hidden unless a fly-through is running. -->
+    <div id="ride-hud" class="ride-hud" hidden aria-live="polite">
+      <div class="ride-hud__bar"><span id="ride-hud-fill" class="ride-hud__fill"></span></div>
+      <button type="button" id="ride-stop" class="ride-hud__stop">Stop ride through</button>
+    </div>
+
     <!-- Detail surface: bottom sheet (mobile/tablet) or inset floating panel
          (desktop). Snap states driven by map.js. ONE redesigned card shared by
          routes and events — data-mode toggles the event-only bits. -->
@@ -179,6 +182,13 @@
         <span class="sheet__handle" aria-hidden="true"></span>
         <button id="detail-close" class="card__close" aria-label="Close">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg>
+        </button>
+
+        <!-- Expand out of the minimised state. The card minimises itself when a
+             route is picked so the map is unobstructed; this brings the detail
+             back. Only rendered while minimised (CSS). -->
+        <button id="detail-expand" class="card__expand" type="button" aria-label="Expand route details" aria-expanded="false">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
         </button>
 
         <!-- HERO (revealed at full / always on desktop). Not .for-full: it
@@ -255,6 +265,12 @@
               Full route page
             </a>
             <a id="detail-cta" class="card__cta" target="_blank" rel="noopener noreferrer"></a>
+            <!-- Cinematic fly-through of the route over the 3D terrain. Routes
+                 only, and only meaningful in 3D — map.js hides it in 2D. -->
+            <button id="detail-ride" class="card__cta card__cta--ride only-route" type="button">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-3.5l6 4.5V6z"/></svg>
+              Ride through
+            </button>
           </div>
         </div>
 
