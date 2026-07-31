@@ -1866,9 +1866,13 @@ body.has-paper .paper-vignette {
 }
 
 /* Inline SVG turbulence — self-contained, no image asset to host or fetch. */
+/* No mix-blend-mode here on purpose. A viewport-sized multiply layer forces
+   the compositor into an extra full-screen pass on EVERY frame, which during
+   an orbit or fly-through is every frame — one of the more expensive things
+   on a tablet GPU for something purely decorative. Plain alpha reads almost
+   identically over this palette and costs nothing per frame. */
 .paper-grain {
-  opacity: 0.13;
-  mix-blend-mode: multiply;
+  opacity: 0.1;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='220' height='220' filter='url(%23n)' opacity='0.55'/></svg>");
   background-size: 220px 220px;
 }
@@ -1886,4 +1890,50 @@ body.has-paper .paper-vignette {
   body.has-paper .paper-grain {
     display: none;
   }
+}
+
+/* ── Orbit pause / resume ─────────────────────────────────────────────────
+   Bottom centre, deliberately small — it should be findable without competing
+   with the route itself. */
+.orbit-toggle {
+  position: absolute;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  z-index: 9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: rgba(244, 239, 226, 0.88);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 12px rgba(28, 26, 21, 0.2);
+  color: var(--ink);
+  cursor: pointer;
+}
+.orbit-toggle[hidden] {
+  display: none;
+}
+.orbit-toggle:hover {
+  border-color: var(--terracotta);
+  color: var(--terracotta);
+}
+/* One button, two glyphs — show whichever matches the next action. */
+.orbit-toggle__play {
+  display: none;
+}
+.orbit-toggle.is-paused .orbit-toggle__pause {
+  display: none;
+}
+.orbit-toggle.is-paused .orbit-toggle__play {
+  display: block;
+}
+/* The fly-through has its own stop control; two would compete. */
+body.riding .orbit-toggle {
+  display: none;
 }

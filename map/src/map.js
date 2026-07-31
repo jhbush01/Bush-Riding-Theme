@@ -40,10 +40,97 @@ const TERRAIN_PITCH = 68;
 const TERRAIN_PREF_KEY = "brm.view3d";
 const RELIEF_LAYERS = ["hillshade", "color-relief"];
 
+// Pulse repaint budget. The cycle is 3.6s, so ~20fps is visually identical to
+// 60 and costs a third of the full-map re-renders. 2D frames are cheap, so
+// that path stays closer to native.
+const PULSE_INTERVAL_3D = 50; // ~20fps
+const PULSE_INTERVAL_2D = 22; // ~45fps
+
 // Tablet and up. Matches the 720px breakpoint fitPadding() already uses to
 // tell "phone" from "everything else", so the two never disagree.
 function terrainDefaultOn() {
   return window.innerWidth > 720;
+}
+
+// Drawing-buffer ceiling. Only bites on high-density touch devices — a desktop
+// retina display has the GPU to back it up, a tablet generally does not.
+function canvasCap() {
+  const dpr = window.devicePixelRatio || 1;
+  const touch = window.matchMedia("(pointer: coarse)").matches;
+  return touch && dpr > 1.5 ? [2200, 2200] : [4096, 4096];
+}
+
+/* Display geometry for a route.
+
+   GPX files are raw GPS recordings — often thousands of points at one-second
+   intervals, each carrying a few metres of receiver noise. Handing that
+   straight to the renderer costs vertices on every frame AND draws the
+   receiver's wobble, which is a large part of why a route can look like it
+   isn't sitting on the road.
+
+   Ramer–Douglas–Peucker at a few metres removes the noise without moving the
+   line: any point dropped was within TOLERANCE of the line it sat on. Results
+   are cached per route id — simplifying a 5,000-point track on every
+   selection would be its own stutter. */
+const SIMPLIFY_TOLERANCE_DEG = 0.00004; // ~4.5 m at these latitudes
+const simplifiedCache = new Map();
+
+function displayGeometry(feature) {
+  const geom = feature && feature.geometry;
+  if (!geom || geom.type !== "LineString" || geom.coordinates.length < 3) return geom;
+  const id = feature.properties && feature.properties.id;
+  if (id && simplifiedCache.has(id)) return simplifiedCache.get(id);
+
+  const out = { type: "LineString", coordinates: simplifyPath(geom.coordinates, SIMPLIFY_TOLERANCE_DEG) };
+  if (id) simplifiedCache.set(id, out);
+  return out;
+}
+
+// Perpendicular distance from p to the segment a→b, in degrees. Longitude is
+// scaled by cos(latitude) so the tolerance means the same thing on the ground
+// in both axes.
+function perpDistance(p, a, b) {
+  const k = Math.cos((p[1] * Math.PI) / 180) || 1;
+  const px = (p[0] - a[0]) * k;
+  const py = p[1] - a[1];
+  const bx = (b[0] - a[0]) * k;
+  const by = b[1] - a[1];
+  const len2 = bx * bx + by * by;
+  if (!len2) return Math.hypot(px, py);
+  let t = (px * bx + py * by) / len2;
+  t = Math.max(0, Math.min(1, t));
+  return Math.hypot(px - bx * t, py - by * t);
+}
+
+// Iterative Ramer–Douglas–Peucker. Iterative rather than recursive because a
+// long track can otherwise blow the call stack.
+function simplifyPath(coords, tolerance) {
+  const n = coords.length;
+  if (n < 3) return coords.slice();
+  const keep = new Uint8Array(n);
+  keep[0] = keep[n - 1] = 1;
+  const stack = [[0, n - 1]];
+
+  while (stack.length) {
+    const [first, last] = stack.pop();
+    let maxDist = 0;
+    let index = -1;
+    for (let i = first + 1; i < last; i++) {
+      const d = perpDistance(coords[i], coords[first], coords[last]);
+      if (d > maxDist) {
+        maxDist = d;
+        index = i;
+      }
+    }
+    if (index !== -1 && maxDist > tolerance) {
+      keep[index] = 1;
+      stack.push([first, index], [index, last]);
+    }
+  }
+
+  const out = [];
+  for (let i = 0; i < n; i++) if (keep[i]) out.push(coords[i]);
+  return out;
 }
 
 // One switch for the whole relief presentation — terrain, hillshade, elevation
@@ -238,6 +325,17 @@ async function initMap() {
     // near-ground helicopter angle. Riders can't reach these pitches by hand
     // (pitchWithRotate is off) — only the guided camera moves go there.
     maxPitch: 85,
+    // Symbols crossfade on every camera change. During an orbit or fly-through
+    // the camera changes every frame, so that fade is pure cost with nothing
+    // to show for it.
+    fadeDuration: 0,
+    refreshExpiredTiles: false,
+    // Cap the drawing buffer on high-density touch screens. A retina tablet
+    // asks for ~2x the pixels of its CSS size, and terrain + hillshade +
+    // colour-relief are all fragment-bound, so that doubles the most expensive
+    // work on the least capable GPUs. Desktop and standard-density screens are
+    // untouched.
+    maxCanvasSize: canvasCap(),
   };
   if (startBounds) {
     mapOpts.bounds = startBounds;
@@ -262,6 +360,7 @@ function onLoad() {
   initCinematicCancel();
   initDetailChrome();
   initViewReset();
+  initOrbitToggle();
 
   // --- Sources -------------------------------------------------------------
   // Clustered point source (pins). Clustering is on from day one so
@@ -761,10 +860,23 @@ function startPulse() {
   const VIS = 0.58; // fade fully out by ~58% of the cycle, then a quiet gap
   const PERIOD = 3600; // slow
   const t0 = performance.now();
+  let lastPaint = 0;
+
   (function frame(now) {
     const live = rings.filter((r) => map.getLayer(r.layer));
     if (!live.length) return; // all gone (e.g. teardown)
-    if (!document.hidden) {
+
+    // Every setPaintProperty marks the map dirty, so this loop used to force a
+    // FULL re-render 60 times a second, forever. Flat that was cheap; with 3D
+    // terrain each of those frames also rebuilds the terrain mesh and repaints
+    // hillshade + colour-relief, which is what made tablets crawl.
+    //
+    // Two brakes, neither visible: the cycle is 3.6s long, so stepping it at
+    // ~20fps looks identical to 60fps; and during a guided camera move the
+    // camera animation is the show, so the pins stop animating entirely.
+    const interval = view3d ? PULSE_INTERVAL_3D : PULSE_INTERVAL_2D;
+    if (!document.hidden && !cinematicsRunning() && now - lastPaint >= interval) {
+      lastPaint = now;
       const base = ((now - t0) % PERIOD) / PERIOD;
       for (const r of live) {
         const ph = (base + r.phase) % 1; // 0..1 within this ring's cycle
@@ -811,10 +923,10 @@ function selectRoute(id, fly) {
     }
     map.setFeatureState({ source: "routes-points", id: routeToPinId.get(id) || id }, { selected: true });
 
-    // Draw the LineString.
+    // Draw the LineString, simplified for display (see displayGeometry).
     map.getSource("selected-route").setData({
       type: "FeatureCollection",
-      features: [{ type: "Feature", geometry: feature.geometry, properties: {} }],
+      features: [{ type: "Feature", geometry: displayGeometry(feature), properties: {} }],
     });
   }
 
@@ -1118,7 +1230,7 @@ function showRouteFromDeck() {
   fillDetail(route);
   selectedId = route.properties.id;
   if (mapReady) {
-    map.getSource("selected-route").setData({ type: "FeatureCollection", features: [{ type: "Feature", geometry: route.geometry, properties: {} }] });
+    map.getSource("selected-route").setData({ type: "FeatureCollection", features: [{ type: "Feature", geometry: displayGeometry(route), properties: {} }] });
   }
   updateDeckNav();
   updateBackButton();
@@ -1400,27 +1512,31 @@ function syncViewSwitch() {
    disabled, so a rider still can't spin the map by hand. These are guided
    camera moves the map performs, and any real input cancels them. */
 
-let orbitRAF = null;
+let orbitActive = false;   // a rotation leg is currently running
+let orbitWasActive = false; // rotation is paused, not finished
 let orbitStartTimer = null;
 let rideRAF = null;
 let rideStopFn = null;
 
 const ORBIT_DEG_PER_SEC = 4.2; // slow enough to read as a reveal, not a spin
-const ORBIT_ZOOM_BOOST = 1.8; // push past the fitted view so relief fills the frame
+// Zoom is logarithmic, so this is not "+3.4x" — each level doubles the scale.
+// 1.8 levels was ~3.5x closer than the fitted view; 3.4 is ~10.5x, i.e. about
+// 3x closer again, which is what "at least 3x more zoomed" asks for.
+const ORBIT_ZOOM_BOOST = 3.4;
+const ORBIT_MAX_ZOOM = 15.6; // don't punch through the DEM's useful detail
+const ORBIT_LEG_DEGREES = 30; // arc per easeTo leg; short enough to stop promptly
 const ORBIT_START_DELAY = 1100; // let the fit settle first
 
 function cinematicsRunning() {
-  return orbitRAF !== null || rideRAF !== null;
+  return orbitActive || rideRAF !== null;
 }
 
 // Cancel everything and restore normal interaction state.
 function stopCinematics() {
   clearTimeout(orbitStartTimer);
   orbitStartTimer = null;
-  if (orbitRAF !== null) {
-    cancelAnimationFrame(orbitRAF);
-    orbitRAF = null;
-  }
+  orbitActive = false;
+  orbitWasActive = false;
   if (rideRAF !== null) {
     cancelAnimationFrame(rideRAF);
     rideRAF = null;
@@ -1430,42 +1546,102 @@ function stopCinematics() {
     rideStopFn = null;
     fn();
   }
+  syncOrbitToggle();
 }
 
-// Push in before circling. A route fitted to the whole viewport sits too far
-// back for relief to read as 3D at all — the terrain only reads once the route
-// fills the frame. Then rotate bearing only, so the push-in isn't undone.
+// Push in before circling. A route fitted to the whole viewport sits far too
+// far back for relief to read as 3D — the terrain only reads once you're down
+// among it. Then rotate bearing only, so the push-in isn't undone.
 function startOrbit() {
   if (!map || !view3d || !mapReady) return;
   stopCinematics();
 
   map.easeTo({
-    zoom: map.getZoom() + ORBIT_ZOOM_BOOST,
+    zoom: Math.min(ORBIT_MAX_ZOOM, map.getZoom() + ORBIT_ZOOM_BOOST),
     pitch: TERRAIN_PITCH,
-    duration: 1000,
+    duration: 1200,
   });
   // Begin rotating once the push-in has landed; easing and setBearing at the
   // same time fight each other.
-  orbitStartTimer = setTimeout(spinOrbit, 1050);
+  orbitStartTimer = setTimeout(spinOrbit, 1250);
 }
 
+/* Rotate by handing MapLibre one long, linear easeTo per leg and chaining the
+   next on moveend.
+
+   The first version called map.setBearing() once per rAF frame. Every one of
+   those is an out-of-band camera write that invalidates the frame MapLibre is
+   already composing, so on a tablet — where a terrain frame takes longer than
+   16ms — the writes and the renders beat against each other and the rotation
+   judders. Letting MapLibre own the interpolation means one scheduled render
+   per frame and a genuinely smooth arc, and it degrades gracefully: on a slow
+   device you get fewer, larger steps instead of a fight. */
 function spinOrbit() {
   if (!map || !view3d || !mapReady) return;
-  let last = performance.now();
-  const step = (now) => {
-    const dt = (now - last) / 1000;
-    last = now;
-    map.setBearing(map.getBearing() + ORBIT_DEG_PER_SEC * dt);
-    orbitRAF = requestAnimationFrame(step);
-  };
-  orbitRAF = requestAnimationFrame(step);
+  orbitActive = true;
+  orbitWasActive = false;
+  syncOrbitToggle();
+  orbitLeg();
+}
+
+function orbitLeg() {
+  if (!orbitActive || !map) return;
+  const deg = ORBIT_LEG_DEGREES;
+  map.easeTo({
+    bearing: map.getBearing() + deg,
+    duration: (deg / ORBIT_DEG_PER_SEC) * 1000,
+    easing: (t) => t, // linear — an eased leg would visibly stutter at each join
+    essential: true,
+  });
+  map.once("moveend", () => {
+    if (orbitActive) orbitLeg();
+  });
+}
+
+function orbitPaused() {
+  return orbitStarted() && !orbitActive;
+}
+
+function orbitStarted() {
+  return orbitActive || orbitWasActive;
+}
+
+function setOrbitPaused(paused) {
+  if (paused) {
+    orbitWasActive = true;
+    orbitActive = false;
+    if (map) map.stop(); // halt the in-flight leg immediately
+  } else {
+    orbitWasActive = false;
+    orbitActive = true;
+    orbitLeg();
+  }
+  syncOrbitToggle();
+}
+
+function syncOrbitToggle() {
+  const btn = document.getElementById("orbit-toggle");
+  if (!btn) return;
+  const show = view3d && orbitStarted() && !rideRAF;
+  btn.hidden = !show;
+  const paused = orbitPaused();
+  btn.setAttribute("aria-label", paused ? "Resume rotation" : "Pause rotation");
+  btn.classList.toggle("is-paused", paused);
+}
+
+function initOrbitToggle() {
+  const btn = document.getElementById("orbit-toggle");
+  if (!btn) return;
+  btn.addEventListener("click", () => setOrbitPaused(orbitActive));
+  syncOrbitToggle();
 }
 
 // Kick off an orbit a beat after a route is framed, so the fit animation
 // finishes first. Skipped entirely in 2D.
 function scheduleOrbit() {
   clearTimeout(orbitStartTimer);
-  if (!view3d) return;
+  // An unrequested camera move is exactly what prefers-reduced-motion is for.
+  if (!view3d || reduceMotion) return;
   orbitStartTimer = setTimeout(startOrbit, ORBIT_START_DELAY);
 }
 
@@ -1492,7 +1668,9 @@ const RIDE_TURN_EASE = 0.055;
 
 function rideThrough(feature) {
   if (!map || !mapReady || !feature) return;
-  const coords = dedupe(lineCoords(feature.geometry));
+  // Fly the simplified line: the receiver noise RDP strips out is exactly the
+  // noise that would otherwise steer the camera.
+  const coords = dedupe(lineCoords(displayGeometry(feature)));
   if (coords.length < 2) return;
 
   // Ride-through only makes sense over terrain.

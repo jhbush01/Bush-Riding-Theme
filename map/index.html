@@ -176,6 +176,13 @@
       </div>
     </div>
 
+    <!-- Pause / resume the orbit. Bottom centre, only while a rotation is
+         running or paused. -->
+    <button type="button" id="orbit-toggle" class="orbit-toggle" hidden aria-label="Pause rotation">
+      <svg class="orbit-toggle__pause" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+      <svg class="orbit-toggle__play" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>
+    </button>
+
     <!-- Ride-through HUD. Hidden unless a fly-through is running. -->
     <div id="ride-hud" class="ride-hud" hidden aria-live="polite">
       <div class="ride-hud__bar"><span id="ride-hud-fill" class="ride-hud__fill"></span></div>
