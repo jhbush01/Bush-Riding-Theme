@@ -1821,6 +1821,7 @@ body:not(.is-3d) .card__experience {
   .sheet.is-min .card__rating,
   .sheet.is-min .card__stats,
   .sheet.is-min .card__cta-row,
+  .sheet.is-min .card__experience,
   .sheet.is-min .card__when,
   .sheet.is-min .card__vibe,
   .sheet.is-min .card__famous,
