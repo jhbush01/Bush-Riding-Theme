@@ -20,6 +20,54 @@ const EVENT_PAST = "#8f8a7e";
 // (terracotta) and cluster (sage) pins, so a multi-route event reads at a glance.
 const SERIES = "#8a4f7d";
 
+/* ── 3D relief ────────────────────────────────────────────────────────────
+   Elevation comes from Mapterhorn (free, no key; Geoscience Australia 5 m
+   LiDAR over much of SEQ, Copernicus GLO-30 global fallback). The DEM drives
+   three things, each independently toggleable from the sidebar:
+
+     terrain       — displaces the ground so routes drape over real relief
+     hillshade     — Igor-method shading; the cartographic "texture"
+     color-relief  — hypsometric tint (green lowland → tan → brown highland)
+
+   Phones default to the old flat map: terrain plus two DEM-reading raster
+   layers is real GPU and bandwidth cost, and the phone layout (bottom sheet,
+   overlay filters) was designed around a flat camera. Riders on phones can
+   still switch it on. The layers ship `visibility: none` in bush.json, so
+   nothing is downloaded until something turns them on. */
+const TERRAIN_SOURCE = "terrain-dem";
+const TERRAIN_EXAGGERATION = 2.0;
+const TERRAIN_PITCH = 68;
+const TERRAIN_PREF_KEY = "brm.relief";
+const RELIEF_LAYERS = { hillshade: "hillshade", tint: "color-relief" };
+
+// Tablet and up. Matches the 720px breakpoint fitPadding() already uses to
+// tell "phone" from "everything else", so the two never disagree.
+function terrainDefaultOn() {
+  return window.innerWidth > 720;
+}
+
+// Sidebar toggle state. Persisted so a rider's choice survives a reload.
+const relief = loadReliefPrefs();
+
+function loadReliefPrefs() {
+  const on = terrainDefaultOn();
+  const fallback = { terrain: on, hillshade: on, tint: on, paper: on };
+  try {
+    const saved = JSON.parse(localStorage.getItem(TERRAIN_PREF_KEY) || "null");
+    return saved && typeof saved === "object" ? { ...fallback, ...saved } : fallback;
+  } catch (_) {
+    return fallback;
+  }
+}
+
+function saveReliefPrefs() {
+  try {
+    localStorage.setItem(TERRAIN_PREF_KEY, JSON.stringify(relief));
+  } catch (_) {
+    /* private mode / quota — preferences just won't persist */
+  }
+}
+
 let map;
 let mapReady = false;
 let routeFeatures = []; // full LineString features
@@ -180,6 +228,11 @@ async function initMap() {
     attributionControl: { compact: true },
     dragRotate: false,
     pitchWithRotate: false,
+    // 3D relief view. Rotation stays disabled — this is a fixed oblique
+    // "diorama" camera, not an orbit control. Phones open flat and opt in
+    // through the drawer (see terrainDefaultOn).
+    pitch: relief.terrain ? TERRAIN_PITCH : 0,
+    maxPitch: TERRAIN_PITCH,
   };
   if (startBounds) {
     mapOpts.bounds = startBounds;
@@ -197,6 +250,11 @@ async function initMap() {
 }
 
 function onLoad() {
+  // 3D relief first, so terrain is attached before the route/pin layers below
+  // are added and start draping over it.
+  applyRelief();
+  initReliefControls();
+
   // --- Sources -------------------------------------------------------------
   // Clustered point source (pins). Clustering is on from day one so
   // ambassador-scale data later needs no rework.
@@ -1201,36 +1259,119 @@ function fitPadding() {
     // Phone: filters are an overlay (closed by default) and the detail sheet
     // rises full-width from the bottom. Reserve only its visible height.
     const reserve = detailOpen && sheetState !== "full" ? sheetVisibleHeight() + 20 : 40;
-    return {
+    return pitchAdjusted({
       top: 64,
       bottom: Math.min(reserve, Math.round(vh * 0.55)),
       left: 28,
       right: 28,
-    };
+    });
   }
 
   if (vw <= 1024) {
     // Tablet: the filters sidebar is docked on the left; the detail sheet is a
     // bottom-right corner sheet. Reserve both.
     const reserve = detailOpen && sheetState !== "full" ? sheetVisibleHeight() + 20 : 40;
-    return {
+    return pitchAdjusted({
       top: 60,
       bottom: Math.min(reserve, Math.round(vh * 0.55)),
       left: 360,
       right: 40,
-    };
+    });
   }
 
   // Desktop: filters sidebar left; inset floating detail panel bottom-right.
   // Reserve the right edge for the panel so the route stays clear of it. The
   // event panel is wider (440px) than the route panel (380px), so it needs a
   // deeper reserve or the route line slips under the card.
-  return {
+  return pitchAdjusted({
     top: 60,
     bottom: 60,
     left: 380,
     right: detailOpen ? (detailMode === "event" ? 500 : 430) : 80,
-  };
+  });
+}
+
+// Compensate the padding above for a pitched camera.
+//
+// MapLibre's fitBounds math (cameraForBoxAndBearing) accounts for BEARING but
+// NOT pitch — it solves the camera as though the map were flat. Under pitch
+// the visible ground is a trapezoid whose far edge is squeezed against the
+// horizon, so an uncompensated fit drifts the route up into that compressed
+// band and reads as "too far away / off centre".
+//
+// Reserving extra headroom pushes the fitted bounds down into the near half of
+// the frame, where scale is close to what fitBounds assumed. Scales with
+// pitch so a flat map (phones, or terrain toggled off) is completely
+// unaffected — at pitch 0 this returns the object untouched.
+function pitchAdjusted(pad) {
+  const pitch = map ? map.getPitch() : relief.terrain ? TERRAIN_PITCH : 0;
+  if (!pitch) return pad;
+  const vh = viewportHeight();
+  const extra = Math.round(vh * (pitch / 90) * 0.42);
+  // Never let padding collapse the usable viewport — MapLibre throws if
+  // top+bottom exceeds the container height.
+  const room = Math.max(0, vh - pad.top - pad.bottom - 80);
+  return { ...pad, top: pad.top + Math.min(extra, room) };
+}
+
+/* ── 3D relief: apply state, wire the sidebar toggles ─────────────────────── */
+
+// Push the current `relief` state onto the map. Safe to call repeatedly.
+function applyRelief() {
+  if (!map) return;
+
+  try {
+    map.setTerrain(relief.terrain ? { source: TERRAIN_SOURCE, exaggeration: TERRAIN_EXAGGERATION } : null);
+  } catch (e) {
+    // A DEM outage must never take the map down — it is decoration over a
+    // basemap that works fine flat.
+    console.warn("Terrain unavailable, continuing flat:", e.message);
+    relief.terrain = false;
+  }
+
+  setLayerVisible(RELIEF_LAYERS.hillshade, relief.hillshade);
+  setLayerVisible(RELIEF_LAYERS.tint, relief.tint);
+  document.body.classList.toggle("has-paper", !!relief.paper);
+}
+
+function setLayerVisible(id, visible) {
+  if (map && map.getLayer(id)) {
+    map.setLayoutProperty(id, "visibility", visible ? "visible" : "none");
+  }
+}
+
+// Ease pitch to match the terrain toggle. Re-fit afterwards so the new
+// padding from pitchAdjusted() actually gets applied to the current view.
+function setTerrainEnabled(on) {
+  relief.terrain = on;
+  applyRelief();
+  map.easeTo({ pitch: on ? TERRAIN_PITCH : 0, duration: 600 });
+}
+
+function initReliefControls() {
+  const group = document.getElementById("f-relief");
+  if (!group) return;
+
+  for (const btn of group.querySelectorAll(".toggle")) {
+    const key = btn.dataset.relief;
+    syncReliefButton(btn, !!relief[key]);
+
+    btn.addEventListener("click", () => {
+      const next = !relief[key];
+      if (key === "terrain") setTerrainEnabled(next);
+      else {
+        relief[key] = next;
+        applyRelief();
+      }
+      syncReliefButton(btn, next);
+      saveReliefPrefs();
+    });
+  }
+}
+
+function syncReliefButton(btn, on) {
+  btn.classList.toggle("is-active", on);
+  btn.setAttribute("aria-pressed", on ? "true" : "false");
 }
 
 // LngLatBounds covering every route, or null if there are none.

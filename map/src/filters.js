@@ -109,8 +109,12 @@ export function setupFilters(features, onChange) {
     stateSel.value = "";
     fillRegions();
     renderDist();
+    // Scoped to the terrain group on purpose. This used to be a document-wide
+    // ".toggle.is-active" sweep, which was harmless while that was the only
+    // toggle-group — but the Map view controls (#f-relief) are toggles too,
+    // and resetting route filters must not silently switch off 3D relief.
     document
-      .querySelectorAll(".toggle.is-active")
+      .querySelectorAll("#f-difficulty .toggle.is-active")
       .forEach((b) => b.classList.remove("is-active"));
     onChange();
   });

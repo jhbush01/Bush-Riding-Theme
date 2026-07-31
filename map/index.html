@@ -71,6 +71,13 @@
   <body>
     <div id="map" aria-label="Map of curated gravel routes"></div>
 
+    <!-- Aged-paper treatment over the basemap. Purely decorative, sits above
+         the canvas but below every panel, and never takes pointer events.
+         Shown only while <body> carries .has-paper (the "Paper" toggle in the
+         Map view controls). -->
+    <div class="paper-grain" aria-hidden="true"></div>
+    <div class="paper-vignette" aria-hidden="true"></div>
+
     <!-- Filter / list panel -->
     <aside id="sidebar" class="sidebar" aria-label="Route filters and list">
       <header class="sidebar__head">
@@ -100,6 +107,17 @@
             <li><span class="legend__dot legend__dot--famous" aria-hidden="true"></span>Famous Events</li>
             <li><span class="legend__dot legend__dot--bush" aria-hidden="true"></span>Bush Events</li>
           </ul>
+        </div>
+
+        <div class="filter filter--view">
+          <span class="filter__label">Map view</span>
+          <div id="f-relief" class="toggle-group" role="group" aria-label="Map view options">
+            <button type="button" class="toggle" data-relief="terrain" aria-pressed="false">3D terrain</button>
+            <button type="button" class="toggle" data-relief="hillshade" aria-pressed="false">Hillshade</button>
+            <button type="button" class="toggle" data-relief="tint" aria-pressed="false">Elevation tint</button>
+            <button type="button" class="toggle" data-relief="paper" aria-pressed="false">Paper</button>
+          </div>
+          <p class="filter__hint">Relief from Geoscience Australia &amp; Copernicus elevation data.</p>
         </div>
 
         <div class="filter">

@@ -8,7 +8,16 @@
   "sources": {
     "openmaptiles": {
       "type": "vector",
-      "url": "https://tiles.openfreemap.org/planet"
+      "url": "https://tiles.openfreemap.org/planet",
+      "attribution": "<a href=\"https://openfreemap.org\" target=\"_blank\" rel=\"noopener\">OpenFreeMap</a> &copy; <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\" rel=\"noopener\">OpenStreetMap</a> contributors"
+    },
+    "terrain-dem": {
+      "type": "raster-dem",
+      "tiles": ["https://tiles.mapterhorn.com/{z}/{x}/{y}.webp"],
+      "encoding": "terrarium",
+      "tileSize": 512,
+      "maxzoom": 14,
+      "attribution": "Terrain: &copy; Geoscience Australia (CC BY 4.0); contains modified Copernicus DEM data; via <a href=\"https://mapterhorn.com/attribution\" target=\"_blank\" rel=\"noopener\">Mapterhorn</a>"
     }
   },
   "layers": [
@@ -16,6 +25,46 @@
       "id": "background",
       "type": "background",
       "paint": { "background-color": "#E9E2D0" }
+    },
+    {
+      "id": "color-relief",
+      "type": "color-relief",
+      "source": "terrain-dem",
+      "layout": { "visibility": "none" },
+      "paint": {
+        "color-relief-opacity": 0.85,
+        "color-relief-color": [
+          "interpolate",
+          ["linear"],
+          ["elevation"],
+          -10, "#A7BFBD",
+          0, "#C9D3B2",
+          80, "#D3DABC",
+          180, "#DEE2C4",
+          300, "#E9E2D0",
+          450, "#E4D9BA",
+          600, "#DCCAA3",
+          780, "#D2B386",
+          950, "#C69B70",
+          1150, "#B8845C",
+          1400, "#A76D48",
+          1800, "#93583A"
+        ]
+      }
+    },
+    {
+      "id": "hillshade",
+      "type": "hillshade",
+      "source": "terrain-dem",
+      "layout": { "visibility": "none" },
+      "paint": {
+        "hillshade-method": "igor",
+        "hillshade-exaggeration": 0.5,
+        "hillshade-illumination-direction": 315,
+        "hillshade-shadow-color": "#6B5A42",
+        "hillshade-highlight-color": "#FBF6E6",
+        "hillshade-accent-color": "#8A7A5C"
+      }
     },
     {
       "id": "landcover-wood",
