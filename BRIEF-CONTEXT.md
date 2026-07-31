@@ -308,7 +308,91 @@ Things the implementer should resolve, with a recommendation each.
 
 ---
 
-## 9. How to keep this file honest
+## 10. The 3D terrain experiment (`feature/3d-pin-experiment`, not merged)
+
+**Verified:** 31 July 2026, against `feature/3d-pin-experiment` at commit
+`e736393` — this branch, not `main`. Live-tested by the site owner via a
+Cloudflare Pages branch preview (see §5 for what that means); not yet on
+`develop` or `main`, and not linked from anywhere in the live map. **If a
+brief targets this work, state explicitly that it builds on this branch, not
+`main`** — none of this exists in production yet.
+
+**What it is:** an explorer-styled 3D terrain view, standalone at
+`map/experiments/3d-terrain/` — its own `index.html` / `app.js` /
+`style.json` / `README.md`, no build step, same MapLibre v5.24.0 build as
+production. **Mercator only — no globe.** No Three.js, no custom WebGL layer,
+no 3D pins/markers. An earlier version of this spike (globe projection +
+Three.js pins through a `CustomLayerInterface`) was built, tried live, and
+**deliberately dropped** — the globe and pins added visual noise without
+being what the terrain relief needed to prove out. That earlier code isn't
+lost, just not current: it's in this branch's history at commits `aa32712`
+and `ee8f314` if anyone wants to resurrect the globe/pins direction
+specifically.
+
+**Terrain source: Mapterhorn**, confirmed free with no API key or account
+(from Mapterhorn's own GitHub README and the site owner's own fetch of
+`mapterhorn.com/data-access/`, whose source catalog lists every regional DEM
+it merges):
+
+```json
+"terrain-dem": {
+  "type": "raster-dem",
+  "tiles": ["https://tiles.mapterhorn.com/{z}/{x}/{y}.webp"],
+  "encoding": "terrarium",
+  "tileSize": 512,
+  "maxzoom": 14,
+  "attribution": "Terrain: © Geoscience Australia (CC BY 4.0), contains modified Copernicus DEM data (COPERNICUS full, free and open licence), via Mapterhorn (mapterhorn.com/attribution)"
+}
+```
+
+For SE Queensland specifically, Mapterhorn's tiles are backed by Geoscience
+Australia's 5m LiDAR (`au5a`–`au5i` in their catalog, **CC BY 4.0**) where
+it's been flown, falling back to Copernicus GLO-30 (30m, global) elsewhere.
+**`maxzoom: 14` is a reasoned default, not a confirmed number** — nobody has
+checked the Network tab for the actual 404 cutoff yet.
+
+**Mapterhorn is a raster-dem source and nothing else.** A brief that assumes
+it also provides contour lines, a hillshade *tile* service, or any kind of
+vector overlay is wrong — those aren't things Mapterhorn offers. Terrain
+displacement (`map.setTerrain()`) and a MapLibre `hillshade` layer reading
+the same DEM are the *complete* set of things a raster-dem source can drive.
+**Contours are unimplemented and would need new infrastructure** — either a
+dedicated contour vector-tile source, or client-side computation from the DEM
+raster (marching squares) — not a config flag on the existing setup.
+
+**What's implemented, in the HUD:**
+- Terrain toggle (on/off — `map.setTerrain(null)` vs restoring it)
+- Hillshade toggle (layer visibility)
+- Top-down / tilt toggle (`pitch` 0 ↔ 65)
+- Exaggeration +/− (range 0.4–2.6, step 0.2, default 1.4)
+- **Compass control** (top-right, own pointer-event code — not
+  `NavigationControl`'s compass): drag to rotate the bearing, click/tap to
+  reset to north. Production's map (§3) has rotation *disabled*
+  (`dragRotate: false`) — this experiment deliberately does the opposite,
+  since "you can spin the map" is part of the explorer feel being tested.
+- Live centre-elevation readout (`map.queryTerrainElevation()`) in the stat
+  line — free once terrain tiles are loaded, no extra request.
+- `minZoom: 7` — confirmed live (31 July 2026) to stop the "dead space" that
+  showed at low zoom + `pitch: 65`, where the camera saw past the rendered
+  terrain into flat background colour at the horizon. `maxPitch: 85` is the
+  other lever on the same problem if it resurfaces.
+
+**Guarantees about production, unchanged by any of this:**
+`map/styles/bush.json`, `map/src/map.js`, `map/index.html` — all untouched.
+Zero new dependency beyond MapLibre itself (no Three.js anymore, no CDN
+additions). Desktop/tablet only, by design — no mobile work has been done or
+attempted here.
+
+**If you're brainstorming new features for this**, ground them in what's
+above: real Mapterhorn capabilities (elevation only — no contours without new
+infra), the toggles that already exist (don't re-propose them), and the fact
+that shipping this to production is its own separate brief that would need to
+reconcile with production's `fitPadding()`, clustering, disabled rotation,
+and mobile budget — none of which this experiment has touched or solved.
+
+---
+
+## 11. How to keep this file honest
 
 It is a snapshot; code moves. Before relying on it for a significant brief,
 re-verify the handful of things that change most:
