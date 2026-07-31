@@ -234,7 +234,10 @@ async function initMap() {
     // "diorama" camera, not an orbit control. Phones open flat and opt in
     // through the drawer (see terrainDefaultOn).
     pitch: view3d ? TERRAIN_PITCH : 0,
-    maxPitch: TERRAIN_PITCH,
+    // Headroom above TERRAIN_PITCH so the ride-through can drop to a low,
+    // near-ground helicopter angle. Riders can't reach these pitches by hand
+    // (pitchWithRotate is off) — only the guided camera moves go there.
+    maxPitch: 85,
   };
   if (startBounds) {
     mapOpts.bounds = startBounds;
@@ -258,6 +261,7 @@ function onLoad() {
   initViewSwitch();
   initCinematicCancel();
   initDetailChrome();
+  initViewReset();
 
   // --- Sources -------------------------------------------------------------
   // Clustered point source (pins). Clustering is on from day one so
@@ -1402,6 +1406,7 @@ let rideRAF = null;
 let rideStopFn = null;
 
 const ORBIT_DEG_PER_SEC = 4.2; // slow enough to read as a reveal, not a spin
+const ORBIT_ZOOM_BOOST = 1.8; // push past the fitted view so relief fills the frame
 const ORBIT_START_DELAY = 1100; // let the fit settle first
 
 function cinematicsRunning() {
@@ -1427,13 +1432,25 @@ function stopCinematics() {
   }
 }
 
-// Slowly circle the framed route. Bearing only — no centre or zoom change — so
-// this never fights fitBounds, and stopping leaves the map exactly where the
-// rider can carry on from.
+// Push in before circling. A route fitted to the whole viewport sits too far
+// back for relief to read as 3D at all — the terrain only reads once the route
+// fills the frame. Then rotate bearing only, so the push-in isn't undone.
 function startOrbit() {
   if (!map || !view3d || !mapReady) return;
   stopCinematics();
 
+  map.easeTo({
+    zoom: map.getZoom() + ORBIT_ZOOM_BOOST,
+    pitch: TERRAIN_PITCH,
+    duration: 1000,
+  });
+  // Begin rotating once the push-in has landed; easing and setBearing at the
+  // same time fight each other.
+  orbitStartTimer = setTimeout(spinOrbit, 1050);
+}
+
+function spinOrbit() {
+  if (!map || !view3d || !mapReady) return;
   let last = performance.now();
   const step = (now) => {
     const dt = (now - last) / 1000;
@@ -1458,14 +1475,24 @@ function scheduleOrbit() {
    chain of easeTo calls — easeTo per segment stutters at every hand-off, and
    route segments are wildly uneven in length. Interpolating along cumulative
    distance gives constant ground speed regardless of how the GPX was sampled. */
-const RIDE_MIN_MS = 18000;
-const RIDE_MAX_MS = 55000;
-const RIDE_ZOOM = 14.2;
-const RIDE_PITCH = 74;
+const RIDE_MIN_MS = 26000;
+const RIDE_MAX_MS = 70000;
+// Low and close: a helicopter a few storeys up, not a survey plane. Pitch sits
+// well above TERRAIN_PITCH, which is why maxPitch is raised to 85.
+const RIDE_ZOOM = 16.6;
+const RIDE_PITCH = 80;
+// Aim this far down the trail (km). The first version looked ahead by ARRAY
+// INDEX (i + 2), which on a densely-sampled GPX is ~20 m — so the heading was
+// recomputed from near-identical points and the camera swung wildly on every
+// GPS wobble. That was the "random path". Looking ahead by real distance makes
+// the heading stable regardless of how finely the track was recorded.
+const RIDE_LOOKAHEAD_KM = 0.22;
+// Per-frame easing toward the target heading, so corners bank instead of snap.
+const RIDE_TURN_EASE = 0.055;
 
 function rideThrough(feature) {
   if (!map || !mapReady || !feature) return;
-  const coords = lineCoords(feature.geometry);
+  const coords = dedupe(lineCoords(feature.geometry));
   if (coords.length < 2) return;
 
   // Ride-through only makes sense over terrain.
@@ -1508,38 +1535,39 @@ function rideThrough(feature) {
     }
   };
 
-  const start = performance.now();
+  // Interpolate a position at an arbitrary distance along the line, so the
+  // camera moves at constant ground speed no matter how the track was sampled.
+  const at = (dist) => {
+    const d = Math.max(0, Math.min(total, dist));
+    let i = 1;
+    while (i < cum.length - 1 && cum[i] < d) i++;
+    const seg = cum[i] - cum[i - 1] || 1;
+    return lerpCoord(coords[i - 1], coords[i], (d - cum[i - 1]) / seg);
+  };
+
+  // Heading is always "here → a fixed distance further along".
+  let heading = bearingBetween(at(0), at(RIDE_LOOKAHEAD_KM));
+
   map.easeTo({
     center: coords[0],
     zoom: RIDE_ZOOM,
     pitch: RIDE_PITCH,
-    bearing: bearingBetween(coords[0], coords[Math.min(3, coords.length - 1)]),
-    duration: 1400,
+    bearing: heading,
+    duration: 1600,
   });
 
   const begin = () => {
     const t0 = performance.now();
     const step = (now) => {
       const t = Math.min(1, (now - t0) / duration);
-      const target = t * total;
+      const travelled = t * total;
+      const here = at(travelled);
 
-      // Walk the cumulative table to the current distance.
-      let i = 1;
-      while (i < cum.length - 1 && cum[i] < target) i++;
-      const seg = cum[i] - cum[i - 1] || 1;
-      const f = (target - cum[i - 1]) / seg;
-      const here = lerpCoord(coords[i - 1], coords[i], f);
+      // Ease toward the new heading rather than adopting it outright — this is
+      // what turns a jittery series of GPS headings into a smooth banking arc.
+      heading = heading + shortestTurn(heading, bearingBetween(here, at(travelled + RIDE_LOOKAHEAD_KM))) * RIDE_TURN_EASE;
 
-      // Aim a little further down the trail so the camera leads the rider
-      // rather than snapping to each vertex.
-      const ahead = coords[Math.min(coords.length - 1, i + 2)];
-
-      map.jumpTo({
-        center: here,
-        zoom: RIDE_ZOOM,
-        pitch: RIDE_PITCH,
-        bearing: bearingBetween(here, ahead),
-      });
+      map.jumpTo({ center: here, zoom: RIDE_ZOOM, pitch: RIDE_PITCH, bearing: heading });
 
       if (fill) fill.style.width = (t * 100).toFixed(1) + "%";
 
@@ -1555,7 +1583,24 @@ function rideThrough(feature) {
   // Start the flight once the approach easeTo has landed.
   setTimeout(() => {
     if (document.body.classList.contains("riding")) begin();
-  }, 1450);
+  }, 1650);
+}
+
+// Signed smallest angle from a to b, in (-180, 180]. Without this a heading
+// crossing due north jumps 359° instead of turning 1°.
+function shortestTurn(a, b) {
+  return ((((b - a) % 360) + 540) % 360) - 180;
+}
+
+// Drop consecutive duplicate points — they produce a zero-length segment and a
+// meaningless heading.
+function dedupe(coords) {
+  const out = [];
+  for (const c of coords) {
+    const p = out[out.length - 1];
+    if (!p || p[0] !== c[0] || p[1] !== c[1]) out.push(c);
+  }
+  return out;
 }
 
 function lineCoords(geom) {
@@ -1610,7 +1655,9 @@ function minimiseDetail(on) {
   } else {
     // Desktop inset panel: no transform to respect, so collapse it directly.
     els.detail.classList.toggle("is-min", detailMinimised);
-    scheduleReframe(); // padding changes with the card's footprint
+    // Padding changed with the card's footprint — but re-fitting mid-orbit
+    // would throw away the push-in, so leave a running reveal alone.
+    if (!cinematicsRunning()) scheduleReframe();
   }
 
   const btn = document.getElementById("detail-expand");
@@ -1622,13 +1669,54 @@ function shouldAutoMinimise() {
   return window.matchMedia("(min-width: 721px)").matches;
 }
 
+/* ── Back to the wide view ────────────────────────────────────────────────
+   Once the camera is in on a route, getting back out to pick a different pin
+   meant spinning the wheel or hammering the zoom buttons. This is one click
+   back to every route: cancel any guided camera move, drop the selection, and
+   frame the whole set. */
+function resetToAllRoutes() {
+  stopCinematics();
+  if (detailOpen) closeDetail();
+  else clearSelection();
+  if (!mapReady) return;
+
+  // One camera command, not two — an easeTo for the bearing plus a fitBounds
+  // would fight each other. fitBounds takes bearing and pitch directly.
+  const bounds = routesBounds(routeFeatures);
+  if (bounds) {
+    map.fitBounds(bounds, {
+      padding: fitPadding(),
+      maxZoom: 13,
+      bearing: 0,
+      pitch: view3d ? TERRAIN_PITCH : 0,
+      duration: 900,
+    });
+  }
+  updateResetVisibility();
+}
+
+// Only worth showing once there's actually something to come back from —
+// otherwise it's a button that does nothing to the current view.
+function updateResetVisibility() {
+  const btn = document.getElementById("view-reset");
+  if (!btn || !map) return;
+  btn.hidden = !(detailOpen || selectedId || map.getZoom() > 8.5);
+}
+
+function initViewReset() {
+  const btn = document.getElementById("view-reset");
+  if (!btn) return;
+  btn.addEventListener("click", resetToAllRoutes);
+  map.on("moveend", updateResetVisibility);
+  updateResetVisibility();
+}
+
 function initDetailChrome() {
   const expand = document.getElementById("detail-expand");
   if (expand) {
-    expand.addEventListener("click", () => {
-      stopCinematics(); // reading the card means the reveal has done its job
-      minimiseDetail(false);
-    });
+    // Opening the card does not interrupt the reveal — the orbit keeps
+    // running behind it. Only real map input stops it.
+    expand.addEventListener("click", () => minimiseDetail(false));
   }
 
   const ride = document.getElementById("detail-ride");

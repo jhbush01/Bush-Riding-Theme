@@ -159,12 +159,21 @@
       <a class="map-brand__logo" href="https://bushriding.cc" aria-label="Bush Riding home">Bush Riding™</a>
     </div>
 
-    <!-- Top-right: flat map vs 3D relief. One control for the whole relief
-         presentation (terrain + hillshade + elevation tint + paper), replacing
-         the old per-layer "Map view" filter group. -->
-    <div class="view-switch" role="group" aria-label="Map view">
-      <button type="button" id="view-2d" class="view-switch__btn" aria-pressed="false">2D</button>
-      <button type="button" id="view-3d" class="view-switch__btn" aria-pressed="false">3D</button>
+    <!-- Top-right map tools: get back to the wide view, and flat vs 3D relief.
+         The view switch is one control for the whole relief presentation
+         (terrain + hillshade + elevation tint + paper). -->
+    <div class="map-tools">
+      <!-- One click back out to every route, so picking a different pin never
+           means scrolling the wheel repeatedly. Shown only once the camera is
+           actually zoomed in on something. -->
+      <button type="button" id="view-reset" class="map-tools__btn" hidden>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3H5a2 2 0 0 0-2 2v4M15 3h4a2 2 0 0 1 2 2v4M9 21H5a2 2 0 0 1-2-2v-4M15 21h4a2 2 0 0 0 2-2v-4"/></svg>
+        All routes
+      </button>
+      <div class="view-switch" role="group" aria-label="Map view">
+        <button type="button" id="view-2d" class="view-switch__btn" aria-pressed="false">2D</button>
+        <button type="button" id="view-3d" class="view-switch__btn" aria-pressed="false">3D</button>
+      </div>
     </div>
 
     <!-- Ride-through HUD. Hidden unless a fly-through is running. -->
@@ -258,6 +267,15 @@
 
           <!-- Primary action — kept in peek so it's reachable on first tap. -->
           <p id="detail-happened" class="card__happened for-past">This ride happened.</p>
+          <!-- Cinematic fly-through over the 3D terrain. Slim and full-width,
+               sitting ABOVE the two primary actions so it never competes with
+               them for row space. Routes only, and only meaningful over
+               terrain — CSS hides it in 2D. -->
+          <button id="detail-ride" class="card__experience only-route" type="button">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-3.5l6 4.5V6z"/></svg>
+            Experience route
+          </button>
+
           <div class="card__cta-row for-upcoming">
             <!-- Routes: the prominent action is the full write-up page (new tab). -->
             <a id="detail-page-cta" class="card__cta card__cta--page only-route" href="#" target="_blank" rel="noopener noreferrer">
@@ -265,12 +283,6 @@
               Full route page
             </a>
             <a id="detail-cta" class="card__cta" target="_blank" rel="noopener noreferrer"></a>
-            <!-- Cinematic fly-through of the route over the 3D terrain. Routes
-                 only, and only meaningful in 3D — map.js hides it in 2D. -->
-            <button id="detail-ride" class="card__cta card__cta--ride only-route" type="button">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-3.5l6 4.5V6z"/></svg>
-              Ride through
-            </button>
           </div>
         </div>
 

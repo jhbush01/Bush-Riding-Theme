@@ -1620,13 +1620,44 @@ textarea.field-input {
 
 /* ── 3D relief: view switch, cinematics, aged-paper treatment ─────────────── */
 
-/* Top-right 2D/3D switch. Mirrors .map-nav's frosted pill so the two read as
-   the same family of map chrome. */
-.view-switch {
+/* Top-right map tools. Mirrors .map-nav's frosted pill so they read as the
+   same family of map chrome. */
+.map-tools {
   position: absolute;
   top: 10px;
   right: 10px;
   z-index: 8;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.map-tools__btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 15px 8px 13px;
+  background: rgba(244, 239, 226, 0.82);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  box-shadow: 0 2px 10px rgba(28, 26, 21, 0.12);
+  font-family: var(--ui-font);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  cursor: pointer;
+}
+.map-tools__btn[hidden] {
+  display: none;
+}
+.map-tools__btn:hover {
+  border-color: var(--terracotta);
+  color: var(--terracotta);
+}
+
+.view-switch {
   display: flex;
   gap: 2px;
   padding: 4px;
@@ -1712,31 +1743,49 @@ textarea.field-input {
 /* While a fly-through runs, the rest of the chrome gets out of the way. */
 body.riding .map-brand,
 body.riding .map-nav,
-body.riding .view-switch,
+body.riding .map-tools,
 body.riding .sidebar {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.4s ease;
 }
 
-/* Ride through action. Secondary weight next to the primary CTA, and only
-   meaningful over terrain — hidden in 2D. */
-.card__cta--ride {
+/* "Experience route" — slim, full width, sitting above the two primary
+   actions rather than competing with them for row space. Only meaningful over
+   terrain, so it's hidden in 2D. */
+.card__experience {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin: 0 0 8px;
+  padding: 9px 14px;
+  border: 1px solid var(--card-inset-line, rgba(44, 42, 36, 0.14));
+  border-radius: 11px;
   background: var(--card-inset, rgba(44, 42, 36, 0.05));
   color: var(--card-rust, var(--terracotta));
-  border: 1px solid var(--card-inset-line, rgba(44, 42, 36, 0.14));
+  font-family: var(--ui-font);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
 }
-body:not(.is-3d) .card__cta--ride {
+.card__experience:hover {
+  border-color: var(--terracotta);
+}
+body:not(.is-3d) .card__experience {
   display: none;
 }
 
-/* Expand ("+") out of the minimised card. Shown only while minimised: the
-   desktop panel uses .is-min, the tablet sheet uses its existing peek snap. */
+/* Expand ("+") out of the minimised card — top LEFT, mirroring the close
+   button's corner. Shown only while minimised: the desktop panel uses .is-min,
+   the tablet sheet uses its existing peek snap. */
 .card__expand {
   display: none;
   position: absolute;
   top: 10px;
-  right: 42px;
+  left: 12px;
   z-index: 3;
   width: 26px;
   height: 26px;
@@ -1755,6 +1804,12 @@ body:not(.is-3d) .card__cta--ride {
 .sheet.is-min .card__expand,
 .sheet[data-state="peek"] .card__expand {
   display: flex;
+}
+
+/* A minimised card has no close affordance competing with the expand button —
+   collapse it first, then close from the full card. */
+.sheet.is-min .card__close {
+  display: none;
 }
 
 /* Minimised desktop panel: a title bar and nothing else, so the framed route
@@ -1782,9 +1837,11 @@ body:not(.is-3d) .card__cta--ride {
     padding-top: 12px;
     padding-bottom: 12px;
   }
+  /* Clear the expand button in the top-left corner. The close button is
+     hidden in this state, so the right edge needs no reserve. */
   .sheet.is-min .card__title {
     margin: 0;
-    padding-right: 46px;
+    padding-left: 34px;
     font-size: 16px;
     line-height: 1.25;
   }
