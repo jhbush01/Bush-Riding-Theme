@@ -176,17 +176,31 @@
       </div>
     </div>
 
-    <!-- Pause / resume the orbit. Bottom centre, only while a rotation is
-         running or paused. -->
-    <button type="button" id="orbit-toggle" class="orbit-toggle" hidden aria-label="Pause rotation">
-      <svg class="orbit-toggle__pause" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
-      <svg class="orbit-toggle__play" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>
-    </button>
+    <!-- Bottom-centre stage bar: orbit pause/resume, the selected route's
+         identity, and the way into its full card. Replaces the minimised
+         corner card so the route stays the only thing on screen. -->
+    <div class="stage" id="stage" hidden>
+      <button type="button" id="orbit-toggle" class="orbit-toggle" aria-label="Pause rotation">
+        <svg class="orbit-toggle__pause" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+        <svg class="orbit-toggle__play" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>
+      </button>
 
-    <!-- Ride-through HUD. Hidden unless a fly-through is running. -->
-    <div id="ride-hud" class="ride-hud" hidden aria-live="polite">
-      <div class="ride-hud__bar"><span id="ride-hud-fill" class="ride-hud__fill"></span></div>
-      <button type="button" id="ride-stop" class="ride-hud__stop">Stop ride through</button>
+      <!-- Step between a famous event's routes without leaving the orbit. -->
+      <button type="button" id="stage-prev" class="stage__arrow" hidden aria-label="Previous route">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+
+      <div class="stage__info">
+        <span class="stage__eyebrow" id="stage-eyebrow" hidden></span>
+        <span class="stage__name" id="stage-name"></span>
+        <span class="stage__stats" id="stage-stats"></span>
+      </div>
+
+      <button type="button" id="stage-next" class="stage__arrow" hidden aria-label="Next route">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+      </button>
+
+      <button type="button" id="stage-explore" class="stage__explore">Explore route</button>
     </div>
 
     <!-- Detail surface: bottom sheet (mobile/tablet) or inset floating panel
@@ -198,13 +212,6 @@
         <span class="sheet__handle" aria-hidden="true"></span>
         <button id="detail-close" class="card__close" aria-label="Close">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg>
-        </button>
-
-        <!-- Expand out of the minimised state. The card minimises itself when a
-             route is picked so the map is unobstructed; this brings the detail
-             back. Only rendered while minimised (CSS). -->
-        <button id="detail-expand" class="card__expand" type="button" aria-label="Expand route details" aria-expanded="false">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
         </button>
 
         <!-- HERO (revealed at full / always on desktop). Not .for-full: it
@@ -274,15 +281,6 @@
 
           <!-- Primary action — kept in peek so it's reachable on first tap. -->
           <p id="detail-happened" class="card__happened for-past">This ride happened.</p>
-          <!-- Cinematic fly-through over the 3D terrain. Slim and full-width,
-               sitting ABOVE the two primary actions so it never competes with
-               them for row space. Routes only, and only meaningful over
-               terrain — CSS hides it in 2D. -->
-          <button id="detail-ride" class="card__experience only-route" type="button">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-3.5l6 4.5V6z"/></svg>
-            Experience route
-          </button>
-
           <div class="card__cta-row for-upcoming">
             <!-- Routes: the prominent action is the full write-up page (new tab). -->
             <a id="detail-page-cta" class="card__cta card__cta--page only-route" href="#" target="_blank" rel="noopener noreferrer">

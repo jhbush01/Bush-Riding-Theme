@@ -1698,165 +1698,11 @@ textarea.field-input {
   color: var(--cream-panel);
 }
 
-/* Ride-through HUD — progress + a way out, centred low so it doesn't sit over
-   the terrain the flight is showing off. */
-.ride-hud {
-  position: absolute;
-  left: 50%;
-  bottom: 26px;
-  transform: translateX(-50%);
-  z-index: 9;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 9px;
-  width: min(420px, 76vw);
-  padding: 12px 16px 14px;
-  background: rgba(244, 239, 226, 0.9);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  box-shadow: 0 8px 26px rgba(28, 26, 21, 0.24);
-}
-.ride-hud[hidden] {
-  display: none;
-}
-.ride-hud__bar {
-  width: 100%;
-  height: 3px;
-  border-radius: 999px;
-  background: rgba(44, 42, 36, 0.14);
-  overflow: hidden;
-}
-.ride-hud__fill {
-  display: block;
-  width: 0;
-  height: 100%;
-  background: var(--terracotta);
-  border-radius: 999px;
-}
-.ride-hud__stop {
-  border: 0;
-  background: none;
-  font-family: var(--ui-font);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  color: var(--ink);
-  cursor: pointer;
-}
-.ride-hud__stop:hover {
-  color: var(--terracotta);
-}
 
-/* While a fly-through runs, the rest of the chrome gets out of the way. */
-body.riding .map-brand,
-body.riding .map-nav,
-body.riding .map-tools,
-body.riding .sidebar {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.4s ease;
-}
 
-/* "Experience route" — slim, full width, sitting above the two primary
-   actions rather than competing with them for row space. Only meaningful over
-   terrain, so it's hidden in 2D. */
-.card__experience {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  margin: 0 0 8px;
-  padding: 9px 14px;
-  border: 1px solid var(--card-inset-line, rgba(44, 42, 36, 0.14));
-  border-radius: 11px;
-  background: var(--card-inset, rgba(44, 42, 36, 0.05));
-  color: var(--card-rust, var(--terracotta));
-  font-family: var(--ui-font);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-}
-.card__experience:hover {
-  border-color: var(--terracotta);
-}
-body:not(.is-3d) .card__experience {
-  display: none;
-}
 
-/* Expand ("+") out of the minimised card — top LEFT, mirroring the close
-   button's corner. Shown only while minimised: the desktop panel uses .is-min,
-   the tablet sheet uses its existing peek snap. */
-.card__expand {
-  display: none;
-  position: absolute;
-  top: 10px;
-  left: 12px;
-  z-index: 3;
-  width: 26px;
-  height: 26px;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border: 1px solid var(--card-inset-line, rgba(44, 42, 36, 0.14));
-  border-radius: 50%;
-  background: var(--card-inset, rgba(255, 255, 255, 0.85));
-  color: var(--card-rust, var(--terracotta));
-  cursor: pointer;
-}
-.card__expand:hover {
-  border-color: var(--terracotta);
-}
-.sheet.is-min .card__expand,
-.sheet[data-state="peek"] .card__expand {
-  display: flex;
-}
 
-/* A minimised card has no close affordance competing with the expand button —
-   collapse it first, then close from the full card. */
-.sheet.is-min .card__close {
-  display: none;
-}
 
-/* Minimised desktop panel: a title bar and nothing else, so the framed route
-   owns the canvas. Scoped to the desktop inset panel — below 1025px the sheet
-   is transform-driven and uses its own snap states instead. */
-@media (min-width: 1025px) {
-  .sheet.is-min .card__hero,
-  .sheet.is-min .card__eyebrow-row,
-  .sheet.is-min .card__rating,
-  .sheet.is-min .card__stats,
-  .sheet.is-min .card__cta-row,
-  .sheet.is-min .card__experience,
-  .sheet.is-min .card__when,
-  .sheet.is-min .card__vibe,
-  .sheet.is-min .card__famous,
-  .sheet.is-min .famous-panel,
-  .sheet.is-min .card__happened,
-  .sheet.is-min .deck-bar,
-  .sheet.is-min .sheet__scroll {
-    display: none;
-  }
-  .sheet.is-min {
-    width: 300px;
-  }
-  .sheet.is-min .card__head {
-    padding-top: 12px;
-    padding-bottom: 12px;
-  }
-  /* Clear the expand button in the top-left corner. The close button is
-     hidden in this state, so the right edge needs no reserve. */
-  .sheet.is-min .card__title {
-    margin: 0;
-    padding-left: 34px;
-    font-size: 16px;
-    line-height: 1.25;
-  }
-}
 
 
 
@@ -1901,7 +1747,136 @@ body:not(.is-3d) .card__experience {
 .orbit-toggle.is-paused .orbit-toggle__play {
   display: block;
 }
-/* The fly-through has its own stop control; two would compete. */
-body.riding .orbit-toggle {
+
+/* ── Stage bar ─────────────────────────────────────────────────────────────
+   Bottom centre while a route is on show. Holds the orbit pause control, the
+   route's identity, optional prev/next for a famous event's routes, and the
+   way into the full card. Replaces the minimised corner card: the point of
+   selecting a route is to look at the route, so the chrome stays out of the
+   middle of the screen. */
+.stage {
+  position: absolute;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  z-index: 9;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: min(720px, calc(100vw - 32px));
+  padding: 8px 10px;
+  background: rgba(244, 239, 226, 0.9);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  box-shadow: 0 4px 20px rgba(28, 26, 21, 0.22);
+}
+.stage[hidden] {
   display: none;
+}
+
+/* The orbit toggle now lives inside the bar, so it drops its own positioning. */
+.stage .orbit-toggle {
+  position: static;
+  transform: none;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  box-shadow: none;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.stage__arrow {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--ink);
+  cursor: pointer;
+}
+.stage__arrow[hidden] {
+  display: none;
+}
+.stage__arrow:hover {
+  border-color: var(--terracotta);
+  color: var(--terracotta);
+}
+
+.stage__info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0; /* let the name ellipsis rather than push the bar wide */
+  padding: 0 2px;
+}
+.stage__eyebrow {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--card-rust, var(--terracotta));
+}
+.stage__eyebrow[hidden] {
+  display: none;
+}
+.stage__name {
+  font-family: var(--head-font);
+  font-size: 17px;
+  line-height: 1.15;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.stage__stats {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.stage__explore {
+  flex: none;
+  padding: 9px 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--cream-panel);
+  font-family: var(--ui-font);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.stage__explore:hover {
+  background: #000;
+}
+
+/* Auto-minimised attribution: keep it a quiet ⓘ that expands on demand. */
+.maplibregl-ctrl-attrib.maplibregl-compact {
+  min-height: 24px;
+}
+
+@media (max-width: 720px) {
+  .stage {
+    gap: 7px;
+    padding: 7px 8px;
+    bottom: 14px;
+  }
+  .stage__name {
+    font-size: 15px;
+  }
+  .stage__explore {
+    padding: 8px 13px;
+    font-size: 12px;
+  }
 }

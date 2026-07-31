@@ -460,9 +460,10 @@ function onLoad() {
   applyRelief();
   initViewSwitch();
   initCinematicCancel();
-  initDetailChrome();
+  initStage();
   initViewReset();
   initOrbitToggle();
+  autoMinimiseAttribution();
 
   // --- Sources -------------------------------------------------------------
   // Clustered point source (pins). Clustering is on from day one so
@@ -756,12 +757,16 @@ function wireInteractions() {
 
   // Tap the bare map (not a pin/cluster/event) to dismiss the sheet.
   map.on("click", (e) => {
-    if (!detailOpen) return;
+    if (!detailOpen && !stageVisible()) return;
     const hitLayers = ["unclustered", "clusters", "famous-hit", "event-hit"].filter((l) =>
       map.getLayer(l)
     );
     const hits = hitLayers.length ? map.queryRenderedFeatures(e.point, { layers: hitLayers }) : [];
-    if (!hits.length) closeDetail();
+    if (hits.length) return;
+    // Clicking bare map dismisses everything: card, stage, orbit and the
+    // pin focus. Anything less leaves the map in a half-selected state.
+    if (detailOpen) closeDetail();
+    clearRouteStage();
   });
 }
 
@@ -771,23 +776,9 @@ const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").match
 function setupFamousLayers() {
   map.addSource("famous-rides", { type: "geojson", data: famousFC(routeFeatures) });
 
-  // Two hollow plum ripple rings emanating outward (animated in startPulse).
-  for (const id of ["famous-pulse", "famous-pulse-b"]) {
-    map.addLayer({
-      id,
-      type: "circle",
-      source: "famous-rides",
-      paint: {
-        "circle-radius": reduceMotion ? 20 : 13,
-        "circle-color": SERIES,
-        "circle-opacity": 0,
-        "circle-stroke-color": SERIES,
-        "circle-stroke-width": 2.5,
-        "circle-stroke-opacity": reduceMotion ? 0.22 : 0,
-      },
-    });
-    if (reduceMotion) break;
-  }
+  // No ripple here. The pulse is now reserved as the bush-event signature, so
+  // a pulsing pin means "something is happening" rather than just "pin".
+  // Famous rides read as plum + a route count instead.
   // Filled plum core.
   map.addLayer({
     id: "famous-core",
@@ -828,11 +819,11 @@ function wireFamousInteractions() {
   const layers = ["famous-hit", "famous-core", "famous-count"].filter((l) => map.getLayer(l));
   if (!layers.length) return;
   map.on("click", layers, (e) => {
-    const props = e.features[0].properties;
-    showFamousPopup(
-      { name: props.name || "", location: props.location || "", dates: props.dates || "" },
-      e.features[0].geometry.coordinates
-    );
+    // Straight onto the stage. The old "choose a route" popup made the rider
+    // pick blind, from names alone, before anything was shown — so the first
+    // route now goes up immediately and the stage arrows step through the
+    // rest without ever leaving the orbit.
+    openFamousOnStage(e.features[0].properties.name || "");
   });
   map.on("mouseenter", layers, () => (map.getCanvas().style.cursor = "pointer"));
   map.on("mouseleave", layers, () => (map.getCanvas().style.cursor = ""));
@@ -971,10 +962,8 @@ function startPulse() {
   const specs = [
     { layer: "event-pulse", base: 10, grow: 44, peak: 0.5 },
     { layer: "event-pulse-b", base: 10, grow: 44, peak: 0.5 },
-    { layer: "famous-pulse", base: 11, grow: 44, peak: 0.5 },
-    { layer: "famous-pulse-b", base: 11, grow: 44, peak: 0.5 },
   ];
-  // event/famous each have two ring layers → phase them half a cycle apart.
+  // The two bush-event ring layers are phased half a cycle apart.
   const rings = specs.map((r, i) => ({ ...r, phase: i % 2 === 0 ? 0 : 0.5 }));
   const VIS = 0.58; // fade fully out by ~58% of the cycle, then a quiet gap
   const PERIOD = 3600; // slow
@@ -1052,6 +1041,13 @@ function selectRoute(id, fly) {
   selectedId = id;
   // Picking a route means "show me this route" — clear the drawer off the map.
   collapseSidebarOnSelect();
+
+  // Tablet/desktop: put it on the stage (orbit + bottom bar) rather than
+  // opening a card over it. Phones keep the direct-to-sheet behaviour.
+  if (stageMode()) {
+    presentOnStage([feature], 0, "");
+    return;
+  }
   // openDetail opens the sheet at peek and frames the route above it (with the
   // correct dynamic padding). Framing here would use stale padding, so we let
   // the sheet own the camera.
@@ -1212,41 +1208,31 @@ function eventState(feature) {
 }
 
 // Small popup on the pin: name + town + dates, tap to open the full card.
-function showFamousPopup(props, lngLat) {
-  if (routeChooserPopup) routeChooserPopup.remove();
-  const wrap = document.createElement("div");
-  wrap.className = "route-chooser route-chooser--event";
-  const eb = document.createElement("p");
-  eb.className = "route-chooser__eyebrow";
-  eb.textContent = "Famous Event";
-  wrap.appendChild(eb);
-  const head = document.createElement("p");
-  head.className = "route-chooser__head";
-  head.textContent = props.name || "Famous Event";
-  wrap.appendChild(head);
-  const where = [props.location, props.dates].filter(Boolean).join(" · ");
-  if (where) {
-    const info = document.createElement("p");
-    info.className = "route-chooser__meta";
-    info.textContent = where;
-    wrap.appendChild(info);
+
+
+/* Put a famous event's routes on the stage, starting with the first.
+
+   Deliberately does NOT open the famous event card. That card's job was to
+   list routes so one could be chosen; the stage does that better by showing
+   each route on the terrain as you arrow through them. The card is still one
+   click away via Explore route, which opens the ROUTE card with the whole
+   edition already loaded as its deck. */
+function openFamousOnStage(name) {
+  const ev = famousEvents().find((e) => e.name.toLowerCase() === String(name).toLowerCase());
+  if (!ev) return;
+  if (!ev._edition) ev._edition = ev.latestEdition;
+  const routes = routesForEdition(ev, ev._edition);
+  if (!routes.length) return;
+
+  backTarget = null;
+  collapseSidebarOnSelect();
+
+  if (stageMode()) {
+    presentOnStage(routes, 0, ev.name, ev);
+  } else {
+    // Phones have no stage; keep the existing card flow.
+    openRouteFromEvent(routes[0], ev);
   }
-  const btn = document.createElement("button");
-  btn.type = "button";
-  btn.className = "famous-popup__cta";
-  btn.textContent = "View event & routes →";
-  btn.addEventListener("click", () => {
-    if (routeChooserPopup) routeChooserPopup.remove();
-    openFamousCardByName(props.name);
-  });
-  wrap.appendChild(btn);
-  routeChooserPopup = new maplibregl.Popup({
-    closeButton: true, closeOnClick: true, maxWidth: "260px", className: "route-chooser-popup is-event", offset: 12,
-  })
-    .setLngLat(lngLat)
-    .setDOMContent(wrap)
-    .addTo(map);
-  routeChooserPopup.on("close", () => { routeChooserPopup = null; });
 }
 
 function openFamousCardByName(name) {
@@ -1523,7 +1509,7 @@ function fitPadding() {
   // deeper reserve or the route line slips under the card.
   // A minimised card is a title bar, not a panel — it needs no side reserve, so
   // the route recentres across the full canvas. Same for a collapsed sidebar.
-  const cardReserve = detailOpen && !detailMinimised ? (detailMode === "event" ? 500 : 430) : 80;
+  const cardReserve = detailOpen ? (detailMode === "event" ? 500 : 430) : 80;
   return pitchAdjusted({
     top: 60,
     bottom: 60,
@@ -1676,8 +1662,6 @@ function syncViewSwitch() {
 let orbitActive = false;   // a rotation leg is currently running
 let orbitWasActive = false; // rotation is paused, not finished
 let orbitStartTimer = null;
-let rideRAF = null;
-let rideStopFn = null;
 
 const ORBIT_DEG_PER_SEC = 4.2; // slow enough to read as a reveal, not a spin
 // Ceiling only. Orbit zoom is now derived from the route's own size (see
@@ -1689,7 +1673,7 @@ const ORBIT_LEG_DEGREES = 30; // arc per easeTo leg; short enough to stop prompt
 const ORBIT_START_DELAY = 1100; // let the fit settle first
 
 function cinematicsRunning() {
-  return orbitActive || rideRAF !== null;
+  return orbitActive;
 }
 
 // Cancel everything and restore normal interaction state.
@@ -1698,15 +1682,6 @@ function stopCinematics() {
   orbitStartTimer = null;
   orbitActive = false;
   orbitWasActive = false;
-  if (rideRAF !== null) {
-    cancelAnimationFrame(rideRAF);
-    rideRAF = null;
-  }
-  if (rideStopFn) {
-    const fn = rideStopFn;
-    rideStopFn = null;
-    fn();
-  }
   syncOrbitToggle();
 }
 
@@ -1737,6 +1712,14 @@ function startOrbit() {
    once it fits, it fits at all 360 degrees of the orbit. Implemented by
    fitting the square that circumscribes that circle, which is conservative
    and lets MapLibre do the zoom maths. */
+// Flatten a route's geometry to a plain coordinate list.
+function lineCoords(geom) {
+  if (!geom) return [];
+  if (geom.type === "LineString") return geom.coordinates;
+  if (geom.type === "MultiLineString") return geom.coordinates.flat();
+  return [];
+}
+
 function frameForOrbit(feature, duration) {
   const coords = lineCoords(displayGeometry(feature));
   if (!coords.length) return;
@@ -1824,7 +1807,7 @@ function setOrbitPaused(paused) {
 function syncOrbitToggle() {
   const btn = document.getElementById("orbit-toggle");
   if (!btn) return;
-  const show = view3d && orbitStarted() && !rideRAF;
+  const show = view3d && orbitStarted();
   btn.hidden = !show;
   const paused = orbitPaused();
   btn.setAttribute("aria-label", paused ? "Resume rotation" : "Pause rotation");
@@ -1847,217 +1830,148 @@ function scheduleOrbit() {
   orbitStartTimer = setTimeout(startOrbit, ORBIT_START_DELAY);
 }
 
-/* Ride-through: fly the camera along the route.
+/* ── Stage bar ────────────────────────────────────────────────────────────
+   On tablet/desktop, picking a route no longer opens a card. It puts the route
+   on the map with the camera orbiting it, and reduces the UI to one bar at the
+   bottom: pause/resume, the route's identity, and a way into the full detail.
 
-   Implemented as a rAF loop over the route's own coordinates rather than a
-   chain of easeTo calls — easeTo per segment stutters at every hand-off, and
-   route segments are wildly uneven in length. Interpolating along cumulative
-   distance gives constant ground speed regardless of how the GPX was sampled. */
-const RIDE_MIN_MS = 26000;
-const RIDE_MAX_MS = 70000;
-// Low and close: a helicopter a few storeys up, not a survey plane. Pitch sits
-// well above TERRAIN_PITCH, which is why maxPitch is raised to 85.
-const RIDE_ZOOM = 16.6;
-const RIDE_PITCH = 80;
-// Aim this far down the trail (km). The first version looked ahead by ARRAY
-// INDEX (i + 2), which on a densely-sampled GPX is ~20 m — so the heading was
-// recomputed from near-identical points and the camera swung wildly on every
-// GPS wobble. That was the "random path". Looking ahead by real distance makes
-// the heading stable regardless of how finely the track was recorded.
-const RIDE_LOOKAHEAD_KM = 0.22;
-// Per-frame easing toward the target heading, so corners bank instead of snap.
-const RIDE_TURN_EASE = 0.055;
+   `stage.items` is a list because a famous event is a set of routes — the
+   arrows step between them without ever leaving the orbit. A community route
+   is just a one-item stage, so both paths share every line below.
 
-function rideThrough(feature) {
-  if (!map || !mapReady || !feature) return;
-  // Fly the simplified line: the receiver noise RDP strips out is exactly the
-  // noise that would otherwise steer the camera.
-  const coords = dedupe(lineCoords(displayGeometry(feature)));
-  if (coords.length < 2) return;
+   Phones are unaffected: they open the detail sheet directly, as before. There
+   is no orbit there for a bar to sit alongside. */
+let stage = null; // { items: [feature], index, eyebrow, event }
 
-  // Ride-through only makes sense over terrain.
-  if (!view3d) setView3d(true);
-  stopCinematics();
-  // Get the card out of the way for the flight, but remember how the rider had
-  // it so stopping restores their state rather than forcing the card open.
-  const wasMinimised = detailMinimised;
-  minimiseDetail(true);
-
-  // Cumulative ground distance so speed is even along the whole line.
-  const cum = [0];
-  for (let i = 1; i < coords.length; i++) {
-    cum[i] = cum[i - 1] + haversine(coords[i - 1], coords[i]);
-  }
-  const total = cum[cum.length - 1];
-  if (!total) return;
-
-  // Longer routes get longer flights, clamped so a 200 km epic doesn't run
-  // for minutes.
-  const duration = Math.min(RIDE_MAX_MS, Math.max(RIDE_MIN_MS, total * 260));
-
-  const hud = document.getElementById("ride-hud");
-  const fill = document.getElementById("ride-hud-fill");
-  if (hud) hud.hidden = false;
-  document.body.classList.add("riding");
-
-  const prev = { pitch: map.getPitch(), zoom: map.getZoom(), center: map.getCenter(), bearing: map.getBearing() };
-
-  rideStopFn = () => {
-    if (hud) hud.hidden = true;
-    if (fill) fill.style.width = "0%";
-    document.body.classList.remove("riding");
-    minimiseDetail(wasMinimised);
-    // Ease back to the whole route rather than snapping — abrupt cuts after a
-    // flight are disorienting.
-    if (mapReady && selectedId) {
-      map.easeTo({ pitch: prev.pitch, duration: 600 });
-      scheduleReframe();
-    }
-  };
-
-  // Interpolate a position at an arbitrary distance along the line, so the
-  // camera moves at constant ground speed no matter how the track was sampled.
-  const at = (dist) => {
-    const d = Math.max(0, Math.min(total, dist));
-    let i = 1;
-    while (i < cum.length - 1 && cum[i] < d) i++;
-    const seg = cum[i] - cum[i - 1] || 1;
-    return lerpCoord(coords[i - 1], coords[i], (d - cum[i - 1]) / seg);
-  };
-
-  // Heading is always "here → a fixed distance further along".
-  let heading = bearingBetween(at(0), at(RIDE_LOOKAHEAD_KM));
-
-  map.easeTo({
-    center: coords[0],
-    zoom: RIDE_ZOOM,
-    pitch: RIDE_PITCH,
-    bearing: heading,
-    duration: 1600,
-  });
-
-  const begin = () => {
-    const t0 = performance.now();
-    const step = (now) => {
-      const t = Math.min(1, (now - t0) / duration);
-      const travelled = t * total;
-      const here = at(travelled);
-
-      // Ease toward the new heading rather than adopting it outright — this is
-      // what turns a jittery series of GPS headings into a smooth banking arc.
-      heading = heading + shortestTurn(heading, bearingBetween(here, at(travelled + RIDE_LOOKAHEAD_KM))) * RIDE_TURN_EASE;
-
-      map.jumpTo({ center: here, zoom: RIDE_ZOOM, pitch: RIDE_PITCH, bearing: heading });
-
-      if (fill) fill.style.width = (t * 100).toFixed(1) + "%";
-
-      if (t < 1) rideRAF = requestAnimationFrame(step);
-      else {
-        rideRAF = null;
-        stopCinematics();
-      }
-    };
-    rideRAF = requestAnimationFrame(step);
-  };
-
-  // Start the flight once the approach easeTo has landed.
-  setTimeout(() => {
-    if (document.body.classList.contains("riding")) begin();
-  }, 1650);
-}
-
-// Signed smallest angle from a to b, in (-180, 180]. Without this a heading
-// crossing due north jumps 359° instead of turning 1°.
-function shortestTurn(a, b) {
-  return ((((b - a) % 360) + 540) % 360) - 180;
-}
-
-// Drop consecutive duplicate points — they produce a zero-length segment and a
-// meaningless heading.
-function dedupe(coords) {
-  const out = [];
-  for (const c of coords) {
-    const p = out[out.length - 1];
-    if (!p || p[0] !== c[0] || p[1] !== c[1]) out.push(c);
-  }
-  return out;
-}
-
-function lineCoords(geom) {
-  if (!geom) return [];
-  if (geom.type === "LineString") return geom.coordinates;
-  if (geom.type === "MultiLineString") return geom.coordinates.flat();
-  return [];
-}
-
-function lerpCoord(a, b, f) {
-  return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f];
-}
-
-// Kilometres between two [lng, lat] pairs.
-function haversine(a, b) {
-  const R = 6371;
-  const dLat = ((b[1] - a[1]) * Math.PI) / 180;
-  const dLng = ((b[0] - a[0]) * Math.PI) / 180;
-  const la1 = (a[1] * Math.PI) / 180;
-  const la2 = (b[1] * Math.PI) / 180;
-  const h = Math.sin(dLat / 2) ** 2 + Math.cos(la1) * Math.cos(la2) * Math.sin(dLng / 2) ** 2;
-  return 2 * R * Math.asin(Math.sqrt(h));
-}
-
-// Compass bearing a → b, degrees.
-function bearingBetween(a, b) {
-  const la1 = (a[1] * Math.PI) / 180;
-  const la2 = (b[1] * Math.PI) / 180;
-  const dLng = ((b[0] - a[0]) * Math.PI) / 180;
-  const y = Math.sin(dLng) * Math.cos(la2);
-  const x = Math.cos(la1) * Math.sin(la2) - Math.sin(la1) * Math.cos(la2) * Math.cos(dLng);
-  return (Math.atan2(y, x) * 180) / Math.PI;
-}
-
-/* ── Minimised detail card ────────────────────────────────────────────────
-   On tablet/desktop, picking a route collapses the card to a slim title bar so
-   the route itself is the only thing on screen. The "+" button brings the full
-   card back. Phones are unaffected — they already have snap states (peek /
-   half / full) that do this job, and re-using them here would fight the drag
-   gesture. */
-let detailMinimised = false;
-
-function minimiseDetail(on) {
-  detailMinimised = !!on;
-  if (!els.detail) return;
-
-  if (isSheetMode()) {
-    // Tablet: the sheet is transform-positioned and already has a minimal
-    // snap state. Drive that instead of adding a competing height class —
-    // two systems fighting over the same element is how sheets get stuck.
-    if (detailOpen) setSheetState(detailMinimised ? "peek" : "full");
-  } else {
-    // Desktop inset panel: no transform to respect, so collapse it directly.
-    els.detail.classList.toggle("is-min", detailMinimised);
-    // Padding changed with the card's footprint — but re-fitting mid-orbit
-    // would throw away the push-in, so leave a running reveal alone.
-    if (!cinematicsRunning()) scheduleReframe();
-  }
-
-  const btn = document.getElementById("detail-expand");
-  if (btn) btn.setAttribute("aria-expanded", String(!detailMinimised));
-}
-
-// Tablet and desktop only, matching the stated scope for this behaviour.
-function shouldAutoMinimise() {
+// Tablet and up, matching the breakpoint fitPadding() uses to tell "phone"
+// from "everything else".
+function stageMode() {
   return window.matchMedia("(min-width: 721px)").matches;
+}
+
+function stageFeature() {
+  return stage && stage.items[stage.index];
+}
+
+function presentOnStage(items, index, eyebrow, event) {
+  if (!items || !items.length) return;
+  stage = {
+    items,
+    index: Math.max(0, Math.min(index || 0, items.length - 1)),
+    eyebrow: eyebrow || "",
+    event: event || null,
+  };
+  // Mirror into the card deck, so if the rider does open the detail its
+  // prev/next already match what the arrows were stepping through.
+  deck = items.length > 1 ? { kind: "route", items, index: stage.index, event: stage.event } : null;
+  applyStage();
+}
+
+function applyStage() {
+  const feature = stageFeature();
+  if (!feature) return;
+  const p = feature.properties;
+
+  // Selection and the drawn line, without opening the card.
+  if (mapReady) {
+    if (selectedId) {
+      map.setFeatureState({ source: "routes-points", id: routeToPinId.get(selectedId) || selectedId }, { selected: false });
+    }
+    map.getSource("selected-route").setData({
+      type: "FeatureCollection",
+      features: [{ type: "Feature", geometry: displayGeometry(feature), properties: {} }],
+    });
+  }
+  selectedId = p.id;
+  highlightResult(p.id);
+  focusPins(true);
+
+  const el = (id) => document.getElementById(id);
+  const eyebrow = el("stage-eyebrow");
+  if (eyebrow) {
+    eyebrow.textContent = stage.eyebrow;
+    eyebrow.hidden = !stage.eyebrow;
+  }
+  const name = el("stage-name");
+  if (name) name.textContent = p.name || "";
+  const stats = el("stage-stats");
+  if (stats) {
+    const bits = [];
+    if (p.distance_km) bits.push(Math.round(p.distance_km) + " km");
+    if (p.elevation_gain_m) bits.push("\u2191 " + Math.round(p.elevation_gain_m) + " m");
+    stats.textContent = bits.join("  \u00b7  ");
+  }
+  const many = stage.items.length > 1;
+  for (const id of ["stage-prev", "stage-next"]) {
+    const b = el(id);
+    if (b) b.hidden = !many;
+  }
+  const bar = el("stage");
+  if (bar) bar.hidden = false;
+
+  frameAndOrbit(feature);
+  updateResetVisibility();
+}
+
+// Frame the route so all of it stays visible through the rotation, then start
+// the reveal. Used on selection and on every arrow step.
+function frameAndOrbit(feature) {
+  if (!mapReady) return;
+  stopCinematics();
+  if (view3d && !reduceMotion) {
+    frameForOrbit(feature, 900);
+    orbitStartTimer = setTimeout(spinOrbit, 950);
+  } else {
+    frameFeatures([feature]);
+  }
+  syncOrbitToggle();
+}
+
+function stageStep(delta) {
+  if (!stage || stage.items.length < 2) return;
+  const n = stage.items.length;
+  stage.index = (stage.index + delta + n) % n;
+  if (deck) deck.index = stage.index;
+  applyStage();
+}
+
+function hideStage() {
+  stage = null;
+  const bar = document.getElementById("stage");
+  if (bar) bar.hidden = true;
+}
+
+function stageVisible() {
+  const bar = document.getElementById("stage");
+  return !!bar && !bar.hidden;
+}
+
+/* Hide the other route pins while a route is on show. Selecting a route is a
+   request to look at that route; a field of unrelated pins swinging past it
+   during the orbit is just clutter. Famous and bush-event pins stay — they are
+   different categories, not "other routes". */
+function focusPins(on) {
+  for (const id of ["clusters", "cluster-count", "unclustered"]) setLayerVisible(id, !on);
+}
+
+// Full deselect: clear the stage, the orbit, the line and the pin focus.
+function clearRouteStage() {
+  stopCinematics();
+  hideStage();
+  focusPins(false);
+  clearSelection();
+  highlightResult(null);
+  updateResetVisibility();
 }
 
 /* ── Back to the wide view ────────────────────────────────────────────────
    Once the camera is in on a route, getting back out to pick a different pin
-   meant spinning the wheel or hammering the zoom buttons. This is one click
-   back to every route: cancel any guided camera move, drop the selection, and
+   meant spinning the wheel or hammering the zoom buttons. One click back to
+   every route: tear down the stage, drop the selection, restore the pins and
    frame the whole set. */
 function resetToAllRoutes() {
-  stopCinematics();
   if (detailOpen) closeDetail();
-  else clearSelection();
+  clearRouteStage();
   if (!mapReady) return;
 
   // One camera command, not two — an easeTo for the bearing plus a fitBounds
@@ -2075,12 +1989,12 @@ function resetToAllRoutes() {
   updateResetVisibility();
 }
 
-// Only worth showing once there's actually something to come back from —
-// otherwise it's a button that does nothing to the current view.
+// Only worth showing once there's something to come back from — otherwise it's
+// a button that does nothing to the current view.
 function updateResetVisibility() {
   const btn = document.getElementById("view-reset");
   if (!btn || !map) return;
-  btn.hidden = !(detailOpen || selectedId || map.getZoom() > 8.5);
+  btn.hidden = !(detailOpen || stageVisible() || selectedId || map.getZoom() > 8.5);
 }
 
 function initViewReset() {
@@ -2091,21 +2005,40 @@ function initViewReset() {
   updateResetVisibility();
 }
 
-function initDetailChrome() {
-  const expand = document.getElementById("detail-expand");
-  if (expand) {
-    // Opening the card does not interrupt the reveal — the orbit keeps
-    // running behind it. Only real map input stops it.
-    expand.addEventListener("click", () => minimiseDetail(false));
-  }
+/* Auto-minimise the attribution.
+   MapLibre's compact attribution re-expands itself whenever the attribution
+   text changes — and ours changes as layers come and go (imagery on/off,
+   terrain attaching). Collapsing it on those same events keeps it as a quiet
+   ⓘ; clicking it still opens it, because this only strips the class when the
+   map itself caused the change, not the rider. */
+function autoMinimiseAttribution() {
+  const collapse = () => {
+    for (const el of document.querySelectorAll(".maplibregl-ctrl-attrib.maplibregl-compact-show")) {
+      el.classList.remove("maplibregl-compact-show");
+    }
+  };
+  collapse();
+  map.on("sourcedata", collapse);
+  map.on("styledata", collapse);
+  map.on("idle", collapse);
+}
 
-  const ride = document.getElementById("detail-ride");
-  if (ride) {
-    ride.addEventListener("click", () => {
-      const f = selectedId && routeById.get(selectedId);
-      if (f) rideThrough(f);
+function initStage() {
+  const explore = document.getElementById("stage-explore");
+  if (explore) {
+    explore.addEventListener("click", () => {
+      const f = stageFeature();
+      if (!f) return;
+      // The card takes over the bottom of the screen; the bar would collide.
+      const bar = document.getElementById("stage");
+      if (bar) bar.hidden = true;
+      openDetail(f);
     });
   }
+  const prev = document.getElementById("stage-prev");
+  const next = document.getElementById("stage-next");
+  if (prev) prev.addEventListener("click", () => stageStep(-1));
+  if (next) next.addEventListener("click", () => stageStep(1));
 }
 
 // Any genuine input cancels a guided camera move. Registered on the canvas so
@@ -2115,8 +2048,6 @@ function initCinematicCancel() {
   for (const ev of ["mousedown", "wheel", "touchstart", "dblclick"]) {
     canvas.addEventListener(ev, () => stopCinematics(), { passive: true });
   }
-  const stopBtn = document.getElementById("ride-stop");
-  if (stopBtn) stopBtn.addEventListener("click", () => stopCinematics());
 }
 
 // LngLatBounds covering every route, or null if there are none.
@@ -2267,13 +2198,6 @@ function openDetail(feature) {
   // Route detail opens at peek (browsing), event detail opens at half.
   openSheet("peek");
 
-  // Tablet/desktop: collapse the card to its title bar so the framed route is
-  // the only thing competing for attention, then let the camera circle it. The
-  // "+" on the card brings the detail back; any map input stops the orbit.
-  if (shouldAutoMinimise()) {
-    minimiseDetail(true);
-    scheduleOrbit();
-  }
 }
 
 // Open a Community Bush Ride event in the same sheet, with event content and
@@ -2327,16 +2251,25 @@ function openSheet(initialState) {
 function closeDetail() {
   if (!detailOpen) return;
   detailOpen = false;
-  // Closing the card ends any guided camera move and clears the minimised
-  // state, so the next route opens from a known position.
-  stopCinematics();
-  minimiseDetail(false);
-  deck = null;
+  // Closing the card returns to the stage if a route is still on show — the
+  // rider dismissed the detail, not the route. Only a real deselect (empty-map
+  // click, "All routes") tears the stage down.
+  const backToStage = stageMode() && !!stageFeature();
+  if (backToStage) {
+    const bar = document.getElementById("stage");
+    if (bar) bar.hidden = false;
+  } else {
+    stopCinematics();
+  }
+  if (!backToStage) deck = null;
   backTarget = null;
   updateDeckNav();
   updateBackButton();
-  clearSelection();
-  highlightResult(null);
+  if (!backToStage) {
+    clearSelection();
+    highlightResult(null);
+    focusPins(false);
+  }
   els.detail.setAttribute("aria-hidden", "true");
 
   if (isSheetMode()) {
@@ -3039,7 +2972,7 @@ function highlightResult(id) {
 const CATEGORY_LAYERS = {
   routes: ["clusters", "cluster-count", "unclustered", "route-count"],
   bush: ["event-pulse", "event-pulse-b", "event-core", "event-icon", "event-hit"],
-  famous: ["famous-pulse", "famous-pulse-b", "famous-core", "famous-count", "famous-hit"],
+  famous: ["famous-core", "famous-count", "famous-hit"],
 };
 
 function setCategoryVisible(cat, on) {
