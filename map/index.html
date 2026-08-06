@@ -41,11 +41,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Archivo+Black&family=IBM+Plex+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap"
       rel="stylesheet"
     />
 
     <link rel="stylesheet" href="styles/app.css" />
+    <link rel="stylesheet" href="styles/landing.css" />
 
     <!-- Deployment config — the only place to set per-environment values.
          tilesUrl is the single swappable line for the basemap source. -->
@@ -70,6 +71,49 @@
   </head>
   <body>
     <div id="map" aria-label="Map of curated gravel routes"></div>
+
+    <!-- Landing cover. The globe behind it is the map in globe projection, so
+         pressing a pin flies straight down into the map with no handoff. -->
+    <section id="landing" class="landing" hidden aria-label="Bush Map">
+      <div class="landing__marks" aria-hidden="true">
+        <i class="landing__mark landing__mark--tl"></i>
+        <i class="landing__mark landing__mark--tr"></i>
+        <i class="landing__mark landing__mark--bl"></i>
+        <i class="landing__mark landing__mark--br"></i>
+      </div>
+
+      <div class="landing__head">
+        <span class="landing__tag" data-rise="1"><b>BUSH MAP</b> — GRAVEL &amp; BUSH ROUTES</span>
+        <span class="landing__tag" data-rise="1">AUSTRALIA <b>/</b> AND BEYOND</span>
+      </div>
+
+      <div class="landing__lede">
+        <h1 class="landing__title" data-rise="2">Where the road<br />turns to <em>dirt</em></h1>
+        <p class="landing__sub" data-rise="3">
+          Spin it. Every pin is a road someone turned off — and kept going.
+        </p>
+      </div>
+
+      <div class="landing__meta" data-rise="3">
+        <span>LOCAL TIME <b id="ld-time">--:--:--</b></span>
+        <span>TIME ZONE <b id="ld-zone">—</b></span>
+        <span>LAT <b id="ld-lat">—</b></span>
+        <span>LON <b id="ld-lon">—</b></span>
+        <span>ROUTES ON RECORD <b id="ld-count">--</b></span>
+      </div>
+
+      <div class="landing__foot">
+        <p class="landing__note" data-rise="4">
+          We map the detours: community routes, bush events and the rides we keep
+          coming back to. <b>Pick a pin and drop in</b> — the camera goes with you,
+          from orbit down to the gravel.
+        </p>
+        <button type="button" class="landing__enter" id="ld-enter" data-rise="5">
+          Enter the map
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
+        </button>
+      </div>
+    </section>
 
 
     <!-- Filter / list panel -->

@@ -1,0 +1,273 @@
+/* ── Bush Map landing ──────────────────────────────────────────────────────
+   The threshold before the map. A photoreal Earth (MapLibre globe + Esri
+   imagery, rendered by the map itself) under a brutalist survey-document
+   overlay: registration marks, a heavy grotesque headline, and monospace
+   telemetry.
+
+   Deliberately dark, where the map proper is cream. Earth from orbit reads
+   against black, and the tonal flip makes dropping into the cream map feel
+   like arriving somewhere rather than changing pages. */
+
+.landing {
+  --ld-void: #0b0d0a;
+  --ld-ink: #14170f;
+  --ld-cream: #ebe4d2;
+  --ld-dim: #8b8674;
+  --ld-rust: #d2632f;
+  --ld-lemon: #d7e04b;
+  --ld-rule: rgba(235, 228, 210, 0.22);
+
+  --ld-display: "Archivo Black", "Archivo", system-ui, sans-serif;
+  --ld-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto 1fr auto;
+  padding: clamp(18px, 3.4vw, 46px);
+  color: var(--ld-cream);
+  font-family: var(--ld-mono);
+  /* The globe is the map canvas underneath — the overlay must not eat drags. */
+  pointer-events: none;
+}
+.landing[hidden] {
+  display: none;
+}
+
+/* Vignette that seats the globe in the dark without hiding the imagery. */
+.landing::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(64% 58% at 56% 50%, rgba(11, 13, 10, 0) 52%, rgba(11, 13, 10, 0.6) 100%),
+    linear-gradient(180deg, rgba(11, 13, 10, 0.82) 0%, rgba(11, 13, 10, 0) 26%),
+    linear-gradient(0deg, rgba(11, 13, 10, 0.86) 0%, rgba(11, 13, 10, 0) 30%),
+    /* Reading scrim down the left. The vignette only darkens the edges, but the
+       headline sits over the globe's LIT side, and we do not control how bright
+       any given patch of Esri imagery is. This guarantees the type reads
+       whatever the camera happens to be over. */
+    linear-gradient(90deg, rgba(11, 13, 10, 0.9) 0%, rgba(11, 13, 10, 0.55) 34%, rgba(11, 13, 10, 0) 58%);
+}
+
+/* ── Registration marks ─────────────────────────────────────────────────── */
+.landing__marks {
+  position: absolute;
+  inset: clamp(12px, 2.2vw, 28px);
+  pointer-events: none;
+}
+.landing__mark {
+  position: absolute;
+  width: 15px;
+  height: 15px;
+  border: 0 solid var(--ld-rule);
+}
+.landing__mark--tl { top: 0; left: 0; border-top-width: 1px; border-left-width: 1px; }
+.landing__mark--tr { top: 0; right: 0; border-top-width: 1px; border-right-width: 1px; }
+.landing__mark--bl { bottom: 0; left: 0; border-bottom-width: 1px; border-left-width: 1px; }
+.landing__mark--br { bottom: 0; right: 0; border-bottom-width: 1px; border-right-width: 1px; }
+
+/* ── Shared reveal ──────────────────────────────────────────────────────────
+   One orchestrated load: everything rises on the same curve, staggered by
+   delay. Reads as a single considered entrance rather than scattered fidgets. */
+@keyframes ld-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+.landing [data-rise] {
+  opacity: 0;
+  animation: ld-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.landing [data-rise="1"] { animation-delay: 0.15s; }
+.landing [data-rise="2"] { animation-delay: 0.3s; }
+.landing [data-rise="3"] { animation-delay: 0.45s; }
+.landing [data-rise="4"] { animation-delay: 0.6s; }
+.landing [data-rise="5"] { animation-delay: 0.75s; }
+
+/* ── Head row ───────────────────────────────────────────────────────────── */
+.landing__head {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+.landing__tag {
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ld-dim);
+}
+.landing__tag b {
+  color: var(--ld-cream);
+  font-weight: 500;
+}
+
+/* ── Headline ───────────────────────────────────────────────────────────── */
+.landing__lede {
+  grid-column: 1;
+  align-self: center;
+  min-width: 0;
+}
+.landing__title {
+  margin: 0;
+  font-family: var(--ld-display);
+  font-weight: 400;
+  font-size: clamp(2.3rem, 5.6vw, 4.9rem);
+  line-height: 0.9;
+  letter-spacing: -0.025em;
+  text-transform: uppercase;
+  /* The <br> sets the break; this only stops very wide viewports from
+     stretching the measure past comfortable reading. */
+  max-width: 16ch;
+  text-wrap: balance;
+}
+.landing__title em {
+  font-style: normal;
+  color: var(--ld-rust);
+}
+.landing__sub {
+  margin: clamp(14px, 2vw, 22px) 0 0;
+  max-width: 34ch;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--ld-dim);
+}
+
+/* ── Telemetry, right column ────────────────────────────────────────────── */
+.landing__meta {
+  grid-column: 2;
+  justify-self: end;
+  align-self: start;
+  display: grid;
+  gap: 4px;
+  font-size: 11px;
+  line-height: 1.6;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--ld-dim);
+}
+.landing__meta b {
+  color: var(--ld-cream);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+/* ── Foot row ───────────────────────────────────────────────────────────── */
+.landing__foot {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: clamp(18px, 4vw, 60px);
+}
+.landing__note {
+  max-width: 46ch;
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.75;
+  color: var(--ld-dim);
+}
+.landing__note b {
+  color: var(--ld-cream);
+  font-weight: 500;
+}
+
+.landing__enter {
+  pointer-events: auto;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 20px 13px 22px;
+  border: 1px solid var(--ld-rule);
+  border-radius: 0; /* squared — this is a survey document, not an app chrome */
+  background: rgba(235, 228, 210, 0.04);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  color: var(--ld-cream);
+  font-family: var(--ld-mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.35s ease, border-color 0.35s ease, color 0.35s ease;
+}
+.landing__enter:hover {
+  background: var(--ld-rust);
+  border-color: var(--ld-rust);
+  color: #14170f;
+}
+.landing__enter svg {
+  flex: none;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.landing__enter:hover svg {
+  transform: translateX(4px);
+}
+
+/* ── Body state ─────────────────────────────────────────────────────────────
+   While the landing is up the map's own chrome stays out of the way — this is
+   a cover, not a toolbar. */
+body.is-landing .map-brand,
+body.is-landing .map-tools,
+body.is-landing .sidebar,
+body.is-landing .stage,
+body.is-landing .maplibregl-ctrl-bottom-right {
+  opacity: 0;
+  pointer-events: none;
+}
+body.is-landing .map-brand,
+body.is-landing .map-tools {
+  transition: opacity 0.5s ease;
+}
+/* Fading out on entry — one beat before the chrome returns. */
+.landing.is-leaving {
+  opacity: 0;
+  transition: opacity 0.75s ease;
+}
+
+/* ── Small screens ──────────────────────────────────────────────────────────
+   Single column: the globe sits behind, the type stacks over it. The
+   telemetry block is the first thing to go — it is atmosphere, not content. */
+@media (max-width: 760px) {
+  .landing {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto;
+  }
+  .landing__lede,
+  .landing__meta,
+  .landing__foot {
+    grid-column: 1;
+  }
+  .landing__meta,
+  /* Second tag wraps to two lines on a phone and fights the first — the
+     wordmark alone carries it. */
+  .landing__head .landing__tag:last-child {
+    display: none;
+  }
+  .landing__foot {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  .landing__note {
+    max-width: none;
+    font-size: 11px;
+  }
+  .landing__enter {
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing [data-rise] {
+    animation-duration: 0.01ms;
+    opacity: 1;
+  }
+}

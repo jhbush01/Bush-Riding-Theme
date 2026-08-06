@@ -465,6 +465,23 @@ function onLoad() {
   initOrbitToggle();
   autoMinimiseAttribution();
 
+  /* Landing globe. Deliberately a narrow, documented surface: landing.js needs
+     to know how many routes exist and how to hand the camera back, and nothing
+     else about this file. Loaded dynamically so a failure in the cover can
+     never stop the map itself from working. */
+  window.brmMap = {
+    routeCount: () => routeFeatures.length,
+    showAllRoutes: () => resetToAllRoutes(),
+  };
+  import("./landing.js")
+    .then((m) => m.initLanding(map))
+    .catch((e) => {
+      console.warn("Landing unavailable:", e.message);
+      document.body.classList.remove("is-landing");
+      const root = document.getElementById("landing");
+      if (root) root.hidden = true;
+    });
+
   // --- Sources -------------------------------------------------------------
   // Clustered point source (pins). Clustering is on from day one so
   // ambassador-scale data later needs no rework.
