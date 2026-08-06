@@ -45,7 +45,7 @@
       "id": "background",
       "type": "background",
       "paint": {
-        "background-color": "#E9E2D0"
+        "background-color": "#E7E3D6"
       }
     },
     {
@@ -56,7 +56,7 @@
         "visibility": "none"
       },
       "paint": {
-        "color-relief-opacity": 0.85,
+        "color-relief-opacity": 0.75,
         "color-relief-color": [
           "interpolate",
           [
@@ -66,31 +66,28 @@
             "elevation"
           ],
           -10,
-          "#A7BFBD",
+          "#AFC0BE",
           0,
-          "#C9D3B2",
-          80,
-          "#D3DABC",
-          180,
-          "#DEE2C4",
+          "#C8CFB4",
+          150,
+          "#D5D9C0",
           300,
-          "#E9E2D0",
+          "#E0E0CB",
           450,
-          "#E4D9BA",
+          "#E6E2D1",
           600,
-          "#DCCAA3",
-          780,
-          "#D2B386",
-          950,
-          "#C69B70",
-          1150,
-          "#B8845C",
-          1400,
-          "#A76D48",
-          1800,
-          "#93583A"
+          "#E2DBC6",
+          800,
+          "#D9CFB7",
+          1000,
+          "#CDC0A6",
+          1250,
+          "#BFB095",
+          1600,
+          "#B0A084"
         ]
-      }
+      },
+      "minzoom": 6
     },
     {
       "id": "hillshade",
@@ -101,12 +98,13 @@
       },
       "paint": {
         "hillshade-method": "igor",
-        "hillshade-exaggeration": 0.5,
+        "hillshade-exaggeration": 0.42,
         "hillshade-illumination-direction": 315,
         "hillshade-shadow-color": "#6B5A42",
         "hillshade-highlight-color": "#FBF6E6",
         "hillshade-accent-color": "#8A7A5C"
-      }
+      },
+      "minzoom": 6
     },
     {
       "id": "landcover-wood",
@@ -120,7 +118,7 @@
         "forest"
       ],
       "paint": {
-        "fill-color": "#AEB995",
+        "fill-color": "#AFB89C",
         "fill-opacity": 0.55
       }
     },
@@ -138,7 +136,7 @@
         "farmland"
       ],
       "paint": {
-        "fill-color": "#DAE0C2",
+        "fill-color": "#DCDFC8",
         "fill-opacity": 0.5
       }
     },
@@ -148,7 +146,7 @@
       "source": "openmaptiles",
       "source-layer": "park",
       "paint": {
-        "fill-color": "#CBD4B3",
+        "fill-color": "#CBD2B8",
         "fill-opacity": 0.55
       }
     },
@@ -283,7 +281,7 @@
         "trunk"
       ],
       "paint": {
-        "line-color": "#F6EFD9",
+        "line-color": "#F3EFE6",
         "line-width": [
           "interpolate",
           [
@@ -297,7 +295,8 @@
           16,
           5
         ]
-      }
+      },
+      "minzoom": 5
     },
     {
       "id": "road-motorway",
@@ -310,7 +309,7 @@
         "motorway"
       ],
       "paint": {
-        "line-color": "#EFE6C9",
+        "line-color": "#EFEADD",
         "line-width": [
           "interpolate",
           [
@@ -324,7 +323,8 @@
           16,
           6
         ]
-      }
+      },
+      "minzoom": 4
     },
     {
       "id": "boundary-country",

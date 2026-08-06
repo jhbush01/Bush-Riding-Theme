@@ -41,6 +41,11 @@ const SERIES = "#8a4f7d";
 const TERRAIN_SOURCE = "terrain-dem";
 const TERRAIN_EXAGGERATION = 2.0;
 const TERRAIN_PITCH = 68;
+// Below this, terrain is switched off entirely. Relief you cannot resolve from
+// orbit still costs a full set of DEM tiles and a mesh rebuild, and that was
+// the bulk of what made the wide view slow to settle. The style gates the
+// hillshade and colour-relief layers at the same zoom.
+const TERRAIN_MIN_ZOOM = 6;
 const TERRAIN_PREF_KEY = "brm.view3d";
 /* Satellite imagery provider for the realistic 3D view.
    Flip this one constant to switch — both layers ship in bush.json, and only
@@ -459,6 +464,7 @@ function onLoad() {
   // are added and start draping over it.
   applyRelief();
   initViewSwitch();
+  watchTerrainZoom();
   initCinematicCancel();
   initStage();
   initViewReset();
@@ -1574,7 +1580,8 @@ function applyRelief() {
   if (!map) return;
 
   try {
-    map.setTerrain(view3d ? { source: TERRAIN_SOURCE, exaggeration: TERRAIN_EXAGGERATION } : null);
+    const wantTerrain = view3d && map.getZoom() >= TERRAIN_MIN_ZOOM;
+    map.setTerrain(wantTerrain ? { source: TERRAIN_SOURCE, exaggeration: TERRAIN_EXAGGERATION } : null);
   } catch (e) {
     // A DEM outage must never take the map down — it is decoration over a
     // basemap that works fine flat.
@@ -1639,6 +1646,18 @@ function setView3d(on) {
     pitch: on ? TERRAIN_PITCH : 0,
     bearing: on ? map.getBearing() : 0,
     duration: 700,
+  });
+}
+
+// Attach/detach terrain as the view crosses TERRAIN_MIN_ZOOM.
+function watchTerrainZoom() {
+  let above = map.getZoom() >= TERRAIN_MIN_ZOOM;
+  map.on("zoomend", () => {
+    const now = map.getZoom() >= TERRAIN_MIN_ZOOM;
+    if (now !== above) {
+      above = now;
+      applyRelief();
+    }
   });
 }
 
