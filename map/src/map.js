@@ -462,22 +462,6 @@ function onLoad() {
   initOrbitToggle();
   autoMinimiseAttribution();
 
-  /* Landing globe. Deliberately a narrow, documented surface: landing.js needs
-     to know how many routes exist and how to hand the camera back, and nothing
-     else about this file. Loaded dynamically so a failure in the cover can
-     never stop the map itself from working. */
-  window.brmMap = {
-    routeCount: () => routeFeatures.length,
-    showAllRoutes: () => resetToAllRoutes(),
-  };
-  import("./landing.js")
-    .then((m) => m.initLanding(map))
-    .catch((e) => {
-      console.warn("Landing unavailable:", e.message);
-      document.body.classList.remove("is-landing");
-      const root = document.getElementById("landing");
-      if (root) root.hidden = true;
-    });
 
   // --- Sources -------------------------------------------------------------
   // Clustered point source (pins). Clustering is on from day one so
@@ -1696,6 +1680,9 @@ const ORBIT_DEG_PER_SEC = 4.2; // slow enough to read as a reveal, not a spin
 // and a long one stays wholly in frame. This just stops a tiny route punching
 // past the DEM's useful detail.
 const ORBIT_MAX_ZOOM = 15.6;
+// Extra zoom levels beyond the pitch-corrected fit. This is the "how close do
+// we stand" dial: 0 puts the route neatly in frame, higher walks you into it.
+const ORBIT_CLOSENESS = 0.55;
 const ORBIT_LEG_DEGREES = 30; // arc per easeTo leg; short enough to stop promptly
 const ORBIT_START_DELAY = 1100; // let the fit settle first
 
@@ -1769,11 +1756,33 @@ function frameForOrbit(feature, duration) {
     [centre.lng + radius / k, centre.lat + radius]
   );
 
-  map.fitBounds(square, {
-    padding: fitPadding(),
+  /* Two corrections turn this from "the route somewhere in the distance" into
+     "you are standing in it".
+
+     1. Padding. fitPadding() reserves up to 380px on the left for the filters
+        sidebar — but selecting a route collapses that sidebar, so reserving it
+        just pushed the camera back for furniture that is not on screen. Orbit
+        framing uses a thin symmetric margin instead.
+
+     2. Pitch. cameraForBounds solves the camera as if the map were FLAT (see
+        the note on pitchAdjusted). At TERRAIN_PITCH the camera sees far more
+        ground than that flat solution assumed, so the fitted route ends up
+        small and far away — and pitchAdjusted's extra headroom pushed it
+        further still. Correcting for it means zooming IN past the flat answer
+        by roughly the factor the tilt gains: 1/cos(pitch). */
+  const pad = Math.round(Math.min(map.getCanvas().clientWidth, map.getCanvas().clientHeight) * 0.06);
+  const cam = map.cameraForBounds(square, { padding: pad, bearing: map.getBearing() });
+  if (!cam) return;
+
+  const tilt = (TERRAIN_PITCH * Math.PI) / 180;
+  const pitchGain = Math.log2(1 / Math.max(0.2, Math.cos(tilt))); // ~1.42 at 68°
+  const zoom = Math.min(ORBIT_MAX_ZOOM, cam.zoom + pitchGain + ORBIT_CLOSENESS);
+
+  map.easeTo({
+    center: cam.center,
+    zoom,
     pitch: TERRAIN_PITCH,
     bearing: map.getBearing(),
-    maxZoom: ORBIT_MAX_ZOOM,
     duration,
   });
 }
