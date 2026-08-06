@@ -4,7 +4,6 @@ import { setupGate } from "./gate.js";
 
 const CONFIG = window.BRM_CONFIG || {};
 // Single swappable line for the basemap tiles (set in index.html config block).
-const TILES_URL = CONFIG.tilesUrl;
 
 // Bush-lemon highlights the selected pin; the route line is dark green for
 // legibility against the muted basemap.
@@ -393,13 +392,8 @@ function selectFromHash() {
 }
 
 async function initMap() {
-  // Register the pmtiles:// protocol so MapLibre can range-request the world file.
-  const protocol = new pmtiles.Protocol();
-  maplibregl.addProtocol("pmtiles", protocol.tile);
-
-  // Load the recoloured basemap style. Default is OpenFreeMap (OpenMapTiles
-  // schema, whole-planet, no key). To self-host Protomaps PMTiles later, point
-  // bush.json at bush-protomaps.json and set BRM_CONFIG.tilesUrl to the R2 URL.
+  // Load the recoloured basemap style: OpenFreeMap (OpenMapTiles schema,
+  // whole planet, no key).
   const style = await fetch("styles/bush.json").then((r) => r.json());
 
   // Use the deepest DEM level this server is known to serve. Falls back to the
@@ -409,9 +403,6 @@ async function initMap() {
     const known = cachedDemMaxzoom();
     if (known !== null) dem.maxzoom = known;
     probeDemMaxzoom(dem.maxzoom || 14); // deliberately not awaited
-  }
-  if (TILES_URL && style.sources.protomaps) {
-    style.sources.protomaps.url = "pmtiles://" + TILES_URL;
   }
 
   // Open already framed on the pins (AU/NZ today, Hawaii soon) so the world

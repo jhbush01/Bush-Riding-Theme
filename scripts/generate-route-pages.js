@@ -474,7 +474,7 @@ function routePage(r, reviews, gpx) {
     : "";
   const mapEmbed = hasMap
     ? `<script>window.__brmRoute=${JSON.stringify(mapCoords)};</script>
-<script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+<script src="vendor/maplibre-gl.js"></script>
 <script>${ROUTE_MAP_JS}</script>`
     : "";
   const elevSvgStr = gpx ? elevationSvg(gpx.points) : "";
@@ -553,7 +553,7 @@ ${crumbs(crumbItems)}
 ${mapEmbed}
 ${appleHref ? `<script>${NAV_SWAP_JS}</script>` : ""}`;
 
-  const extraHead = hasMap ? `<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css" />` : "";
+  const extraHead = hasMap ? `<link rel="stylesheet" href="vendor/maplibre-gl.css" />` : "";
   return head({ title, description, path: url, image: r.hero || "/public/og-card.jpg", jsonld: ld(jsonld), extraHead }) + body + foot();
 }
 

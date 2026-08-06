@@ -41,11 +41,20 @@ async function ensureSubmissionsSchema(env) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    const cors = corsHeaders();
+    const cors = corsHeaders(request, env);
     if (request.method === "OPTIONS") return new Response(null, { headers: cors });
 
     try {
-      if (url.pathname === "/submit" && request.method === "POST") return submit(request, env, cors);
+      if (url.pathname === "/submit" && request.method === "POST") {
+        // CORS headers alone do not stop a POST — the browser only uses them to
+        // decide whether the CALLER may read the response, and a non-browser
+        // client ignores them entirely. So the origin is checked server-side
+        // before anything is written.
+        if (!originAllowed(request, env)) {
+          return json({ error: "Submissions are not accepted from this origin." }, 403, cors);
+        }
+        return submit(request, env, cors);
+      }
       if (url.pathname === "/routes" && request.method === "GET") return routes(env, cors);
       if (url.pathname === "/events" && request.method === "GET") return eventsEndpoint(env, cors);
       if (url.pathname.startsWith("/file/") && request.method === "GET") return serveFile(url, env, cors);
@@ -867,13 +876,44 @@ function json(obj, status, cors) {
   });
 }
 
-function corsHeaders() {
-  // Public, credential-free API (read routes + open submissions). Allow any
-  // origin so the map works regardless of which domain serves it.
+/* Origins permitted to WRITE. Reads stay open — the route data is public and
+   meant to be embeddable — but a submission mutates moderation state, so it is
+   restricted to our own front ends.
+
+   Configured via the ALLOWED_ORIGINS var (comma-separated). If it is unset the
+   built-in list below applies, so a misconfigured deploy fails closed rather
+   than silently accepting the world. */
+const DEFAULT_ORIGINS = [
+  "https://map.bushriding.cc",
+  "https://bushriding.cc",
+  "https://www.bushriding.cc",
+];
+
+function allowedOrigins(env) {
+  const raw = (env && env.ALLOWED_ORIGINS) || "";
+  const list = raw.split(",").map((o) => o.trim()).filter(Boolean);
+  return list.length ? list : DEFAULT_ORIGINS;
+}
+
+function originAllowed(request, env) {
+  const origin = request.headers.get("Origin");
+  // No Origin header at all means a non-browser client (curl, a script). Those
+  // are exactly what we do not want writing, so this fails closed.
+  if (!origin) return false;
+  return allowedOrigins(env).includes(origin);
+}
+
+function corsHeaders(request, env) {
+  // Reads are public and credential-free, so GET stays open to any origin.
+  // For a known front end we echo it back and Vary, which keeps caches honest.
+  const origin = request && request.headers.get("Origin");
+  const known = origin && allowedOrigins(env).includes(origin);
   return {
-    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Origin": known ? origin : "*",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Max-Age": "86400",
+    Vary: "Origin",
   };
 }
 

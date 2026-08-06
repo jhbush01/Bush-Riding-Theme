@@ -2,7 +2,7 @@
   "version": 8,
   "name": "Bush Riding — Documentary Light (OpenFreeMap)",
   "metadata": {
-    "comment": "Brand-recoloured basemap on the OpenMapTiles schema, served by OpenFreeMap (free, no key, whole planet) — the brief's sanctioned day-one source. Almond-cream land, sage/olive greens, muted water. Bush-lemon is reserved for the active pin/line in map.js and is NOT used here. For the self-hosted Protomaps PMTiles path, see bush-protomaps.json."
+    "comment": "Brand-recoloured basemap on the OpenMapTiles schema, served by OpenFreeMap (free, no key, whole planet). Muted stone/sage palette. Relief layers read a separate DEM source from 3D terrain (MapLibre warns against sharing one) and are gated to zoom 6+, so the wide view costs no DEM tiles."
   },
   "glyphs": "https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf",
   "sources": {
@@ -38,6 +38,16 @@
       "tileSize": 256,
       "maxzoom": 19,
       "attribution": "Imagery &copy; Esri, Maxar, Earthstar Geographics, and the GIS User Community"
+    },
+    "terrain-dem-shade": {
+      "type": "raster-dem",
+      "tiles": [
+        "https://tiles.mapterhorn.com/{z}/{x}/{y}.webp"
+      ],
+      "encoding": "terrarium",
+      "tileSize": 512,
+      "maxzoom": 14,
+      "attribution": "Terrain: &copy; Geoscience Australia (CC BY 4.0); contains modified Copernicus DEM data; via <a href=\"https://mapterhorn.com/attribution\" target=\"_blank\" rel=\"noopener\">Mapterhorn</a>"
     }
   },
   "layers": [
@@ -51,7 +61,7 @@
     {
       "id": "color-relief",
       "type": "color-relief",
-      "source": "terrain-dem",
+      "source": "terrain-dem-shade",
       "layout": {
         "visibility": "none"
       },
@@ -92,7 +102,7 @@
     {
       "id": "hillshade",
       "type": "hillshade",
-      "source": "terrain-dem",
+      "source": "terrain-dem-shade",
       "layout": {
         "visibility": "none"
       },

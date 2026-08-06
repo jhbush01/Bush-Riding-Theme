@@ -32,10 +32,8 @@
     <meta name="twitter:image" content="https://map.bushriding.cc/public/og-card.jpg" />
 
     <!-- MapLibre GL JS v5.x -->
-    <link href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css" rel="stylesheet" />
-    <script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
-    <!-- PMTiles protocol for MapLibre (range-request reads of a single world .pmtiles) -->
-    <script src="https://unpkg.com/pmtiles@4.4.1/dist/pmtiles.js"></script>
+    <link href="vendor/maplibre-gl.css" rel="stylesheet" />
+    <script src="vendor/maplibre-gl.js"></script>
 
     <!-- Archivo (UI text) + Instrument Serif (headings) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -48,15 +46,9 @@
     <link rel="stylesheet" href="styles/app.css" />
     <link rel="stylesheet" href="styles/landing.css" />
 
-    <!-- Deployment config — the only place to set per-environment values.
-         tilesUrl is the single swappable line for the basemap source. -->
+    <!-- Deployment config — the only place to set per-environment values. -->
     <script>
       window.BRM_CONFIG = {
-        // Basemap: styles/bush.json (OpenFreeMap / OpenMapTiles, no key) is used
-        // by default. tilesUrl only applies if you switch bush.json to the
-        // Protomaps schema (bush-protomaps.json) and self-host PMTiles on R2,
-        // e.g. "https://tiles.bushriding.au/planet.pmtiles". Leave empty otherwise.
-        tilesUrl: "",
         // Klaviyo client-side flow. companyId is the PUBLIC key (safe in
         // client code); listId is the existing "bush riding map" list.
         klaviyoCompanyId: "W9QAij",
@@ -70,6 +62,10 @@
     </script>
   </head>
   <body>
+    <!-- First tab stop: the map canvas is focusable and comes first in the DOM,
+         so keyboard users need a way past it to the route list. -->
+    <a class="skip-link" href="#sidebar">Skip to routes and filters</a>
+
     <div id="map" aria-label="Map of curated gravel routes"></div>
 
     <!-- Landing cover. The globe behind it is the map in globe projection, so
@@ -117,10 +113,10 @@
 
 
     <!-- Filter / list panel -->
-    <aside id="sidebar" class="sidebar" aria-label="Route filters and list">
+    <aside id="sidebar" class="sidebar" role="main" aria-label="Route filters and list">
       <header class="sidebar__head">
         <button type="button" id="sidebar-close" class="sidebar__close" aria-label="Close filters">&times;</button>
-        <h1 class="sidebar__title"><a href="/" class="sidebar__home">Bush Map</a></h1>
+        <h2 class="sidebar__title"><a href="/" class="sidebar__home">Bush Map</a></h2>
         <p class="sidebar__sub">Explore more with our curated gravel routes and events</p>
         <div class="sidebar__nav">
           <a class="sidebar__submit" href="/submit">+ Submit a route</a>
@@ -182,6 +178,15 @@
         <p id="results-count" class="results__count"></p>
         <ul id="results-list" class="results__list"></ul>
       </div>
+
+      <!-- Legal + contact. The map collects email addresses (GPX gate) and
+           account credentials, so a privacy path has to be reachable from
+           anywhere in the app, not just the storefront. -->
+      <nav class="sidebar__legal" aria-label="Legal and contact">
+        <a href="https://bushriding.cc/policies/privacy-policy" target="_blank" rel="noopener">Privacy</a>
+        <a href="https://bushriding.cc/policies/terms-of-service" target="_blank" rel="noopener">Terms</a>
+        <a href="mailto:jh@bushriding.au">Contact</a>
+      </nav>
     </aside>
 
     <!-- Top-left cluster, stuck to the filter drawer: hamburger toggle + the
@@ -426,6 +431,7 @@
       <div class="gate__dialog" role="dialog" aria-modal="true" aria-labelledby="gate-title">
         <button class="gate__close" data-gate-close aria-label="Close">&times;</button>
         <h2 id="gate-title" class="gate__title">Get the route. Join the bush.</h2>
+        <p class="gate__privacy">We use your email to send the GPX and the occasional ride note. No spam, unsubscribe anytime — see our <a href="https://bushriding.cc/policies/privacy-policy" target="_blank" rel="noopener">privacy policy</a>.</p>
         <p class="gate__copy">
           Drop your email and the GPX is yours. We send the occasional route, nothing else.
         </p>

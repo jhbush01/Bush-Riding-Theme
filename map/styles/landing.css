@@ -12,7 +12,7 @@
   --ld-void: #0b0d0a;
   --ld-ink: #14170f;
   --ld-cream: #ebe4d2;
-  --ld-dim: #8b8674;
+  --ld-dim: #a8a291;
   --ld-rust: #d2632f;
   --ld-lemon: #d7e04b;
   --ld-rule: rgba(235, 228, 210, 0.22);
@@ -45,13 +45,23 @@
   pointer-events: none;
   background:
     radial-gradient(64% 58% at 56% 50%, rgba(11, 13, 10, 0) 52%, rgba(11, 13, 10, 0.6) 100%),
-    linear-gradient(180deg, rgba(11, 13, 10, 0.82) 0%, rgba(11, 13, 10, 0) 26%),
+    linear-gradient(180deg, rgba(11, 13, 10, 0.92) 0%, rgba(11, 13, 10, 0.6) 12%, rgba(11, 13, 10, 0) 30%),
     linear-gradient(0deg, rgba(11, 13, 10, 0.86) 0%, rgba(11, 13, 10, 0) 30%),
     /* Reading scrim down the left. The vignette only darkens the edges, but the
        headline sits over the globe's LIT side, and we do not control how bright
        any given patch of Esri imagery is. This guarantees the type reads
        whatever the camera happens to be over. */
-    linear-gradient(90deg, rgba(11, 13, 10, 0.9) 0%, rgba(11, 13, 10, 0.55) 34%, rgba(11, 13, 10, 0) 58%);
+    linear-gradient(90deg, rgba(11, 13, 10, 0.96) 0%, rgba(11, 13, 10, 0.92) 30%, rgba(11, 13, 10, 0.72) 46%, rgba(11, 13, 10, 0) 68%);
+}
+
+/* Below the two-column breakpoint the type sits over the middle of the globe,
+   where no side scrim can help it, so the whole cover gets a floor of its own. */
+@media (max-width: 760px) {
+  .landing::before {
+    background:
+      linear-gradient(180deg, rgba(11, 13, 10, 0.92) 0%, rgba(11, 13, 10, 0.66) 42%, rgba(11, 13, 10, 0.92) 100%),
+      radial-gradient(70% 50% at 50% 45%, rgba(11, 13, 10, 0.35) 0%, rgba(11, 13, 10, 0.8) 100%);
+  }
 }
 
 /* ── Registration marks ─────────────────────────────────────────────────── */
@@ -97,10 +107,13 @@
   gap: 16px;
 }
 .landing__tag {
+  /* The smallest type on the page, so it does not ride the shared --ld-dim.
+     Measured worst-case contrast against the composited backdrop was marginal
+     at that tone; this lifts it clear with room to spare. */
   font-size: 10px;
   letter-spacing: 0.28em;
   text-transform: uppercase;
-  color: var(--ld-dim);
+  color: #ddd7c6;
 }
 .landing__tag b {
   color: var(--ld-cream);
@@ -218,9 +231,14 @@ body.is-landing .map-brand,
 body.is-landing .map-tools,
 body.is-landing .sidebar,
 body.is-landing .stage,
+body.is-landing .rpanel,
 body.is-landing .maplibregl-ctrl-bottom-right {
   opacity: 0;
   pointer-events: none;
+  /* visibility (not just opacity) is what takes these out of the tab order and
+     the accessibility tree. Without it a keyboard user tabs straight into
+     invisible controls behind the cover. */
+  visibility: hidden;
 }
 body.is-landing .map-brand,
 body.is-landing .map-tools {

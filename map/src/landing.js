@@ -43,6 +43,11 @@ export function initLanding(mapInstance) {
   map.setProjection({ type: "globe" });
   map.jumpTo({ center: HOME.center, zoom: HOME.zoom, pitch: 0, bearing: 0 });
 
+  // Cluster count bubbles are drawn onto the canvas by MapLibre, so CSS cannot
+  // reach them — they read as a glitch sitting over the cover copy. Individual
+  // pins stay: pressing one is the whole point of the screen.
+  setClusterBadges(false);
+
   startSpin();
   startClock();
   wireDismiss(root);
@@ -71,6 +76,14 @@ function startSpin() {
   const canvas = map.getCanvas();
   for (const ev of ["mousedown", "wheel", "touchstart"]) {
     canvas.addEventListener(ev, stopSpin, { passive: true, once: true });
+  }
+}
+
+function setClusterBadges(visible) {
+  for (const id of ["clusters", "cluster-count"]) {
+    if (map.getLayer && map.getLayer(id)) {
+      map.setLayoutProperty(id, "visibility", visible ? "visible" : "none");
+    }
   }
 }
 
@@ -164,6 +177,8 @@ function dismiss(via) {
   } catch (_) {
     /* private mode — the landing will simply show again next visit */
   }
+
+  setClusterBadges(true);
 
   const root = el("landing");
   if (root) {

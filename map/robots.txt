@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+# Experiment pages are noindex in markup; keep crawlers out of them entirely.
+Disallow: /experiments/
+
+Sitemap: https://map.bushriding.cc/sitemap.xml

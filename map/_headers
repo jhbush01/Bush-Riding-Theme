@@ -1,3 +1,14 @@
+# ── Security headers ───────────────────────────────────────────────────────
+# CSP is deliberately explicit about every host the map talks to. If a new tile
+# or API host is added, it MUST be added here too or the browser will block it.
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://tiles.openfreemap.org https://tiles.mapterhorn.com https://server.arcgisonline.com https://tiles.maps.eox.at https://*.r2.dev https://map-api.bushriding.cc; connect-src 'self' https://tiles.openfreemap.org https://tiles.mapterhorn.com https://server.arcgisonline.com https://tiles.maps.eox.at https://map-api.bushriding.cc https://a.klaviyo.com; worker-src 'self' blob:; child-src blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(self), camera=(), microphone=(), payment=(), interest-cohort=()
+  Cross-Origin-Opener-Policy: same-origin
+
 # Bush Map — cache policy.
 #
 # The app is a hand-written static site with NO build step, so asset filenames

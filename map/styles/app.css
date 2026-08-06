@@ -965,13 +965,21 @@ textarea.field-input {
   border-left: 1px solid var(--line);
   z-index: 12;
   transform: translateX(100%);
-  transition: transform 0.25s ease;
+  /* The panel is aria-hidden while closed, but a transform alone leaves its
+     buttons and links in the tab order — aria-hidden with focusable children is
+     an outright WCAG failure (nothing is announced, yet focus lands there).
+     visibility takes them out; it is transitioned with a delay so the slide-out
+     still animates before the panel disappears. */
+  visibility: hidden;
+  transition: transform 0.25s ease, visibility 0s linear 0.25s;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
 }
 .rpanel.is-open {
   transform: translateX(0);
+  visibility: visible;
+  transition: transform 0.25s ease, visibility 0s;
 }
 .rpanel--card {
   z-index: 13;
@@ -1879,4 +1887,91 @@ textarea.field-input {
     padding: 8px 13px;
     font-size: 12px;
   }
+}
+
+/* ── Accessibility remediation (pre-launch audit) ─────────────────────────── */
+
+/* Skip link. The map canvas is focusable and first in the DOM, so without this
+   a keyboard user has no way past it to the route list. */
+.skip-link {
+  position: absolute;
+  left: 8px;
+  top: -60px;
+  z-index: 60;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: var(--ink);
+  color: var(--cream-panel);
+  font-family: var(--ui-font);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: top 0.2s ease;
+}
+.skip-link:focus {
+  top: 8px;
+}
+
+/* Global focus treatment. The audit found only 9 :focus rules across a UI with
+   dozens of bespoke controls, so most were falling back to the UA outline that
+   several resets had already suppressed. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--terracotta);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* WCAG 2.2 AA 2.5.8 — Target Size (Minimum) is 24x24 CSS px. These four were
+   measured at 14-16px tall. Padding rather than height so nothing reflows. */
+#f-reset {
+  min-height: 24px;
+  padding: 5px 2px;
+}
+.sidebar__submit {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+}
+#subs-signout {
+  min-height: 24px;
+  padding: 5px 2px;
+}
+/* The range track is 16px; the thumb is the actual target, so grow the input's
+   hit area without changing the visual track. */
+.filter__range {
+  min-height: 24px;
+}
+
+/* Legal + contact, pinned under the results list. */
+.sidebar__legal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 14px 20px 18px;
+  border-top: 1px solid var(--line);
+}
+.sidebar__legal a {
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--ui-font);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  text-decoration: none;
+}
+.sidebar__legal a:hover {
+  color: var(--terracotta);
+  text-decoration: underline;
+}
+
+/* Data-use note at the point of email capture. */
+.gate__privacy {
+  margin: 8px 0 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+.gate__privacy a {
+  color: var(--card-rust, var(--terracotta));
 }
