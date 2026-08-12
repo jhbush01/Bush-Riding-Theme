@@ -1,5 +1,6 @@
-/* ALP1NE™ theme skin — translated from the alp1ne/ design study.
-   Tokens sampled from the reference frames (f_01–f_16).
+/* Bush Riding theme skin. The `alpine`/`alp-` naming is historical: the skin
+   was cut from the ALP1NE design study, which no longer lives here, and its
+   tokens were sampled from that study's reference frames.
    Everything is prefixed `alp-` so it can't collide with Dawn's base.css. */
 
 :root {

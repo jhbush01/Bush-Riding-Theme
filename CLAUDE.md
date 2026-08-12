@@ -1,10 +1,9 @@
 # Bush Riding — repo guide for Claude
 
 This repo is the whole Bush Riding world: the Shopify theme (repo root), the
-routes map site (`map/`), its two Cloudflare Workers (`worker/`,
-`diary-worker/`), and the ALP1NE design study (`alp1ne/`). Read this file
-before making changes; the Brand voice section governs ALL copy written
-anywhere in the project.
+routes map site (`map/`) and its two Cloudflare Workers (`worker/`,
+`diary-worker/`). Read this file before making changes; the Brand voice
+section governs ALL copy written anywhere in the project.
 
 ## Brand positioning (source: "Bush Riding — Brand Positioning", March 2026)
 
@@ -70,11 +69,13 @@ most of the work — text and icon as support. Show, don't tell.
 
 - **Repo root** — the Shopify theme (Dawn-based). The published store theme
   follows `main`; Shopify's GitHub integration syncs connected branches.
-- **`theme/alpine` branch** — draft theme wearing the ALP1NE-derived skin
-  (sections `alpine-*.liquid`, `assets/alpine.css`/`alpine.js`, tokens
-  `--alp-*`). Connected to Shopify as an unpublished theme; preview there.
-  Note: its default copy ("ALP1NE™", PST clock, FW26 lines) is placeholder
-  from the design study — real copy must follow the Bush Riding voice above.
+  Its skin came out of the ALP1NE design study and kept that prefix: the live
+  header, footer and homepage are `sections/alpine-*.liquid` driven by
+  `assets/alpine.css` / `alpine.js` and `--alp-*` tokens. The name is
+  historical — the copy in them is Bush Riding's and must follow the voice
+  above. They are IN PRODUCTION (`sections/header-group.json`,
+  `footer-group.json` and `templates/index.json` all reference them), so
+  don't delete them as leftovers.
 - **`map/`** — bushridingmap.com… now **map.bushriding.cc**: static MapLibre
   routes map deployed by Cloudflare Pages (output dir `map`), plus Pages
   Functions in `functions/`. SEO route pages under `map/routes/**` are
@@ -85,13 +86,12 @@ most of the work — text and icon as support. Show, don't tell.
   (diary.bushriding.cc, reached same-origin via the `/diary-api` Pages
   proxy): accounts + ride diary. Both Workers deploy via Cloudflare's
   Git-connected builds (root dirs `/worker`, `/diary-worker`).
-- **`alp1ne/`** — the original static ALP1NE design study; reference only.
 
 ## Branch workflow
 
 `main` = production. `develop` = integration; day-to-day work lands here
-first, publish by merging `develop` → `main`. `feature/*` for experiments;
-`theme/alpine` for the ALP1NE theme build. Never force-push shared branches.
+first, publish by merging `develop` → `main`. `feature/*` for experiments.
+Never force-push shared branches.
 
 ## Hard-won rules
 

@@ -55,7 +55,6 @@ checking" and everything under *Gotchas* as still true.
 | `worker/` | Cloudflare Worker `bush-riding-map-api` | **map-api.bushriding.cc** |
 | `diary-worker/` | Cloudflare Worker `bush-riding-diary` | **diary.bushriding.cc**, reached same-origin via the `/diary-api` Pages proxy |
 | `scripts/` | `generate-route-pages.js` — generates the SEO route pages | Run by GitHub Action |
-| `alp1ne/` | Original static design study | Not deployed; reference only |
 
 Workers deploy via Cloudflare's **Git-connected builds** (root dirs `/worker`
 and `/diary-worker`). `.github/workflows/deploy-workers.yml` exists as an
@@ -177,13 +176,16 @@ invented these.
 ## 4. The Shopify theme: exact stack
 
 - **Dawn-derived**, Liquid, no build step. Custom work lives in
-  `sections/alpine-*.liquid` + `assets/alpine.css` + `assets/alpine.js`.
+  `sections/alpine-*.liquid` + `assets/alpine.css` + `assets/alpine.js`. The
+  `alpine`/`alp-` naming is historical — it came from the ALP1NE design study
+  the skin was cut from. These files are the LIVE storefront, not leftovers.
 - **All custom CSS classes are prefixed `alp-`** to avoid colliding with
   Dawn's `base.css`. Tokens are `--alp-*`.
 - **Custom sections:** `alpine-header` (bar + Explore menu), `alpine-hero`,
   `alpine-manifesto`, `alpine-collection`, `alpine-statement`,
   `alpine-story`, `alpine-footer`, plus conversion sections `sticky-atc`,
-  `value-bar`, `product-specs`. Legacy/unused: `bush-hero`, `main-home-*`.
+  `value-bar`, `product-specs`. The old unused `bush-hero` and `main-home-*`
+  sections have been removed.
 - **Theme tokens:** `--alp-bg #F2F0E8` · `--alp-surface #FFFFFF` ·
   `--alp-ink #16150F` · `--alp-olive #605C38` · `--alp-haze #B9B3DF` ·
   `--alp-accent #2E2F9E` · `--alp-citrus #E8F13C` (home-page text).
@@ -218,14 +220,13 @@ invented these.
   Pages and the Workers build from it.
 - **`develop`** = integration. Day-to-day work lands here, then
   `develop` → `main` to publish.
-- **`theme/alpine`** = incubator, connected to Shopify as an **unpublished
-  draft theme**. Theme experiments preview here before merging up.
 - **`feature/*`** for experiments.
 - Never force-push shared branches.
 
-**A brief should state its target:** *map change* → `develop` → `main`
-(Pages redeploys); *theme change* → `theme/alpine` for preview, then
-`develop` → `main`.
+**A brief should state its target:** both map and theme changes land on
+`develop` and publish via `develop` → `main` (Pages redeploys; Shopify syncs
+the published theme). Preview a theme change on an unpublished duplicate in
+the Shopify admin before merging up.
 
 **Shopify sync caveat:** the Shopify bot commits editor changes back to
 connected branches and has once pushed a **stale copy of assets**, silently

@@ -1,4 +1,5 @@
-/* ALP1NE™ theme skin — behaviour, translated from the alp1ne/ design study.
+/* Bush Riding theme skin — behaviour. The `alpine`/`alp-` naming is historical:
+   the skin was cut from the ALP1NE design study, which no longer lives here.
    Written to survive the Shopify theme editor: the editor re-renders section
    HTML in place, so everything here either re-initialises on
    shopify:section:load or works via delegation/polling that doesn't care
