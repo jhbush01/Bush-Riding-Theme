@@ -55,10 +55,8 @@ export default {
         }
         return submit(request, env, cors);
       }
+      // Deliberately NOT behind originAllowed. See the note on subscribeEndpoint.
       if (url.pathname === "/subscribe" && request.method === "POST") {
-        if (!originAllowed(request, env)) {
-          return json({ error: "Subscriptions are not accepted from this origin." }, 403, cors);
-        }
         return subscribeEndpoint(request, env, cors);
       }
       if (url.pathname === "/routes" && request.method === "GET") return routes(env, cors);
@@ -97,7 +95,16 @@ export default {
    back to the caller so the gate can say something useful.
 
    Still no private API key: /client/subscriptions authenticates with the
-   public company id, which is what KLAVIYO_COMPANY_ID holds. */
+   public company id, which is what KLAVIYO_COMPANY_ID holds.
+
+   NO ORIGIN ALLOWLIST HERE, on purpose. /submit has one because a submission
+   writes moderation state we own. This writes nothing of ours — it hands an
+   email to Klaviyo, which has its own abuse controls — and an Origin header is
+   set by the browser, so anything that isn't a browser simply forges it. The
+   check therefore stops honest riders (a Pages preview URL, the apex domain, a
+   custom domain we forgot to list) and stops no one else. It cost us a
+   working signup form once already. /routes and /events are open for the same
+   reason. */
 const KLAVIYO_REVISION = "2024-10-15";
 
 async function subscribeEndpoint(request, env, cors) {
@@ -165,8 +172,15 @@ async function subscribeEndpoint(request, env, cors) {
     detail = await res.text().catch(() => "");
   }
   // Goes to `wrangler tail` / the Cloudflare dashboard log, so a bad payload is
-  // never again something only the rider can see.
-  console.error("Klaviyo subscribe failed", res.status, detail);
+  // never again something only the rider can see. The origin is in there
+  // because "which site was this even sent from" was the answer we needed last
+  // time and didn't have.
+  console.error(
+    "Klaviyo subscribe failed",
+    res.status,
+    detail,
+    "origin=" + (request.headers.get("Origin") || "none")
+  );
   return json({ error: detail || `Klaviyo returned ${res.status}.`, status: res.status }, 502, cors);
 }
 

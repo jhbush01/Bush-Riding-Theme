@@ -75,7 +75,11 @@ function markSubscribed() {
 async function subscribeViaWorker(email) {
   const res = await fetch(WORKER_SUBSCRIBE_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    // text/plain keeps this a CORS "simple" request, so the browser never
+    // sends a preflight OPTIONS. The body is still JSON and the Worker still
+    // parses it as JSON — this is only about not having a second round trip
+    // that can fail on its own. Same trick the diary worker uses.
+    headers: { "Content-Type": "text/plain;charset=UTF-8" },
     body: JSON.stringify({ email }),
   });
   if (res.ok) return true;
