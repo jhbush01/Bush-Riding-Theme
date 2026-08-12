@@ -13,7 +13,7 @@
 <meta property="og:title" content="Clarkes Gambit Medium South Loop — 57km Gravel Ride near South Coast | Bush Map" />
 <meta property="og:description" content="Clarkes Gambit Medium South Loop is a 57km gravel route near South Coast, New South Wales with 1,210m of climbing (Big day out, Groomed). Download the GPX…" />
 <meta property="og:url" content="https://map.bushriding.cc/routes/nsw/south-coast/claire-s-gambit-medium-south-loop-ku8nr" />
-<meta property="og:image" content="https://map.bushriding.cc/public/claire-s-gambit-medium-south-loop-ku8nr.jpg" />
+<meta property="og:image" content="https://map-api.bushriding.cc/file/photos/claire-s-gambit-medium-south-loop-ku8nr.jpg" />
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -151,7 +151,7 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
         "value": "Groomed"
       }
     ],
-    "image": "https://map.bushriding.cc/public/claire-s-gambit-medium-south-loop-ku8nr.jpg",
+    "image": "https://map-api.bushriding.cc/file/photos/claire-s-gambit-medium-south-loop-ku8nr.jpg",
     "geo": {
       "@type": "GeoCoordinates",
       "latitude": -35.64614,
@@ -257,7 +257,7 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
 <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Bush Map</a><span class="crumbs__sep">›</span><a href="/routes/">Routes</a><span class="crumbs__sep">›</span><a href="/routes/nsw/">New South Wales</a><span class="crumbs__sep">›</span><a href="/routes/nsw/south-coast/">South Coast</a><span class="crumbs__sep">›</span><span aria-current="page">Clarkes Gambit Medium South Loop</span></nav>
 
 <article class="route">
-  <figure class="rp-hero"><img class="rp-hero__img" src="/public/claire-s-gambit-medium-south-loop-ku8nr.jpg" alt="Clarkes Gambit Medium South Loop — gravel route near South Coast" width="1200" height="675" loading="eager" /></figure>
+  <figure class="rp-hero"><img class="rp-hero__img" src="https://map-api.bushriding.cc/file/photos/claire-s-gambit-medium-south-loop-ku8nr.jpg" alt="Clarkes Gambit Medium South Loop — gravel route near South Coast" width="1200" height="675" loading="eager" /></figure>
 
   <h1 class="rp-title">Clarkes Gambit Medium South Loop</h1>
   <p class="rp-loc">South Coast, New South Wales</p>
@@ -279,7 +279,7 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
   </div>
 
   <div class="rp-actions">
-    <a class="button button--primary" href="https://map-api.bushriding.cc/file/gpx/claire-s-gambit-medium-south-loop-ku8nr.gpx" download>Download GPX</a>
+    <a class="button button--primary" id="rp-gpx" href="https://map-api.bushriding.cc/file/gpx/claire-s-gambit-medium-south-loop-ku8nr.gpx" download data-file="claire-s-gambit-medium-south-loop-ku8nr.gpx">Download GPX</a>
     <a class="button" id="rp-nav" href="https://www.google.com/maps/dir/?api=1&amp;destination=-35.64614,150.13484" data-apple="https://maps.apple.com/?daddr=-35.64614,150.13484&amp;dirflg=d" target="_blank" rel="noopener">Navigate to start</a>
     <a class="button" href="/map#claire-s-gambit-medium-south-loop-ku8nr">Open in interactive map</a>
   </div>
@@ -336,6 +336,77 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
       var fig=el.closest('.rp-map'); if(fig) fig.classList.add('is-live');
     });
   }).catch(function(){});
+})();</script>
+<div id="gate" class="gate" aria-hidden="true">
+  <div class="gate__backdrop" data-gate-close></div>
+  <div class="gate__dialog" role="dialog" aria-modal="true" aria-labelledby="gate-title">
+    <button class="gate__close" data-gate-close aria-label="Close">&times;</button>
+    <h2 id="gate-title" class="gate__title">Get the route. Join the bush.</h2>
+    <p class="gate__privacy">We use your email to send the GPX and the occasional ride note. No spam, unsubscribe anytime — see our <a href="https://bushriding.cc/policies/privacy-policy" target="_blank" rel="noopener">privacy policy</a>.</p>
+    <p class="gate__copy">Drop your email and the GPX is yours. We send the occasional route, nothing else.</p>
+    <form id="gate-form" class="gate__form">
+      <input id="gate-email" class="gate__input" type="email" required autocomplete="email" placeholder="you@email.com" aria-label="Email address" />
+      <button type="submit" class="button button--primary gate__submit">Get the route</button>
+      <p id="gate-error" class="gate__error" role="alert" hidden></p>
+    </form>
+  </div>
+</div>
+<script>
+(function(){
+  var API="https://map-api.bushriding.cc", KEY='brm_subscribed';
+  var link=document.getElementById('rp-gpx'), gate=document.getElementById('gate');
+  if(!link||!gate) return;
+  var form=document.getElementById('gate-form'),
+      input=document.getElementById('gate-email'),
+      err=document.getElementById('gate-error'),
+      btn=form.querySelector('.gate__submit'),
+      href=link.getAttribute('href'),
+      file=link.getAttribute('data-file')||'route.gpx';
+
+  function subscribed(){ try{ return sessionStorage.getItem(KEY)==='1'; }catch(e){ return false; } }
+  function mark(){ try{ sessionStorage.setItem(KEY,'1'); }catch(e){} }
+  function show(){ gate.classList.add('is-open'); gate.setAttribute('aria-hidden','false'); err.hidden=true; setTimeout(function(){ input.focus(); },50); }
+  function hide(){ gate.classList.remove('is-open'); gate.setAttribute('aria-hidden','true'); }
+
+  // Blob download, same as the map: a cross-origin <a download> is ignored, and
+  // iOS Safari then navigates to the file and strands you on a preview screen.
+  function grab(){
+    fetch(href).then(function(r){ if(!r.ok) throw new Error('gpx '+r.status); return r.blob(); }).then(function(b){
+      var u=URL.createObjectURL(b), a=document.createElement('a');
+      a.href=u; a.download=file; a.rel='noopener';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(u); },2000);
+    }).catch(function(){ window.open(href,'_blank','noopener'); });
+  }
+
+  link.addEventListener('click', function(e){
+    e.preventDefault();
+    if(subscribed()) grab(); else show();
+  });
+
+  Array.prototype.forEach.call(gate.querySelectorAll('[data-gate-close]'), function(el){ el.addEventListener('click', hide); });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape'&&gate.classList.contains('is-open')) hide(); });
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    var email=(input.value||'').trim();
+    if(!email) return;
+    err.hidden=true; btn.disabled=true; btn.textContent='Joining…';
+    fetch(API+'/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})})
+      .then(function(r){
+        if(r.ok) return;
+        return r.json().catch(function(){ return {}; }).then(function(j){
+          throw new Error(j.error||('Subscription failed ('+r.status+')'));
+        });
+      })
+      .then(function(){ mark(); hide(); grab(); })
+      .catch(function(ex){
+        console.error('Gate subscribe failed:', ex);
+        err.textContent="Couldn't sign you up — "+(ex.message||'try again.');
+        err.hidden=false;
+      })
+      .then(function(){ btn.disabled=false; btn.textContent='Get the route'; });
+  });
 })();</script>
 <script>
 (function(){
