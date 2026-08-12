@@ -8,7 +8,10 @@ const CONFIG = window.BRM_CONFIG || {};
 // Bush-lemon highlights the selected pin; the route line is dark green for
 // legibility against the muted basemap.
 const LEMON = "#d7e04b";
-const ROUTE_LINE = "#234a25"; // route casing / outline
+// Route casing / outline. Was a dark bush green, which read well on the cream
+// basemap and then sank into the trees on satellite imagery. This rust reads
+// on both, and matches the line the static route pages already draw (#b04a24).
+const ROUTE_LINE = "#c0774c";
 const ROUTE_CORE = "#F6F1E4"; // off-white core — legible on cream AND on imagery
 const OLIVE = "#6f7c53";
 const SAGE = "#aeb995";
