@@ -396,7 +396,7 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
     var email=(input.value||'').trim();
     if(!email) return;
     err.hidden=true; btn.disabled=true; btn.textContent='Joining…';
-    fetch(API+'/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})})
+    fetch(API+'/subscribe',{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify({email:email})})
       .then(function(r){
         if(r.ok) return;
         return r.json().catch(function(){ return {}; }).then(function(j){
