@@ -144,7 +144,9 @@ async function subscribeDirect(email) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      revision: "2024-10-15",
+      // Matches the Worker. 2024-10-15 rejects the consent object outright:
+      // "'subscriptions' is not a valid field for the resource 'profile'".
+      revision: "2025-07-15",
     },
     body: JSON.stringify(body),
   });

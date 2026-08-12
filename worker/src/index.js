@@ -105,7 +105,21 @@ export default {
    custom domain we forgot to list) and stops no one else. It cost us a
    working signup form once already. /routes and /events are open for the same
    reason. */
-const KLAVIYO_REVISION = "2024-10-15";
+/* Klaviyo pins behaviour to a dated revision header, and the shape of this
+   endpoint has moved. On 2024-10-15 the profile resource has no `subscriptions`
+   field, and sending one is a hard 400:
+
+     'subscriptions' is not a valid field for the resource 'profile'.
+
+   Current revisions do accept it, and it is how you state explicit email
+   marketing consent. So: ask for a current revision, and send the consent.
+
+   The retry below exists because the exact revision that introduced it is not
+   something we can verify from here, and being wrong costs a broken signup
+   form. If Klaviyo says the field is unknown, we send the same request without
+   it — the client endpoint records consent on its own in that case — and log
+   which shape won, so production tells us the answer instead of us guessing. */
+const KLAVIYO_REVISION = "2025-07-15";
 
 async function subscribeEndpoint(request, env, cors) {
   const companyId = (env.KLAVIYO_COMPANY_ID || "").trim();
@@ -126,24 +140,40 @@ async function subscribeEndpoint(request, env, cors) {
     return json({ error: "That email doesn't look right." }, 400, cors);
   }
 
+  // Attempt 1 states consent explicitly. Attempt 2 drops it, for a revision
+  // whose profile resource doesn't know the field.
+  const first = await postSubscription(companyId, listId, email, true);
+  if (first.ok) return json({ ok: true }, 200, cors);
+
+  const unknownField = /not a valid field/i.test(first.detail) && /subscriptions/i.test(first.detail);
+  if (unknownField) {
+    console.warn(`Klaviyo rejected 'subscriptions' at revision ${KLAVIYO_REVISION}; retrying without it`);
+    const second = await postSubscription(companyId, listId, email, false);
+    if (second.ok) {
+      // Worth knowing: it means this account's endpoint takes the older shape
+      // and KLAVIYO_REVISION can be pinned back down to match.
+      console.warn("Klaviyo accepted the subscription WITHOUT the consent object — pin the revision to match");
+      return json({ ok: true }, 200, cors);
+    }
+    return failed(second, request, cors);
+  }
+
+  return failed(first, request, cors);
+}
+
+// One POST to Klaviyo. Returns { ok, status, detail } rather than throwing, so
+// the caller can decide whether a failure is worth a second shape.
+async function postSubscription(companyId, listId, email, withConsent) {
+  const attributes = { email, properties: { source: "routes_map" } };
+  if (withConsent) {
+    attributes.subscriptions = { email: { marketing: { consent: "SUBSCRIBED" } } };
+  }
   const payload = {
     data: {
       type: "subscription",
       attributes: {
         custom_source: "Bush Riding Map — GPX download",
-        profile: {
-          data: {
-            type: "profile",
-            attributes: {
-              email,
-              // Without this Klaviyo accepts the request, returns 202, and
-              // records a profile with NO marketing consent — so nobody lands
-              // on the list and nothing looks broken. It is the whole point.
-              subscriptions: { email: { marketing: { consent: "SUBSCRIBED" } } },
-              properties: { source: "routes_map" },
-            },
-          },
-        },
+        profile: { data: { type: "profile", attributes } },
       },
       relationships: { list: { data: { type: "list", id: listId } } },
     },
@@ -158,11 +188,11 @@ async function subscribeEndpoint(request, env, cors) {
     });
   } catch (err) {
     console.error("Klaviyo unreachable:", err.message);
-    return json({ error: "Couldn't reach the mailing list just now." }, 502, cors);
+    return { ok: false, status: 0, detail: "Couldn't reach the mailing list just now." };
   }
 
   // 202 Accepted is the success case and carries no body.
-  if (res.status === 202 || res.ok) return json({ ok: true }, 200, cors);
+  if (res.status === 202 || res.ok) return { ok: true, status: res.status, detail: "" };
 
   let detail = "";
   try {
@@ -171,17 +201,22 @@ async function subscribeEndpoint(request, env, cors) {
   } catch (_) {
     detail = await res.text().catch(() => "");
   }
-  // Goes to `wrangler tail` / the Cloudflare dashboard log, so a bad payload is
-  // never again something only the rider can see. The origin is in there
-  // because "which site was this even sent from" was the answer we needed last
-  // time and didn't have.
+  return { ok: false, status: res.status, detail };
+}
+
+// Goes to `wrangler tail` / the Cloudflare dashboard log, so a bad payload is
+// never again something only the rider can see. The origin is in there because
+// "which site was this even sent from" was the answer we needed one round ago
+// and didn't have.
+function failed(result, request, cors) {
   console.error(
     "Klaviyo subscribe failed",
-    res.status,
-    detail,
+    result.status,
+    result.detail,
+    "revision=" + KLAVIYO_REVISION,
     "origin=" + (request.headers.get("Origin") || "none")
   );
-  return json({ error: detail || `Klaviyo returned ${res.status}.`, status: res.status }, 502, cors);
+  return json({ error: result.detail || `Klaviyo returned ${result.status}.`, status: result.status }, 502, cors);
 }
 
 /* ---------------- Public: submit ---------------- */
