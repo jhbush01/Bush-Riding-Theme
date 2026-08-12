@@ -55,6 +55,12 @@ export default {
         }
         return submit(request, env, cors);
       }
+      if (url.pathname === "/subscribe" && request.method === "POST") {
+        if (!originAllowed(request, env)) {
+          return json({ error: "Subscriptions are not accepted from this origin." }, 403, cors);
+        }
+        return subscribeEndpoint(request, env, cors);
+      }
       if (url.pathname === "/routes" && request.method === "GET") return routes(env, cors);
       if (url.pathname === "/events" && request.method === "GET") return eventsEndpoint(env, cors);
       if (url.pathname.startsWith("/file/") && request.method === "GET") return serveFile(url, env, cors);
@@ -72,6 +78,97 @@ export default {
     }
   },
 };
+
+/* ---------------- Public: Klaviyo subscribe ----------------
+   The GPX gate used to call a.klaviyo.com straight from the browser. Two
+   things were wrong with that.
+
+   First, a.klaviyo.com is on essentially every tracker blocklist. A rider with
+   uBlock, Brave shields, a Pi-hole or AdGuard DNS never got the request off
+   the device — the fetch rejected, the gate caught it, and all they saw was
+   "something went wrong". Nothing reached us, so there was nothing to look at.
+
+   Second, when Klaviyo DID answer with a validation error, the reason existed
+   only in that one rider's console.
+
+   Routing it through here fixes both: the browser only ever talks to
+   map-api.bushriding.cc, which is our own domain and on nobody's blocklist,
+   and any failure lands in the Worker log with Klaviyo's own wording AND comes
+   back to the caller so the gate can say something useful.
+
+   Still no private API key: /client/subscriptions authenticates with the
+   public company id, which is what KLAVIYO_COMPANY_ID holds. */
+const KLAVIYO_REVISION = "2024-10-15";
+
+async function subscribeEndpoint(request, env, cors) {
+  const companyId = (env.KLAVIYO_COMPANY_ID || "").trim();
+  const listId = (env.KLAVIYO_LIST_ID || "").trim();
+  if (!companyId || !listId) {
+    console.error("Klaviyo not configured: KLAVIYO_COMPANY_ID / KLAVIYO_LIST_ID missing");
+    return json({ error: "Subscriptions aren't configured yet." }, 500, cors);
+  }
+
+  let email = "";
+  try {
+    const body = await request.json();
+    email = (body.email || "").toString().trim().slice(0, 200);
+  } catch (_) {
+    /* not JSON — treated as a missing email below */
+  }
+  if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    return json({ error: "That email doesn't look right." }, 400, cors);
+  }
+
+  const payload = {
+    data: {
+      type: "subscription",
+      attributes: {
+        custom_source: "Bush Riding Map — GPX download",
+        profile: {
+          data: {
+            type: "profile",
+            attributes: {
+              email,
+              // Without this Klaviyo accepts the request, returns 202, and
+              // records a profile with NO marketing consent — so nobody lands
+              // on the list and nothing looks broken. It is the whole point.
+              subscriptions: { email: { marketing: { consent: "SUBSCRIBED" } } },
+              properties: { source: "routes_map" },
+            },
+          },
+        },
+      },
+      relationships: { list: { data: { type: "list", id: listId } } },
+    },
+  };
+
+  let res;
+  try {
+    res = await fetch(`https://a.klaviyo.com/client/subscriptions?company_id=${encodeURIComponent(companyId)}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", revision: KLAVIYO_REVISION },
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    console.error("Klaviyo unreachable:", err.message);
+    return json({ error: "Couldn't reach the mailing list just now." }, 502, cors);
+  }
+
+  // 202 Accepted is the success case and carries no body.
+  if (res.status === 202 || res.ok) return json({ ok: true }, 200, cors);
+
+  let detail = "";
+  try {
+    const err = await res.json();
+    detail = (err.errors || []).map((e) => e.detail || e.title).filter(Boolean).join("; ");
+  } catch (_) {
+    detail = await res.text().catch(() => "");
+  }
+  // Goes to `wrangler tail` / the Cloudflare dashboard log, so a bad payload is
+  // never again something only the rider can see.
+  console.error("Klaviyo subscribe failed", res.status, detail);
+  return json({ error: detail || `Klaviyo returned ${res.status}.`, status: res.status }, 502, cors);
+}
 
 /* ---------------- Public: submit ---------------- */
 async function submit(request, env, cors) {

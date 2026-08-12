@@ -16,7 +16,14 @@ const KLAVIYO_LIST_ID = window.BRM_CONFIG?.klaviyoListId || "REPLACE_LIST_ID";
 // ------------------------------------------------------------------------
 
 const SESSION_KEY = "brm_subscribed";
-const SUBSCRIBE_URL = `https://a.klaviyo.com/client/subscriptions/?company_id=${KLAVIYO_COMPANY_ID}`;
+// Primary path: our own Worker, which forwards to Klaviyo server-side. The
+// browser calling a.klaviyo.com directly is unreliable — it sits on the common
+// tracker blocklists, so uBlock / Brave / a Pi-hole kill the request before it
+// leaves the device and the rider just sees "something went wrong".
+const WORKER_SUBSCRIBE_URL = `${(window.BRM_CONFIG?.communityApi || "").replace(/\/$/, "")}/subscribe`;
+// Fallback only, for the window where the Worker hasn't been redeployed yet.
+// Note: no trailing slash before the query — Klaviyo documents it without one.
+const KLAVIYO_SUBSCRIBE_URL = `https://a.klaviyo.com/client/subscriptions?company_id=${KLAVIYO_COMPANY_ID}`;
 
 let pendingRoute = null;
 
@@ -60,7 +67,44 @@ function markSubscribed() {
   }
 }
 
+/* Subscribe via the Worker. Throws with a human-readable reason on failure —
+   the caller shows it, so a validation error is never invisible again.
+
+   Returns quietly if the Worker itself can't be reached (not deployed yet, or
+   a transient edge error), so the caller can try Klaviyo directly. */
+async function subscribeViaWorker(email) {
+  const res = await fetch(WORKER_SUBSCRIBE_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+  if (res.ok) return true;
+
+  let detail = "";
+  try {
+    detail = (await res.json()).error || "";
+  } catch (_) {
+    /* no JSON body */
+  }
+  // 404 means this Worker predates the /subscribe endpoint — let the caller
+  // fall back rather than telling the rider the list is broken.
+  if (res.status === 404) return false;
+  throw new Error(detail || `Subscription failed (${res.status})`);
+}
+
 async function subscribe(email) {
+  try {
+    if (await subscribeViaWorker(email)) return;
+  } catch (err) {
+    // A real answer from our Worker (bad email, Klaviyo rejected it) is the
+    // truth — don't paper over it by retrying somewhere else.
+    if (!(err instanceof TypeError)) throw err;
+    console.warn("Subscribe Worker unreachable, falling back to Klaviyo:", err.message);
+  }
+  await subscribeDirect(email);
+}
+
+async function subscribeDirect(email) {
   const body = {
     data: {
       type: "subscription",
@@ -92,7 +136,7 @@ async function subscribe(email) {
     },
   };
 
-  const res = await fetch(SUBSCRIBE_URL, {
+  const res = await fetch(KLAVIYO_SUBSCRIBE_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -158,7 +202,12 @@ export function setupGate() {
       close();
       if (route) startDownload(route);
     } catch (err) {
-      errorEl.textContent = "Something went wrong — try again.";
+      // Say what actually happened. "Something went wrong" told nobody
+      // anything — not the rider, and not us when this was reported.
+      console.error("Gate subscribe failed:", err);
+      errorEl.textContent = err.message
+        ? `Couldn't sign you up — ${err.message}`
+        : "Something went wrong — try again.";
       errorEl.hidden = false;
     } finally {
       submitBtn.disabled = false;

@@ -32,6 +32,8 @@ const GPX_DIR = process.env.BRM_GPX_DIR || "";
 // back to the committed seed. BRM_EVENTS_FILE overrides for offline tests.
 const EVENTS_API = process.env.BRM_EVENTS_API || "https://map-api.bushriding.cc/events";
 const EVENTS_FILE = process.env.BRM_EVENTS_FILE || "";
+// Community Worker base, for the route pages' GPX email gate (POST /subscribe).
+const COMMUNITY_API = (process.env.BRM_COMMUNITY_API || "https://map-api.bushriding.cc").replace(/\/$/, "");
 
 async function loadEvents() {
   try {
@@ -525,7 +527,7 @@ ${crumbs(crumbItems)}
   ${elevBlock}
 
   <div class="rp-actions">
-    <a class="button button--primary" href="${esc(r.gpx)}" download>Download GPX</a>
+    <a class="button button--primary" id="rp-gpx" href="${esc(r.gpx)}" download data-file="${esc(r.id)}.gpx">Download GPX</a>
     ${navHref ? `<a class="button" id="rp-nav" href="${esc(navHref)}"${appleHref ? ` data-apple="${esc(appleHref)}"` : ""} target="_blank" rel="noopener">Navigate to start</a>` : ""}
     <a class="button" href="/map#${esc(r.id)}">Open in interactive map</a>
   </div>
@@ -551,6 +553,8 @@ ${crumbs(crumbItems)}
   <p class="rp-back"><a href="/map#${esc(r.id)}">See ${esc(r.name)} on the full interactive map →</a></p>
 </article>
 ${mapEmbed}
+${GATE_MARKUP}
+<script>${GATE_JS}</script>
 ${appleHref ? `<script>${NAV_SWAP_JS}</script>` : ""}`;
 
   const extraHead = hasMap ? `<link rel="stylesheet" href="vendor/maplibre-gl.css" />` : "";
@@ -584,6 +588,97 @@ const ROUTE_MAP_JS = `
 // Maps. Google stays the no-JS default and covers every other device. iPadOS
 // reports as "Macintosh" with touch points, so we catch that too — but not Mac
 // desktops (no touch), matching the user's "on iPhone" intent.
+/* ---------------- GPX email gate ----------------
+   The same gate the map card uses, on the route pages. These pages carry the
+   search traffic, so an ungated Download GPX here was the bulk of the file
+   going out with no email attached.
+
+   Deliberately progressive: the anchor keeps its real href, so crawlers still
+   see a genuine link to the file and a JS-off visitor still gets their GPX.
+   The gate is an enhancement layered on the click, not a wall in front of the
+   page. (The file is public on the Worker regardless — the gate is an ask, and
+   it has always been one.)
+
+   Markup mirrors map/index.html exactly and the pages already load
+   /styles/app.css, so every .gate* rule comes for free and the modal is the
+   same one riders see on the map. */
+const GATE_MARKUP = `<div id="gate" class="gate" aria-hidden="true">
+  <div class="gate__backdrop" data-gate-close></div>
+  <div class="gate__dialog" role="dialog" aria-modal="true" aria-labelledby="gate-title">
+    <button class="gate__close" data-gate-close aria-label="Close">&times;</button>
+    <h2 id="gate-title" class="gate__title">Get the route. Join the bush.</h2>
+    <p class="gate__privacy">We use your email to send the GPX and the occasional ride note. No spam, unsubscribe anytime — see our <a href="https://bushriding.cc/policies/privacy-policy" target="_blank" rel="noopener">privacy policy</a>.</p>
+    <p class="gate__copy">Drop your email and the GPX is yours. We send the occasional route, nothing else.</p>
+    <form id="gate-form" class="gate__form">
+      <input id="gate-email" class="gate__input" type="email" required autocomplete="email" placeholder="you@email.com" aria-label="Email address" />
+      <button type="submit" class="button button--primary gate__submit">Get the route</button>
+      <p id="gate-error" class="gate__error" role="alert" hidden></p>
+    </form>
+  </div>
+</div>`;
+
+/* The session key is the map's own, and route pages are same-origin with it,
+   so a rider who signed up on the map isn't asked again here (and vice versa).
+   Subscription goes through the Worker for the same reason the map's does —
+   a.klaviyo.com is on the tracker blocklists. */
+const GATE_JS = `
+(function(){
+  var API=${JSON.stringify(COMMUNITY_API)}, KEY='brm_subscribed';
+  var link=document.getElementById('rp-gpx'), gate=document.getElementById('gate');
+  if(!link||!gate) return;
+  var form=document.getElementById('gate-form'),
+      input=document.getElementById('gate-email'),
+      err=document.getElementById('gate-error'),
+      btn=form.querySelector('.gate__submit'),
+      href=link.getAttribute('href'),
+      file=link.getAttribute('data-file')||'route.gpx';
+
+  function subscribed(){ try{ return sessionStorage.getItem(KEY)==='1'; }catch(e){ return false; } }
+  function mark(){ try{ sessionStorage.setItem(KEY,'1'); }catch(e){} }
+  function show(){ gate.classList.add('is-open'); gate.setAttribute('aria-hidden','false'); err.hidden=true; setTimeout(function(){ input.focus(); },50); }
+  function hide(){ gate.classList.remove('is-open'); gate.setAttribute('aria-hidden','true'); }
+
+  // Blob download, same as the map: a cross-origin <a download> is ignored, and
+  // iOS Safari then navigates to the file and strands you on a preview screen.
+  function grab(){
+    fetch(href).then(function(r){ if(!r.ok) throw new Error('gpx '+r.status); return r.blob(); }).then(function(b){
+      var u=URL.createObjectURL(b), a=document.createElement('a');
+      a.href=u; a.download=file; a.rel='noopener';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(u); },2000);
+    }).catch(function(){ window.open(href,'_blank','noopener'); });
+  }
+
+  link.addEventListener('click', function(e){
+    e.preventDefault();
+    if(subscribed()) grab(); else show();
+  });
+
+  Array.prototype.forEach.call(gate.querySelectorAll('[data-gate-close]'), function(el){ el.addEventListener('click', hide); });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape'&&gate.classList.contains('is-open')) hide(); });
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    var email=(input.value||'').trim();
+    if(!email) return;
+    err.hidden=true; btn.disabled=true; btn.textContent='Joining…';
+    fetch(API+'/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})})
+      .then(function(r){
+        if(r.ok) return;
+        return r.json().catch(function(){ return {}; }).then(function(j){
+          throw new Error(j.error||('Subscription failed ('+r.status+')'));
+        });
+      })
+      .then(function(){ mark(); hide(); grab(); })
+      .catch(function(ex){
+        console.error('Gate subscribe failed:', ex);
+        err.textContent="Couldn't sign you up — "+(ex.message||'try again.');
+        err.hidden=false;
+      })
+      .then(function(){ btn.disabled=false; btn.textContent='Get the route'; });
+  });
+})();`;
+
 const NAV_SWAP_JS = `
 (function(){
   var a=document.getElementById('rp-nav');

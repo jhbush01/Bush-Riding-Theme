@@ -17,7 +17,13 @@
     "SITE_URL": "https://map.bushriding.cc",
     // Repo (owner/name) whose "Generate route pages" Action rebuilds the static
     // route pages when a route changes. Needs the GITHUB_DISPATCH_TOKEN secret.
-    "GITHUB_REPO": "jhbush01/Bush-Riding-Theme"
+    "GITHUB_REPO": "jhbush01/Bush-Riding-Theme",
+    // Klaviyo, for the GPX email gate (POST /subscribe). COMPANY_ID is the
+    // PUBLIC company id / site id — /client/subscriptions authenticates with it
+    // alone, so there is no private key here and none is needed. LIST_ID is the
+    // "Bush Riding Map" list every GPX download subscribes to.
+    "KLAVIYO_COMPANY_ID": "W9QAij",
+    "KLAVIYO_LIST_ID": "R3335d"
   },
 
   "d1_databases": [
