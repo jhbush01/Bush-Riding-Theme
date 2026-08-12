@@ -1,12 +1,16 @@
 // Email gate. Browsing is free; the gate fires only on "Download GPX".
 // On submit we POST to Klaviyo's client-side subscriptions flow
-// (revision 2024-10-15) — the same integration pattern as the landing page —
-// then set a session flag and trigger the real download. Subsequent
-// downloads in the same session skip the modal.
+// (revision 2024-10-15), then set a session flag and trigger the real
+// download. Subsequent downloads in the same session skip the modal.
 
-// --- Config: set these to the same values the landing page uses ---------
-// KLAVIYO_COMPANY_ID is the public company id (a.k.a. site id / public API key).
-// KLAVIYO_LIST_ID is the existing list that is the system of record.
+// --- Config -------------------------------------------------------------
+// KLAVIYO_COMPANY_ID is the PUBLIC company id (a.k.a. site id / public API
+// key). The /client/* endpoints authenticate with it alone — there is no
+// private key in this file, and there must never be one: everything here ships
+// to the browser. A private pk_ key belongs in a Worker secret, nowhere else.
+//
+// KLAVIYO_LIST_ID is the list every GPX download subscribes to:
+// "Bush Riding Map" (R3335d).
 const KLAVIYO_COMPANY_ID = window.BRM_CONFIG?.klaviyoCompanyId || "REPLACE_COMPANY_ID";
 const KLAVIYO_LIST_ID = window.BRM_CONFIG?.klaviyoListId || "REPLACE_LIST_ID";
 // ------------------------------------------------------------------------
@@ -61,12 +65,22 @@ async function subscribe(email) {
     data: {
       type: "subscription",
       attributes: {
-        custom_source: "Routes Map",
+        // Shows against the profile in Klaviyo as where the consent came from.
+        custom_source: "Bush Riding Map — GPX download",
         profile: {
           data: {
             type: "profile",
             attributes: {
               email,
+              /* THIS is what actually subscribes them.
+                 Without it Klaviyo still accepts the request and still returns
+                 202 — it just records a profile with no email marketing
+                 consent, so nobody lands on the list and nothing looks broken
+                 from the front end. That was the bug: emails were being
+                 collected and quietly going nowhere. */
+              subscriptions: {
+                email: { marketing: { consent: "SUBSCRIBED" } },
+              },
               properties: { source: "routes_map" },
             },
           },
@@ -89,6 +103,17 @@ async function subscribe(email) {
 
   // Klaviyo returns 202 Accepted on success (no body).
   if (!res.ok && res.status !== 202) {
+    // Surface Klaviyo's own reason in the console. The rider still just sees
+    // "try again", but a silent 400 is what made this hard to diagnose the
+    // first time — a validation error should never be invisible again.
+    let detail = "";
+    try {
+      const err = await res.json();
+      detail = (err.errors || []).map((e) => e.detail || e.title).join("; ");
+    } catch (_) {
+      /* no JSON body — the status is all we have */
+    }
+    console.error("Klaviyo subscribe failed", res.status, detail);
     throw new Error(`Subscription failed (${res.status})`);
   }
 }

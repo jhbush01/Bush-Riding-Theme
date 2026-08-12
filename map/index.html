@@ -49,9 +49,11 @@
     <script>
       window.BRM_CONFIG = {
         // Klaviyo client-side flow. companyId is the PUBLIC key (safe in
-        // client code); listId is the existing "bush riding map" list.
+        // client code — the /client/* endpoints need nothing else, and a
+        // private pk_ key must never appear here). Every GPX download
+        // subscribes to the "Bush Riding Map" list.
         klaviyoCompanyId: "W9QAij",
-        klaviyoListId: "R3335d",
+        klaviyoListId: "R3335d", // "Bush Riding Map"
         // Community routes Worker (approved submissions). Empty = curated only.
         communityApi: "https://map-api.bushriding.cc",
         // Personal ride diary Worker — proxied same-origin via /diary-api
