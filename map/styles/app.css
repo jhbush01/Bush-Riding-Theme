@@ -1478,16 +1478,10 @@ textarea.field-input {
 .card__avatars i:nth-child(3) { background: #8a7d6b; margin-left: -7px; }
 .card__keen-text { font-size: 12px; font-weight: 600; color: var(--card-muted); white-space: nowrap; }
 
-/* Terrain · Effort descriptor pill (routes) */
-.card__pill {
-  display: inline-flex; align-items: center; gap: 7px; flex: none;
-  padding: 5px 11px; border-radius: 999px;
-  background: var(--card-inset); border: 1px solid var(--card-inset-line);
-  font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
-  color: var(--card-rust); white-space: nowrap;
-}
-.card__pill:empty { display: none; }
-.card__pill-dot { width: 3px; height: 3px; border-radius: 50%; background: currentColor; opacity: 0.5; }
+/* The Terrain · Effort pill used to sit at the right of the eyebrow row, where
+   it ran under the close button on every card. Removed rather than shuffled:
+   surface already reads on the photo chip, and distance and climb are right
+   below in the stat strip. */
 
 .card__title { margin: 9px 0 0; font-family: var(--head-font); font-weight: 400; font-size: 30px; line-height: 1.07; letter-spacing: 0.005em; color: var(--card-ink); }
 .card__when { margin: 9px 0 0; font-size: 15px; font-weight: 600; color: var(--card-ink-2); }

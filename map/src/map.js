@@ -514,8 +514,14 @@ function onLoad() {
     type: "geojson",
     data: pointsFC(routeFeatures),
     cluster: true,
-    clusterRadius: 45,
-    clusterMaxZoom: 11,
+    /* Cluster tightly and give up early.
+       At radius 45 / maxZoom 11, pins that were plainly separate on screen
+       still got swallowed into one bubble, and you had to zoom most of the way
+       in before anything broke apart. 28px is roughly "actually overlapping"
+       at these pin sizes, and past zoom 9 — a region-sized view — riders want
+       the individual trailheads, not a count. */
+    clusterRadius: 28,
+    clusterMaxZoom: 9,
     promoteId: "id",
     // Sum each pin's route count so a cluster badge shows total routes, not
     // just the number of distinct start locations it covers.
@@ -589,16 +595,32 @@ function onLoad() {
     paint: {
       // Selected pins, then grouped trailhead pins, then singles. (Famous rides
       // live in their own source, so these are all ordinary community routes.)
+      // Grown from 6/9/8: at the old sizes a single pin was a 12px dot, which
+      // is under half a fingertip. The invisible routes-hit layer below carries
+      // the rest of the touch target.
       "circle-radius": [
         "case",
-        ["boolean", ["feature-state", "selected"], false], 8,
-        [">", ["get", "count"], 1], 9,
-        6,
+        ["boolean", ["feature-state", "selected"], false], 12,
+        [">", ["get", "count"], 1], 11,
+        9,
       ],
       "circle-color": ["case", ["boolean", ["feature-state", "selected"], false], LEMON, OLIVE],
       "circle-stroke-width": 2,
       "circle-stroke-color": "#f4efe2",
     },
+  });
+
+  /* Invisible touch target. A pin can only be so big before the map is all
+     pin, so the thing you can HIT is bigger than the thing you can see — the
+     same trick the bush-event and famous pins already use (event-hit,
+     famous-hit). 20px radius is a 40px target, near enough the 44px both
+     Apple and Google ask for, without swallowing neighbouring pins whole. */
+  map.addLayer({
+    id: "routes-hit",
+    type: "circle",
+    source: "routes-points",
+    filter: ["!", ["has", "point_count"]],
+    paint: { "circle-radius": 20, "circle-color": OLIVE, "circle-opacity": 0 },
   });
 
   // Count badge on grouped pins so "multiple routes here" is visible at a glance.
@@ -760,8 +782,17 @@ function famousFC(features) {
   return { type: "FeatureCollection", features: out };
 }
 
+/* Event and famous pins are drawn above the route pins on purpose, and both
+   carry generous invisible hit targets. Now that route pins have one too, a
+   single tap can land on both — and without this it would select a route AND
+   open an event. The one on top wins. */
+function coveredByEventPin(point) {
+  const above = ["famous-hit", "event-hit"].filter((l) => map.getLayer(l));
+  return above.length > 0 && map.queryRenderedFeatures(point, { layers: above }).length > 0;
+}
+
 function wireInteractions() {
-  // Cluster click -> zoom to expansion.
+  // Cluster click -> zoom until it actually breaks apart.
   map.on("click", "clusters", (e) => {
     const feat = map.queryRenderedFeatures(e.point, { layers: ["clusters"] })[0];
     const clusterId = feat.properties.cluster_id;
@@ -769,12 +800,21 @@ function wireInteractions() {
       .getSource("routes-points")
       .getClusterExpansionZoom(clusterId)
       .then((zoom) => {
-        map.easeTo({ center: feat.geometry.coordinates, zoom });
+        /* getClusterExpansionZoom gives the zoom at which this cluster JUST
+           begins to split — which usually means it becomes two smaller
+           clusters, so the rider taps, and taps, and taps. Overshoot it, and
+           never move by less than a decisive step. Past clusterMaxZoom nothing
+           is clustered at all, so this reliably lands on real pins. */
+        const target = Math.min(map.getMaxZoom(), Math.max(zoom + 1.5, map.getZoom() + 2.5));
+        map.easeTo({ center: feat.geometry.coordinates, zoom: target, duration: 550 });
       });
   });
 
   // Pin click -> select the route, or offer a picker when several share the pin.
-  map.on("click", "unclustered", (e) => {
+  // Bound to the invisible hit layer as well as the visible dot, so the whole
+  // touch target is live.
+  const openPin = (e) => {
+    if (coveredByEventPin(e.point)) return;
     const props = e.features[0].properties;
     const ids = String(props.ids || props.id).split(",").filter(Boolean);
     if (ids.length <= 1) {
@@ -782,25 +822,21 @@ function wireInteractions() {
     } else {
       showRouteChooser(ids, e.features[0].geometry.coordinates);
     }
-  });
+  };
+  map.on("click", "routes-hit", openPin);
 
-  for (const layer of ["clusters", "unclustered", "route-count"]) {
+  for (const layer of ["clusters", "routes-hit", "route-count"]) {
     map.on("mouseenter", layer, () => (map.getCanvas().style.cursor = "pointer"));
     map.on("mouseleave", layer, () => (map.getCanvas().style.cursor = ""));
   }
 
-  // A grouped pin's count badge sits above the circle; make a tap on the number
-  // behave like a tap on the pin.
-  map.on("click", "route-count", (e) => {
-    const props = e.features[0].properties;
-    const ids = String(props.ids || props.id).split(",").filter(Boolean);
-    showRouteChooser(ids, e.features[0].geometry.coordinates);
-  });
+  // The count badge on a grouped pin needs no handler of its own: routes-hit
+  // is wider than the number, so a tap on it is already a tap on the pin.
 
   // Tap the bare map (not a pin/cluster/event) to dismiss the sheet.
   map.on("click", (e) => {
     if (!detailOpen && !stageVisible()) return;
-    const hitLayers = ["unclustered", "clusters", "famous-hit", "event-hit"].filter((l) =>
+    const hitLayers = ["routes-hit", "clusters", "famous-hit", "event-hit"].filter((l) =>
       map.getLayer(l)
     );
     const hits = hitLayers.length ? map.queryRenderedFeatures(e.point, { layers: hitLayers }) : [];
@@ -2121,7 +2157,7 @@ function stageVisible() {
    during the orbit is just clutter. Famous and bush-event pins stay — they are
    different categories, not "other routes". */
 function focusPins(on) {
-  for (const id of ["clusters", "cluster-count", "unclustered"]) setLayerVisible(id, !on);
+  for (const id of ["clusters", "cluster-count", "unclustered", "routes-hit"]) setLayerVisible(id, !on);
 }
 
 // Full deselect: clear the stage, the orbit, the line and the pin focus.
@@ -2448,7 +2484,6 @@ function fillDetail(feature) {
   setText("detail-eyebrow", isFamous ? "Famous Event" : "Community route");
   setFamous(p, isFamous);
   setText("detail-name", p.name || "");
-  setPill(p.terrain_difficulty, p.distance_km, p.elevation_gain_m);
   setStats(p);
   setStart("Area", [p.region, p.state].filter(Boolean).join(", "), routeStartNav(feature));
   // Card shows a short preview; the full write-up lives on the route page. When
@@ -2551,31 +2586,6 @@ function setStats(p) {
   setStat("detail-climb", Number.isFinite(+p.elevation_gain_m) ? fmt(p.elevation_gain_m) : "—", "m");
 }
 
-// Header descriptor pill: "Terrain · Effort" (e.g. "Rocky · Big day out").
-// Terrain is contributor-chosen; effort is derived from the ride's numbers.
-function setPill(terrain, distKm, elevM) {
-  const pill = els.detail.querySelector("#detail-pill");
-  const eff = computeEffort(distKm, elevM);
-  const parts = [terrainLabel(terrain), eff && eff.label].filter(Boolean);
-  if (!parts.length) {
-    pill.style.display = "none";
-    return;
-  }
-  pill.style.display = "";
-  pill.innerHTML = "";
-  parts.forEach((txt, i) => {
-    if (i) {
-      const dot = document.createElement("i");
-      dot.className = "card__pill-dot";
-      dot.setAttribute("aria-hidden", "true");
-      pill.appendChild(dot);
-    }
-    const span = document.createElement("span");
-    span.textContent = txt;
-    pill.appendChild(span);
-  });
-}
-
 // Contributor credit + optional "Check them out" link (Strava / RWGPS / site).
 function setCredit(name, url) {
   const wrap = els.detail.querySelector("#detail-credit");
@@ -2656,21 +2666,6 @@ function terrainLabel(v) {
   return TERRAIN_LABEL[s] || (v ? cap(v) : "");
 }
 
-// Effort derived from the ride's distance + climb — no stored value, so it's
-// filled in for every route on the map, including ones added before this.
-//   Cruisy            < 75 km and < 750 m
-//   Big day out       75–120 km and/or 751 m+
-//   Character building above big-day-out distance AND climb
-function computeEffort(distKm, elevM) {
-  const d = +distKm;
-  const e = +elevM;
-  if (!Number.isFinite(d) && !Number.isFinite(e)) return null;
-  const longRide = d > 120;
-  const bigClimb = e > 750;
-  if (longRide && bigClimb) return { slug: "character-building", label: "Character building" };
-  if (d >= 75 || bigClimb) return { slug: "big-day-out", label: "Big day out" };
-  return { slug: "cruisy", label: "Cruisy" };
-}
 // Reduce a verbose surface string ("92% gravel, 8% sealed") to its primary
 // material word ("Gravel") for the stat cell / photo chip.
 function shortSurface(s) {
@@ -3105,7 +3100,7 @@ function highlightResult(id) {
 // ---- Category filters (Community Routes / Bush Events / Famous Events) ----
 // Multi-select pills in the drawer that show/hide each pin category on the map.
 const CATEGORY_LAYERS = {
-  routes: ["clusters", "cluster-count", "unclustered", "route-count"],
+  routes: ["clusters", "cluster-count", "unclustered", "routes-hit", "route-count"],
   bush: ["event-pulse", "event-pulse-b", "event-core", "event-icon", "event-hit"],
   famous: ["famous-core", "famous-count", "famous-hit"],
 };
