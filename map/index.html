@@ -159,22 +159,16 @@
       <a class="map-brand__logo" href="https://bushriding.cc" aria-label="Bush Riding home">Bush Riding™</a>
     </div>
 
-    <!-- Top-right map tools: get back to the wide view, and flat vs 3D relief.
-         The view switch is one control for the whole relief presentation
-         (3D terrain + satellite imagery). -->
+    <!-- Top-right map tools: aerial photography, and flat vs 3D relief. The
+         view switch is one control for the whole relief presentation
+         (3D terrain + satellite imagery). The map's own zoom buttons dock
+         directly underneath this row — see .maplibregl-ctrl-top-right. -->
     <div class="map-tools">
-      <!-- One click back out to every route, so picking a different pin never
-           means scrolling the wheel repeatedly. Shown only once the camera is
-           actually zoomed in on something. -->
-      <button type="button" id="view-reset" class="map-tools__btn" hidden>
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3H5a2 2 0 0 0-2 2v4M15 3h4a2 2 0 0 1 2 2v4M9 21H5a2 2 0 0 1-2-2v-4M15 21h4a2 2 0 0 0 2-2v-4"/></svg>
-        All routes
-      </button>
       <!-- Aerial photography. Off by default: the terrain + elevation tint is
            the house look, imagery is what you reach for to see actual ground. -->
-      <button type="button" id="view-sat" class="map-tools__btn map-tools__btn--toggle" aria-pressed="false">
+      <button type="button" id="view-sat" class="map-tools__btn map-tools__btn--toggle" aria-pressed="false" aria-label="Satellite imagery">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 2.5 15.3 0 18M12 3c-2.5 2.7-2.5 15.3 0 18"/></svg>
-        Satellite
+        <span class="map-tools__label">Satellite</span>
       </button>
       <div class="view-switch" role="group" aria-label="Map view">
         <button type="button" id="view-2d" class="view-switch__btn" aria-pressed="false">2D</button>
@@ -219,19 +213,6 @@
         <button id="detail-close" class="card__close" aria-label="Close">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg>
         </button>
-
-        <!-- HERO (revealed at full / always on desktop). Not .for-full: it
-             collapses via height/opacity so it eases in with the slide rather
-             than popping in at the snap threshold. -->
-        <div class="card__hero">
-          <img id="detail-photo" class="card__hero-img" alt="" />
-          <div class="card__hero-scrim"></div>
-          <div class="card__chip">
-            <span id="detail-chip-surface"></span>
-            <i class="card__chip-dot" aria-hidden="true"></i>
-            <span id="detail-chip-diff"></span>
-          </div>
-        </div>
 
         <div class="card__head">
           <!-- Back to the parent event card (shown when a route was opened from
@@ -339,6 +320,22 @@
             Navigate
           </a>
         </div>
+
+        <!-- Photo. Below the start + Navigate row and above the story, in the
+             scroll area rather than the drag zone: as part of the peek it had
+             to grow from zero height as the sheet was dragged up, and that
+             animated reflow was the mobile card's judder. Down here it is just
+             another block in a scrolling column, and it is already loaded —
+             picking the pin warms it (see preloadPhoto). -->
+        <figure class="card__photo">
+          <img id="detail-photo" class="card__photo-img" alt="" decoding="async" />
+          <div class="card__photo-scrim"></div>
+          <div class="card__chip">
+            <span id="detail-chip-surface"></span>
+            <i class="card__chip-dot" aria-hidden="true"></i>
+            <span id="detail-chip-diff"></span>
+          </div>
+        </figure>
 
         <!-- Story -->
         <p id="detail-description" class="card__desc"></p>

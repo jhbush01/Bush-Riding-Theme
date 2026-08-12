@@ -523,7 +523,10 @@ body {
     width: 380px;
     max-width: 34vw;
     height: auto;
-    max-height: calc(100vh - 112px);
+    /* Stops short of the map tools AND the zoom buttons that now sit under
+       them: 24px bottom inset + this height puts the panel's top edge at
+       136px, just clear of the zoom group's lower edge (126px). */
+    max-height: calc(100vh - 160px);
     border: 1px solid var(--line);
     border-radius: 18px;
     box-shadow: 0 16px 44px rgba(28, 26, 21, 0.2);
@@ -1435,29 +1438,26 @@ textarea.field-input {
   border-radius: 50%; background: rgba(233, 226, 208, 0.85);
   border: 1px solid var(--card-inset-line); color: var(--card-ink-2);
 }
-.sheet.card[data-state="full"] .card__close {
-  background: rgba(24, 26, 18, 0.42); border-color: transparent; color: #fff;
-  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
-}
+/* The close button used to go white-on-dark at full, because a photo sat
+   behind it. The photo has moved down into the body, so it now always sits on
+   the card's cream head and keeps the one treatment. */
 
-/* ---- Hero ---- */
-/* The hero reveals only when the sheet is at "full" (desktop is always full).
-   Rather than a display toggle — which snaps the image into view at the drag
-   threshold — it collapses to height 0 and animates open, so the image eases
-   in smoothly in step with the sheet sliding up. */
-.card__hero {
-  position: relative; width: 100%; height: 200px; overflow: hidden; background: var(--sage);
-  transition: height 0.32s cubic-bezier(0.22, 0.61, 0.36, 1), opacity 0.28s ease;
+/* ---- Photo ---- */
+/* Sits in the scrolling body, under start + Navigate and above the story. No
+   height animation and no reveal threshold: it is a fixed-ratio block that is
+   simply there, so dragging the sheet up never reflows around it. */
+.card__photo {
+  position: relative; margin: 17px 0 0; width: 100%; aspect-ratio: 16 / 10;
+  overflow: hidden; border-radius: 16px; background: var(--sage);
 }
-.sheet.card:not([data-state="full"]) .card__hero { height: 0; opacity: 0; }
-/* No photo (e.g. some famous events) — collapse the hero rather than show an
-   empty sage block, so the card reads as intentional. */
-.card__hero.is-empty { height: 0 !important; opacity: 0 !important; }
-.card__hero-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
-.card__hero-img[hidden] { display: none; }
-.card__hero-scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20, 24, 14, 0.32), transparent 34%, transparent 62%, rgba(20, 24, 14, 0.42)); }
+/* No photo (e.g. some famous events) — drop the block rather than show an
+   empty sage panel, so the card reads as intentional. */
+.card__photo.is-empty { display: none; }
+.card__photo-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.card__photo-img[hidden] { display: none; }
+.card__photo-scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20, 24, 14, 0.26), transparent 38%, transparent 58%, rgba(20, 24, 14, 0.46)); }
 .card__chip {
-  position: absolute; left: 16px; bottom: 14px; display: flex; align-items: center; gap: 7px;
+  position: absolute; left: 14px; bottom: 12px; display: flex; align-items: center; gap: 7px;
   padding: 6px 11px; border-radius: 999px; background: rgba(28, 30, 20, 0.5); color: #fdf8ec;
   -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
   font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
@@ -1706,7 +1706,46 @@ textarea.field-input {
   color: var(--cream-panel);
 }
 
+/* ── Zoom in / zoom out ───────────────────────────────────────────────────
+   MapLibre's own NavigationControl, docked directly under the .map-tools row
+   in the same top-right corner. It used to sit bottom-right, which left the
+   top row free to grow leftwards across the Bush Riding wordmark on a phone.
+   One column of chrome, one corner, nothing to collide with.
 
+   --map-tools-h is the measured height of the row above (button padding +
+   line-box), so the gap here stays honest if that row is ever restyled. */
+.maplibregl-ctrl-top-right {
+  --map-tools-h: 38px;
+  top: calc(10px + var(--map-tools-h) + 8px);
+  right: 10px;
+}
+.maplibregl-ctrl-top-right .maplibregl-ctrl-group {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(244, 239, 226, 0.82);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 10px rgba(28, 26, 21, 0.12);
+}
+.maplibregl-ctrl-top-right .maplibregl-ctrl-group button {
+  width: 34px;
+  height: 34px;
+  background: transparent;
+  color: var(--ink);
+}
+.maplibregl-ctrl-top-right .maplibregl-ctrl-group button + button {
+  border-top: 1px solid var(--line);
+}
+.maplibregl-ctrl-top-right .maplibregl-ctrl-group button:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+/* MapLibre's +/- glyphs are baked-in near-black images, so they can't be
+   recoloured — soften them instead, to sit with the ink used either side. */
+.maplibregl-ctrl-top-right .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+  opacity: 0.72;
+}
 
 
 
@@ -1875,6 +1914,29 @@ textarea.field-input {
 }
 
 @media (max-width: 720px) {
+  /* A phone doesn't have room for two labelled pills AND the wordmark on one
+     row — the tools grew leftwards until they sat on top of "Bush Riding™".
+     Satellite drops to its globe glyph (the aria-label carries the name), which
+     leaves the top-left cluster alone on the narrowest handsets. */
+  .map-tools {
+    gap: 6px;
+  }
+  .map-tools__label {
+    display: none;
+  }
+  .map-tools__btn {
+    padding: 8px 11px;
+  }
+  .view-switch__btn {
+    padding: 6px 12px;
+  }
+  /* Brand and tools are pinned to opposite corners of the same row, so on the
+     narrowest handsets the wordmark scales with the viewport rather than
+     running into them. Caps at the desktop size well before tablet width. */
+  .map-brand__logo {
+    padding: 7px 12px;
+    font-size: clamp(12px, 3.9vw, 19px);
+  }
   .stage {
     gap: 7px;
     padding: 7px 8px;

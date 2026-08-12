@@ -32,14 +32,19 @@ const SERIES = "#8a4f7d";
    hillshade layer on top double-shades it and reads as fake. Dropping it also
    removes a full DEM raster pass per frame.
 
-   Phones default to the old flat map: terrain plus two DEM-reading raster
-   layers is real GPU and bandwidth cost, and the phone layout (bottom sheet,
-   overlay filters) was designed around a flat camera. Riders on phones can
-   still switch it on. The layers ship `visibility: none` in bush.json, so
-   nothing is downloaded until something turns them on. */
+   EVERY device opens flat. Terrain plus a DEM-reading raster layer is real GPU
+   and bandwidth cost, and on most phones — and plenty of laptops — it made the
+   map crawl before a rider had even picked a route. 3D is worth paying for once
+   you've asked for it, and nothing before that. So the DEM tiles, the mesh
+   rebuilds and the depth probe below all wait for a tap on "3D". The layers
+   ship `visibility: none` in bush.json, so nothing is downloaded until
+   something turns them on. */
 const TERRAIN_SOURCE = "terrain-dem";
 const TERRAIN_EXAGGERATION = 2.0;
-const TERRAIN_PITCH = 68;
+// Oblique angle for the 3D view. Shallower than it was: at 68° the far half of
+// the route was squeezed into a thin band against the horizon, which is a lot
+// of tilt to pay for very little readable relief.
+const TERRAIN_PITCH = 55;
 // Below this, terrain is switched off entirely. Relief you cannot resolve from
 // orbit still costs a full set of DEM tiles and a mesh rebuild, and that was
 // the bulk of what made the wide view slow to settle. The style gates the
@@ -72,7 +77,11 @@ const SAT_PREF_KEY = "brm.satellite";
 
    The probe runs in the BACKGROUND and only affects the NEXT load, so it adds
    zero latency to this one. A cached answer is used immediately. Any failure
-   (offline, CORS, 404) simply leaves the shipped fallback in place. */
+   (offline, CORS, 404) simply leaves the shipped fallback in place.
+
+   It only runs once a rider has actually asked for 3D: a flat map never touches
+   the DEM, so probing it on load would be a chain of requests to a tile server
+   we have no plans to use. */
 const DEM_PREF_KEY = "brm.demMaxzoom";
 const DEM_PROBE_TTL = 7 * 24 * 60 * 60 * 1000;
 const DEM_PROBE_CEILING = 16; // 5 m LiDAR stops adding real detail around here
@@ -88,6 +97,19 @@ function cachedDemMaxzoom() {
     /* unreadable cache — fall through to the shipped default */
   }
   return null;
+}
+
+// The source maxzoom the style shipped with, remembered at style load so the
+// probe knows where to start counting from.
+let demFallbackMaxzoom = 14;
+let demProbed = false;
+
+// Called the first time 3D is switched on. Deliberately not awaited — the
+// answer only changes the NEXT load.
+function maybeProbeDem() {
+  if (demProbed) return;
+  demProbed = true;
+  probeDemMaxzoom(demFallbackMaxzoom);
 }
 
 async function probeDemMaxzoom(from) {
@@ -124,10 +146,10 @@ const ROAD_LAYERS = ["road-minor", "road-secondary", "road-primary", "road-motor
 const PULSE_INTERVAL_3D = 50; // ~20fps
 const PULSE_INTERVAL_2D = 22; // ~45fps
 
-// Tablet and up. Matches the 720px breakpoint fitPadding() already uses to
-// tell "phone" from "everything else", so the two never disagree.
+// The map opens flat, full stop — see the note at the top of the 3D block.
+// Kept as a named function so the default has one obvious home.
 function terrainDefaultOn() {
-  return window.innerWidth > 720;
+  return false;
 }
 
 // Drawing-buffer ceiling. Only bites on high-density touch devices — a desktop
@@ -212,8 +234,8 @@ function simplifyPath(coords, tolerance) {
 }
 
 // One switch for the whole presentation — terrain and satellite imagery move
-// together. Persisted so a rider's choice survives a reload. Phones default to
-// 2D and opt in; see the top-right view switch.
+// together. Every device opens flat; a rider's explicit tap on "3D" is what
+// turns it on, and that choice is remembered across reloads.
 let view3d = loadView3d();
 // Imagery is off by default: the terrain + elevation tint is the house style,
 // and aerial photography is the thing a rider reaches for when they want to
@@ -371,6 +393,26 @@ function resolveHero(ref) {
   return /^https?:\/\//i.test(ref) ? ref : "public/" + ref;
 }
 
+/* Warm a route's photo the moment its pin is picked.
+
+   The card's photo is a few hundred KB off R2. Fetching it when the card opens
+   means the block is empty for the first beat and then fills — on a phone that
+   lands mid-drag, which is exactly the judder we were chasing. Selecting a pin
+   is a good half-second of camera movement earlier, and it's a strong signal
+   the rider is about to look at that route, so start the download there.
+
+   The browser's own HTTP cache does the rest: by the time <img src> is set on
+   the card it's a cache hit. `photoWarmed` just stops us re-issuing the same
+   request as a rider arrows through a deck. */
+const photoWarmed = new Set();
+function preloadPhoto(src) {
+  if (!src || photoWarmed.has(src)) return;
+  photoWarmed.add(src);
+  const img = new Image();
+  img.decoding = "async";
+  img.src = src;
+}
+
 // Wire everything that does NOT depend on the map being up.
 function initUI() {
   requestDownload = setupGate();
@@ -397,12 +439,13 @@ async function initMap() {
   const style = await fetch("styles/bush.json").then((r) => r.json());
 
   // Use the deepest DEM level this server is known to serve. Falls back to the
-  // value shipped in bush.json until the background probe has answered once.
+  // value shipped in bush.json until the probe has answered once — and the
+  // probe itself waits for the first switch into 3D (see maybeProbeDem).
   const dem = style.sources && style.sources["terrain-dem"];
   if (dem) {
     const known = cachedDemMaxzoom();
     if (known !== null) dem.maxzoom = known;
-    probeDemMaxzoom(dem.maxzoom || 14); // deliberately not awaited
+    demFallbackMaxzoom = dem.maxzoom || 14;
   }
 
   // Open already framed on the pins (AU/NZ today, Hawaii soon) so the world
@@ -417,8 +460,8 @@ async function initMap() {
     dragRotate: false,
     pitchWithRotate: false,
     // 3D relief view. Rotation stays disabled — this is a fixed oblique
-    // "diorama" camera, not an orbit control. Phones open flat and opt in
-    // through the drawer (see terrainDefaultOn).
+    // "diorama" camera, not an orbit control. Every device opens flat and opts
+    // in through the top-right switch (see terrainDefaultOn).
     pitch: view3d ? TERRAIN_PITCH : 0,
     // Headroom above TERRAIN_PITCH so the ride-through can drop to a low,
     // near-ground helicopter angle. Riders can't reach these pitches by hand
@@ -444,7 +487,9 @@ async function initMap() {
   }
 
   map = new maplibregl.Map(mapOpts);
-  map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom-right");
+  // Zoom in / zoom out live top-right, tucked under the 2D/3D switch, so every
+  // piece of map chrome is in one corner and none of it crowds the wordmark.
+  map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
   map.touchZoomRotate.disableRotation();
 
   map.on("load", onLoad);
@@ -458,7 +503,6 @@ function onLoad() {
   watchTerrainZoom();
   initCinematicCancel();
   initStage();
-  initViewReset();
   initOrbitToggle();
   autoMinimiseAttribution();
 
@@ -1016,6 +1060,7 @@ function wireEventInteractions() {
 function selectRoute(id, fly) {
   const feature = routeById.get(id);
   if (!feature) return;
+  preloadPhoto(feature.properties.photo_url);
   deck = null; // a directly-picked community route has no sibling deck
   backTarget = null;
   updateDeckNav();
@@ -1258,7 +1303,7 @@ function showFamous() {
 }
 function fillFamousCard(ev) {
   const firstPhoto = (ev.routes[0] && ev.routes[0].properties.photo_url) || "";
-  setCardHero(firstPhoto, ev.name);
+  setCardPhoto(firstPhoto, ev.name);
   setText("detail-eyebrow", "Famous Event");
   setText("detail-name", ev.name);
   // Keep it light: a small description + a link to the event page. The routes
@@ -1463,7 +1508,8 @@ let reframeFeaturesTimer = null;
 function scheduleReframeFeatures(features) {
   clearTimeout(reframeFeaturesTimer);
   reframeFeaturesTimer = setTimeout(() => {
-    if (mapReady) fitToRoutes(features, true);
+    if (!mapReady || orbitStarted()) return; // the orbit owns the camera
+    fitToRoutes(features, true);
   }, 60);
 }
 
@@ -1553,6 +1599,9 @@ function pitchAdjusted(pad) {
 // Push the current view mode onto the map. Safe to call repeatedly.
 function applyRelief() {
   if (!map) return;
+
+  // First time anything asks for relief is the first time the DEM matters.
+  if (view3d) maybeProbeDem();
 
   try {
     const wantTerrain = view3d && map.getZoom() >= TERRAIN_MIN_ZOOM;
@@ -1673,18 +1722,25 @@ function syncViewSwitch() {
 let orbitActive = false;   // a rotation leg is currently running
 let orbitWasActive = false; // rotation is paused, not finished
 let orbitStartTimer = null;
+// The point the camera turns around: the centre of the selected route's own
+// GPX track. Every leg re-asserts it, so nothing that moves the map underneath
+// the orbit (opening the card, a stray fit) can knock the route off axis.
+let orbitCentre = null; // [lng, lat]
+// Invalidates the moveend that chains the next leg, so a re-frame mid-orbit
+// doesn't leave two chains running.
+let orbitLegToken = 0;
 
 const ORBIT_DEG_PER_SEC = 4.2; // slow enough to read as a reveal, not a spin
-// Ceiling only. Orbit zoom is now derived from the route's own size (see
-// frameForOrbit) rather than a fixed boost, so a short route still gets close
-// and a long one stays wholly in frame. This just stops a tiny route punching
-// past the DEM's useful detail.
+// Ceiling only, for a route so short the honest fit would put the camera below
+// the DEM's useful detail. Framing itself comes from the route's own size.
 const ORBIT_MAX_ZOOM = 15.6;
-// Extra zoom levels beyond the pitch-corrected fit. This is the "how close do
-// we stand" dial: 0 puts the route neatly in frame, higher walks you into it.
-const ORBIT_CLOSENESS = 0.55;
+// …and a floor. Set at TERRAIN_MIN_ZOOM because below it terrain detaches
+// anyway, so there is nothing to be gained by pulling back further.
+const ORBIT_MIN_ZOOM = TERRAIN_MIN_ZOOM;
 const ORBIT_LEG_DEGREES = 30; // arc per easeTo leg; short enough to stop promptly
 const ORBIT_START_DELAY = 1100; // let the fit settle first
+// Ground-radius of a degenerate (single-point) route, so it still gets a view.
+const ORBIT_MIN_RADIUS_DEG = 0.0015;
 
 function cinematicsRunning() {
   return orbitActive;
@@ -1696,12 +1752,12 @@ function stopCinematics() {
   orbitStartTimer = null;
   orbitActive = false;
   orbitWasActive = false;
+  orbitCentre = null;
+  orbitLegToken++; // orphan any leg waiting on moveend
   syncOrbitToggle();
 }
 
-// Push in before circling. A route fitted to the whole viewport sits far too
-// far back for relief to read as 3D — the terrain only reads once you're down
-// among it. Then rotate bearing only, so the push-in isn't undone.
+// Frame the route, then start turning around it.
 function startOrbit() {
   if (!map || !view3d || !mapReady) return;
   stopCinematics();
@@ -1713,19 +1769,30 @@ function startOrbit() {
   orbitStartTimer = setTimeout(spinOrbit, 1250);
 }
 
-/* Frame a route so it stays FULLY visible at every bearing.
+/* ── Framing a route for the orbit ────────────────────────────────────────
 
-   The previous version just added a fixed zoom boost to whatever the fit had
-   produced, which is why the orbit appeared to jump to a random spot and then
-   swing parts of the route off screen.
+   Two things have to hold at EVERY bearing: the whole route is on screen, and
+   it is clear of whatever chrome is over the map. Both come from one idea —
+   describe the route as a CIRCLE rather than a box.
 
-   Fitting the route's bounding BOX only guarantees visibility at the current
-   bearing — rotate a long thin route 90 degrees and its ends leave the frame.
-   So fit its bounding CIRCLE instead: the centre, plus the distance to the
-   furthest point on the line. A circle looks the same from every angle, so
-   once it fits, it fits at all 360 degrees of the orbit. Implemented by
-   fitting the square that circumscribes that circle, which is conservative
-   and lets MapLibre do the zoom maths. */
+   A box only fits at the bearing it was solved for; rotate a long thin route
+   90° and its ends leave the frame. Its bounding circle — the centre of the
+   GPX track plus the distance to the furthest point on it — looks identical
+   from every angle, so once it fits, it fits all the way round.
+
+   Given that circle, the camera is a direct solve rather than a fit plus
+   fudge factors (the fudge factors are what put the camera inside the route):
+
+     1. The map centre IS the circle's centre, so bearing changes turn about
+        the route itself. This is the fix for the desktop drift — opening the
+        card used to re-fit with the panel reserved on one side, which shoved
+        the map centre off the route, and every degree of rotation after that
+        walked the route further away.
+
+     2. The zoom is whatever puts the circle's radius inside the largest clear
+        radius on screen (orbitRadiusPx below). No "closeness" boost: the
+        brief is that the whole route is visible, not that we stand in it. */
+
 // Flatten a route's geometry to a plain coordinate list.
 function lineCoords(geom) {
   if (!geom) return [];
@@ -1734,57 +1801,116 @@ function lineCoords(geom) {
   return [];
 }
 
-function frameForOrbit(feature, duration) {
+/* Centre + radius of a route's bounding circle, straight off the GPX track.
+   Radius is in degrees of LATITUDE, so both axes share one scale — a degree of
+   longitude is shorter than a degree of latitude everywhere but the equator. */
+function routeCircle(feature) {
   const coords = lineCoords(displayGeometry(feature));
-  if (!coords.length) return;
+  if (!coords.length) return null;
 
   const b = new maplibregl.LngLatBounds();
   for (const c of coords) b.extend(c);
   const centre = b.getCenter();
 
-  // Work in "latitude degrees" so both axes share a scale: a degree of
-  // longitude is shorter than a degree of latitude everywhere but the equator.
   const k = Math.cos((centre.lat * Math.PI) / 180) || 1;
   let radius = 0;
   for (const p of coords) {
     radius = Math.max(radius, Math.hypot((p[0] - centre.lng) * k, p[1] - centre.lat));
   }
-  if (!radius) radius = 0.0015; // degenerate/point route — give it something to look at
+  return { centre, radius: radius || ORBIT_MIN_RADIUS_DEG };
+}
 
-  const square = new maplibregl.LngLatBounds(
-    [centre.lng - radius / k, centre.lat - radius],
-    [centre.lng + radius / k, centre.lat + radius]
+/* How much clear room there is around the map centre, in CSS pixels — the
+   radius of the biggest circle that misses every overlay currently on screen.
+
+   Because the route's circle is rotation-invariant and sits on the map centre,
+   a circle that fits here is still clear of the sidebar, the stage bar and the
+   detail card at all 360 degrees. No per-bearing bookkeeping needed. */
+function orbitRadiusPx() {
+  const canvas = map.getCanvas();
+  const w = canvas.clientWidth;
+  const h = canvas.clientHeight;
+
+  // Breathing room, plus whatever chrome is over the map right now.
+  const margin = Math.round(Math.min(w, h) * 0.06);
+  let left = margin;
+  let right = margin;
+  let top = Math.max(margin, 64); // map tools / brand row
+  let bottom = margin;
+
+  if (sidebarDocked()) left = Math.max(left, 380);
+  if (detailOpen && !isSheetMode()) {
+    // Desktop inset panel, bottom-right. Event cards are the wider of the two.
+    right = Math.max(right, detailMode === "event" ? 500 : 430);
+  } else if (detailOpen) {
+    bottom = Math.max(bottom, Math.min(sheetVisibleHeight() + 20, Math.round(h * 0.55)));
+  } else if (stageVisible()) {
+    bottom = Math.max(bottom, 96);
+  }
+
+  const horiz = Math.min(w / 2 - left, w / 2 - right);
+
+  /* Vertical needs the tilt taken into account. At pitch p the ground runs
+     away from the camera, so a given distance across the ground covers FEWER
+     screen pixels vertically than it would flat — which means more ground fits
+     top-to-bottom, not less. The near edge is the tight one: a point s map-px
+     towards the camera lands at
+
+        y = D·s·cos p / (D − s·sin p)
+
+     where D is MapLibre's camera-to-centre distance (1.5 screen heights at the
+     default field of view). Solving that for s = vert gives the ground radius
+     the vertical budget can actually hold. At pitch 0 it collapses to s = vert,
+     so the flat map is untouched. */
+  const vert = Math.min(h / 2 - top, h / 2 - bottom);
+  const tilt = (TERRAIN_PITCH * Math.PI) / 180;
+  const D = 1.5 * h;
+  const vertGround = (vert * D) / (D * Math.cos(tilt) + vert * Math.sin(tilt));
+
+  return Math.max(60, Math.min(horiz, vertGround));
+}
+
+/* The zoom at which `radiusDeg` degrees of latitude measures `radiusPx` CSS
+   pixels. MapLibre's world is 512·2^zoom px across at the equator, narrowing
+   by cos(latitude). */
+function zoomForRadius(radiusDeg, lat, radiusPx) {
+  const METRES_PER_DEG_LAT = 111320;
+  const EQUATOR_METRES = 40075016.686;
+  const metresPerPx = (radiusDeg * METRES_PER_DEG_LAT) / radiusPx;
+  const cosLat = Math.max(0.05, Math.cos((lat * Math.PI) / 180));
+  return Math.log2((EQUATOR_METRES * cosLat) / (512 * metresPerPx));
+}
+
+function frameForOrbit(feature, duration) {
+  if (!map) return;
+  const circle = routeCircle(feature);
+  if (!circle) return;
+
+  const { centre, radius } = circle;
+  const zoom = Math.max(
+    ORBIT_MIN_ZOOM,
+    Math.min(ORBIT_MAX_ZOOM, zoomForRadius(radius, centre.lat, orbitRadiusPx()))
   );
 
-  /* Two corrections turn this from "the route somewhere in the distance" into
-     "you are standing in it".
-
-     1. Padding. fitPadding() reserves up to 380px on the left for the filters
-        sidebar — but selecting a route collapses that sidebar, so reserving it
-        just pushed the camera back for furniture that is not on screen. Orbit
-        framing uses a thin symmetric margin instead.
-
-     2. Pitch. cameraForBounds solves the camera as if the map were FLAT (see
-        the note on pitchAdjusted). At TERRAIN_PITCH the camera sees far more
-        ground than that flat solution assumed, so the fitted route ends up
-        small and far away — and pitchAdjusted's extra headroom pushed it
-        further still. Correcting for it means zooming IN past the flat answer
-        by roughly the factor the tilt gains: 1/cos(pitch). */
-  const pad = Math.round(Math.min(map.getCanvas().clientWidth, map.getCanvas().clientHeight) * 0.06);
-  const cam = map.cameraForBounds(square, { padding: pad, bearing: map.getBearing() });
-  if (!cam) return;
-
-  const tilt = (TERRAIN_PITCH * Math.PI) / 180;
-  const pitchGain = Math.log2(1 / Math.max(0.2, Math.cos(tilt))); // ~1.42 at 68°
-  const zoom = Math.min(ORBIT_MAX_ZOOM, cam.zoom + pitchGain + ORBIT_CLOSENESS);
+  // This is the axis every subsequent leg turns around.
+  orbitCentre = [centre.lng, centre.lat];
+  orbitLegToken++; // whatever leg was pending is now stale
 
   map.easeTo({
-    center: cam.center,
+    center: orbitCentre,
     zoom,
     pitch: TERRAIN_PITCH,
     bearing: map.getBearing(),
     duration,
   });
+
+  // Re-framing mid-orbit (the card opening, say) interrupts the running leg.
+  // Pick the rotation back up once the new framing has landed.
+  if (orbitActive) {
+    map.once("moveend", () => {
+      if (orbitActive) orbitLeg();
+    });
+  }
 }
 
 /* Rotate by handing MapLibre one long, linear easeTo per leg and chaining the
@@ -1808,14 +1934,20 @@ function spinOrbit() {
 function orbitLeg() {
   if (!orbitActive || !map) return;
   const deg = ORBIT_LEG_DEGREES;
-  map.easeTo({
+  const token = ++orbitLegToken;
+  const opts = {
     bearing: map.getBearing() + deg,
     duration: (deg / ORBIT_DEG_PER_SEC) * 1000,
     easing: (t) => t, // linear — an eased leg would visibly stutter at each join
     essential: true,
-  });
+  };
+  // Pin the axis on every leg, not just at framing time. Anything that nudges
+  // the map centre between legs — a reframe, a snap, a stray fit — is corrected
+  // here instead of accumulating until the route has drifted out of shot.
+  if (orbitCentre) opts.center = orbitCentre;
+  map.easeTo(opts);
   map.once("moveend", () => {
-    if (orbitActive) orbitLeg();
+    if (orbitActive && token === orbitLegToken) orbitLeg();
   });
 }
 
@@ -1907,6 +2039,9 @@ function applyStage() {
   const feature = stageFeature();
   if (!feature) return;
   const p = feature.properties;
+  // The stage is one press of "Explore route" away from the card, so warm the
+  // photo here too — including on every arrow step through an event's routes.
+  preloadPhoto(p.photo_url);
 
   // Selection and the drawn line, without opening the card.
   if (mapReady) {
@@ -1946,7 +2081,6 @@ function applyStage() {
   if (bar) bar.hidden = false;
 
   frameAndOrbit(feature);
-  updateResetVisibility();
 }
 
 // Frame the route so all of it stays visible through the rotation, then start
@@ -1997,48 +2131,6 @@ function clearRouteStage() {
   focusPins(false);
   clearSelection();
   highlightResult(null);
-  updateResetVisibility();
-}
-
-/* ── Back to the wide view ────────────────────────────────────────────────
-   Once the camera is in on a route, getting back out to pick a different pin
-   meant spinning the wheel or hammering the zoom buttons. One click back to
-   every route: tear down the stage, drop the selection, restore the pins and
-   frame the whole set. */
-function resetToAllRoutes() {
-  if (detailOpen) closeDetail();
-  clearRouteStage();
-  if (!mapReady) return;
-
-  // One camera command, not two — an easeTo for the bearing plus a fitBounds
-  // would fight each other. fitBounds takes bearing and pitch directly.
-  const bounds = routesBounds(routeFeatures);
-  if (bounds) {
-    map.fitBounds(bounds, {
-      padding: fitPadding(),
-      maxZoom: 13,
-      bearing: 0,
-      pitch: view3d ? TERRAIN_PITCH : 0,
-      duration: 900,
-    });
-  }
-  updateResetVisibility();
-}
-
-// Only worth showing once there's something to come back from — otherwise it's
-// a button that does nothing to the current view.
-function updateResetVisibility() {
-  const btn = document.getElementById("view-reset");
-  if (!btn || !map) return;
-  btn.hidden = !(detailOpen || stageVisible() || selectedId || map.getZoom() > 8.5);
-}
-
-function initViewReset() {
-  const btn = document.getElementById("view-reset");
-  if (!btn) return;
-  btn.addEventListener("click", resetToAllRoutes);
-  map.on("moveend", updateResetVisibility);
-  updateResetVisibility();
 }
 
 /* Auto-minimise the attribution.
@@ -2256,8 +2348,8 @@ function openEventDetail(feature) {
         : { type: "FeatureCollection", features: [] }
     );
   }
-  // Open compact (peek): the card shows title → CTA without the hero, so the
-  // route stays visible on the map. Sliding to full reveals the hero + detail.
+  // Open compact (peek): the card shows title → CTA only, so the route stays
+  // visible on the map. Sliding up reveals the photo and the rest of the detail.
   openSheet("peek");
 }
 
@@ -2288,8 +2380,8 @@ function closeDetail() {
   if (!detailOpen) return;
   detailOpen = false;
   // Closing the card returns to the stage if a route is still on show — the
-  // rider dismissed the detail, not the route. Only a real deselect (empty-map
-  // click, "All routes") tears the stage down.
+  // rider dismissed the detail, not the route. Only a real deselect (a click on
+  // bare map) tears the stage down.
   const backToStage = stageMode() && !!stageFeature();
   if (backToStage) {
     const bar = document.getElementById("stage");
@@ -2351,7 +2443,7 @@ function setFamous(p, isFamous) {
 function fillDetail(feature) {
   const p = feature.properties;
   const isFamous = !!String(p.series || "").trim();
-  setCardHero(p.photo_url, p.name);
+  setCardPhoto(p.photo_url, p.name);
   setChip(p.surface);
   setText("detail-eyebrow", isFamous ? "Famous Event" : "Community route");
   setFamous(p, isFamous);
@@ -2381,7 +2473,7 @@ function fillEventDetail(feature) {
   const rp = route ? route.properties : {};
   els.detail.dataset.eventStatus = p.status === "past" ? "past" : "upcoming";
 
-  setCardHero(resolveHero(p.hero_image) || rp.photo_url || "", p.subtitle || p.name, rp.photo_url);
+  setCardPhoto(resolveHero(p.hero_image) || rp.photo_url || "", p.subtitle || p.name, rp.photo_url);
   setChip(rp.surface);
   setText("detail-eyebrow", "Community bush ride");
   setText("detail-keen-text", `${p.interested_count ?? 0} keen`);
@@ -2416,29 +2508,29 @@ function fillEventDetail(feature) {
 }
 
 // ---- Card field helpers --------------------------------------------------
-function setCardHero(src, alt, fallbackSrc) {
-  const hero = els.detail.querySelector("#detail-photo");
-  const frame = hero.closest(".card__hero");
+function setCardPhoto(src, alt, fallbackSrc) {
+  const photo = els.detail.querySelector("#detail-photo");
+  const frame = photo.closest(".card__photo");
   const setEmpty = (empty) => frame && frame.classList.toggle("is-empty", empty);
-  hero.dataset.fellback = "";
-  hero.onload = () => { hero.hidden = false; setEmpty(false); };
-  hero.onerror = () => {
-    if (!hero.dataset.fellback && fallbackSrc && fallbackSrc !== hero.getAttribute("src")) {
-      hero.dataset.fellback = "1";
-      hero.src = fallbackSrc;
+  photo.dataset.fellback = "";
+  photo.onload = () => { photo.hidden = false; setEmpty(false); };
+  photo.onerror = () => {
+    if (!photo.dataset.fellback && fallbackSrc && fallbackSrc !== photo.getAttribute("src")) {
+      photo.dataset.fellback = "1";
+      photo.src = fallbackSrc;
     } else {
-      hero.hidden = true; // no image — collapse the hero (see .card__hero.is-empty)
+      photo.hidden = true; // no image — drop the block (see .card__photo.is-empty)
       setEmpty(true);
     }
   };
-  hero.alt = alt || "";
+  photo.alt = alt || "";
   if (src) {
-    hero.hidden = false;
+    photo.hidden = false;
     setEmpty(false);
-    hero.src = src;
+    photo.src = src;
   } else {
-    hero.removeAttribute("src");
-    hero.hidden = true;
+    photo.removeAttribute("src");
+    photo.hidden = true;
     setEmpty(true);
   }
 }
@@ -2580,7 +2672,7 @@ function computeEffort(distKm, elevM) {
   return { slug: "cruisy", label: "Cruisy" };
 }
 // Reduce a verbose surface string ("92% gravel, 8% sealed") to its primary
-// material word ("Gravel") for the stat cell / hero chip.
+// material word ("Gravel") for the stat cell / photo chip.
 function shortSurface(s) {
   const m = String(s).match(/[a-zA-Z]+/);
   return m ? cap(m[0]) : "—";
@@ -2937,7 +3029,14 @@ function resyncSurfaceForMode() {
 function scheduleReframe() {
   clearTimeout(reframeTimer);
   reframeTimer = setTimeout(() => {
-    if (mapReady && selectedId) fitToRoutes([routeById.get(selectedId)], true);
+    if (!mapReady || !selectedId) return;
+    const feature = routeById.get(selectedId);
+    if (!feature) return;
+    // While the orbit owns the camera, re-frame with the orbit's own solver.
+    // fitToRoutes reserves the card's edge asymmetrically, which would move the
+    // map centre off the route — and the rotation axis with it.
+    if (orbitStarted()) frameForOrbit(feature, 600);
+    else fitToRoutes([feature], true);
   }, 60);
 }
 
