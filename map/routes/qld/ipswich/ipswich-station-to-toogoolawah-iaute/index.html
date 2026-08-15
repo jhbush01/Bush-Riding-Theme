@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ipswich Station to Toogoolawah — 89km Gravel Ride near Ipswich | Bush Map</title>
+<meta name="description" content="Ipswich Station to Toogoolawah is a 89km gravel route near Ipswich, Queensland with 600m of climbing (Big day out, Groomed). Download the GPX and ride it." />
+<link rel="canonical" href="https://map.bushriding.cc/routes/qld/ipswich/ipswich-station-to-toogoolawah-iaute" />
+<meta name="theme-color" content="#E9E2D0" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="apple-touch-icon" href="/public/apple-touch-icon.png" />
+<meta property="og:site_name" content="Bush Riding" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Ipswich Station to Toogoolawah — 89km Gravel Ride near Ipswich | Bush Map" />
+<meta property="og:description" content="Ipswich Station to Toogoolawah is a 89km gravel route near Ipswich, Queensland with 600m of climbing (Big day out, Groomed). Download the GPX and ride it." />
+<meta property="og:url" content="https://map.bushriding.cc/routes/qld/ipswich/ipswich-station-to-toogoolawah-iaute" />
+<meta property="og:image" content="https://map-api.bushriding.cc/file/photos/ipswich-station-to-toogoolawah-iaute.jpg" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/styles/app.css" />
+<style>
+/* app.css locks the map app to a non-scrolling viewport (html,body{height:100%;
+   overflow:clip}). These are ordinary content pages — undo that so they scroll. */
+html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
+.seo-page{background:var(--cream);color:var(--ink);font-family:var(--ui-font);margin:0;min-height:100vh;display:flex;flex-direction:column}
+.site-head{display:flex;flex-direction:column;align-items:center;gap:12px;padding:16px 22px;border-bottom:1px solid rgba(0,0,0,.08);background:var(--cream-panel);text-align:center}
+.site-brand{font-family:var(--head-font);font-size:26px;color:var(--ink);text-decoration:none}
+.site-nav{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.site-nav a{font-family:var(--ui-font);font-size:13px;font-weight:600;padding:7px 15px;border-radius:999px;border:1px solid rgba(0,0,0,.12);background:var(--cream);color:var(--ink);text-decoration:none;line-height:1}
+.site-nav a:hover{border-color:var(--olive);color:var(--olive)}
+.wrap{width:100%;max-width:760px;margin:0 auto;padding:22px;flex:1}
+.crumbs{font-size:12.5px;color:var(--ink-soft);margin:0 0 14px;display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.crumbs a{color:var(--ink-soft);text-decoration:none}
+.crumbs a:hover{color:var(--olive);text-decoration:underline}
+.crumbs__sep{opacity:.5}
+.rp-title{font-family:var(--head-font);font-weight:400;font-size:38px;line-height:1.05;margin:6px 0 4px;color:var(--ink)}
+.rp-loc{margin:0 0 4px;color:var(--ink-soft);font-size:15px}
+.rp-hero{margin:0 0 18px;border-radius:14px;overflow:hidden;background:var(--sage)}
+.rp-hero__img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover}
+.rp-hero__img--empty{aspect-ratio:16/9;background:linear-gradient(135deg,var(--sage),var(--olive))}
+.rp-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(0,0,0,.08);border:1px solid rgba(0,0,0,.08);border-radius:12px;overflow:hidden;margin:16px 0}
+.rp-stat{background:var(--cream-panel);padding:12px 10px;text-align:center;min-width:0}
+.rp-stat__v{display:block;font-family:var(--head-font);font-size:20px;color:var(--ink)}
+.rp-stat__l{display:block;margin-top:3px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
+.rp-actions{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}
+.rp-actions .button{text-decoration:none}
+.rp-start{font-size:14.5px;color:var(--ink-soft);margin:10px 0}
+.wrap h2{font-family:var(--head-font);font-weight:400;font-size:26px;margin:26px 0 8px}
+.rp-desc{font-size:16px;line-height:1.6;color:var(--ink)}
+.rp-map{position:relative;margin:18px 0;border:1px solid rgba(0,0,0,.1);border-radius:12px;overflow:hidden;background:#ece4d2}
+.rp-map__live{width:100%;height:380px}
+.rp-map__shape{position:absolute;top:0;left:0;right:0;height:380px;background:#ece4d2;display:flex}
+.rp-map.is-live .rp-map__shape{display:none}
+.rp-map__svg{display:block;width:100%;height:100%}
+.rp-map__cap{position:relative;padding:9px 13px;font-size:12px;color:var(--ink-soft);border-top:1px solid rgba(0,0,0,.07);background:var(--cream-panel)}
+@media(max-width:560px){.rp-map__live,.rp-map__shape{height:300px}}
+.rp-elev{margin:14px 0;padding:12px 14px;background:var(--cream-panel);border:1px solid rgba(0,0,0,.08);border-radius:12px}
+.rp-elev__head{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.rp-mini{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
+.rp-elev__note{font-size:12.5px;color:var(--ink-soft);white-space:nowrap}
+.rp-elev__svg{display:block;width:100%;height:132px;margin-top:6px}
+.rp-meta{font-size:13px;color:var(--ink-soft)}
+.rp-meta a{color:var(--olive)}
+.rp-faq__item{border-top:1px solid rgba(0,0,0,.1);padding:10px 0}
+.rp-faq__item summary{cursor:pointer;font-weight:600;font-size:15.5px}
+.rp-faq__item p{margin:8px 0 2px;color:var(--ink-soft);line-height:1.55;font-size:14.5px}
+.rp-back{margin:24px 0 0}
+.rp-back a{color:var(--olive);font-weight:600;text-decoration:none}
+.rp-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin:6px 0 4px}
+.rp-gallery__item{display:block;border-radius:10px;overflow:hidden;background:var(--sage)}
+.rp-gallery__item img{display:block;width:100%;height:150px;object-fit:cover}
+.rp-rating{margin:4px 0 12px;font-size:15px;color:var(--ink-soft)}
+.rp-rating__stars{color:#d98a3d;letter-spacing:1px}
+.rp-reviews{display:flex;flex-direction:column;gap:14px}
+.rp-review{border-top:1px solid rgba(0,0,0,.1);padding-top:12px}
+.rp-review__head{margin:0}
+.rp-review__stars{color:#d98a3d;letter-spacing:.5px;font-size:13px}
+.rp-review__text{margin:6px 0 0;color:var(--ink-soft);line-height:1.5;font-size:14.5px}
+.rp-intro{font-size:16px;line-height:1.6;color:var(--ink-soft);max-width:60ch;margin:0 0 22px}
+.rp-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.rp-card{display:flex;flex-direction:column;background:var(--cream-panel);border:1px solid rgba(0,0,0,.08);border-radius:12px;overflow:hidden;text-decoration:none;color:inherit}
+.rp-card:hover{border-color:var(--olive)}
+.rp-card__hero{display:block;width:100%;height:130px;object-fit:cover;background:var(--sage)}
+.rp-card__hero--empty{height:130px;background:linear-gradient(135deg,var(--sage),var(--olive))}
+.rp-card__body{padding:12px 13px}
+.rp-card__name{font-family:var(--head-font);font-weight:400;font-size:19px;margin:0 0 3px;color:var(--ink)}
+.rp-card__loc{margin:0 0 6px;font-size:12.5px;color:var(--ink-soft)}
+.rp-card__stats{margin:0;font-size:12.5px;color:var(--olive);font-weight:600}
+.rp-empty{color:var(--ink-soft)}
+.rp-noresult{color:var(--ink-soft);margin:8px 0}
+/* Pill filter (all-routes index) */
+.rp-filter{margin:0 0 20px;display:flex;flex-direction:column;gap:10px}
+.rp-pills{display:flex;flex-wrap:wrap;gap:8px}
+.rp-pills--region{padding-top:2px}
+.rp-pill{font-family:var(--ui-font);font-size:13px;font-weight:600;padding:7px 14px;border-radius:999px;border:1px solid rgba(0,0,0,.14);background:var(--cream-panel);color:var(--ink);cursor:pointer;line-height:1}
+.rp-pill:hover{border-color:var(--olive)}
+.rp-pill.is-active{background:var(--olive);border-color:var(--olive);color:#fff}
+.rp-pills--region .rp-pill{font-weight:500;font-size:12.5px;padding:6px 12px;color:var(--ink-soft)}
+.rp-pills--region .rp-pill.is-active{color:#fff}
+/* Events directory */
+.ev-list{display:flex;flex-direction:column;gap:14px;margin-bottom:8px}
+.ev-card{background:var(--cream-panel);border:1px solid rgba(0,0,0,.08);border-radius:12px;padding:16px 18px}
+.ev-card.is-past{opacity:.7}
+.ev-card__when{margin:0 0 4px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--card-rust,#b04a24)}
+.ev-card__name{font-family:var(--head-font);font-weight:400;font-size:23px;margin:0 0 6px;color:var(--ink)}
+.ev-card__desc{margin:0 0 10px;font-size:14.5px;line-height:1.5;color:var(--ink-soft)}
+.ev-card__meta{display:flex;flex-direction:column;gap:4px;font-size:13.5px;color:var(--ink-soft)}
+.ev-card__row strong{color:var(--ink);font-weight:600}
+.ev-card__meta a{color:var(--olive);text-decoration:none}
+.ev-card__actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.ev-card__actions .button{text-decoration:none}
+.site-foot{margin-top:30px;padding:22px;border-top:1px solid rgba(0,0,0,.08);background:var(--cream-panel);font-size:12.5px;color:var(--ink-soft);text-align:center}
+.site-foot a{color:var(--olive);text-decoration:none}
+@media(max-width:560px){.rp-title{font-size:30px}.rp-stats{grid-template-columns:repeat(2,1fr)}}
+</style>
+<link rel="stylesheet" href="vendor/maplibre-gl.css" />
+<script type="application/ld+json">
+[
+  {
+    "@context": "https://schema.org",
+    "@type": "SportsActivityLocation",
+    "name": "Ipswich Station to Toogoolawah",
+    "description": "Ipswich Station to Toogoolawah is a 89 km gravel route near Ipswich, Queensland.",
+    "url": "https://map.bushriding.cc/routes/qld/ipswich/ipswich-station-to-toogoolawah-iaute",
+    "sport": "Gravel Cycling",
+    "address": {
+      "@type": "PostalAddress",
+      "addressRegion": "Queensland",
+      "addressCountry": "AU"
+    },
+    "amenityFeature": [
+      {
+        "@type": "LocationFeatureSpecification",
+        "name": "Distance",
+        "value": "89 km"
+      },
+      {
+        "@type": "LocationFeatureSpecification",
+        "name": "Elevation gain",
+        "value": "600 m"
+      },
+      {
+        "@type": "LocationFeatureSpecification",
+        "name": "Effort",
+        "value": "Big day out"
+      },
+      {
+        "@type": "LocationFeatureSpecification",
+        "name": "Terrain",
+        "value": "Groomed"
+      }
+    ],
+    "image": "https://map-api.bushriding.cc/file/photos/ipswich-station-to-toogoolawah-iaute.jpg",
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": -27.61249,
+      "longitude": 152.75995
+    }
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Bush Map",
+        "item": "https://map.bushriding.cc/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Routes",
+        "item": "https://map.bushriding.cc/routes/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": "Queensland",
+        "item": "https://map.bushriding.cc/routes/qld/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 4,
+        "name": "Ipswich",
+        "item": "https://map.bushriding.cc/routes/qld/ipswich/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 5,
+        "name": "Ipswich Station to Toogoolawah",
+        "item": "https://map.bushriding.cc/routes/qld/ipswich/ipswich-station-to-toogoolawah-iaute"
+      }
+    ]
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "How long is Ipswich Station to Toogoolawah?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Ipswich Station to Toogoolawah is a 89 km gravel ride with about 600 m of climbing, which rates as big day out."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Where do you start Ipswich Station to Toogoolawah?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Ipswich Station to Toogoolawah starts in the Ipswich area, Queensland. Open the interactive map for the exact start point and turn-by-turn track."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How difficult is Ipswich Station to Toogoolawah?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Ipswich Station to Toogoolawah is Big day out — a solid outing with real distance or climbing — pack for a full day."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What surface is Ipswich Station to Toogoolawah?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The terrain is Groomed — mostly smooth, well-formed gravel that rolls fast."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I download a GPX file for Ipswich Station to Toogoolawah?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes — download the GPX for Ipswich Station to Toogoolawah to load onto your GPS computer or phone before you ride."
+        }
+      }
+    ]
+  }
+]
+</script>
+</head>
+<body class="seo-page">
+<header class="site-head">
+  <a class="site-brand" href="/">Bush Map</a>
+  <nav class="site-nav">
+    <a href="/routes/">Community Routes</a>
+    <a href="/events/">Bush Events</a>
+    <a href="/">Map</a>
+    <a href="/submit">Submit a route</a>
+  </nav>
+</header>
+<main class="wrap">
+<nav class="crumbs" aria-label="Breadcrumb"><a href="/">Bush Map</a><span class="crumbs__sep">›</span><a href="/routes/">Routes</a><span class="crumbs__sep">›</span><a href="/routes/qld/">Queensland</a><span class="crumbs__sep">›</span><a href="/routes/qld/ipswich/">Ipswich</a><span class="crumbs__sep">›</span><span aria-current="page">Ipswich Station to Toogoolawah</span></nav>
+
+<article class="route">
+  <figure class="rp-hero"><img class="rp-hero__img" src="https://map-api.bushriding.cc/file/photos/ipswich-station-to-toogoolawah-iaute.jpg" alt="Ipswich Station to Toogoolawah — gravel route near Ipswich" width="1200" height="675" loading="eager" /></figure>
+
+  <h1 class="rp-title">Ipswich Station to Toogoolawah</h1>
+  <p class="rp-loc">Ipswich, Queensland</p>
+
+  <div class="rp-stats">
+    <div class="rp-stat"><span class="rp-stat__v">89 km</span><span class="rp-stat__l">Distance</span></div>
+    <div class="rp-stat"><span class="rp-stat__v">600 m</span><span class="rp-stat__l">Elevation</span></div>
+    <div class="rp-stat"><span class="rp-stat__v">Big day out</span><span class="rp-stat__l">Effort</span></div>
+    <div class="rp-stat"><span class="rp-stat__v">Groomed</span><span class="rp-stat__l">Terrain</span></div>
+  </div>
+
+  <div class="rp-elev">
+    <div class="rp-elev__head"><span class="rp-mini">Elevation profile</span><span class="rp-elev__note">↑ 600 m over 89 km</span></div>
+    <svg class="rp-elev__svg" viewBox="0 0 680 130" preserveAspectRatio="none" role="img" aria-label="Elevation profile">
+    <defs><linearGradient id="rpElev" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c9673f" stop-opacity=".34"/><stop offset="1" stop-color="#c9673f" stop-opacity=".04"/></linearGradient></defs>
+    <path d="M0,120 L0.0,111.9 L1.6,112.1 L5.1,115.8 L7.5,104.6 L9.4,101.6 L13.3,110.9 L16.9,115.7 L17.7,114.8 L18.4,116.9 L20.9,117.6 L23.8,109.8 L26.1,108.5 L29.4,113.0 L33.2,118.3 L35.2,116.5 L38.5,120.0 L41.7,115.8 L44.5,111.3 L47.6,110.9 L50.6,107.0 L52.3,106.2 L54.7,104.0 L57.8,101.5 L60.9,97.9 L64.2,96.4 L67.6,95.9 L71.1,95.9 L74.9,95.8 L78.2,91.2 L81.2,87.3 L83.9,83.1 L86.6,80.9 L90.4,85.4 L94.1,85.7 L97.9,89.8 L102.6,96.4 L106.6,99.3 L110.9,105.0 L115.0,108.7 L118.9,111.7 L122.1,109.9 L125.1,105.9 L128.0,102.1 L130.9,98.5 L134.0,94.6 L136.9,90.8 L139.8,87.0 L143.5,91.5 L147.8,96.3 L151.4,96.4 L155.2,97.4 L159.0,101.0 L162.7,105.9 L166.7,108.1 L169.7,109.3 L172.7,107.2 L175.7,104.2 L178.6,99.2 L181.3,94.9 L184.0,90.3 L187.0,89.7 L190.8,95.1 L194.3,98.3 L197.7,97.9 L201.8,100.8 L205.2,99.1 L207.9,94.4 L211.4,96.9 L214.6,100.3 L218.2,99.3 L221.9,99.9 L225.6,101.5 L229.2,101.5 L232.3,100.5 L235.8,101.0 L239.6,102.1 L242.7,102.0 L246.3,101.1 L249.7,100.3 L253.4,101.5 L256.6,100.5 L258.8,98.3 L261.5,95.0 L263.7,95.7 L266.0,97.3 L269.5,95.3 L273.3,96.8 L277.5,98.6 L280.9,99.1 L284.2,99.8 L288.1,99.5 L291.5,97.7 L294.8,95.8 L298.1,94.7 L301.3,94.5 L304.3,92.5 L307.3,89.8 L310.3,91.6 L313.6,93.8 L317.4,96.4 L320.7,96.2 L324.4,95.9 L328.1,96.4 L331.7,96.1 L334.7,93.3 L338.0,93.1 L341.1,90.9 L343.9,88.0 L346.6,84.6 L349.2,81.0 L351.9,77.9 L352.9,78.0 L356.1,78.9 L358.6,74.3 L361.0,70.7 L363.4,67.4 L366.3,65.9 L369.6,66.1 L372.6,64.4 L375.2,62.4 L377.8,61.7 L381.1,62.4 L384.9,63.9 L387.2,60.3 L389.6,57.3 L391.9,54.4 L394.0,51.5 L396.2,48.7 L398.3,46.3 L400.6,44.2 L403.2,43.1 L406.1,42.9 L409.7,44.5 L413.3,45.8 L415.8,44.8 L420.0,50.7 L424.3,55.4 L427.1,51.8 L429.6,49.6 L432.1,47.1 L434.3,43.8 L436.5,40.6 L438.5,37.2 L440.6,34.5 L442.6,31.6 L444.8,27.6 L446.7,24.8 L448.9,22.1 L450.9,19.5 L452.9,16.8 L454.9,14.0 L456.9,10.3 L459.0,8.0 L461.0,8.6 L463.5,11.0 L467.1,16.5 L471.0,22.8 L475.0,29.2 L479.1,35.8 L482.6,40.7 L485.5,38.2 L488.7,38.1 L492.0,38.7 L495.7,42.6 L499.5,46.0 L503.2,48.5 L506.8,49.3 L509.8,47.8 L512.8,47.0 L516.3,47.5 L520.0,52.2 L523.9,57.1 L527.4,59.6 L530.6,59.4 L533.2,60.6 L534.9,61.2 L537.2,62.7 L540.7,63.8 L543.6,63.8 L547.2,62.5 L550.6,61.4 L554.2,60.2 L558.6,63.6 L562.7,63.1 L565.4,60.2 L567.7,56.5 L570.7,55.5 L573.6,53.1 L576.6,50.5 L578.9,47.7 L582.4,50.8 L586.7,54.3 L590.4,55.2 L592.9,52.4 L595.2,49.0 L597.5,45.5 L599.8,42.3 L602.2,39.2 L604.2,36.4 L606.6,33.5 L608.7,30.5 L610.8,27.4 L612.9,24.5 L616.2,27.6 L620.1,32.3 L624.1,34.6 L628.6,39.2 L632.7,44.2 L636.8,47.6 L641.4,52.6 L645.7,58.0 L649.9,60.7 L653.8,60.9 L657.3,62.3 L660.8,64.3 L664.7,65.7 L668.0,67.3 L671.3,67.4 L674.3,66.1 L677.3,64.5 L680.0,63.8 L680,120 Z" fill="url(#rpElev)"/>
+    <path d="M0.0,111.9 L1.6,112.1 L5.1,115.8 L7.5,104.6 L9.4,101.6 L13.3,110.9 L16.9,115.7 L17.7,114.8 L18.4,116.9 L20.9,117.6 L23.8,109.8 L26.1,108.5 L29.4,113.0 L33.2,118.3 L35.2,116.5 L38.5,120.0 L41.7,115.8 L44.5,111.3 L47.6,110.9 L50.6,107.0 L52.3,106.2 L54.7,104.0 L57.8,101.5 L60.9,97.9 L64.2,96.4 L67.6,95.9 L71.1,95.9 L74.9,95.8 L78.2,91.2 L81.2,87.3 L83.9,83.1 L86.6,80.9 L90.4,85.4 L94.1,85.7 L97.9,89.8 L102.6,96.4 L106.6,99.3 L110.9,105.0 L115.0,108.7 L118.9,111.7 L122.1,109.9 L125.1,105.9 L128.0,102.1 L130.9,98.5 L134.0,94.6 L136.9,90.8 L139.8,87.0 L143.5,91.5 L147.8,96.3 L151.4,96.4 L155.2,97.4 L159.0,101.0 L162.7,105.9 L166.7,108.1 L169.7,109.3 L172.7,107.2 L175.7,104.2 L178.6,99.2 L181.3,94.9 L184.0,90.3 L187.0,89.7 L190.8,95.1 L194.3,98.3 L197.7,97.9 L201.8,100.8 L205.2,99.1 L207.9,94.4 L211.4,96.9 L214.6,100.3 L218.2,99.3 L221.9,99.9 L225.6,101.5 L229.2,101.5 L232.3,100.5 L235.8,101.0 L239.6,102.1 L242.7,102.0 L246.3,101.1 L249.7,100.3 L253.4,101.5 L256.6,100.5 L258.8,98.3 L261.5,95.0 L263.7,95.7 L266.0,97.3 L269.5,95.3 L273.3,96.8 L277.5,98.6 L280.9,99.1 L284.2,99.8 L288.1,99.5 L291.5,97.7 L294.8,95.8 L298.1,94.7 L301.3,94.5 L304.3,92.5 L307.3,89.8 L310.3,91.6 L313.6,93.8 L317.4,96.4 L320.7,96.2 L324.4,95.9 L328.1,96.4 L331.7,96.1 L334.7,93.3 L338.0,93.1 L341.1,90.9 L343.9,88.0 L346.6,84.6 L349.2,81.0 L351.9,77.9 L352.9,78.0 L356.1,78.9 L358.6,74.3 L361.0,70.7 L363.4,67.4 L366.3,65.9 L369.6,66.1 L372.6,64.4 L375.2,62.4 L377.8,61.7 L381.1,62.4 L384.9,63.9 L387.2,60.3 L389.6,57.3 L391.9,54.4 L394.0,51.5 L396.2,48.7 L398.3,46.3 L400.6,44.2 L403.2,43.1 L406.1,42.9 L409.7,44.5 L413.3,45.8 L415.8,44.8 L420.0,50.7 L424.3,55.4 L427.1,51.8 L429.6,49.6 L432.1,47.1 L434.3,43.8 L436.5,40.6 L438.5,37.2 L440.6,34.5 L442.6,31.6 L444.8,27.6 L446.7,24.8 L448.9,22.1 L450.9,19.5 L452.9,16.8 L454.9,14.0 L456.9,10.3 L459.0,8.0 L461.0,8.6 L463.5,11.0 L467.1,16.5 L471.0,22.8 L475.0,29.2 L479.1,35.8 L482.6,40.7 L485.5,38.2 L488.7,38.1 L492.0,38.7 L495.7,42.6 L499.5,46.0 L503.2,48.5 L506.8,49.3 L509.8,47.8 L512.8,47.0 L516.3,47.5 L520.0,52.2 L523.9,57.1 L527.4,59.6 L530.6,59.4 L533.2,60.6 L534.9,61.2 L537.2,62.7 L540.7,63.8 L543.6,63.8 L547.2,62.5 L550.6,61.4 L554.2,60.2 L558.6,63.6 L562.7,63.1 L565.4,60.2 L567.7,56.5 L570.7,55.5 L573.6,53.1 L576.6,50.5 L578.9,47.7 L582.4,50.8 L586.7,54.3 L590.4,55.2 L592.9,52.4 L595.2,49.0 L597.5,45.5 L599.8,42.3 L602.2,39.2 L604.2,36.4 L606.6,33.5 L608.7,30.5 L610.8,27.4 L612.9,24.5 L616.2,27.6 L620.1,32.3 L624.1,34.6 L628.6,39.2 L632.7,44.2 L636.8,47.6 L641.4,52.6 L645.7,58.0 L649.9,60.7 L653.8,60.9 L657.3,62.3 L660.8,64.3 L664.7,65.7 L668.0,67.3 L671.3,67.4 L674.3,66.1 L677.3,64.5 L680.0,63.8" fill="none" stroke="#bd5730" stroke-width="2" stroke-linejoin="round"/>
+  </svg>
+  </div>
+
+  <div class="rp-actions">
+    <a class="button button--primary" id="rp-gpx" href="https://map-api.bushriding.cc/file/gpx/ipswich-station-to-toogoolawah-iaute.gpx" download data-file="ipswich-station-to-toogoolawah-iaute.gpx">Download GPX</a>
+    <a class="button" id="rp-nav" href="https://www.google.com/maps/dir/?api=1&amp;destination=-27.61249,152.75995" data-apple="https://maps.apple.com/?daddr=-27.61249,152.75995&amp;dirflg=d" target="_blank" rel="noopener">Navigate to start</a>
+    <a class="button" href="/map#ipswich-station-to-toogoolawah-iaute">Open in interactive map</a>
+  </div>
+
+  <p class="rp-start"><strong>Start:</strong> Ipswich.</p>
+
+  <h2>About this route</h2>
+  <p class="rp-desc">Ipswich Station to Toogoolawah is a 89 km gravel route near Ipswich, Queensland, with 600 m of climbing. Open the interactive map for the full turn-by-turn track, or download the GPX to load onto your head unit.</p>
+
+  <figure class="rp-map" data-has-map>
+    <div class="rp-map__live" id="rp-livemap"></div>
+    <div class="rp-map__shape"><svg class="rp-map__svg" viewBox="0 0 640 380" role="img" aria-label="Map of the route">
+    <rect width="640" height="380" fill="#ece4d2"/>
+    <path d="M426.2,352.6 L425.9,352.6 L425.1,353.0 L423.1,353.4 L421.9,353.7 L421.1,353.9 L419.8,354.0 L417.5,353.8 L415.6,354.0 L415.0,353.9 L414.7,353.9 L414.5,353.9 L413.2,353.6 L411.4,353.2 L410.6,352.4 L409.9,351.4 L409.1,350.2 L408.7,348.7 L407.3,348.6 L407.2,348.8 L407.9,347.3 L408.9,345.7 L408.8,344.1 L408.1,342.7 L407.5,341.3 L406.5,339.9 L405.5,338.7 L405.1,338.0 L404.6,336.9 L404.2,335.6 L404.6,334.0 L404.3,332.4 L404.3,330.6 L403.3,329.2 L403.2,327.6 L402.1,326.1 L401.4,324.4 L399.9,324.0 L399.2,322.5 L398.8,321.2 L397.5,320.8 L396.8,319.6 L395.8,318.7 L395.1,317.0 L394.6,315.0 L393.3,313.9 L392.4,312.7 L391.2,310.7 L389.9,308.7 L389.3,306.7 L388.4,304.5 L387.9,302.2 L387.0,300.3 L386.8,298.3 L385.4,297.3 L383.8,297.2 L382.2,297.4 L380.9,296.7 L380.1,295.3 L379.1,294.1 L377.8,293.2 L376.8,292.2 L375.7,291.1 L374.8,290.0 L374.3,287.9 L374.4,286.4 L374.0,284.6 L373.0,283.0 L372.3,281.1 L371.5,279.2 L372.0,277.5 L372.1,275.4 L371.9,273.2 L372.1,271.6 L373.0,270.5 L374.1,269.4 L374.6,267.9 L374.0,266.5 L373.0,265.4 L372.3,264.1 L371.9,262.7 L371.6,261.5 L371.0,259.9 L370.0,258.2 L368.3,257.5 L367.3,256.2 L366.3,254.7 L364.3,253.8 L362.3,253.8 L360.7,253.9 L359.4,253.5 L358.2,252.2 L356.4,251.4 L355.1,252.0 L353.7,253.5 L352.4,254.9 L351.0,256.4 L349.7,257.8 L348.0,258.9 L346.5,259.5 L344.8,260.1 L343.1,260.9 L341.4,261.9 L339.9,261.7 L338.5,262.9 L336.8,263.8 L335.2,264.4 L333.3,264.5 L331.5,264.0 L330.2,263.1 L329.6,262.3 L328.7,261.1 L327.8,260.0 L327.0,259.1 L326.6,258.4 L325.4,257.0 L323.8,256.1 L322.4,254.7 L321.0,252.8 L320.8,251.0 L319.1,250.6 L317.8,249.5 L315.9,248.7 L314.5,247.2 L313.6,245.6 L312.8,244.1 L311.3,243.2 L309.6,242.9 L307.9,242.6 L306.7,241.6 L305.8,240.2 L304.7,239.0 L303.5,238.0 L302.6,236.6 L301.6,235.2 L300.2,233.6 L299.1,232.5 L297.6,231.1 L296.1,229.9 L294.5,228.6 L293.0,227.4 L291.5,226.3 L290.3,225.2 L289.3,223.8 L288.5,222.3 L287.7,220.9 L286.9,219.6 L286.2,218.4 L285.5,217.2 L284.8,216.0 L284.0,214.8 L283.6,214.4 L282.8,213.7 L281.4,212.6 L280.3,211.8 L279.3,211.0 L278.3,210.3 L277.2,209.5 L275.9,208.5 L274.6,207.5 L273.0,206.4 L271.9,205.5 L270.8,204.7 L269.7,203.9 L268.5,203.0 L267.3,201.6 L266.5,199.6 L266.2,198.2 L265.8,197.0 L265.3,195.9 L264.5,194.9 L263.6,194.1 L262.8,193.4 L261.9,192.7 L261.0,191.9 L260.1,191.2 L259.2,190.4 L258.4,189.3 L257.8,187.8 L257.0,186.4 L255.5,185.0 L253.6,184.4 L252.9,183.3 L253.2,181.8 L253.6,179.6 L251.5,178.7 L249.9,177.6 L248.9,176.8 L248.2,175.7 L247.5,174.4 L246.7,173.7 L246.1,172.6 L245.0,172.9 L244.2,172.2 L243.6,171.3 L243.0,170.4 L242.5,169.4 L241.5,169.0 L240.6,168.4 L240.3,167.5 L239.1,167.3 L238.5,168.0 L237.6,168.3 L236.8,167.6 L235.9,167.0 L234.9,166.8 L234.5,167.7 L233.6,168.3 L232.5,168.4 L231.7,167.7 L230.8,166.7 L230.6,164.8 L230.6,162.6 L231.9,161.7 L231.9,159.8 L232.4,157.8 L233.5,156.1 L233.9,154.3 L234.9,153.2 L236.4,152.5 L237.8,151.5 L238.4,149.9 L237.5,148.1 L236.6,146.3 L236.4,144.3 L236.5,142.4 L235.9,140.7 L235.3,139.1 L235.4,137.5 L236.3,136.2 L237.0,134.7 L236.6,132.8 L236.2,130.8 L236.5,128.8 L237.0,126.7 L237.4,125.2 L237.8,123.5 L238.1,121.9 L238.3,121.1 L238.5,120.1 L238.5,119.0 L237.8,117.3 L237.1,115.6 L236.5,114.1 L235.8,112.4 L235.1,110.7 L234.4,109.0 L233.5,107.2 L232.7,105.0 L232.1,102.7 L231.6,100.8 L231.3,99.6 L231.2,98.4 L231.4,97.0 L231.3,95.3 L231.1,93.8 L230.8,92.0 L230.6,90.9 L230.6,89.6 L230.2,87.8 L229.6,85.9 L230.8,84.1 L231.5,82.5 L231.3,81.2 L231.1,80.0 L230.8,78.8 L230.1,77.8 L229.1,77.1 L228.1,76.3 L228.0,75.3 L228.5,74.2 L228.0,73.2 L226.8,73.2 L225.7,73.1 L224.8,72.5 L224.1,71.6 L223.7,70.4 L223.6,68.4 L222.8,66.5 L221.8,64.6 L221.1,62.3 L220.4,60.1 L219.3,58.1 L218.1,56.5 L216.8,54.5 L216.3,52.1 L215.6,49.9 L214.9,47.7 L214.3,45.7 L213.9,43.6 L213.8,41.6 L214.0,39.9 L214.2,37.9 L215.0,36.0 L216.4,35.1 L216.4,33.3 L216.3,31.6 L215.8,30.3 L215.4,28.8 L215.2,27.2 L214.9,26.0" fill="none" stroke="#b04a24" stroke-width="3.6" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="426.2" cy="352.6" r="6.5" fill="#6f7c53" stroke="#fff" stroke-width="2.5"/>
+  </svg></div>
+    <figcaption class="rp-map__cap">Ipswich Station to Toogoolawah — 89 km near Ipswich, Queensland</figcaption>
+  </figure>
+
+  <p class="rp-meta">Vetted by <a href="https://strava.app.link/4BpFBZOgC5b" rel="nofollow noopener">Jarrod Hyslop</a>.</p>
+
+  
+
+  
+
+  <h2>Frequently asked questions</h2>
+  <div class="rp-faq">
+    <details class="rp-faq__item"><summary>How long is Ipswich Station to Toogoolawah?</summary><p>Ipswich Station to Toogoolawah is a 89 km gravel ride with about 600 m of climbing, which rates as big day out.</p></details>
+    <details class="rp-faq__item"><summary>Where do you start Ipswich Station to Toogoolawah?</summary><p>Ipswich Station to Toogoolawah starts in the Ipswich area, Queensland. Open the interactive map for the exact start point and turn-by-turn track.</p></details>
+    <details class="rp-faq__item"><summary>How difficult is Ipswich Station to Toogoolawah?</summary><p>Ipswich Station to Toogoolawah is Big day out — a solid outing with real distance or climbing — pack for a full day.</p></details>
+    <details class="rp-faq__item"><summary>What surface is Ipswich Station to Toogoolawah?</summary><p>The terrain is Groomed — mostly smooth, well-formed gravel that rolls fast.</p></details>
+    <details class="rp-faq__item"><summary>Can I download a GPX file for Ipswich Station to Toogoolawah?</summary><p>Yes — download the GPX for Ipswich Station to Toogoolawah to load onto your GPS computer or phone before you ride.</p></details>
+  </div>
+
+  <p class="rp-back"><a href="/map#ipswich-station-to-toogoolawah-iaute">See Ipswich Station to Toogoolawah on the full interactive map →</a></p>
+</article>
+<script>window.__brmRoute=[[152.75995,-27.61249],[152.76006,-27.61254],[152.75927,-27.61289],[152.75812,-27.61333],[152.75659,-27.61324],[152.75442,-27.61381],[152.75294,-27.61412],[152.75194,-27.6143],[152.75115,-27.61454],[152.74982,-27.61471],[152.74845,-27.61472],[152.74614,-27.61444],[152.74353,-27.61439],[152.74161,-27.61447],[152.74034,-27.61464],[152.73978,-27.61459],[152.73943,-27.61458],[152.73895,-27.61456],[152.73875,-27.61464],[152.73822,-27.61422],[152.73654,-27.61413],[152.73457,-27.61369],[152.73276,-27.61326],[152.73201,-27.61252],[152.73124,-27.61155],[152.73047,-27.61057],[152.72897,-27.60957],[152.72918,-27.60803],[152.72899,-27.60659],[152.72662,-27.60537],[152.72579,-27.60612],[152.72554,-27.60695],[152.7259,-27.6059],[152.72665,-27.60446],[152.72776,-27.60295],[152.72867,-27.60133],[152.72868,-27.59979],[152.7282,-27.59841],[152.72754,-27.59706],[152.72689,-27.59574],[152.72619,-27.59431],[152.72532,-27.5928],[152.72394,-27.59173],[152.72291,-27.59057],[152.72237,-27.58979],[152.72179,-27.58898],[152.72139,-27.58822],[152.72066,-27.58683],[152.72032,-27.58558],[152.72018,-27.58409],[152.72091,-27.58261],[152.72054,-27.58107],[152.7204,-27.57947],[152.72037,-27.57775],[152.71955,-27.57631],[152.71849,-27.57491],[152.71892,-27.57322],[152.71783,-27.57201],[152.71673,-27.57043],[152.71586,-27.56881],[152.71521,-27.5671],[152.71371,-27.56591],[152.71185,-27.56625],[152.71128,-27.56461],[152.7115,-27.56312],[152.71038,-27.56201],[152.7087,-27.56199],[152.70793,-27.56092],[152.70701,-27.55978],[152.7057,-27.55923],[152.70499,-27.55802],[152.70431,-27.55651],[152.70338,-27.55463],[152.70277,-27.55271],[152.70192,-27.55116],[152.7004,-27.55031],[152.70018,-27.54855],[152.69829,-27.54786],[152.69701,-27.54597],[152.69528,-27.54395],[152.69425,-27.54186],[152.6937,-27.53982],[152.69295,-27.53805],[152.69199,-27.53591],[152.69117,-27.53365],[152.69075,-27.53153],[152.68971,-27.52973],[152.68921,-27.52773],[152.68891,-27.52569],[152.68794,-27.52426],[152.68621,-27.52356],[152.68444,-27.52345],[152.6827,-27.5234],[152.68099,-27.52367],[152.67941,-27.52362],[152.67808,-27.52266],[152.67711,-27.52133],[152.67638,-27.51994],[152.6753,-27.51877],[152.67376,-27.51785],[152.67242,-27.51696],[152.67134,-27.51626],[152.67019,-27.51509],[152.66903,-27.51399],[152.66767,-27.51309],[152.66696,-27.51184],[152.66652,-27.50993],[152.66525,-27.50827],[152.6657,-27.5065],[152.66646,-27.5048],[152.66558,-27.50319],[152.66403,-27.50193],[152.66348,-27.50001],[152.66257,-27.49824],[152.66222,-27.4963],[152.66106,-27.49459],[152.66144,-27.49282],[152.66211,-27.4911],[152.66229,-27.48916],[152.66176,-27.48697],[152.6617,-27.48484],[152.66179,-27.48336],[152.66236,-27.48189],[152.66326,-27.4808],[152.66485,-27.48024],[152.66569,-27.47877],[152.66603,-27.47723],[152.66661,-27.47585],[152.66584,-27.47454],[152.66477,-27.47341],[152.66373,-27.47229],[152.66291,-27.47112],[152.66228,-27.46981],[152.6621,-27.46847],[152.66112,-27.4674],[152.66119,-27.4661],[152.66094,-27.46467],[152.65977,-27.4629],[152.6588,-27.46145],[152.65728,-27.45977],[152.65524,-27.45971],[152.65386,-27.45872],[152.65317,-27.45709],[152.65221,-27.45571],[152.65038,-27.45468],[152.64798,-27.45375],[152.64579,-27.45369],[152.64381,-27.4538],[152.6421,-27.45389],[152.64051,-27.45382],[152.63909,-27.45324],[152.63795,-27.45219],[152.63647,-27.45053],[152.63451,-27.4497],[152.63263,-27.4502],[152.63133,-27.4509],[152.62984,-27.45226],[152.62841,-27.45366],[152.62698,-27.45508],[152.62554,-27.45646],[152.624,-27.45798],[152.62255,-27.45934],[152.62105,-27.46051],[152.61913,-27.46163],[152.6174,-27.46239],[152.61573,-27.46294],[152.61406,-27.46349],[152.61209,-27.46412],[152.61016,-27.46479],[152.60849,-27.46576],[152.60657,-27.46682],[152.60491,-27.46703],[152.60333,-27.46657],[152.60178,-27.46798],[152.59997,-27.46881],[152.59829,-27.46985],[152.59658,-27.47045],[152.59463,-27.47089],[152.59259,-27.47111],[152.59072,-27.47032],[152.58873,-27.47011],[152.587,-27.46936],[152.58606,-27.46839],[152.58548,-27.46775],[152.58454,-27.46664],[152.58353,-27.46549],[152.58258,-27.46441],[152.58163,-27.46331],[152.5808,-27.46234],[152.58053,-27.462],[152.57976,-27.46114],[152.57856,-27.45976],[152.57717,-27.45855],[152.57531,-27.4578],[152.57366,-27.45661],[152.57212,-27.45515],[152.57038,-27.45351],[152.56954,-27.45144],[152.56963,-27.44968],[152.56839,-27.44867],[152.56617,-27.44857],[152.5647,-27.44758],[152.56327,-27.44667],[152.56105,-27.4459],[152.55927,-27.44467],[152.55798,-27.44318],[152.55697,-27.44164],[152.55607,-27.44015],[152.55517,-27.43861],[152.55378,-27.43747],[152.55217,-27.43668],[152.55029,-27.43614],[152.54841,-27.43616],[152.54653,-27.43595],[152.54496,-27.43523],[152.54381,-27.43409],[152.54281,-27.43277],[152.54177,-27.43151],[152.54055,-27.43039],[152.5393,-27.42925],[152.53806,-27.42827],[152.5367,-27.42718],[152.53628,-27.42559],[152.53521,-27.42417],[152.53346,-27.42285],[152.5321,-27.42134],[152.53074,-27.42017],[152.52935,-27.41904],[152.52792,-27.41777],[152.52619,-27.4165],[152.52452,-27.4153],[152.52278,-27.41407],[152.52107,-27.41287],[152.51945,-27.41169],[152.51781,-27.41051],[152.51635,-27.40948],[152.51499,-27.40851],[152.51371,-27.40738],[152.51267,-27.40597],[152.51171,-27.40448],[152.51081,-27.40309],[152.50992,-27.40176],[152.50907,-27.40044],[152.50829,-27.39924],[152.50748,-27.39804],[152.50673,-27.39689],[152.50596,-27.39571],[152.50518,-27.39451],[152.50443,-27.39338],[152.50363,-27.39219],[152.50278,-27.39103],[152.50223,-27.39043],[152.50198,-27.39029],[152.50117,-27.38968],[152.49941,-27.38851],[152.49795,-27.3875],[152.49682,-27.38676],[152.49569,-27.38601],[152.49459,-27.38529],[152.49347,-27.38455],[152.49235,-27.38381],[152.4912,-27.38305],[152.48992,-27.38222],[152.48858,-27.38132],[152.48714,-27.38037],[152.48563,-27.37939],[152.48405,-27.37832],[152.48234,-27.37719],[152.48119,-27.37642],[152.48006,-27.37566],[152.47883,-27.37486],[152.47761,-27.37409],[152.47633,-27.37325],[152.47508,-27.37238],[152.47381,-27.37129],[152.47255,-27.36982],[152.47144,-27.36793],[152.47083,-27.36613],[152.47055,-27.3648],[152.47026,-27.36363],[152.46982,-27.36246],[152.46932,-27.36138],[152.46859,-27.36031],[152.46778,-27.35938],[152.46686,-27.35852],[152.46586,-27.35777],[152.46496,-27.3571],[152.46399,-27.35643],[152.46303,-27.35573],[152.46207,-27.35504],[152.46108,-27.35433],[152.46016,-27.35366],[152.45914,-27.35293],[152.45808,-27.35214],[152.45719,-27.35122],[152.45637,-27.35006],[152.45571,-27.3487],[152.4551,-27.34727],[152.45418,-27.34583],[152.4529,-27.34448],[152.4512,-27.34324],[152.44906,-27.34264],[152.44726,-27.34197],[152.44658,-27.34081],[152.44623,-27.33966],[152.44694,-27.33804],[152.44792,-27.33605],[152.44708,-27.33394],[152.44468,-27.3332],[152.44257,-27.33235],[152.441,-27.33132],[152.43989,-27.33053],[152.43889,-27.32965],[152.43807,-27.32856],[152.43746,-27.32736],[152.43671,-27.32615],[152.43561,-27.3255],[152.43504,-27.32463],[152.43447,-27.3235],[152.43333,-27.32337],[152.43212,-27.32373],[152.43115,-27.32317],[152.43047,-27.3223],[152.42978,-27.32147],[152.42913,-27.32062],[152.42855,-27.31968],[152.42809,-27.31868],[152.42737,-27.31788],[152.42617,-27.31748],[152.42492,-27.31736],[152.42423,-27.3166],[152.42401,-27.31559],[152.42334,-27.31484],[152.42196,-27.31465],[152.42096,-27.31517],[152.42031,-27.3159],[152.41938,-27.31654],[152.41852,-27.31627],[152.41758,-27.31543],[152.41671,-27.31484],[152.41573,-27.31428],[152.41456,-27.31376],[152.41353,-27.31411],[152.41319,-27.31505],[152.41271,-27.31592],[152.41155,-27.31636],[152.4103,-27.31666],[152.40913,-27.31642],[152.40834,-27.31576],[152.40743,-27.31489],[152.40639,-27.31385],[152.40613,-27.31211],[152.40605,-27.3101],[152.40607,-27.30802],[152.40676,-27.306],[152.40839,-27.30582],[152.40917,-27.30416],[152.4083,-27.30196],[152.40887,-27.30002],[152.41037,-27.29843],[152.41126,-27.29669],[152.41197,-27.29502],[152.41224,-27.29332],[152.4134,-27.29235],[152.41498,-27.29163],[152.41662,-27.2909],[152.41821,-27.29007],[152.41964,-27.28894],[152.42036,-27.28753],[152.41958,-27.28564],[152.41861,-27.28398],[152.41764,-27.28223],[152.41677,-27.28043],[152.41652,-27.27852],[152.41661,-27.27662],[152.41681,-27.27473],[152.4166,-27.27285],[152.41515,-27.27151],[152.41449,-27.26994],[152.41464,-27.26843],[152.41478,-27.26684],[152.41548,-27.26554],[152.4168,-27.26443],[152.41775,-27.26305],[152.41742,-27.26118],[152.41695,-27.25927],[152.41651,-27.25745],[152.41624,-27.25549],[152.41658,-27.25354],[152.41714,-27.25146],[152.41766,-27.24954],[152.41804,-27.2481],[152.41847,-27.24654],[152.4189,-27.24488],[152.41932,-27.24319],[152.41971,-27.24185],[152.41986,-27.24118],[152.42014,-27.24022],[152.42033,-27.23934],[152.42062,-27.23859],[152.42029,-27.23711],[152.41953,-27.23537],[152.41884,-27.23388],[152.41805,-27.23216],[152.41759,-27.23111],[152.41675,-27.22925],[152.41591,-27.2275],[152.41521,-27.22598],[152.41446,-27.22439],[152.41368,-27.22271],[152.41292,-27.22114],[152.41205,-27.2195],[152.411,-27.21753],[152.41004,-27.21537],[152.40938,-27.21307],[152.40877,-27.21098],[152.40822,-27.20913],[152.40778,-27.20753],[152.40744,-27.20637],[152.40718,-27.20523],[152.40712,-27.20408],[152.40726,-27.20294],[152.40756,-27.20126],[152.40753,-27.19955],[152.40726,-27.19819],[152.40704,-27.19664],[152.40665,-27.19458],[152.40634,-27.19351],[152.40613,-27.19241],[152.40596,-27.19126],[152.40614,-27.18995],[152.40628,-27.188],[152.40479,-27.18665],[152.4039,-27.1846],[152.40513,-27.18295],[152.40647,-27.18113],[152.4075,-27.17952],[152.40771,-27.17813],[152.40749,-27.17685],[152.40726,-27.17567],[152.40703,-27.17446],[152.40674,-27.17332],[152.40619,-27.17227],[152.4054,-27.17123],[152.40458,-27.17031],[152.40331,-27.16984],[152.40218,-27.16928],[152.40149,-27.16831],[152.40131,-27.16714],[152.40179,-27.16623],[152.40237,-27.16524],[152.40212,-27.16414],[152.40097,-27.16349],[152.39963,-27.16357],[152.3984,-27.16365],[152.39721,-27.1634],[152.3962,-27.16286],[152.39534,-27.16212],[152.39455,-27.1613],[152.39389,-27.16036],[152.39359,-27.15906],[152.39362,-27.15714],[152.39316,-27.15528],[152.39243,-27.15338],[152.39118,-27.15147],[152.3902,-27.14974],[152.38942,-27.14769],[152.38867,-27.14537],[152.38791,-27.1432],[152.38685,-27.14125],[152.38563,-27.13929],[152.38441,-27.1378],[152.38296,-27.13625],[152.38141,-27.1343],[152.38063,-27.13205],[152.38013,-27.12972],[152.37949,-27.12756],[152.37871,-27.12538],[152.37799,-27.12339],[152.3772,-27.12118],[152.37658,-27.11939],[152.37608,-27.11738],[152.37581,-27.11534],[152.37572,-27.11349],[152.37582,-27.11171],[152.37602,-27.11006],[152.37631,-27.10817],[152.37659,-27.10613],[152.37725,-27.10425],[152.37908,-27.10332],[152.38032,-27.1023],[152.38046,-27.10054],[152.38059,-27.09898],[152.38031,-27.09733],[152.38007,-27.09562],[152.37926,-27.09467],[152.37888,-27.09326],[152.37854,-27.09177],[152.3783,-27.09018],[152.37821,-27.08849],[152.37772,-27.08774]];</script>
+<script src="vendor/maplibre-gl.js"></script>
+<script>
+(function(){
+  var coords=window.__brmRoute;
+  var el=document.getElementById('rp-livemap');
+  if(!el||!window.maplibregl||!coords||coords.length<2) return;
+  fetch('/styles/bush.json').then(function(r){return r.json();}).then(function(style){
+    var map=new maplibregl.Map({container:el,style:style,attributionControl:true,cooperativeGestures:true,dragRotate:false});
+    map.addControl(new maplibregl.NavigationControl({showCompass:false}),'top-right');
+    map.on('load',function(){
+      map.addSource('brm-route',{type:'geojson',data:{type:'Feature',geometry:{type:'LineString',coordinates:coords}}});
+      map.addLayer({id:'brm-route-line',type:'line',source:'brm-route',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#b04a24','line-width':4}});
+      var bounds=new maplibregl.LngLatBounds(coords[0],coords[0]);
+      for(var i=1;i<coords.length;i++) bounds.extend(coords[i]);
+      map.fitBounds(bounds,{padding:36,duration:0});
+      new maplibregl.Marker({color:'#6f7c53'}).setLngLat(coords[0]).addTo(map);
+      var fig=el.closest('.rp-map'); if(fig) fig.classList.add('is-live');
+    });
+  }).catch(function(){});
+})();</script>
+<div id="gate" class="gate" aria-hidden="true">
+  <div class="gate__backdrop" data-gate-close></div>
+  <div class="gate__dialog" role="dialog" aria-modal="true" aria-labelledby="gate-title">
+    <button class="gate__close" data-gate-close aria-label="Close">&times;</button>
+    <h2 id="gate-title" class="gate__title">Get the route. Join the bush.</h2>
+    <p class="gate__privacy">We use your email to send the GPX and the occasional ride note. No spam, unsubscribe anytime — see our <a href="https://bushriding.cc/policies/privacy-policy" target="_blank" rel="noopener">privacy policy</a>.</p>
+    <p class="gate__copy">Drop your email and the GPX is yours. We send the occasional route, nothing else.</p>
+    <form id="gate-form" class="gate__form">
+      <input id="gate-email" class="gate__input" type="email" required autocomplete="email" placeholder="you@email.com" aria-label="Email address" />
+      <button type="submit" class="button button--primary gate__submit">Get the route</button>
+      <p id="gate-error" class="gate__error" role="alert" hidden></p>
+    </form>
+  </div>
+</div>
+<script>
+(function(){
+  var API="https://map-api.bushriding.cc", KEY='brm_subscribed';
+  var link=document.getElementById('rp-gpx'), gate=document.getElementById('gate');
+  if(!link||!gate) return;
+  var form=document.getElementById('gate-form'),
+      input=document.getElementById('gate-email'),
+      err=document.getElementById('gate-error'),
+      btn=form.querySelector('.gate__submit'),
+      href=link.getAttribute('href'),
+      file=link.getAttribute('data-file')||'route.gpx';
+
+  function subscribed(){ try{ return sessionStorage.getItem(KEY)==='1'; }catch(e){ return false; } }
+  function mark(){ try{ sessionStorage.setItem(KEY,'1'); }catch(e){} }
+  function show(){ gate.classList.add('is-open'); gate.setAttribute('aria-hidden','false'); err.hidden=true; setTimeout(function(){ input.focus(); },50); }
+  function hide(){ gate.classList.remove('is-open'); gate.setAttribute('aria-hidden','true'); }
+
+  // Blob download, same as the map: a cross-origin <a download> is ignored, and
+  // iOS Safari then navigates to the file and strands you on a preview screen.
+  function grab(){
+    fetch(href).then(function(r){ if(!r.ok) throw new Error('gpx '+r.status); return r.blob(); }).then(function(b){
+      var u=URL.createObjectURL(b), a=document.createElement('a');
+      a.href=u; a.download=file; a.rel='noopener';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(u); },2000);
+    }).catch(function(){ window.open(href,'_blank','noopener'); });
+  }
+
+  link.addEventListener('click', function(e){
+    e.preventDefault();
+    if(subscribed()) grab(); else show();
+  });
+
+  Array.prototype.forEach.call(gate.querySelectorAll('[data-gate-close]'), function(el){ el.addEventListener('click', hide); });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape'&&gate.classList.contains('is-open')) hide(); });
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    var email=(input.value||'').trim();
+    if(!email) return;
+    err.hidden=true; btn.disabled=true; btn.textContent='Joining…';
+    fetch(API+'/subscribe',{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify({email:email})})
+      .then(function(r){
+        if(r.ok) return;
+        return r.json().catch(function(){ return {}; }).then(function(j){
+          throw new Error(j.error||('Subscription failed ('+r.status+')'));
+        });
+      })
+      .then(function(){ mark(); hide(); grab(); })
+      .catch(function(ex){
+        console.error('Gate subscribe failed:', ex);
+        err.textContent="Couldn't sign you up — "+(ex.message||'try again.');
+        err.hidden=false;
+      })
+      .then(function(){ btn.disabled=false; btn.textContent='Get the route'; });
+  });
+})();</script>
+<script>
+(function(){
+  var a=document.getElementById('rp-nav');
+  if(!a||!a.dataset.apple) return;
+  var ua=navigator.userAgent||'';
+  if(/iP(hone|ad|od)/.test(ua)||(/Macintosh/.test(ua)&&(navigator.maxTouchPoints||0)>1)) a.href=a.dataset.apple;
+})();</script></main>
+<footer class="site-foot">
+  <p>Bush Map — community-vetted gravel routes across Australia. Routes are guides only; ride to conditions.</p>
+  <p><a href="/routes/">All routes</a> · <a href="/">Interactive map</a> · <a href="/submit">Submit a route</a></p>
+</footer>
+</body>
+</html>
