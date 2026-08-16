@@ -111,6 +111,30 @@ body.template-index .alp-head { top: 50vh; top: 50svh; transform: translateY(-50
 .alp-nav-link--wordmark { font-weight: 800; font-size: clamp(1.55rem, 2vw + 1rem, 2.85rem); letter-spacing: 0.01em; }
 .alp-nav-link--clock { font-weight: 500; font-variant-numeric: tabular-nums; font-size: clamp(1rem, 1.2vw + 0.7rem, 1.8rem); }
 
+/* Brush wordmark. Sized by HEIGHT so it holds its aspect ratio, and flex on the
+   anchor so there is no inline-baseline gap under it.
+
+   The heights look large next to the old font sizes because they are not
+   comparable: in the artwork the cap "B" occupies only ~46% of the image's
+   height (the script's ascenders and descenders take the rest). Scaling the old
+   cap height by ~1/0.46 lands the letters at the same visual size as the type
+   they replace, and the resulting width (~230px desktop) closely matches the
+   width "Bush Riding™" used to occupy. */
+.alp-nav-link--wordmark { display: flex; align-items: center; }
+/* Selector is two classes deep on purpose: the blanket `.alp img` rule above is
+   (0,1,1), so a lone `.alp-wordmark__img` (0,1,0) LOSES to it and the logo
+   renders at its intrinsic 1273px width. Do not flatten this selector. */
+.alp-nav-link--wordmark .alp-wordmark__img {
+  display: block;
+  height: clamp(3.4rem, 4.4vw + 2.2rem, 6.2rem);
+  width: auto;
+  max-width: none;
+  /* The artwork is cream on transparent, so it cannot inherit the citrus the
+     header type uses on the home screen. The drop-shadow matches the type's
+     text-shadow so it holds up over bright sky. */
+  filter: drop-shadow(0 1px 4px rgba(22, 21, 15, 0.25));
+}
+
 /* On the home screen all header text is citrus yellow (the hero CTA buttons
    under the nav keep their white chip styling). */
 body.template-index .alp-nav-link { color: var(--alp-citrus); }
@@ -558,6 +582,9 @@ body.template-index .alp-foot__small { padding: 0; text-align: center; font-size
      Type steps down so everything fits across a phone. */
   .alp-nav-link { font-size: 1rem; padding: 8px 6px; }
   .alp-nav-link--wordmark { font-size: 1.1rem; }
+  /* Same 1/0.46 scaling as desktop, against the 1.1rem the type steps down to,
+     so the logo takes about the width the wordmark text used to on a phone. */
+  .alp-nav-link--wordmark .alp-wordmark__img { height: 2.4rem; }
   .alp-nav-link--clock { font-size: 0.85rem; }
   .alp-head { flex-wrap: nowrap; gap: 0 6px; }
   .alp-head__group { gap: 2px; }

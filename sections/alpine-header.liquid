@@ -22,11 +22,30 @@
   assign explore_label = section.settings.explore_label | default: 'Explore'
   assign discover_label = section.settings.discover_label | default: 'Discover Launch Collection'
   assign discover_url = section.settings.discover_url | default: shop_url
+  assign wordmark_text = section.settings.wordmark | default: shop.name
+  comment
+    Logo fallback. The brush wordmark already lives in Shopify Content > Files,
+    so the header shows it with no editor step. Pick an image in "Logo" to
+    override — that takes precedence and is what you want long term, because a
+    theme setting survives a file being re-uploaded under a new URL.
+  endcomment
+  assign logo_fallback = 'https://cdn.shopify.com/s/files/1/0838/6373/2480/files/IMG_0888-removebg-preview.png?v=1786853172'
 -%}
 
 <header class="alp alp-head" data-alp-header>
   <div class="alp-head__group">
-    <a class="alp-nav-link alp-nav-link--wordmark" href="{{ routes.root_url }}">{{ section.settings.wordmark | default: shop.name | escape }}</a>
+    {%- comment -%}
+      The alt text is the link's accessible name AND what shows if the image
+      ever fails, so it carries the wordmark — no aria-label, which would just
+      duplicate it. 600px wide covers the largest render (231 CSS px) at 2x.
+    {%- endcomment -%}
+    <a class="alp-nav-link alp-nav-link--wordmark" href="{{ routes.root_url }}">
+      {%- if section.settings.logo != blank -%}
+        {{ section.settings.logo | image_url: width: 600 | image_tag: class: 'alp-wordmark__img', alt: wordmark_text, loading: 'eager', fetchpriority: 'high' }}
+      {%- else -%}
+        <img class="alp-wordmark__img" src="{{ logo_fallback }}&width=600" alt="{{ wordmark_text | escape }}" width="1273" height="543" loading="eager" fetchpriority="high">
+      {%- endif -%}
+    </a>
     <span
       class="alp-nav-link alp-nav-link--clock"
       data-alp-clock="{{ section.settings.clock_timezone | default: 'Australia/Brisbane' | escape }}"
@@ -173,7 +192,8 @@
   "name": "Bush Riding header",
   "tag": "div",
   "settings": [
-    { "type": "text", "id": "wordmark", "label": "Wordmark", "default": "Bush Riding™", "info": "Leave blank to use the store name." },
+    { "type": "image_picker", "id": "logo", "label": "Logo", "info": "The brush wordmark shown in the bar. Leave empty to use the one already in Content > Files." },
+    { "type": "text", "id": "wordmark", "label": "Wordmark", "default": "Bush Riding™", "info": "Now the logo's alt text and the © line in the Explore menu. Leave blank to use the store name." },
     { "type": "text", "id": "clock_timezone", "label": "Clock time zone (IANA id)", "default": "Australia/Brisbane" },
     { "type": "text", "id": "clock_label", "label": "Clock zone label", "default": "AEST" },
     { "type": "header", "content": "Bar items" },
