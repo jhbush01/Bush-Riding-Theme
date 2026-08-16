@@ -1,0 +1,193 @@
+{%- comment -%}
+  Bush Riding collection page (option 1b — editorial rebuild).
+
+  Replaces Dawn's `main-collection-banner` + `main-collection-product-grid` on
+  the collection template with the storefront's own language: a split hero with
+  the four-point star, chip name/price labels overlaid on 3:4 imagery, and
+  facets rendered as invertible chips.
+
+  Deliberately reuses the existing `.alp-card`, `.alp-chip`, `.alp-chip-row`
+  and `.alp-glyph` classes from `alpine-collection.liquid` — no new card CSS.
+  Only the hero, the chip bar and the grid gutters are new (see the
+  `.alp-cgrid` block appended to assets/alpine.css).
+
+  Images render via `image_url | image_tag` so the focal point set in the
+  theme editor controls the crop.
+{%- endcomment -%}
+
+{%- liquid
+  assign eyebrow = section.settings.eyebrow | default: 'Shop'
+  assign cols = section.settings.columns_desktop | default: 4
+-%}
+
+<section class="alp alp-cgrid" id="collection-{{ section.id }}">
+  {%- if section.settings.show_hero -%}
+    <div class="alp-cgrid__hero alp-reveal">
+      <figure class="alp-cgrid__panel alp-cgrid__panel--left">
+        {%- if section.settings.panel_left != blank -%}
+          {{ section.settings.panel_left | image_url: width: 1800 | image_tag: loading: 'eager', fetchpriority: 'high', alt: section.settings.panel_left.alt | default: '' }}
+        {%- else -%}
+          <img src="{{ 'alpine-ph-panel-portrait.svg' | asset_url }}" alt="" width="900" height="1100" loading="eager">
+        {%- endif -%}
+
+        {%- if section.settings.show_star -%}
+          <svg class="alp-cgrid__star" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+            <path d="M50 0 C54 32 68 46 100 50 C68 54 54 68 50 100 C46 68 32 54 0 50 C32 46 46 32 50 0 Z"/>
+          </svg>
+        {%- endif -%}
+
+        <div class="alp-cgrid__overlay">
+          <p class="alp-cgrid__eyebrow">{{ eyebrow | escape }}</p>
+          <h1 class="alp-cgrid__title">
+            {%- if section.settings.overlay_heading != blank -%}
+              {{ section.settings.overlay_heading | escape }}
+            {%- else -%}
+              {{ collection.title | escape }}
+            {%- endif -%}
+          </h1>
+        </div>
+      </figure>
+
+      <figure class="alp-cgrid__panel alp-cgrid__panel--right">
+        {%- if section.settings.panel_right != blank -%}
+          {{ section.settings.panel_right | image_url: width: 1200 | image_tag: loading: 'lazy', alt: section.settings.panel_right.alt | default: '' }}
+        {%- else -%}
+          <img src="{{ 'alpine-ph-panel-mist.svg' | asset_url }}" alt="" width="700" height="1100" loading="lazy">
+        {%- endif -%}
+        {%- if section.settings.panel_product != blank -%}
+          <figcaption class="alp-chip-row">
+            <a class="alp-chip" href="{{ section.settings.panel_product.url }}">{{ section.settings.panel_product.title | escape }} <span class="alp-glyph">✦</span></a>
+            <span class="alp-chip alp-chip--price">{{ section.settings.panel_product.price | money }}</span>
+          </figcaption>
+        {%- endif -%}
+      </figure>
+    </div>
+  {%- endif -%}
+
+  {%- if collection.description != blank and section.settings.show_description -%}
+    <div class="alp-cgrid__intro alp-reveal">{{ collection.description }}</div>
+  {%- endif -%}
+
+  {%- paginate collection.products by section.settings.products_per_page -%}
+    <div class="alp-cgrid__bar">
+      {%- comment -%}
+        Facets as chips. Renders the first list-type filter's values; the active
+        one inverts to olive (.alp-chip--active). "All" clears that filter.
+        Requires filtering to be enabled for the collection in admin.
+      {%- endcomment -%}
+      {%- if section.settings.show_filters -%}
+        {%- assign chip_filter = null -%}
+        {%- for filter in collection.filters -%}
+          {%- if filter.type == 'list' and chip_filter == null -%}
+            {%- assign chip_filter = filter -%}
+          {%- endif -%}
+        {%- endfor -%}
+
+        {%- if chip_filter -%}
+          {%- assign any_active = false -%}
+          {%- for value in chip_filter.values -%}
+            {%- if value.active -%}{%- assign any_active = true -%}{%- endif -%}
+          {%- endfor -%}
+
+          <a class="alp-chip{% unless any_active %} alp-chip--active{% endunless %}" href="{{ chip_filter.url_to_remove }}">
+            All <span class="alp-glyph">✦</span>
+          </a>
+          {%- for value in chip_filter.values -%}
+            {%- if value.count > 0 or value.active -%}
+              <a
+                class="alp-chip{% if value.active %} alp-chip--active{% endif %}"
+                href="{% if value.active %}{{ value.url_to_remove }}{% else %}{{ value.url_to_add }}{% endif %}"
+              >{{ value.label | escape }}</a>
+            {%- endif -%}
+          {%- endfor -%}
+        {%- endif -%}
+      {%- endif -%}
+
+      {%- if section.settings.show_sorting and collection.sort_options.size > 0 -%}
+        <form class="alp-cgrid__sort" method="get" action="{{ collection.url }}">
+          <label for="alp-sort-{{ section.id }}">Sort —</label>
+          <select id="alp-sort-{{ section.id }}" name="sort_by" onchange="this.form.submit()">
+            {%- for option in collection.sort_options -%}
+              <option value="{{ option.value }}" {% if option.value == collection.sort_by %}selected{% endif %}>{{ option.name | escape }}</option>
+            {%- endfor -%}
+          </select>
+          {%- for f in collection.filters -%}
+            {%- for v in f.active_values -%}
+              <input type="hidden" name="{{ v.param_name }}" value="{{ v.value }}">
+            {%- endfor -%}
+          {%- endfor -%}
+          <noscript><button class="alp-chip" type="submit">Apply</button></noscript>
+        </form>
+      {%- endif -%}
+    </div>
+
+    {%- if section.settings.show_count -%}
+      <p class="alp-cgrid__count">{{ collection.products_count }} {{ collection.products_count | pluralize: 'product', 'products' }}</p>
+    {%- endif -%}
+
+    {%- if collection.products.size > 0 -%}
+      <div class="alp-cgrid__grid" style="--alp-cgrid-cols: {{ cols }}">
+        {%- for product in collection.products -%}
+          <article class="alp-card alp-reveal">
+            <a href="{{ product.url }}">
+              {%- if product.featured_image != blank -%}
+                {{ product.featured_image | image_url: width: 900 | image_tag: loading: 'lazy', alt: product.featured_image.alt | default: product.title }}
+              {%- else -%}
+                {%- assign ph_i = forloop.index0 | modulo: 4 | plus: 1 -%}
+                <img src="{{ 'alpine-ph-card-' | append: ph_i | append: '.svg' | asset_url }}" alt="" width="750" height="1000" loading="lazy">
+              {%- endif -%}
+              <div class="alp-chip-row">
+                <h2 class="alp-chip">{{ product.title | escape }} <span class="alp-glyph">✦</span></h2>
+                <p class="alp-chip alp-chip--price">
+                  {%- if product.price_varies -%}From {% endif -%}{{ product.price | money }}
+                </p>
+              </div>
+            </a>
+          </article>
+        {%- endfor -%}
+      </div>
+    {%- else -%}
+      <p class="alp-cgrid__empty">Nothing here yet. Take the long way back to the <a class="alp-text-link" href="{{ routes.all_products_collection_url }}">full catalogue</a>.</p>
+    {%- endif -%}
+
+    {%- if paginate.pages > 1 -%}
+      <nav class="alp-cgrid__pager" aria-label="Pagination">
+        {%- if paginate.previous -%}
+          <a class="alp-chip" href="{{ paginate.previous.url }}">Back</a>
+        {%- endif -%}
+        <span class="alp-chip alp-chip--price">{{ paginate.current_page }} / {{ paginate.pages }}</span>
+        {%- if paginate.next -%}
+          <a class="alp-chip" href="{{ paginate.next.url }}">More</a>
+        {%- endif -%}
+      </nav>
+    {%- endif -%}
+  {%- endpaginate -%}
+</section>
+
+{% schema %}
+{
+  "name": "Bush Riding collection page",
+  "tag": "section",
+  "class": "alp-cgrid-section",
+  "settings": [
+    { "type": "header", "content": "Hero" },
+    { "type": "checkbox", "id": "show_hero", "label": "Show split hero", "default": true },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Shop" },
+    { "type": "text", "id": "overlay_heading", "label": "Overlay heading", "info": "Leave blank to use the collection title." },
+    { "type": "checkbox", "id": "show_star", "label": "Show the four-point star", "default": true },
+    { "type": "image_picker", "id": "panel_left", "label": "Left panel image", "info": "Set the crop via the image's focal point." },
+    { "type": "image_picker", "id": "panel_right", "label": "Right panel image", "info": "Hidden on mobile." },
+    { "type": "product", "id": "panel_product", "label": "Right panel product chip" },
+    { "type": "header", "content": "Grid" },
+    { "type": "checkbox", "id": "show_description", "label": "Show collection description", "default": false },
+    { "type": "checkbox", "id": "show_filters", "label": "Show filter chips", "default": true },
+    { "type": "checkbox", "id": "show_sorting", "label": "Show sort", "default": true },
+    { "type": "checkbox", "id": "show_count", "label": "Show product count", "default": true },
+    { "type": "range", "id": "columns_desktop", "min": 2, "max": 5, "step": 1, "label": "Columns on desktop", "default": 4 },
+    { "type": "range", "id": "products_per_page", "min": 8, "max": 32, "step": 4, "label": "Products per page", "default": 16 }
+  ],
+  "presets": [
+    { "name": "Bush Riding collection page" }
+  ]
+}
+{% endschema %}

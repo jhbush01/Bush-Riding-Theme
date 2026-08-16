@@ -2,17 +2,22 @@
    Restraint is on-brand: flat surfaces, hairline borders, no drama shadows. */
 
 :root {
-  --cream: #e9e2d0;
-  --cream-panel: #f4efe2;
-  --ink: #2c2a24;
-  --ink-soft: #5a5346;
-  --line: #d8cfb8;
-  --olive: #6f7c53;
-  --sage: #aeb995;
-  --lemon: #d7e04b; /* active/selected only */
-  --water: #a7bfbd;
-  --ui-font: "Archivo", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --head-font: "Instrument Serif", Georgia, "Times New Roman", serif;
+  --cream: #f0efd1;
+  --cream-panel: #f6f5e2;          /* bone lifted ~4% — derived, flagged */
+  --ink: #5e5d4c;
+  /* Brief §3.1 specifies khaki #93916c here. Measured, khaki is 2.76:1 on bone
+     and 2.9:1 on the panel — it fails AA for the 11-13px secondary copy this
+     token carries. Per the brief's own Risks note ("bump those labels to olive
+     if they fail your bar"), muted TEXT uses olive; khaki is kept for non-text
+     accents and pins. Hierarchy comes from size and weight instead of tone. */
+  --ink-soft: #5e5d4c;
+  --line: rgba(94, 93, 76, 0.24);
+  --olive: #5e5d4c;
+  --sage: #c4c8b1;
+  --lemon: #f0e782;                /* active/selected only */
+  --water: #b5c4c1;
+  --ui-font: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --head-font: "Archivo", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 * {
@@ -168,9 +173,9 @@ body {
   width: 11px; height: 11px; border-radius: 50%; flex: none;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08) inset;
 }
-.legend__dot--routes { background: #6f7c53; }
-.legend__dot--famous { background: #8a4f7d; }
-.legend__dot--bush { background: #c1572e; }
+.legend__dot--routes { background: #5e5d4c; }
+.legend__dot--famous { background: #f0e782; }
+.legend__dot--bush { background: #93916c; }
 
 .filter__range {
   width: 100%;
@@ -255,9 +260,9 @@ body {
   flex: none;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08) inset;
 }
-.cat__dot--routes { background: #6f7c53; }
-.cat__dot--bush { background: #c1572e; }
-.cat__dot--famous { background: #8a4f7d; }
+.cat__dot--routes { background: #5e5d4c; }
+.cat__dot--bush { background: #93916c; }
+.cat__dot--famous { background: #f0e782; }
 .cat:hover { border-color: #b7ad92; }
 .cat:not(.is-active) {
   opacity: 0.55;
@@ -680,7 +685,7 @@ body {
   font-weight: 700;
   letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: #8a4f7d;
+  color: #5e5d4c;
 }
 .route-chooser__head {
   margin: 0 2px 3px;
@@ -703,7 +708,7 @@ body {
   padding: 11px 12px;
   border: none;
   border-radius: 11px;
-  background: #8a4f7d;
+  background: #5e5d4c;
   color: #fff;
   font-family: var(--ui-font);
   font-size: 13.5px;
@@ -713,7 +718,7 @@ body {
 .famous-popup__cta:hover { background: #703f66; }
 /* Event picker gets a plum top accent to echo its map pin. */
 .route-chooser-popup.is-event .maplibregl-popup-content {
-  border-top: 3px solid #8a4f7d;
+  border-top: 3px solid #5e5d4c;
 }
 /* Header text clears the close button. */
 .route-chooser__eyebrow,
@@ -750,7 +755,7 @@ body {
 }
 /* Famous-ride event details inside the picker. */
 .route-chooser__meta { margin: 0 2px 2px; font-size: 12px; font-weight: 600; color: #6f3f63; padding-right: 24px; }
-.route-chooser__eventlink { display: inline-block; margin: 1px 2px 8px; font-size: 12px; font-weight: 600; color: #8a4f7d; text-decoration: none; }
+.route-chooser__eventlink { display: inline-block; margin: 1px 2px 8px; font-size: 12px; font-weight: 600; color: #5e5d4c; text-decoration: none; }
 .route-chooser__eventlink:hover { text-decoration: underline; }
 .route-pick {
   display: flex;
@@ -1270,21 +1275,25 @@ textarea.field-input {
    story, and a dark primary action kept reachable in the peek. */
 
 :root {
-  --terracotta: #c1572e; /* event pin accent (map layers) */
-  --event-past: #8f8a7e;
-  /* Card design tokens (warmer than the app chrome, per the design). */
-  --card-bg: #efe8da;
-  --card-inset: #f6f1e6;
-  --card-inset-line: #e4dcca;
-  --card-ink: #26221b;
-  --card-ink-2: #3d382f;
-  --card-ink-3: #59544a;
-  --card-muted: #6b6558;
-  --card-muted-2: #8a8272;
-  --card-label: #a29a88;
-  --card-rust: #b04a24;
-  --card-rust-2: #bd5730;
-  --card-line: #e2dac9;
+  --terracotta: #93916c;           /* brand has no terracotta */
+  --event-past: #93916c;           /* not in brief §3.2; retoned, not dropped */
+  /* Card design tokens. Brief §3.2, with one correction: it assigns khaki to
+     --card-muted / --card-label / --card-rust, all of which style 9.5-14.5px
+     text and links. Khaki on the card ground measures 2.67:1 — below even the
+     3:1 large-text bar — so those carry olive (5.51:1). --card-rust-2 stays
+     khaki: it only draws borders, icons and hover states, never body text. */
+  --card-bg: #eceada;              /* card ground — derived, flagged */
+  --card-inset: #f6f5e2;
+  --card-inset-line: rgba(94, 93, 76, 0.18);
+  --card-ink: #5e5d4c;
+  --card-ink-2: #5e5d4c;
+  --card-ink-3: #6d6c58;
+  --card-muted: #5e5d4c;
+  --card-muted-2: #5e5d4c;         /* not in brief §3.2; used by 6 rules */
+  --card-label: #5e5d4c;
+  --card-rust: #5e5d4c;
+  --card-rust-2: #93916c;
+  --card-line: rgba(94, 93, 76, 0.18);
 }
 
 .sheet.card {
@@ -1306,7 +1315,7 @@ textarea.field-input {
 .sheet[data-mode="famous"] #detail-scroll,
 .sheet[data-mode="famous"] .card__chip { display: none !important; }
 .sheet[data-mode="famous"] .only-famous { display: block; }
-.sheet[data-mode="famous"] .card__eyebrow { color: #8a4f7d; }
+.sheet[data-mode="famous"] .card__eyebrow { color: #5e5d4c; }
 
 .famous-panel { margin-top: 4px; }
 .famous-panel__desc { margin: 8px 0 0; font-size: 14.5px; line-height: 1.5; color: var(--card-ink-3, #57513f); }
@@ -1318,17 +1327,17 @@ textarea.field-input {
 .card__back {
   display: inline-flex; align-items: center; gap: 4px; margin: 0 0 8px -4px;
   padding: 5px 10px 5px 6px; border-radius: 999px; border: 1px solid var(--card-inset-line, #e3ddcb);
-  background: var(--card-inset, #f0ead9); color: #8a4f7d;
+  background: var(--card-inset, #f0ead9); color: #5e5d4c;
   font-family: var(--ui-font); font-size: 12.5px; font-weight: 700; cursor: pointer;
 }
 .card__back[hidden] { display: none; }
-.card__back:hover { border-color: #8a4f7d; background: #fff; }
+.card__back:hover { border-color: #5e5d4c; background: #fff; }
 .famous-edition {
   padding: 6px 12px; border-radius: 999px; border: 1px solid var(--card-inset-line, #e3ddcb);
   background: var(--card-inset, #f0ead9); font-family: var(--ui-font); font-size: 12px; font-weight: 700;
   color: var(--card-ink-2, #4a4636); cursor: pointer;
 }
-.famous-edition.is-active { background: #8a4f7d; border-color: #8a4f7d; color: #fff; }
+.famous-edition.is-active { background: #5e5d4c; border-color: #5e5d4c; color: #f0efd1; }
 .famous-panel__routes-label { margin: 18px 0 10px; }
 .famous-panel__routes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .famous-route {
@@ -1337,15 +1346,15 @@ textarea.field-input {
   background: var(--card-inset, #f0ead9); cursor: pointer; text-align: left; font-family: var(--ui-font);
   transition: border-color 0.14s ease, background 0.14s ease;
 }
-.famous-route:hover { border-color: #8a4f7d; background: #fff; }
+.famous-route:hover { border-color: #5e5d4c; background: #fff; }
 /* Name on its own line, meta beneath — never glued together. */
 .famous-route__text { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
 .famous-route__name { font-size: 15px; font-weight: 600; line-height: 1.25; color: var(--card-ink, #2c2a24); }
 .famous-route__meta { font-size: 12.5px; color: var(--card-muted, #8a8068); }
-.famous-route__chev { flex: none; color: #8a4f7d; }
+.famous-route__chev { flex: none; color: #5e5d4c; }
 .famous-panel__link {
   display: inline-block; margin-top: 14px; font-size: 13px; font-weight: 700;
-  color: #8a4f7d; text-decoration: none;
+  color: #5e5d4c; text-decoration: none;
 }
 .famous-panel__link[hidden] { display: none; }
 .famous-panel__link:hover { text-decoration: underline; }
@@ -1378,7 +1387,7 @@ textarea.field-input {
   color: var(--card-ink-2, #4a4636);
   cursor: pointer;
 }
-.deck-arrow:hover { border-color: #8a4f7d; color: #8a4f7d; }
+.deck-arrow:hover { border-color: #5e5d4c; color: #5e5d4c; }
 .deck-dots {
   display: flex;
   align-items: center;
@@ -1400,19 +1409,19 @@ textarea.field-input {
 .deck-dot.is-active {
   width: 22px;
   border-radius: 5px;
-  background: #8a4f7d;
+  background: #5e5d4c;
 }
 
 /* Famous-ride card theming (plum): a distinct eyebrow + an event-details strip
    with location, dates and a link to the ride's own page. */
-.sheet[data-famous="1"] .card__eyebrow { color: #8a4f7d; }
+.sheet[data-famous="1"] .card__eyebrow { color: #5e5d4c; }
 .card__famous { margin: 13px 0 0; padding: 10px 13px; border-radius: 12px;
   background: rgba(138, 79, 125, 0.09); border: 1px solid rgba(138, 79, 125, 0.22); }
 .card__famous[hidden] { display: none; }
 .card__famous-where { margin: 0; font-size: 13.5px; font-weight: 600; color: #6f3f63; }
 .card__famous-where:empty { display: none; }
 .card__famous-link { display: inline-block; margin-top: 6px; font-size: 12.5px; font-weight: 700;
-  color: #8a4f7d; text-decoration: none; }
+  color: #5e5d4c; text-decoration: none; }
 .card__famous-link[hidden] { display: none; }
 .card__famous-link:hover { text-decoration: underline; }
 /* Hero shows only when expanded (desktop is always "full"). */
@@ -1510,7 +1519,7 @@ textarea.field-input {
 .sheet[data-mode="route"] .card__cta-row #detail-page-cta { flex: 1 1 auto; }
 .sheet[data-mode="route"] .card__cta-row #detail-cta {
   flex: 0 0 40%; background: transparent; color: var(--card-ink);
-  border: 1.5px solid #ccc2ac; font-weight: 600; padding: 14px 8px;
+  border: 1.5px solid rgba(94, 93, 76, 0.28); font-weight: 600; padding: 14px 8px;
 }
 .sheet[data-mode="route"] .card__cta-row #detail-cta:hover { background: transparent; border-color: var(--card-rust-2); color: var(--card-rust-2); }
 /* Event mode: the single CTA fills the row. */
@@ -1530,7 +1539,7 @@ textarea.field-input {
 .card__start-pin { flex: none; color: var(--card-rust-2); }
 .card__start-text { min-width: 0; }
 .card__start-name { font-size: 13.5px; font-weight: 600; color: var(--card-ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.card__nav { flex: none; display: flex; align-items: center; gap: 7px; padding: 9px 15px; border: 1.5px solid #ccc2ac; background: transparent; border-radius: 999px; cursor: pointer; color: var(--card-ink-2); font-family: var(--ui-font); font-weight: 600; font-size: 13px; text-decoration: none; }
+.card__nav { flex: none; display: flex; align-items: center; gap: 7px; padding: 9px 15px; border: 1.5px solid rgba(94, 93, 76, 0.28); background: transparent; border-radius: 999px; cursor: pointer; color: var(--card-ink-2); font-family: var(--ui-font); font-weight: 600; font-size: 13px; text-decoration: none; }
 .card__nav svg { color: var(--card-rust-2); }
 .card__nav:hover { border-color: var(--card-rust-2); }
 

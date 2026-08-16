@@ -4,16 +4,19 @@
    Everything is prefixed `alp-` so it can't collide with Dawn's base.css. */
 
 :root {
-  --alp-bg: #F2F0E8;          /* warm cream page ground */
-  --alp-surface: #FFFFFF;     /* chip + card surfaces */
-  --alp-ink: #16150F;         /* near-black text */
-  --alp-olive: #605C38;       /* manifesto block ground (f_04) */
-  --alp-haze: #B9B3DF;        /* lavender display type on olive (f_04/f_13) */
-  --alp-accent: #2E2F9E;      /* navy star (f_07) */
-  --alp-citrus: #E8F13C;      /* citrus yellow — home text */
-  --alp-line: rgba(22, 21, 15, 0.14);
+  /* Brand board palette. The --alp-* names are kept so existing markup keeps
+     working; every value is now the board's. The study's navy, lavender haze
+     and citrus are retired. */
+  --alp-bg: #f0efd1;          /* bone — the page */
+  --alp-surface: #ffffff;     /* paper — chip + card surfaces only, never a field */
+  --alp-ink: #5e5d4c;         /* olive — the ink and the primary (5.6:1 on bone) */
+  --alp-olive: #5e5d4c;       /* olive — manifesto ground, inner-page header */
+  --alp-haze: #c4c8b1;        /* sage — display type on olive (was lavender) */
+  --alp-accent: #93916c;      /* khaki — hover + secondary accent (was navy) */
+  --alp-citrus: #f0e782;      /* flare — the one accent (was the study's citrus) */
+  --alp-line: rgba(94, 93, 76, 0.24);
 
-  --alp-font-display: 'Outfit', 'Avenir Next', sans-serif;
+  --alp-font-display: 'Archivo', 'Helvetica Neue', sans-serif;
   --alp-font-ui: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 
   --alp-space-section: clamp(72px, 12vw, 160px);
@@ -103,7 +106,7 @@ body.template-index .alp-head { top: 50vh; top: 50svh; transform: translateY(-50
   text-decoration: none;
   white-space: nowrap;
   color: rgba(255, 255, 255, 0.6);
-  text-shadow: 0 1px 4px rgba(22, 21, 15, 0.25);
+  text-shadow: 0 1px 4px rgba(47, 47, 38, 0.3);
 }
 
 .alp-nav-link:hover { color: rgba(255, 255, 255, 0.9); }
@@ -132,7 +135,7 @@ body.template-index .alp-head { top: 50vh; top: 50svh; transform: translateY(-50
   /* The artwork is cream on transparent, so it cannot inherit the citrus the
      header type uses on the home screen. The drop-shadow matches the type's
      text-shadow so it holds up over bright sky. */
-  filter: drop-shadow(0 1px 4px rgba(22, 21, 15, 0.25));
+  filter: drop-shadow(0 1px 4px rgba(47, 47, 38, 0.3));
 }
 
 /* On the home screen all header text is citrus yellow (the hero CTA buttons
@@ -148,7 +151,9 @@ body.template-index .alp-nav-link:hover { color: #fff; }
    cards with chip-button titles, links underneath. */
 .alp-menu {
   position: fixed; inset: 0; z-index: 60;
-  background: #fff;
+  /* Bone, not paper: the board scopes white to chips and cards, never a
+     full-screen field. (Brief §1.2's recommended option.) */
+  background: var(--alp-bg);
   visibility: hidden;
   pointer-events: none;
   clip-path: circle(0% at var(--alp-cx, 100%) var(--alp-cy, 0%));
@@ -191,7 +196,7 @@ body.alp-menu-open { overflow: hidden; }
   cursor: pointer;
   text-decoration: none;
 }
-.alp-menu__icon svg { width: 24px; height: 24px; filter: drop-shadow(0 1px 3px rgba(22,21,15,0.5)); }
+.alp-menu__icon svg { width: 24px; height: 24px; filter: drop-shadow(0 1px 3px rgba(47, 47, 38, 0.5)); }
 .alp-menu__cart-count {
   position: absolute; top: 4px; right: 2px;
   min-width: 16px; height: 16px; padding: 0 3px;
@@ -234,8 +239,8 @@ body.alp-menu-open { overflow: hidden; }
   border: 0;
 }
 .alp-menu.is-open .alp-menu__media { transform: scale(1); }
-span.alp-menu__media--ph { background: linear-gradient(135deg, #6b6740, #4c4930); }
-.alp-menu__q::after { content: ""; position: absolute; inset: 0; z-index: -1; background: rgba(22, 21, 15, 0.28); }
+span.alp-menu__media--ph { background: linear-gradient(135deg, #6d6c58, #4e4d3f); }
+.alp-menu__q::after { content: ""; position: absolute; inset: 0; z-index: -1; background: rgba(47, 47, 38, 0.4); }
 
 /* Live map feed as the Bush Map panel background. The iframe is a background
    layer; clicks fall through to the panel's own link. */
@@ -247,7 +252,7 @@ span.alp-menu__media--ph { background: linear-gradient(135deg, #6b6740, #4c4930)
   pointer-events: none;
   transform: scale(1.02);
 }
-.alp-menu__q--map::after { background: rgba(22, 21, 15, 0.15); }
+.alp-menu__q--map::after { background: rgba(47, 47, 38, 0.28); }
 
 /* Social icons, bottom-left of the video panel. */
 .alp-menu__social {
@@ -259,7 +264,7 @@ span.alp-menu__media--ph { background: linear-gradient(135deg, #6b6740, #4c4930)
   gap: 14px;
 }
 .alp-menu__social a { display: inline-flex; color: #fff; }
-.alp-menu__social svg { width: 24px; height: 24px; filter: drop-shadow(0 1px 3px rgba(22,21,15,0.5)); }
+.alp-menu__social svg { width: 24px; height: 24px; filter: drop-shadow(0 1px 3px rgba(47, 47, 38, 0.5)); }
 .alp-menu__social a:hover { color: var(--alp-citrus); }
 
 
@@ -295,7 +300,7 @@ span.alp-menu__media--ph { background: linear-gradient(135deg, #6b6740, #4c4930)
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(22, 21, 15, 0.55);
+  color: rgba(94, 93, 76, 0.6);
 }
 .alp-menu__links-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
 .alp-menu__links-col a {
@@ -305,7 +310,7 @@ span.alp-menu__media--ph { background: linear-gradient(135deg, #6b6740, #4c4930)
   text-decoration: none;
 }
 .alp-menu__links-col a:hover { text-decoration: underline; }
-.alp-menu__small { flex-basis: 100%; margin: 4px 0 0; font-size: 0.72rem; color: rgba(22, 21, 15, 0.55); }
+.alp-menu__small { flex-basis: 100%; margin: 4px 0 0; font-size: 0.72rem; color: rgba(94, 93, 76, 0.6); }
 
 @media (prefers-reduced-motion: reduce) {
   .alp-menu, .alp-menu.is-open { transition: visibility 0s; clip-path: none; }
@@ -357,7 +362,7 @@ span.alp-menu__media--ph { background: linear-gradient(135deg, #6b6740, #4c4930)
 
 .alp-manifesto__para {
   font-family: var(--alp-font-display);
-  font-weight: 400;
+  font-weight: 700;
   font-size: clamp(1.7rem, 4.4vw, 3.6rem);
   line-height: 1.16;
   color: var(--alp-haze);
@@ -385,8 +390,8 @@ span.alp-menu__media--ph { background: linear-gradient(135deg, #6b6740, #4c4930)
 .alp-collection { padding: var(--alp-space-section) var(--alp-pad-page); }
 
 .alp-collection__head { display: flex; align-items: baseline; gap: 20px; flex-wrap: wrap; margin-bottom: 36px; }
-.alp-collection__head h2 { font-family: var(--alp-font-display); font-weight: 500; font-size: clamp(1.6rem, 3vw, 2.4rem); margin: 0; }
-.alp-collection__head p { color: rgba(22, 21, 15, 0.65); font-size: 0.9rem; margin: 0; }
+.alp-collection__head h2 { font-family: var(--alp-font-display); font-weight: 700; font-size: clamp(1.6rem, 3vw, 2.4rem); margin: 0; }
+.alp-collection__head p { color: rgba(94, 93, 76, 0.7); font-size: 0.9rem; margin: 0; }
 
 .alp-collection__duo {
   display: grid;
@@ -442,7 +447,7 @@ span.alp-menu__media--ph { background: linear-gradient(135deg, #6b6740, #4c4930)
   line-height: 1.05;
   text-transform: uppercase;
   letter-spacing: -0.01em;
-  color: rgba(38, 38, 32, 0.42);
+  color: rgba(94, 93, 76, 0.42);
   mix-blend-mode: multiply;
   margin: 0;
 }
@@ -459,8 +464,8 @@ span.alp-menu__media--ph { background: linear-gradient(135deg, #6b6740, #4c4930)
 }
 
 .alp-story__figure { margin: 0; }
-.alp-story__body h2 { font-family: var(--alp-font-display); font-weight: 500; font-size: clamp(1.6rem, 3vw, 2.4rem); margin: 0 0 16px; }
-.alp-story__body p { max-width: 46ch; margin: 0 0 24px; color: rgba(22, 21, 15, 0.85); }
+.alp-story__body h2 { font-family: var(--alp-font-display); font-weight: 700; font-size: clamp(1.6rem, 3vw, 2.4rem); margin: 0 0 16px; }
+.alp-story__body p { max-width: 46ch; margin: 0 0 24px; color: rgba(94, 93, 76, 0.85); }
 
 .alp-text-link {
   color: var(--alp-ink);
@@ -478,8 +483,8 @@ span.alp-menu__media--ph { background: linear-gradient(135deg, #6b6740, #4c4930)
 }
 
 .alp-foot__dispatch { max-width: 520px; margin-bottom: 56px; }
-.alp-foot__dispatch h2 { font-family: var(--alp-font-display); font-weight: 500; font-size: 1.6rem; margin: 0 0 8px; }
-.alp-foot__dispatch p { color: rgba(22, 21, 15, 0.7); margin: 0 0 20px; }
+.alp-foot__dispatch h2 { font-family: var(--alp-font-display); font-weight: 700; font-size: 1.6rem; margin: 0 0 8px; }
+.alp-foot__dispatch p { color: rgba(94, 93, 76, 0.7); margin: 0 0 20px; }
 
 .alp-foot__form { display: flex; gap: 8px; }
 .alp-foot__form input[type='email'] {
@@ -515,10 +520,10 @@ span.alp-menu__media--ph { background: linear-gradient(135deg, #6b6740, #4c4930)
 }
 
 .alp-foot__columns ul { list-style: none; display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; }
-.alp-foot__columns a { color: rgba(22, 21, 15, 0.8); text-decoration: none; font-size: 0.9rem; }
+.alp-foot__columns a { color: rgba(94, 93, 76, 0.8); text-decoration: none; font-size: 0.9rem; }
 .alp-foot__columns a:hover { text-decoration: underline; }
 
-.alp-foot__small { padding: 20px 0 0; font-size: 0.75rem; color: rgba(22, 21, 15, 0.6); }
+.alp-foot__small { padding: 20px 0 0; font-size: 0.75rem; color: rgba(94, 93, 76, 0.6); }
 
 .alp-foot__wordmark {
   font-family: var(--alp-font-ui);
@@ -611,4 +616,180 @@ body.template-index .alp-foot__small { padding: 0; text-align: center; font-size
   .alp-story { grid-template-columns: 1fr; }
 
   .alp-foot__columns { grid-template-columns: repeat(2, 1fr); gap: 32px 20px; }
+}
+
+/* ── Inner-page header: solid olive bar ──────────────────────────────────────
+   The wordmark artwork is cream on transparent, so on the bone page ground it
+   has nothing to sit against. Off the home hero the bar takes an olive fill and
+   the type goes bone; the mark needs no recolouring. The bar is also stepped
+   down in height here — the hero-sized wordmark (up to 6.2rem) is taller than
+   the 84px clearance #MainContent reserves. */
+body:not(.template-index) .alp-head {
+  background: var(--alp-olive);
+  padding-top: max(10px, env(safe-area-inset-top));
+  padding-bottom: 10px;
+}
+body:not(.template-index) .alp-nav-link {
+  color: var(--alp-bg);
+  font-size: clamp(1rem, 0.5vw + 0.85rem, 1.15rem);
+  text-shadow: none;
+}
+body:not(.template-index) .alp-nav-link:hover { color: var(--alp-citrus); }
+body:not(.template-index) .alp-nav-link--wordmark { font-size: inherit; }
+body:not(.template-index) .alp-nav-link--wordmark .alp-wordmark__img {
+  height: clamp(2.2rem, 1.4vw + 1.6rem, 2.9rem);
+  filter: none;
+}
+body:not(.template-index) .alp-nav-link--clock { font-size: 0.8rem; color: var(--alp-haze); }
+/* Clearance to match the shorter solid bar. */
+body:not(.template-index) #MainContent { padding-top: 76px; }
+
+/* ── Collection page (alpine-collection-grid) ────────────────────────────── */
+.alp-cgrid { padding: 0 0 var(--alp-space-section); }
+
+.alp-cgrid__hero { display: grid; grid-template-columns: 1.35fr 1fr; gap: 0; }
+
+.alp-cgrid__panel {
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+  height: clamp(300px, 46vh, 520px);
+  background: var(--alp-olive);
+}
+.alp-cgrid__panel img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Type over photography always sits on a scrim. */
+.alp-cgrid__panel--left::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(47, 47, 38, 0.1), rgba(47, 47, 38, 0.55));
+}
+
+.alp-cgrid__star {
+  position: absolute;
+  left: clamp(16px, 3vw, 40px);
+  top: 50%;
+  width: clamp(90px, 12vw, 150px);
+  transform: translateY(-50%);
+  fill: var(--alp-citrus);
+  opacity: 0.92;
+  z-index: 2;
+}
+
+.alp-cgrid__overlay {
+  position: absolute;
+  left: clamp(18px, 3vw, 40px);
+  bottom: clamp(18px, 3vw, 32px);
+  z-index: 3;
+}
+
+.alp-cgrid__eyebrow {
+  margin: 0 0 6px;
+  font-family: var(--alp-font-display);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--alp-bg);
+  opacity: 0.85;
+}
+
+.alp-cgrid__title {
+  margin: 0;
+  font-family: var(--alp-font-display);
+  font-weight: 700;
+  font-size: clamp(1.8rem, 3.6vw, 3.2rem);
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: var(--alp-bg);
+  text-wrap: pretty;
+}
+
+.alp-cgrid__intro {
+  max-width: 60ch;
+  padding: clamp(20px, 3vw, 32px) var(--alp-pad-page) 0;
+  color: rgba(94, 93, 76, 0.85);
+}
+
+/* Chip bar — facets + sort. Active chip inverts to olive. */
+.alp-cgrid__bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: clamp(16px, 3vw, 28px) var(--alp-pad-page) 10px;
+}
+
+.alp-chip--active {
+  background: var(--alp-ink);
+  color: var(--alp-bg);
+  border-color: var(--alp-ink);
+}
+a.alp-chip--active:hover { background: var(--alp-accent); border-color: var(--alp-accent); color: var(--alp-bg); }
+
+.alp-cgrid__sort {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: rgba(94, 93, 76, 0.7);
+}
+.alp-cgrid__sort select {
+  font: inherit;
+  color: var(--alp-ink);
+  font-weight: 600;
+  background: transparent;
+  border: 0;
+  padding: 4px 2px;
+  cursor: pointer;
+}
+.alp-cgrid__sort select:focus-visible { outline: 2px solid var(--alp-citrus); outline-offset: 2px; }
+
+.alp-cgrid__count {
+  margin: 0;
+  padding: 4px var(--alp-pad-page) 0;
+  font-size: 0.8rem;
+  color: rgba(94, 93, 76, 0.7);
+}
+
+.alp-cgrid__grid {
+  display: grid;
+  grid-template-columns: repeat(var(--alp-cgrid-cols, 4), 1fr);
+  gap: 16px;
+  padding: 14px var(--alp-pad-page) 0;
+}
+
+.alp-cgrid__pager {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  padding: clamp(28px, 5vw, 56px) var(--alp-pad-page) 0;
+}
+
+.alp-cgrid__empty {
+  padding: clamp(40px, 8vw, 90px) var(--alp-pad-page);
+  text-align: center;
+  color: rgba(94, 93, 76, 0.7);
+}
+
+@media (max-width: 989px) {
+  .alp-cgrid__grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 860px) {
+  .alp-cgrid__hero { grid-template-columns: 1fr; }
+  .alp-cgrid__panel { height: clamp(220px, 34vh, 320px); }
+  /* One hero panel on a phone; the product chip moves to the grid below. */
+  .alp-cgrid__panel--right { display: none; }
+  .alp-cgrid__bar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .alp-cgrid__bar::-webkit-scrollbar { display: none; }
+  .alp-cgrid__sort { margin-left: 8px; flex: 0 0 auto; }
+  .alp-cgrid__grid { gap: 10px; }
 }

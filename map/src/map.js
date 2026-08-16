@@ -7,21 +7,21 @@ const CONFIG = window.BRM_CONFIG || {};
 
 // Bush-lemon highlights the selected pin; the route line is dark green for
 // legibility against the muted basemap.
-const LEMON = "#d7e04b";
+const LEMON = "#f0e782";
 // Route casing / outline. Was a dark bush green, which read well on the cream
 // basemap and then sank into the trees on satellite imagery. This rust reads
 // on both, and matches the line the static route pages already draw (#b04a24).
 const ROUTE_LINE = "#c0774c";
 const ROUTE_CORE = "#F6F1E4"; // off-white core — legible on cream AND on imagery
-const OLIVE = "#6f7c53";
+const OLIVE = "#5e5d4c";
 const SAGE = "#aeb995";
 // Community Bush Ride event accent — deep terracotta so event pins win the
 // visual hierarchy over route pins. Past events render muted grey.
-const TERRACOTTA = "#c1572e";
+const TERRACOTTA = "#93916c";
 const EVENT_PAST = "#8f8a7e";
 // Route-series / event pin — a plum distinct from route (olive), community-event
 // (terracotta) and cluster (sage) pins, so a multi-route event reads at a glance.
-const SERIES = "#8a4f7d";
+const SERIES = "#f0e782";
 
 /* ── 3D relief ────────────────────────────────────────────────────────────
    Elevation comes from Mapterhorn (free, no key; Geoscience Australia 5 m
