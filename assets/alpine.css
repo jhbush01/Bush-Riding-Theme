@@ -7,14 +7,14 @@
   /* Brand board palette. The --alp-* names are kept so existing markup keeps
      working; every value is now the board's. The study's navy, lavender haze
      and citrus are retired. */
-  --alp-bg: #f0efd1;          /* bone — the page */
+  --alp-bg: #edecc5;          /* bone — the page */
   --alp-surface: #ffffff;     /* paper — chip + card surfaces only, never a field */
-  --alp-ink: #5e5d4c;         /* olive — the ink and the primary (5.6:1 on bone) */
-  --alp-olive: #5e5d4c;       /* olive — manifesto ground, inner-page header */
-  --alp-haze: #c4c8b1;        /* sage — display type on olive (was lavender) */
-  --alp-accent: #93916c;      /* khaki — hover + secondary accent (was navy) */
-  --alp-citrus: #f0e782;      /* flare — the one accent (was the study's citrus) */
-  --alp-line: rgba(94, 93, 76, 0.24);
+  --alp-ink: #4c4b3b;         /* olive — the ink and the primary (7.3:1 on bone) */
+  --alp-olive: #4c4b3b;       /* olive — manifesto ground, inner-page header */
+  --alp-haze: #b9bea3;        /* sage — display type on olive (was lavender) */
+  --alp-accent: #828059;      /* khaki — hover + secondary accent (was navy) */
+  --alp-citrus: #ede270;      /* flare — the one accent (was the study's citrus) */
+  --alp-line: rgba(76, 75, 59, 0.24);
 
   --alp-font-display: 'Archivo', 'Helvetica Neue', sans-serif;
   --alp-font-ui: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -300,7 +300,7 @@ span.alp-menu__media--ph { background: linear-gradient(135deg, #6d6c58, #4e4d3f)
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(94, 93, 76, 0.6);
+  color: rgba(76, 75, 59, 0.6);
 }
 .alp-menu__links-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
 .alp-menu__links-col a {
@@ -310,7 +310,7 @@ span.alp-menu__media--ph { background: linear-gradient(135deg, #6d6c58, #4e4d3f)
   text-decoration: none;
 }
 .alp-menu__links-col a:hover { text-decoration: underline; }
-.alp-menu__small { flex-basis: 100%; margin: 4px 0 0; font-size: 0.72rem; color: rgba(94, 93, 76, 0.6); }
+.alp-menu__small { flex-basis: 100%; margin: 4px 0 0; font-size: 0.72rem; color: rgba(76, 75, 59, 0.6); }
 
 @media (prefers-reduced-motion: reduce) {
   .alp-menu, .alp-menu.is-open { transition: visibility 0s; clip-path: none; }
@@ -362,7 +362,7 @@ span.alp-menu__media--ph { background: linear-gradient(135deg, #6d6c58, #4e4d3f)
 
 .alp-manifesto__para {
   font-family: var(--alp-font-display);
-  font-weight: 700;
+  font-weight: 600;
   font-size: clamp(1.7rem, 4.4vw, 3.6rem);
   line-height: 1.16;
   color: var(--alp-haze);
@@ -390,8 +390,8 @@ span.alp-menu__media--ph { background: linear-gradient(135deg, #6d6c58, #4e4d3f)
 .alp-collection { padding: var(--alp-space-section) var(--alp-pad-page); }
 
 .alp-collection__head { display: flex; align-items: baseline; gap: 20px; flex-wrap: wrap; margin-bottom: 36px; }
-.alp-collection__head h2 { font-family: var(--alp-font-display); font-weight: 700; font-size: clamp(1.6rem, 3vw, 2.4rem); margin: 0; }
-.alp-collection__head p { color: rgba(94, 93, 76, 0.7); font-size: 0.9rem; margin: 0; }
+.alp-collection__head h2 { font-family: var(--alp-font-display); font-weight: 600; font-size: clamp(1.6rem, 3vw, 2.4rem); margin: 0; }
+.alp-collection__head p { color: rgba(76, 75, 59, 0.7); font-size: 0.9rem; margin: 0; }
 
 .alp-collection__duo {
   display: grid;
@@ -447,7 +447,7 @@ span.alp-menu__media--ph { background: linear-gradient(135deg, #6d6c58, #4e4d3f)
   line-height: 1.05;
   text-transform: uppercase;
   letter-spacing: -0.01em;
-  color: rgba(94, 93, 76, 0.42);
+  color: rgba(76, 75, 59, 0.42);
   mix-blend-mode: multiply;
   margin: 0;
 }
@@ -464,8 +464,8 @@ span.alp-menu__media--ph { background: linear-gradient(135deg, #6d6c58, #4e4d3f)
 }
 
 .alp-story__figure { margin: 0; }
-.alp-story__body h2 { font-family: var(--alp-font-display); font-weight: 700; font-size: clamp(1.6rem, 3vw, 2.4rem); margin: 0 0 16px; }
-.alp-story__body p { max-width: 46ch; margin: 0 0 24px; color: rgba(94, 93, 76, 0.85); }
+.alp-story__body h2 { font-family: var(--alp-font-display); font-weight: 600; font-size: clamp(1.6rem, 3vw, 2.4rem); margin: 0 0 16px; }
+.alp-story__body p { max-width: 46ch; margin: 0 0 24px; color: rgba(76, 75, 59, 0.85); }
 
 .alp-text-link {
   color: var(--alp-ink);
@@ -483,8 +483,8 @@ span.alp-menu__media--ph { background: linear-gradient(135deg, #6d6c58, #4e4d3f)
 }
 
 .alp-foot__dispatch { max-width: 520px; margin-bottom: 56px; }
-.alp-foot__dispatch h2 { font-family: var(--alp-font-display); font-weight: 700; font-size: 1.6rem; margin: 0 0 8px; }
-.alp-foot__dispatch p { color: rgba(94, 93, 76, 0.7); margin: 0 0 20px; }
+.alp-foot__dispatch h2 { font-family: var(--alp-font-display); font-weight: 600; font-size: 1.6rem; margin: 0 0 8px; }
+.alp-foot__dispatch p { color: rgba(76, 75, 59, 0.7); margin: 0 0 20px; }
 
 .alp-foot__form { display: flex; gap: 8px; }
 .alp-foot__form input[type='email'] {
@@ -520,10 +520,10 @@ span.alp-menu__media--ph { background: linear-gradient(135deg, #6d6c58, #4e4d3f)
 }
 
 .alp-foot__columns ul { list-style: none; display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; }
-.alp-foot__columns a { color: rgba(94, 93, 76, 0.8); text-decoration: none; font-size: 0.9rem; }
+.alp-foot__columns a { color: rgba(76, 75, 59, 0.8); text-decoration: none; font-size: 0.9rem; }
 .alp-foot__columns a:hover { text-decoration: underline; }
 
-.alp-foot__small { padding: 20px 0 0; font-size: 0.75rem; color: rgba(94, 93, 76, 0.6); }
+.alp-foot__small { padding: 20px 0 0; font-size: 0.75rem; color: rgba(76, 75, 59, 0.6); }
 
 .alp-foot__wordmark {
   font-family: var(--alp-font-ui);
@@ -687,7 +687,7 @@ body:not(.template-index) #MainContent { padding-top: 76px; }
   margin: 0 0 6px;
   font-family: var(--alp-font-display);
   font-size: 0.7rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--alp-bg);
@@ -697,7 +697,7 @@ body:not(.template-index) #MainContent { padding-top: 76px; }
 .alp-cgrid__title {
   margin: 0;
   font-family: var(--alp-font-display);
-  font-weight: 700;
+  font-weight: 600;
   font-size: clamp(1.8rem, 3.6vw, 3.2rem);
   line-height: 1;
   letter-spacing: -0.01em;
@@ -708,7 +708,7 @@ body:not(.template-index) #MainContent { padding-top: 76px; }
 .alp-cgrid__intro {
   max-width: 60ch;
   padding: clamp(20px, 3vw, 32px) var(--alp-pad-page) 0;
-  color: rgba(94, 93, 76, 0.85);
+  color: rgba(76, 75, 59, 0.85);
 }
 
 /* Chip bar — facets + sort. Active chip inverts to olive. */
@@ -733,7 +733,7 @@ a.alp-chip--active:hover { background: var(--alp-accent); border-color: var(--al
   align-items: center;
   gap: 4px;
   font-size: 0.8rem;
-  color: rgba(94, 93, 76, 0.7);
+  color: rgba(76, 75, 59, 0.7);
 }
 .alp-cgrid__sort select {
   font: inherit;
@@ -750,7 +750,7 @@ a.alp-chip--active:hover { background: var(--alp-accent); border-color: var(--al
   margin: 0;
   padding: 4px var(--alp-pad-page) 0;
   font-size: 0.8rem;
-  color: rgba(94, 93, 76, 0.7);
+  color: rgba(76, 75, 59, 0.7);
 }
 
 .alp-cgrid__grid {
@@ -771,7 +771,7 @@ a.alp-chip--active:hover { background: var(--alp-accent); border-color: var(--al
 .alp-cgrid__empty {
   padding: clamp(40px, 8vw, 90px) var(--alp-pad-page);
   text-align: center;
-  color: rgba(94, 93, 76, 0.7);
+  color: rgba(76, 75, 59, 0.7);
 }
 
 @media (max-width: 989px) {

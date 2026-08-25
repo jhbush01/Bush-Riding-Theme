@@ -214,7 +214,7 @@ function head(opts) {
 <title>${esc(opts.title)}</title>
 <meta name="description" content="${esc(opts.description)}" />
 <link rel="canonical" href="${esc(canonical)}" />
-<meta name="theme-color" content="#f0efd1" />
+<meta name="theme-color" content="#edecc5" />
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <link rel="apple-touch-icon" href="/public/apple-touch-icon.png" />
 <meta property="og:site_name" content="Bush Riding" />
@@ -402,8 +402,8 @@ function routeMapSvg(points) {
   const s = pts[0];
   return `<svg class="rp-map__svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="Map of the route">
     <rect width="${W}" height="${H}" fill="#eceada"/>
-    <path d="${d}" fill="none" stroke="#5e5d4c" stroke-width="3.6" stroke-linejoin="round" stroke-linecap="round"/>
-    <circle cx="${px(s.lon).toFixed(1)}" cy="${py(s.lat).toFixed(1)}" r="6.5" fill="#5e5d4c" stroke="#fff" stroke-width="2.5"/>
+    <path d="${d}" fill="none" stroke="#4c4b3b" stroke-width="3.6" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${px(s.lon).toFixed(1)}" cy="${py(s.lat).toFixed(1)}" r="6.5" fill="#4c4b3b" stroke="#fff" stroke-width="2.5"/>
   </svg>`;
 }
 // Inline SVG elevation profile (same gradient look as the interactive card).
@@ -419,9 +419,9 @@ function elevationSvg(points) {
   const x = (dd) => (dd / dMax) * W, y = (e) => base - ((e - eMin) / (eMax - eMin)) * (base - top);
   const seq = prof.map((p) => `${x(p.d).toFixed(1)},${y(p.e).toFixed(1)}`);
   return `<svg class="rp-elev__svg" viewBox="0 0 ${W} 130" preserveAspectRatio="none" role="img" aria-label="Elevation profile">
-    <defs><linearGradient id="rpElev" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5e5d4c" stop-opacity=".34"/><stop offset="1" stop-color="#5e5d4c" stop-opacity=".04"/></linearGradient></defs>
+    <defs><linearGradient id="rpElev" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4c4b3b" stop-opacity=".34"/><stop offset="1" stop-color="#4c4b3b" stop-opacity=".04"/></linearGradient></defs>
     <path d="M0,${base} L${seq.join(" L")} L${W},${base} Z" fill="url(#rpElev)"/>
-    <path d="M${seq.join(" L")}" fill="none" stroke="#5e5d4c" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M${seq.join(" L")}" fill="none" stroke="#4c4b3b" stroke-width="2" stroke-linejoin="round"/>
   </svg>`;
 }
 
@@ -575,11 +575,11 @@ const ROUTE_MAP_JS = `
     map.addControl(new maplibregl.NavigationControl({showCompass:false}),'top-right');
     map.on('load',function(){
       map.addSource('brm-route',{type:'geojson',data:{type:'Feature',geometry:{type:'LineString',coordinates:coords}}});
-      map.addLayer({id:'brm-route-line',type:'line',source:'brm-route',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#5e5d4c','line-width':4}});
+      map.addLayer({id:'brm-route-line',type:'line',source:'brm-route',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#4c4b3b','line-width':4}});
       var bounds=new maplibregl.LngLatBounds(coords[0],coords[0]);
       for(var i=1;i<coords.length;i++) bounds.extend(coords[i]);
       map.fitBounds(bounds,{padding:36,duration:0});
-      new maplibregl.Marker({color:'#5e5d4c'}).setLngLat(coords[0]).addTo(map);
+      new maplibregl.Marker({color:'#4c4b3b'}).setLngLat(coords[0]).addTo(map);
       var fig=el.closest('.rp-map'); if(fig) fig.classList.add('is-live');
     });
   }).catch(function(){});
@@ -998,11 +998,11 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
 .rp-gallery__item{display:block;border-radius:10px;overflow:hidden;background:var(--sage)}
 .rp-gallery__item img{display:block;width:100%;height:150px;object-fit:cover}
 .rp-rating{margin:4px 0 12px;font-size:15px;color:var(--ink-soft)}
-.rp-rating__stars{color:#5e5d4c;letter-spacing:1px}
+.rp-rating__stars{color:#4c4b3b;letter-spacing:1px}
 .rp-reviews{display:flex;flex-direction:column;gap:14px}
 .rp-review{border-top:1px solid rgba(0,0,0,.1);padding-top:12px}
 .rp-review__head{margin:0}
-.rp-review__stars{color:#5e5d4c;letter-spacing:.5px;font-size:13px}
+.rp-review__stars{color:#4c4b3b;letter-spacing:.5px;font-size:13px}
 .rp-review__text{margin:6px 0 0;color:var(--ink-soft);line-height:1.5;font-size:14.5px}
 .rp-intro{font-size:16px;line-height:1.6;color:var(--ink-soft);max-width:60ch;margin:0 0 22px}
 .rp-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
@@ -1029,7 +1029,7 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
 .ev-list{display:flex;flex-direction:column;gap:14px;margin-bottom:8px}
 .ev-card{background:var(--cream-panel);border:1px solid rgba(0,0,0,.08);border-radius:12px;padding:16px 18px}
 .ev-card.is-past{opacity:.7}
-.ev-card__when{margin:0 0 4px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--card-rust,#5e5d4c)}
+.ev-card__when{margin:0 0 4px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--card-rust,#4c4b3b)}
 .ev-card__name{font-family:var(--head-font);font-weight:400;font-size:23px;margin:0 0 6px;color:var(--ink)}
 .ev-card__desc{margin:0 0 10px;font-size:14.5px;line-height:1.5;color:var(--ink-soft)}
 .ev-card__meta{display:flex;flex-direction:column;gap:4px;font-size:13.5px;color:var(--ink-soft)}
