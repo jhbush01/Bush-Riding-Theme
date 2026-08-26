@@ -14,20 +14,41 @@
     "footer": {
       "type": "alpine-footer",
       "blocks": {
+        "column_zhEcfh": {
+          "type": "column",
+          "settings": {
+            "heading": "Shop",
+            "menu": ""
+          }
+        },
         "col_shop": {
           "type": "column",
-          "settings": { "heading": "Shop", "menu": "main-menu" }
+          "settings": {
+            "heading": "Shop",
+            "menu": "main-menu"
+          }
         },
         "col_company": {
           "type": "column",
-          "settings": { "heading": "Company", "menu": "main-menu" }
+          "settings": {
+            "heading": "Company",
+            "menu": "main-menu"
+          }
         },
         "col_legal": {
           "type": "column",
-          "settings": { "heading": "Legal", "menu": "main-menu" }
+          "settings": {
+            "heading": "Legal",
+            "menu": "main-menu"
+          }
         }
       },
-      "block_order": ["col_shop", "col_company", "col_legal"],
+      "block_order": [
+        "column_zhEcfh",
+        "col_shop",
+        "col_company",
+        "col_legal"
+      ],
       "settings": {
         "newsletter_heading": "Ride with us.",
         "newsletter_text": "One email a month from the bush — stories, routes and first looks. No noise.",
