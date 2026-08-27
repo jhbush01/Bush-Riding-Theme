@@ -1,0 +1,84 @@
+{%- comment -%}
+  Bush Riding product hero (option 1g — editorial). Full-bleed product-in-
+  action photograph with the wordmark + Shop/Explore bar over it and the
+  product title low in the frame — the same full-bleed language as the home
+  hero and statement, doing the visual work so the buy block below the fold
+  (main-product) can stay lean: text and a bordered buy card, no second
+  gallery.
+
+  Sits above `main` in templates/product.json; only makes sense on the
+  product template, so it always reads from the `product` object.
+{%- endcomment -%}
+
+{%- liquid
+  assign shop_url = section.settings.shop_url | default: routes.all_products_collection_url
+  assign explore_label = section.settings.explore_label | default: 'Explore'
+  assign tagline = section.settings.tagline
+  if tagline == blank and product.description != blank
+    assign tagline = product.description | strip_html | truncate: 140
+  endif
+-%}
+
+<section class="alp alp-phero">
+  <div class="alp-phero__media">
+    {%- if section.settings.image != blank -%}
+      {{ section.settings.image | image_url: width: 2400 | image_tag: loading: 'eager', fetchpriority: 'high', alt: section.settings.image.alt | default: '' }}
+    {%- elsif product.featured_image != blank -%}
+      {{ product.featured_image | image_url: width: 2400 | image_tag: loading: 'eager', fetchpriority: 'high', alt: '' }}
+    {%- else -%}
+      <img src="{{ 'alpine-ph-hero.svg' | asset_url }}" alt="" width="800" height="1000" loading="eager"
+        data-asset-note="Full-bleed product-in-action photograph — the rider wearing/using this product on the trail">
+    {%- endif -%}
+  </div>
+
+  <div class="alp-phero__bar">
+    <span class="alp-phero__wordmark" aria-hidden="true">
+      {%- if section.settings.wordmark_image != blank -%}
+        {{ section.settings.wordmark_image | image_url: width: 400 | image_tag: loading: 'eager', alt: '' }}
+      {%- else -%}
+        <img src="{{ 'wordmark-' | append: section.settings.wordmark_tone | append: '.svg' | asset_url }}" alt="" loading="eager" width="1273" height="543">
+      {%- endif -%}
+    </span>
+    <a class="alp-phero__link" href="{{ shop_url }}">{{ explore_label | escape }}</a>
+  </div>
+
+  <div class="alp-phero__caption">
+    <h1 class="alp-phero__title">{{ product.title | escape }}</h1>
+    {%- if tagline != blank -%}<p class="alp-phero__tagline">{{ tagline | escape }}</p>{%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Bush Riding product hero",
+  "tag": "div",
+  "settings": [
+    { "type": "paragraph", "content": "Full-bleed band above the buy block. Falls back to the product's featured image, then a placeholder, if no image is set here." },
+    { "type": "image_picker", "id": "image", "label": "Image", "info": "Leave blank to use the product's featured image." },
+    { "type": "text", "id": "tagline", "label": "One-line tagline", "info": "Leave blank to use the start of the product description." },
+    { "type": "header", "content": "Bar" },
+    { "type": "url", "id": "shop_url", "label": "Explore link", "info": "Defaults to the all-products catalog." },
+    { "type": "text", "id": "explore_label", "label": "Explore label", "default": "Explore" },
+    {
+      "type": "select",
+      "id": "wordmark_tone",
+      "label": "Wordmark tone",
+      "options": [
+        { "value": "flare", "label": "Flare (default over photography)" },
+        { "value": "bone", "label": "Bone" },
+        { "value": "olive", "label": "Olive" },
+        { "value": "sage", "label": "Sage" },
+        { "value": "khaki", "label": "Khaki" },
+        { "value": "mist", "label": "Mist" },
+        { "value": "white", "label": "White" },
+        { "value": "black", "label": "Black" }
+      ],
+      "default": "flare"
+    },
+    { "type": "image_picker", "id": "wordmark_image", "label": "Wordmark image override" }
+  ],
+  "presets": [
+    { "name": "Bush Riding product hero" }
+  ]
+}
+{% endschema %}

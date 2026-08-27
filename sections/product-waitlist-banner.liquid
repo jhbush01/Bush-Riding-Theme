@@ -1,0 +1,80 @@
+{%- comment -%}
+  Bush Riding product waitlist banner (option 1g). Inline "notify me" strip
+  for a partially sold-out product — shows automatically once any variant is
+  unavailable, or always via the editor toggle for preview/merchandising.
+
+  Signups use Shopify's native customer form (no app), tagged so they land in
+  Admin → Customers as a segment per product: "waitlist" + "restock-<handle>".
+
+  This reads stock at render time, so it won't update live as a shopper
+  changes the variant picker without a page reload — a fine first pass for a
+  server-rendered banner; wiring it to the variant-picker's live selection
+  would need main-product's own JS to dispatch a custom event, which is out
+  of scope here to avoid touching that file's checkout-critical script.
+{%- endcomment -%}
+
+{%- liquid
+  assign out_variant = null
+  for v in product.variants
+    unless v.available
+      assign out_variant = v
+      break
+    endunless
+  endfor
+-%}
+
+{%- if section.settings.force_show or out_variant != null -%}
+  <div class="alp alp-waitlist-banner">
+    <div class="alp-waitlist-banner__text">
+      <p class="alp-waitlist-banner__heading">
+        {%- if section.settings.heading != blank -%}
+          {{ section.settings.heading | escape }}
+        {%- elsif out_variant != null -%}
+          {{ out_variant.title | escape }} sold out — more on the way.
+        {%- else -%}
+          Sold out — more on the way.
+        {%- endif -%}
+      </p>
+      <p class="alp-waitlist-banner__subtext">{{ section.settings.subtext | escape }}</p>
+    </div>
+    {%- form 'customer', class: 'alp-waitlist-banner__form-wrap' -%}
+      {%- if form.posted_successfully? -%}
+        <p class="alp-waitlist-banner__note" role="status">Thanks — we'll email you.</p>
+      {%- else -%}
+        <input type="hidden" name="contact[tags]" value="waitlist, restock-{{ product.handle }}">
+        <input type="hidden" name="contact[note]" value="Restock waitlist: {{ product.title | escape }}">
+        <div class="alp-waitlist-banner__form">
+          <label class="visually-hidden" for="AlpWaitlistEmail-{{ section.id }}">Email address</label>
+          <input
+            id="AlpWaitlistEmail-{{ section.id }}"
+            type="email"
+            name="contact[email]"
+            placeholder="Email address"
+            autocomplete="email"
+            required
+          >
+          <button class="alp-chip alp-chip--f" type="submit">{{ section.settings.button_label | escape }}</button>
+        </div>
+        {%- if form.errors -%}
+          <p class="alp-waitlist-banner__note" role="alert">{{ form.errors.translated_fields.email | capitalize }} {{ form.errors.messages.email }}</p>
+        {%- endif -%}
+      {%- endif -%}
+    {%- endform -%}
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Bush Riding waitlist",
+  "tag": "div",
+  "settings": [
+    { "type": "checkbox", "id": "force_show", "label": "Always show", "info": "Off by default — the banner shows itself automatically once any variant is out of stock. Turn on to preview or force it.", "default": false },
+    { "type": "text", "id": "heading", "label": "Heading", "info": "Leave blank to auto-fill with the first sold-out variant, e.g. \"XL sold out — more on the way.\"" },
+    { "type": "text", "id": "subtext", "label": "Subtext", "default": "We'll email you once, when it's back. Nothing else." },
+    { "type": "text", "id": "button_label", "label": "Button label", "default": "Notify me" }
+  ],
+  "presets": [
+    { "name": "Bush Riding waitlist" }
+  ]
+}
+{% endschema %}

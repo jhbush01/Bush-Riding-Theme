@@ -50,7 +50,20 @@
 
   <p class="alp-foot__small">© {{ section.settings.wordmark | default: shop.name | escape }} {{ 'now' | date: '%Y' }}{% if section.settings.small_print != blank %} — {{ section.settings.small_print | escape }}{% endif %}</p>
 
-  <div class="alp-foot__wordmark" aria-hidden="true">{{ section.settings.wordmark | default: shop.name | escape }}</div>
+  {%- comment -%}
+    The oversized bleed lockup — artwork, not type. Was set in
+    var(--alp-font-ui) at font-size: 24rem, which typeset "Bush Riding" as
+    text; the design system is explicit that the wordmark is drawn artwork
+    and must never be typeset. Image, sized by height, decorative (the
+    accessible name already lives on the header logo and the © line above).
+  {%- endcomment -%}
+  <div class="alp-foot__wordmark" aria-hidden="true">
+    {%- if section.settings.wordmark_image != blank -%}
+      {{ section.settings.wordmark_image | image_url: width: 2400 | image_tag: loading: 'lazy', alt: '' }}
+    {%- else -%}
+      <img src="{{ 'wordmark-' | append: section.settings.wordmark_tone | append: '.svg' | asset_url }}" alt="" loading="lazy" width="1273" height="543">
+    {%- endif -%}
+  </div>
 </footer>
 
 {% schema %}
@@ -60,8 +73,31 @@
   "settings": [
     { "type": "text", "id": "newsletter_heading", "label": "Newsletter heading", "default": "Ride with us." },
     { "type": "text", "id": "newsletter_text", "label": "Newsletter text", "default": "One email a month from the bush — stories, routes and first looks. No noise." },
-    { "type": "text", "id": "wordmark", "label": "Wordmark", "default": "Bush Riding™", "info": "Leave blank to use the store name." },
-    { "type": "text", "id": "small_print", "label": "Small print" }
+    { "type": "text", "id": "wordmark", "label": "Wordmark", "default": "Bush Riding™", "info": "Leave blank to use the store name. Used for the © line and the bleed image's alt text fallback." },
+    { "type": "text", "id": "small_print", "label": "Small print" },
+    { "type": "header", "content": "Bleed wordmark" },
+    {
+      "type": "select",
+      "id": "wordmark_tone",
+      "label": "Tone",
+      "options": [
+        { "value": "mist", "label": "Mist (default — the page colour on olive)" },
+        { "value": "bone", "label": "Bone" },
+        { "value": "olive", "label": "Olive" },
+        { "value": "khaki", "label": "Khaki" },
+        { "value": "sage", "label": "Sage" },
+        { "value": "flare", "label": "Flare" },
+        { "value": "white", "label": "White" },
+        { "value": "black", "label": "Black" }
+      ],
+      "default": "mist"
+    },
+    {
+      "type": "image_picker",
+      "id": "wordmark_image",
+      "label": "Image override",
+      "info": "Leave blank to use the shipped mist wordmark artwork above."
+    }
   ],
   "blocks": [
     {

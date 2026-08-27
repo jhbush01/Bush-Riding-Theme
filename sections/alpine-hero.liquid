@@ -15,10 +15,25 @@
         <source src="{{ section.settings.video_url }}" type="video/mp4">
       </video>
     {%- else -%}
-      <img src="{{ 'alpine-ph-hero.svg' | asset_url }}" alt="" loading="eager"
+      <img src="{{ 'alpine-ph-hero.svg' | asset_url }}" alt="" width="800" height="1000" loading="eager"
         data-asset-note="Full-bleed hero: hiker on mossy terrain against a pale blown-out sky, as in frame f_01">
     {%- endif -%}
   </div>
+
+  {%- if section.settings.show_wordmark -%}
+    {%- comment -%}
+      Decorative — the header link already carries "Bush Riding" as the
+      accessible name for the home route, so this stays aria-hidden with an
+      empty alt to avoid announcing the wordmark twice.
+    {%- endcomment -%}
+    <div class="alp-hero__wordmark" aria-hidden="true">
+      {%- if section.settings.wordmark_image != blank -%}
+        {{ section.settings.wordmark_image | image_url: width: 500 | image_tag: loading: 'eager', alt: '' }}
+      {%- else -%}
+        <img src="{{ 'wordmark-' | append: section.settings.wordmark_tone | append: '.svg' | asset_url }}" alt="" loading="eager" width="1273" height="543">
+      {%- endif -%}
+    </div>
+  {%- endif -%}
 
   <div class="alp-hero__cta">
     {%- if section.settings.shorts_product != blank -%}
@@ -27,7 +42,8 @@
       <a class="alp-chip" href="{{ section.settings.shorts_fallback_url | default: '#' }}">{{ section.settings.shorts_label | escape }} <span class="alp-glyph">✦</span></a>
     {%- endif -%}
     {%- if section.settings.map_label != blank -%}
-      <a class="alp-chip" href="{{ section.settings.map_url | default: 'https://map.bushriding.cc' }}">{{ section.settings.map_label | escape }}</a>
+      {%- comment -%} Mobile keeps the hero to a single CTA (the shorts chip); the map chip only shows from tablet up. {%- endcomment -%}
+      <a class="alp-chip alp-hero__cta-map" href="{{ section.settings.map_url | default: 'https://map.bushriding.cc' }}">{{ section.settings.map_label | escape }}</a>
     {%- endif -%}
   </div>
 </section>
@@ -52,6 +68,38 @@
       "type": "image_picker",
       "id": "poster",
       "label": "Video poster image"
+    },
+    {
+      "type": "header",
+      "content": "Wordmark"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_wordmark",
+      "label": "Show the wordmark over the photo",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "wordmark_tone",
+      "label": "Wordmark tone",
+      "options": [
+        { "value": "bone", "label": "Bone (default over photography)" },
+        { "value": "olive", "label": "Olive" },
+        { "value": "sage", "label": "Sage" },
+        { "value": "khaki", "label": "Khaki" },
+        { "value": "mist", "label": "Mist" },
+        { "value": "flare", "label": "Flare" },
+        { "value": "white", "label": "White" },
+        { "value": "black", "label": "Black" }
+      ],
+      "default": "bone"
+    },
+    {
+      "type": "image_picker",
+      "id": "wordmark_image",
+      "label": "Wordmark image override",
+      "info": "Leave blank to use the shipped bone wordmark artwork above."
     },
     {
       "type": "header",

@@ -1,0 +1,50 @@
+{%- comment -%}
+  Bush Riding fit gallery (option 1g). Real riders in the product, each
+  captioned with height + size worn, so the size & fit guide has faces
+  against it instead of just a chart.
+{%- endcomment -%}
+
+{%- if section.blocks.size > 0 -%}
+  <div class="alp alp-fit-gallery">
+    {%- if section.settings.heading != blank -%}<h2 class="alp-fit-gallery__heading">{{ section.settings.heading | escape }}</h2>{%- endif -%}
+    <div class="alp-fit-gallery__grid">
+      {%- for block in section.blocks -%}
+        <figure class="alp-fit-gallery__item alp-reveal" {{ block.shopify_attributes }}>
+          {%- if block.settings.image != blank -%}
+            {{ block.settings.image | image_url: width: 900 | image_tag: loading: 'lazy', alt: block.settings.caption | default: '' }}
+          {%- else -%}
+            <img src="{{ 'alpine-ph-card-2.svg' | asset_url }}" alt="" width="750" height="1000" loading="lazy" data-asset-note="Rider wearing this product, full length, on the bike or on the trail">
+          {%- endif -%}
+          {%- if block.settings.caption != blank -%}<figcaption>{{ block.settings.caption | escape }}</figcaption>{%- endif -%}
+        </figure>
+      {%- endfor -%}
+    </div>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Bush Riding fit gallery",
+  "tag": "div",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Heading" }
+  ],
+  "blocks": [
+    {
+      "type": "rider",
+      "name": "Rider",
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Image" },
+        { "type": "text", "id": "caption", "label": "Caption", "info": "e.g. \"Rider A · 178 cm · M\"" }
+      ]
+    }
+  ],
+  "max_blocks": 3,
+  "presets": [
+    {
+      "name": "Bush Riding fit gallery",
+      "blocks": [{ "type": "rider" }, { "type": "rider" }, { "type": "rider" }]
+    }
+  ]
+}
+{% endschema %}
