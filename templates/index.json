@@ -13,6 +13,7 @@
       "type": "alpine-gate",
       "settings": {
         "wordmark_tone": "olive",
+        "wordmark_alt": "",
         "tagline": "Made for the detour",
         "shop_label": "Shop the launch",
         "shop_url": "/collections/all",
@@ -26,19 +27,33 @@
         "photo_lead": {
           "type": "photo",
           "settings": {
-            "image": "shopify://shop_images/autumn-trees-hillside.jpg"
+            "image": "shopify://shop_images/Bush_Background.jpg",
+            "caption": "",
+            "link": ""
           }
         },
         "photo_rider": {
           "type": "photo",
-          "settings": {}
+          "settings": {
+            "image": "shopify://shop_images/IMG_2419.jpg",
+            "caption": "Mooloolah Forest, QLD",
+            "link": ""
+          }
         },
         "photo_detail": {
           "type": "photo",
-          "settings": {}
+          "settings": {
+            "image": "shopify://shop_images/autumn-trees-hillside.jpg",
+            "caption": "",
+            "link": ""
+          }
         }
       },
-      "block_order": ["photo_lead", "photo_rider", "photo_detail"],
+      "block_order": [
+        "photo_lead",
+        "photo_rider",
+        "photo_detail"
+      ],
       "settings": {}
     },
     "alpine_manifesto": {
@@ -57,7 +72,10 @@
           }
         }
       },
-      "block_order": ["para_1", "refrain_1"],
+      "block_order": [
+        "para_1",
+        "refrain_1"
+      ],
       "settings": {
         "ground": "page"
       }
@@ -65,11 +83,12 @@
     "alpine_launch_grid": {
       "type": "alpine-collection",
       "settings": {
-        "heading": "",
+        "heading": "Designed in Qld, Australia, Made in Vic",
         "tagline": "",
         "show_duo": false,
         "collection": "",
-        "products_to_show": 4
+        "products_to_show": 4,
+        "panel_product": ""
       }
     }
   },
