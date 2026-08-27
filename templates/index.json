@@ -14,15 +14,70 @@
       "settings": {
         "image": "shopify://shop_images/autumn-trees-hillside.jpg",
         "video_url": "https://cdn.shopify.com/videos/c/o/v/e3a3e900b3154a1baf53e0a1cb5a2c2e.mov",
+        "show_wordmark": true,
+        "wordmark_tone": "bone",
         "shorts_product": "",
-        "shorts_label": "",
+        "shorts_label": "Shop the launch",
         "shorts_fallback_url": "/products/bush-riding-shorts",
-        "map_label": "",
+        "map_label": "BUSH MAP™",
         "map_url": "https://map.bushriding.cc"
+      }
+    },
+    "alpine_statement": {
+      "type": "alpine-statement",
+      "settings": {
+        "text": "Built for dust, distance and the ride home."
+      }
+    },
+    "alpine_manifesto": {
+      "type": "alpine-manifesto",
+      "blocks": {
+        "para_1": {
+          "type": "paragraph",
+          "settings": {
+            "text": "<p>We ride for the detour ∧ the café stop ∧ the track that didn't make the map.</p>"
+          }
+        },
+        "para_2": {
+          "type": "paragraph",
+          "settings": {
+            "text": "<p>Kit that moves with you ↑ over gravel, dust ÷ and the long way home.</p>"
+          }
+        },
+        "refrain_1": {
+          "type": "refrain",
+          "settings": {
+            "text": "<p>The best rides begin where the bitumen ends ✦ ride with us.</p>"
+          }
+        }
+      },
+      "block_order": ["para_1", "para_2", "refrain_1"],
+      "settings": {}
+    },
+    "alpine_launch_grid": {
+      "type": "alpine-collection",
+      "settings": {
+        "heading": "",
+        "tagline": "",
+        "show_duo": false,
+        "collection": "",
+        "products_to_show": 4
+      }
+    },
+    "alpine_story": {
+      "type": "alpine-story",
+      "settings": {
+        "heading": "From the Journal",
+        "text": "We document, we don't advertise. Ride notes, wrong turns and the places they led — told by the riders who were there.",
+        "link_label": "Read the Journal"
       }
     }
   },
   "order": [
-    "alpine_hero"
+    "alpine_hero",
+    "alpine_statement",
+    "alpine_manifesto",
+    "alpine_launch_grid",
+    "alpine_story"
   ]
 }

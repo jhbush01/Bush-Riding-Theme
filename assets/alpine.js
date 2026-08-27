@@ -78,6 +78,25 @@
     if (e.key === 'Escape' && overlay && overlay.classList.contains('is-open')) closeMenu(true);
   });
 
+  /* ── Home header: swap to the inner-page olive bar once scrolled past the
+     hero ──
+     1b turned the home page from a fixed one-screen design into a scroller,
+     but the header's transparent/citrus styling only has contrast over the
+     hero photo. Past it, the page is on bone or olive section backgrounds
+     where citrus-on-bone is close to invisible — so once scrolled roughly a
+     hero-height down, add .alp-scrolled and the CSS swaps to the same solid
+     olive bar every other template already uses. */
+  function updateHeaderScroll() {
+    if (!document.body.classList.contains('template-index')) return;
+    var hero = document.querySelector('.alp-hero');
+    var threshold = hero ? hero.offsetHeight - 80 : 400;
+    document.body.classList.toggle('alp-scrolled', window.scrollY > threshold);
+  }
+  window.addEventListener('scroll', updateHeaderScroll, { passive: true });
+  window.addEventListener('resize', updateHeaderScroll);
+  updateHeaderScroll();
+  document.addEventListener('shopify:section:load', updateHeaderScroll);
+
   /* ── Scroll reveal ──
      Skipped entirely in the theme editor (sections are re-rendered on every
      tweak and would come back opacity-0); alpine.css also forces visibility

@@ -81,11 +81,14 @@ button.alp-chip { cursor: pointer; }
   /* With viewport-fit=cover the page draws under the notch; keep the bar's
      text below it. */
   padding: max(10px, env(safe-area-inset-top)) var(--alp-pad-page) 10px;
+  transition: background-color 0.25s ease-out;
 }
 
 /* On the one-screen home page the bar sits at the vertical centre of the hero
    (static — no fade). Inner pages keep it pinned at the top. */
-body.template-index .alp-head { top: 50vh; top: 50svh; transform: translateY(-50%); }
+/* 1a floated the bar at the hero's vertical centre for the one-screen
+   design; 1b scrolls, so the bar goes back to the base class's top: 0 and
+   only keeps its transparent, citrus-on-photo colouring (below). */
 
 .alp-head__group { display: flex; align-items: center; gap: 10px; }
 .alp-head__nav { display: flex; gap: 6px; }
@@ -330,16 +333,39 @@ span.alp-menu__media--ph { background: linear-gradient(135deg, #6d6c58, #4e4d3f)
   object-fit: cover;
 }
 
+/* Centred wordmark over the hero photo — sized by height so it holds its
+   aspect ratio, drop-shadow matched to the nav type's text-shadow so it reads
+   over bright sky the same way the header does. */
+.alp-hero__wordmark {
+  position: absolute;
+  top: 44%;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+.alp-hero__wordmark img {
+  height: clamp(2.6rem, 3.6vw + 1.6rem, 4.9rem);
+  width: auto;
+  filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.5));
+}
+
 .alp-hero__cta {
   position: absolute;
-  top: calc(50% + clamp(44px, 8vh, 90px));
+  bottom: clamp(20px, 4vh, 40px);
   left: 50%;
   transform: translateX(-50%);
   z-index: 2;
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
+}
+
+@media (max-width: 749px) {
+  .alp-hero__cta-map { display: none; }
 }
 
 /* ── Manifesto (f_04 / f_13) ─────────────────────────────────────────────── */
@@ -452,6 +478,62 @@ span.alp-menu__media--ph { background: linear-gradient(135deg, #6d6c58, #4e4d3f)
   margin: 0;
 }
 
+/* ── Product hero (option 1g — editorial) ────────────────────────────────── */
+.alp-phero { position: relative; overflow: hidden; }
+.alp-phero__media img, .alp-phero__media svg {
+  width: 100%;
+  height: clamp(340px, 66vh, 760px);
+  object-fit: cover;
+  display: block;
+}
+
+.alp-phero__bar {
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: max(14px, env(safe-area-inset-top)) var(--alp-pad-page) 0;
+}
+.alp-phero__wordmark img {
+  height: clamp(1.3rem, 1vw + 1rem, 1.7rem);
+  width: auto;
+  filter: drop-shadow(0 1px 5px rgba(0, 0, 0, 0.5));
+}
+.alp-phero__link {
+  font-family: var(--alp-font-ui);
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: var(--alp-citrus);
+  text-decoration: none;
+  text-shadow: 0 1px 5px rgba(0, 0, 0, 0.5);
+}
+.alp-phero__link:hover { color: var(--alp-bg); }
+
+.alp-phero__caption {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  z-index: 2;
+  padding: 0 var(--alp-pad-page) clamp(20px, 3.6vw, 32px);
+  color: #fff;
+}
+.alp-phero__title {
+  font-family: var(--alp-font-display);
+  font-weight: 600;
+  font-size: clamp(1.7rem, 3.4vw, 2.6rem);
+  line-height: 1.08;
+  margin: 0;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35);
+}
+.alp-phero__tagline {
+  font-family: var(--alp-font-ui);
+  font-size: clamp(0.85rem, 0.6vw + 0.7rem, 1rem);
+  color: rgba(255, 255, 255, 0.85);
+  margin: 6px 0 0;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
+}
+
 /* ── Story / Journal ─────────────────────────────────────────────────────── */
 .alp-story {
   padding: var(--alp-space-section) var(--alp-pad-page);
@@ -526,44 +608,28 @@ span.alp-menu__media--ph { background: linear-gradient(135deg, #6d6c58, #4e4d3f)
 .alp-foot__small { padding: 20px 0 0; font-size: 0.75rem; color: rgba(76, 75, 59, 0.6); }
 
 .alp-foot__wordmark {
-  font-family: var(--alp-font-ui);
-  font-weight: 800;
-  font-size: clamp(5rem, 21vw, 24rem);
-  line-height: 0.76;
-  letter-spacing: -0.03em;
-  text-align: center;
-  white-space: nowrap;
-  transform: translateY(0.16em);
-  user-select: none;
+  display: flex;
+  justify-content: center;
+  margin-top: clamp(24px, 6vw, 56px);
+  transform: translateY(12%);
+  pointer-events: none;
+}
+.alp-foot__wordmark img {
+  width: clamp(320px, 84vw, 1600px);
+  height: auto;
 }
 
-/* ── Home page: one non-scrolling screen ─────────────────────────────────────
-   The hero fills the viewport and the footer is laid over its base in small
-   dark-grey type. The footer appears ONLY on the home page (hidden on every
-   other template), and it disappears while the menu overlay is open. */
+/* ── Home page: scrolling photo essay (option 1b) ────────────────────────────
+   The hero is still the biggest photograph on the site — a full-viewport
+   opener — but the page scrolls beneath it into the statement, manifesto,
+   launch grid and story sections, landing on the ordinary site footer (full
+   newsletter + columns + bleed wordmark) like every other template.
+   The footer stays hidden on every other template (1d/1g don't carry one),
+   and disappears while the Explore menu overlay is open. */
 body:not(.template-index) .alp-foot { display: none; }
 body.alp-menu-open .alp-foot { display: none; }
 
-body.template-index { overflow: hidden; }
 body.template-index .alp-hero { height: 100svh; min-height: 100svh; }
-
-body.template-index .alp-foot {
-  position: fixed;
-  left: 0; right: 0; bottom: 0;
-  z-index: 30;
-  border: 0;
-  background: transparent;
-  overflow: visible;
-  padding: 0 var(--alp-pad-page) calc(8px + env(safe-area-inset-bottom));
-  color: var(--alp-citrus);
-}
-
-/* Trim the full footer down to a compact overlaid strip on home. */
-/* Home footer: only the copyright line, at double size. Everything else goes. */
-body.template-index .alp-foot__wordmark,
-body.template-index .alp-foot__dispatch,
-body.template-index .alp-foot__columns { display: none; }
-body.template-index .alp-foot__small { padding: 0; text-align: center; font-size: 1.24rem; color: var(--alp-citrus); }
 
 /* ── Scroll reveal ───────────────────────────────────────────────────────── */
 .alp-reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.55s ease-out, transform 0.55s ease-out; }
@@ -641,6 +707,20 @@ body:not(.template-index) .alp-nav-link--wordmark .alp-wordmark__img {
   filter: none;
 }
 body:not(.template-index) .alp-nav-link--clock { font-size: 0.8rem; color: var(--alp-haze); }
+
+/* Home, once scrolled past the hero (1b): same treatment as an inner page's
+   bar, added by the .alp-scrolled class from alpine.js. */
+body.template-index.alp-scrolled .alp-head {
+  background: var(--alp-olive);
+  padding-top: max(10px, env(safe-area-inset-top));
+  padding-bottom: 10px;
+}
+body.template-index.alp-scrolled .alp-nav-link {
+  color: var(--alp-bg);
+  text-shadow: none;
+}
+body.template-index.alp-scrolled .alp-nav-link:hover { color: var(--alp-citrus); }
+body.template-index.alp-scrolled .alp-nav-link--wordmark .alp-wordmark__img { filter: none; }
 /* Clearance to match the shorter solid bar. */
 body:not(.template-index) #MainContent { padding-top: 76px; }
 
@@ -792,4 +872,61 @@ a.alp-chip--active:hover { background: var(--alp-accent); border-color: var(--al
   .alp-cgrid__bar::-webkit-scrollbar { display: none; }
   .alp-cgrid__sort { margin-left: 8px; flex: 0 0 auto; }
   .alp-cgrid__grid { gap: 10px; }
+}
+
+/* ── Product page additions (option 1g — editorial) ──────────────────────── */
+
+.alp-waitlist-banner {
+  margin: var(--alp-pad-page);
+  border: 1px solid var(--alp-line);
+  background: var(--alp-bg);
+  padding: 16px 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+}
+.alp-waitlist-banner__heading { margin: 0; font-family: var(--alp-font-ui); font-weight: 600; font-size: 0.95rem; }
+.alp-waitlist-banner__subtext { margin: 4px 0 0; font-size: 0.8rem; color: var(--alp-accent); }
+.alp-waitlist-banner__form-wrap { flex: 0 0 auto; }
+.alp-waitlist-banner__form { display: flex; gap: 6px; }
+.alp-waitlist-banner__form input[type='email'] {
+  flex: 1;
+  min-width: 180px;
+  font: inherit;
+  padding: 9px 12px;
+  border: 1px solid var(--alp-ink);
+  border-radius: 3px;
+  background: var(--alp-surface);
+  color: var(--alp-ink);
+}
+.alp-waitlist-banner__note { margin: 0; font-weight: 600; font-size: 0.85rem; }
+
+.alp-kit { padding: 0 var(--alp-pad-page) var(--alp-space-section); }
+.alp-kit__heading { font-family: var(--alp-font-display); font-weight: 600; font-size: clamp(1.1rem, 1.6vw, 1.4rem); margin: 0 0 16px; }
+.alp-kit__row { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end; }
+.alp-kit__items { display: flex; flex-wrap: wrap; gap: 14px; flex: 1 1 320px; }
+.alp-kit__item { display: flex; flex-direction: column; gap: 8px; width: 120px; }
+.alp-kit__item-media { display: block; }
+.alp-kit__item-media img { width: 100%; aspect-ratio: 1; object-fit: cover; }
+.alp-kit__buy { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; flex: 0 0 auto; }
+.alp-kit__price { margin: 0; font-family: var(--alp-font-ui); font-size: 0.85rem; color: var(--alp-accent); }
+.alp-kit__price s { opacity: 0.7; }
+.alp-kit__price strong { font-size: 1.05rem; color: var(--alp-ink); }
+.alp-kit__cta { justify-content: center; padding: 11px 20px; }
+
+.alp-fit-gallery { padding: 0 var(--alp-pad-page) var(--alp-space-section); }
+.alp-fit-gallery__heading { font-family: var(--alp-font-display); font-weight: 600; font-size: clamp(1.1rem, 1.6vw, 1.4rem); margin: 0 0 16px; }
+.alp-fit-gallery__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.alp-fit-gallery__item { margin: 0; }
+.alp-fit-gallery__item img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; }
+.alp-fit-gallery__item figcaption { margin-top: 6px; font-size: 0.78rem; color: var(--alp-accent); }
+
+@media (max-width: 749px) {
+  .alp-waitlist-banner { flex-direction: column; align-items: stretch; }
+  .alp-waitlist-banner__form { flex-direction: column; }
+  .alp-kit__buy { width: 100%; }
+  .alp-kit__cta { width: 100%; }
+  .alp-fit-gallery__grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
 }
