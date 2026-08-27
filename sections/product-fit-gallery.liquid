@@ -13,7 +13,7 @@
           {%- if block.settings.image != blank -%}
             {{ block.settings.image | image_url: width: 900 | image_tag: loading: 'lazy', alt: block.settings.caption | default: '' }}
           {%- else -%}
-            <img src="{{ 'alpine-ph-card-2.svg' | asset_url }}" alt="" loading="lazy" data-asset-note="Rider wearing this product, full length, on the bike or on the trail">
+            <img src="{{ 'alpine-ph-card-2.svg' | asset_url }}" alt="" width="750" height="1000" loading="lazy" data-asset-note="Rider wearing this product, full length, on the bike or on the trail">
           {%- endif -%}
           {%- if block.settings.caption != blank -%}<figcaption>{{ block.settings.caption | escape }}</figcaption>{%- endif -%}
         </figure>

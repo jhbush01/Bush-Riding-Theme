@@ -26,7 +26,7 @@
     {%- elsif product.featured_image != blank -%}
       {{ product.featured_image | image_url: width: 2400 | image_tag: loading: 'eager', fetchpriority: 'high', alt: '' }}
     {%- else -%}
-      <img src="{{ 'alpine-ph-hero.svg' | asset_url }}" alt="" loading="eager"
+      <img src="{{ 'alpine-ph-hero.svg' | asset_url }}" alt="" width="800" height="1000" loading="eager"
         data-asset-note="Full-bleed product-in-action photograph — the rider wearing/using this product on the trail">
     {%- endif -%}
   </div>

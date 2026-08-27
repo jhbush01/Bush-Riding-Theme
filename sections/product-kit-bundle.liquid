@@ -52,7 +52,7 @@
                 {%- if p.featured_image != blank -%}
                   {{ p.featured_image | image_url: width: 500 | image_tag: loading: 'lazy', alt: p.featured_image.alt | default: p.title }}
                 {%- else -%}
-                  <img src="{{ 'alpine-ph-card-1.svg' | asset_url }}" alt="" loading="lazy">
+                  <img src="{{ 'alpine-ph-card-1.svg' | asset_url }}" alt="" width="750" height="1000" loading="lazy">
                 {%- endif -%}
               </a>
               <span class="alp-chip">{{ p.title | escape }} {{ p.selected_or_first_available_variant.price | money }}</span>
