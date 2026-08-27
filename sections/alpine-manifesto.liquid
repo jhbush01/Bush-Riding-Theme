@@ -1,10 +1,17 @@
 {%- comment -%}
-  ALP1NE manifesto — olive block, lavender display type with inline glyphs,
+  ALP1NE manifesto — olive block, sage display type with inline glyphs,
   product cutouts floating ABOVE the letters, refrain + centred figure
   (frames f_04 / f_13).
-{%- endcomment -%}
 
-<section class="alp alp-manifesto" id="manifesto" aria-label="About">
+  `ground` picks the treatment: "olive" is that original block; "page" drops
+  the cutouts and figure and sets the words straight onto the page ground in
+  olive ink — what option 2a's mist home page uses, where the manifesto is a
+  quiet paragraph rather than a full-bleed slab.
+{%- endcomment -%}
+{%- assign ground = section.settings.ground | default: 'olive' -%}
+
+<section class="alp alp-manifesto alp-manifesto--{{ ground }}" id="manifesto" aria-label="About">
+  {%- if ground == 'olive' -%}
   <div class="alp-manifesto__cutouts" aria-hidden="true">
     {%- if section.settings.cutout_1 != blank -%}
       <img class="alp-manifesto__cut alp-manifesto__cut--pack" src="{{ section.settings.cutout_1 | image_url: width: 680 }}" alt="" width="420" height="460" loading="lazy">
@@ -23,6 +30,8 @@
     {%- endif -%}
   </div>
 
+  {%- endif -%}
+
   <div class="alp-manifesto__inner">
     {%- for block in section.blocks -%}
       {%- case block.type -%}
@@ -33,13 +42,15 @@
       {%- endcase -%}
     {%- endfor -%}
 
-    <figure class="alp-manifesto__figure alp-reveal">
-      {%- if section.settings.figure != blank -%}
-        {{ section.settings.figure | image_url: width: 1120 | image_tag: loading: 'lazy', alt: section.settings.figure.alt | default: '' }}
-      {%- else -%}
-        <img src="{{ 'alpine-ph-jacket.svg' | asset_url }}" alt="" width="800" height="1000" loading="lazy" data-asset-note="Mid-shot of a person adjusting a technical shell, soft light — the centred figure in f_13">
-      {%- endif -%}
-    </figure>
+    {%- if ground == 'olive' -%}
+      <figure class="alp-manifesto__figure alp-reveal">
+        {%- if section.settings.figure != blank -%}
+          {{ section.settings.figure | image_url: width: 1120 | image_tag: loading: 'lazy', alt: section.settings.figure.alt | default: '' }}
+        {%- else -%}
+          <img src="{{ 'alpine-ph-jacket.svg' | asset_url }}" alt="" width="800" height="1000" loading="lazy" data-asset-note="Mid-shot of a person adjusting a technical shell, soft light — the centred figure in f_13">
+        {%- endif -%}
+      </figure>
+    {%- endif -%}
   </div>
 </section>
 
@@ -48,7 +59,18 @@
   "name": "Bush Riding manifesto",
   "tag": "div",
   "settings": [
-    { "type": "image_picker", "id": "figure", "label": "Centred figure image" },
+    {
+      "type": "select",
+      "id": "ground",
+      "label": "Treatment",
+      "options": [
+        { "value": "olive", "label": "Olive block — sage type, cutouts, figure" },
+        { "value": "page", "label": "On the page — olive type, no cutouts" }
+      ],
+      "default": "olive",
+      "info": "\"On the page\" is what the mist home page uses: a quiet paragraph in olive ink, no slab."
+    },
+    { "type": "image_picker", "id": "figure", "label": "Centred figure image", "info": "Olive block only." },
     { "type": "image_picker", "id": "cutout_1", "label": "Floating cutout 1 (top right)" },
     { "type": "image_picker", "id": "cutout_2", "label": "Floating cutout 2 (left)" },
     { "type": "image_picker", "id": "cutout_3", "label": "Floating cutout 3 (far right)" }

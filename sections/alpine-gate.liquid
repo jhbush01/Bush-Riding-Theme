@@ -1,0 +1,74 @@
+{%- comment -%}
+  Bush Riding gate (option 2a). The home page opens on a flat field of mist
+  rather than a photograph: the olive wordmark centred at full size, the
+  tagline under it, and two chips. Flare is spent once here, on the shop chip.
+
+  The mark is artwork placed by height, never typeset — see the design system.
+  The header bar hides its own small wordmark on this template (alpine.css),
+  so this is the only place "Bush Riding" appears above the fold.
+{%- endcomment -%}
+
+{%- liquid
+  assign shop_url = section.settings.shop_url | default: routes.all_products_collection_url
+  assign map_url = section.settings.map_url | default: 'https://map.bushriding.cc'
+-%}
+
+<section class="alp alp-gate">
+  <a class="alp-gate__mark" href="{{ routes.root_url }}" aria-label="{{ section.settings.wordmark_alt | default: shop.name | escape }}">
+    {%- if section.settings.wordmark_image != blank -%}
+      {{ section.settings.wordmark_image | image_url: width: 1400 | image_tag: loading: 'eager', fetchpriority: 'high', alt: '' }}
+    {%- else -%}
+      <img src="{{ 'wordmark-' | append: section.settings.wordmark_tone | append: '.svg' | asset_url }}" alt="" width="1273" height="543" loading="eager" fetchpriority="high">
+    {%- endif -%}
+  </a>
+
+  {%- if section.settings.tagline != blank -%}
+    <p class="alp-gate__tagline">{{ section.settings.tagline | escape }}</p>
+  {%- endif -%}
+
+  <div class="alp-gate__cta">
+    {%- if section.settings.shop_label != blank -%}
+      <a class="alp-chip alp-chip--flare" href="{{ shop_url }}">{{ section.settings.shop_label | escape }} <span class="alp-glyph">✦</span></a>
+    {%- endif -%}
+    {%- if section.settings.map_label != blank -%}
+      <a class="alp-chip" href="{{ map_url }}">{{ section.settings.map_label | escape }}</a>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Bush Riding gate",
+  "tag": "div",
+  "settings": [
+    { "type": "paragraph", "content": "The mist gate that opens the home page: centred wordmark, tagline, two chips." },
+    {
+      "type": "select",
+      "id": "wordmark_tone",
+      "label": "Wordmark tone",
+      "options": [
+        { "value": "olive", "label": "Olive (default on mist)" },
+        { "value": "bone", "label": "Bone" },
+        { "value": "sage", "label": "Sage" },
+        { "value": "khaki", "label": "Khaki" },
+        { "value": "mist", "label": "Mist" },
+        { "value": "flare", "label": "Flare" },
+        { "value": "white", "label": "White" },
+        { "value": "black", "label": "Black" }
+      ],
+      "default": "olive"
+    },
+    { "type": "image_picker", "id": "wordmark_image", "label": "Wordmark image override" },
+    { "type": "text", "id": "wordmark_alt", "label": "Wordmark link label", "info": "Accessible name for the logo link. Leave blank to use the store name." },
+    { "type": "text", "id": "tagline", "label": "Tagline", "default": "Made for the detour" },
+    { "type": "header", "content": "Chips" },
+    { "type": "text", "id": "shop_label", "label": "Shop chip label", "default": "Shop the launch" },
+    { "type": "url", "id": "shop_url", "label": "Shop chip URL", "info": "Defaults to the all-products catalog." },
+    { "type": "text", "id": "map_label", "label": "Map chip label", "default": "BUSH MAP™" },
+    { "type": "url", "id": "map_url", "label": "Map chip URL", "info": "Defaults to https://map.bushriding.cc." }
+  ],
+  "presets": [
+    { "name": "Bush Riding gate" }
+  ]
+}
+{% endschema %}
