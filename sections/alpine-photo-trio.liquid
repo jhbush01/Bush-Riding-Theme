@@ -4,7 +4,9 @@
   under the gate; the photography is what warms the cold field up.
 
   Images render via image_url | image_tag so the focal point set in the theme
-  editor controls each crop.
+  editor controls each crop. A cell can carry a Video URL instead — a direct
+  file link (mp4/mov), not a YouTube/Vimeo embed — which takes priority over
+  Image and plays as a silent, looping background clip.
 {%- endcomment -%}
 
 {%- if section.blocks.size > 0 -%}
@@ -13,7 +15,9 @@
       {%- for block in section.blocks -%}
         <figure class="alp-trio__cell alp-reveal" {{ block.shopify_attributes }}>
           {%- if block.settings.link != blank -%}<a href="{{ block.settings.link }}">{%- endif -%}
-          {%- if block.settings.image != blank -%}
+          {%- if block.settings.video_url != blank -%}
+            <video src="{{ block.settings.video_url }}" autoplay muted loop playsinline aria-label="{{ block.settings.caption | default: '' }}"></video>
+          {%- elsif block.settings.image != blank -%}
             {{ block.settings.image | image_url: width: 1600 | image_tag: loading: 'lazy', alt: block.settings.caption | default: '' }}
           {%- else -%}
             <img src="{{ 'alpine-ph-panel-portrait.svg' | asset_url }}" alt="" width="900" height="1100" loading="lazy" data-asset-note="Warm, dusty Australian landscape — riders small in frame">
@@ -41,6 +45,7 @@
       "name": "Photo",
       "settings": [
         { "type": "image_picker", "id": "image", "label": "Image", "info": "Set the crop via the image's focal point." },
+        { "type": "url", "id": "video_url", "label": "Video URL", "info": "Optional. A direct mp4/mov file URL — overrides Image when set. Plays muted, looping, no controls." },
         { "type": "text", "id": "caption", "label": "Caption", "info": "Also used as the image's alt text." },
         { "type": "url", "id": "link", "label": "Link" }
       ]
