@@ -1,193 +1,436 @@
 {%- comment -%}
-  Bush Riding collection page (option 1b — editorial rebuild).
+  Bush Riding collection page (option 2c — the catalogue).
 
-  Replaces Dawn's `main-collection-banner` + `main-collection-product-grid` on
-  the collection template with the storefront's own language: a split hero with
-  the four-point star, chip name/price labels overlaid on 3:4 imagery, and
-  facets rendered as invertible chips.
+  Replaces the 1b/1d split hero with the system the wireframe names:
+  mist is chrome and controls, bone is content, olive is ink, flare is the one
+  thing to press. So the banner and the facet rail are mist, the product grid
+  sits on bone, and the only flare on the page is "Open the map" in the closing
+  band.
 
-  Deliberately reuses the existing `.alp-card`, `.alp-chip`, `.alp-chip-row`
-  and `.alp-glyph` classes from `alpine-collection.liquid` — no new card CSS.
-  Only the hero, the chip bar and the grid gutters are new (see the
-  `.alp-cgrid` block appended to assets/alpine.css).
+  Facets are Shopify's own (`collection.filters`, from Search & Discovery), and
+  every control is a plain link or a GET form — the page filters, sorts and
+  pages with JavaScript off. When no filters are configured the rail falls back
+  to a list of the store's real collections, so the column is never empty and
+  never points at a collection that doesn't exist.
 
-  Images render via `image_url | image_tag` so the focal point set in the
-  theme editor controls the crop.
+  The mobile "Filter" disclosure is a checkbox + label, not a script: the rail
+  is a column on desktop and a toggled panel under the bar on a phone.
 {%- endcomment -%}
 
 {%- liquid
   assign eyebrow = section.settings.eyebrow | default: 'Shop'
-  assign cols = section.settings.columns_desktop | default: 4
+  assign cols = section.settings.columns_desktop | default: 3
+  assign map_url = section.settings.cta_url | default: 'https://map.bushriding.cc'
+
+  assign banner_image = section.settings.banner_image | default: collection.image
+
+  comment
+    Active facet count drives both the count line ("44 products · 1 filter")
+    and the number on the mobile Filter button.
+  endcomment
+  assign active_filters = 0
+  for filter in collection.filters
+    assign active_filters = active_filters | plus: filter.active_values.size
+    if filter.type == 'price_range'
+      if filter.min_value.value != blank or filter.max_value.value != blank
+        assign active_filters = active_filters | plus: 1
+      endif
+    endif
+  endfor
 -%}
 
-<section class="alp alp-cgrid" id="collection-{{ section.id }}">
-  {%- if section.settings.show_hero -%}
-    <div class="alp-cgrid__hero alp-reveal">
-      <figure class="alp-cgrid__panel alp-cgrid__panel--left">
-        {%- if section.settings.panel_left != blank -%}
-          {{ section.settings.panel_left | image_url: width: 1800 | image_tag: loading: 'eager', fetchpriority: 'high', alt: section.settings.panel_left.alt | default: '' }}
-        {%- else -%}
-          <img src="{{ 'alpine-ph-panel-portrait.svg' | asset_url }}" alt="" width="900" height="1100" loading="eager">
-        {%- endif -%}
+<section class="alp alp-cat" id="collection-{{ section.id }}">
+  {%- if section.settings.show_banner -%}
+    <div class="alp-cat__banner">
+      {%- if banner_image != blank -%}
+        {{
+          banner_image
+          | image_url: width: 2400
+          | image_tag: loading: 'eager', fetchpriority: 'high', sizes: '100vw', alt: banner_image.alt | default: collection.title
+        }}
+      {%- else -%}
+        <img
+          src="{{ 'alpine-ph-hero.svg' | asset_url }}"
+          alt=""
+          width="1600"
+          height="900"
+          loading="eager"
+          fetchpriority="high"
+          data-asset-note="Warm, dusty Australian landscape — riders small in frame"
+        >
+      {%- endif -%}
 
-        {%- if section.settings.show_star -%}
-          <svg class="alp-cgrid__star" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
-            <path d="M50 0 C54 32 68 46 100 50 C68 54 54 68 50 100 C46 68 32 54 0 50 C32 46 46 32 50 0 Z"/>
-          </svg>
-        {%- endif -%}
-
-        <div class="alp-cgrid__overlay">
-          <p class="alp-cgrid__eyebrow">{{ eyebrow | escape }}</p>
-          <h1 class="alp-cgrid__title">
-            {%- if section.settings.overlay_heading != blank -%}
-              {{ section.settings.overlay_heading | escape }}
-            {%- else -%}
-              {{ collection.title | escape }}
-            {%- endif -%}
-          </h1>
-        </div>
-      </figure>
-
-      <figure class="alp-cgrid__panel alp-cgrid__panel--right">
-        {%- if section.settings.panel_right != blank -%}
-          {{ section.settings.panel_right | image_url: width: 1200 | image_tag: loading: 'lazy', alt: section.settings.panel_right.alt | default: '' }}
-        {%- else -%}
-          <img src="{{ 'alpine-ph-panel-mist.svg' | asset_url }}" alt="" width="700" height="1100" loading="lazy">
-        {%- endif -%}
-        {%- if section.settings.panel_product != blank -%}
-          <figcaption class="alp-chip-row">
-            <a class="alp-chip" href="{{ section.settings.panel_product.url }}">{{ section.settings.panel_product.title | escape }} <span class="alp-glyph">✦</span></a>
-            <span class="alp-chip alp-chip--price">{{ section.settings.panel_product.price | money }}</span>
-          </figcaption>
-        {%- endif -%}
-      </figure>
+      <div class="alp-cat__banner-overlay">
+        <p class="alp-cat__eyebrow">{{ eyebrow | escape }}</p>
+        <h1 class="alp-cat__title">
+          {%- if section.settings.overlay_heading != blank -%}
+            {{- section.settings.overlay_heading | escape -}}
+          {%- else -%}
+            {{- collection.title | escape -}}
+          {%- endif -%}
+        </h1>
+      </div>
     </div>
+  {%- else -%}
+    <h1 class="alp-cat__title alp-cat__title--plain">{{ collection.title | escape }}</h1>
   {%- endif -%}
 
   {%- if collection.description != blank and section.settings.show_description -%}
-    <div class="alp-cgrid__intro alp-reveal">{{ collection.description }}</div>
+    <div class="alp-cat__intro">{{ collection.description }}</div>
   {%- endif -%}
 
   {%- paginate collection.products by section.settings.products_per_page -%}
-    <div class="alp-cgrid__bar">
-      {%- comment -%}
-        Facets as chips. Renders the first list-type filter's values; the active
-        one inverts to olive (.alp-chip--active). "All" clears that filter.
-        Requires filtering to be enabled for the collection in admin.
-      {%- endcomment -%}
-      {%- if section.settings.show_filters -%}
-        {%- assign chip_filter = null -%}
+    {%- comment -%}
+      The toggle sits before the body so the sidebar can be revealed with a
+      sibling selector on mobile. Clipped rather than `hidden` so it keeps
+      keyboard focus.
+    {%- endcomment -%}
+    {%- capture facet_rail -%}
+        {%- assign rendered_facets = 0 -%}
+
         {%- for filter in collection.filters -%}
-          {%- if filter.type == 'list' and chip_filter == null -%}
-            {%- assign chip_filter = filter -%}
-          {%- endif -%}
+          {%- liquid
+            assign label_down = filter.label | downcase
+            assign facet_style = 'list'
+            if filter.type == 'price_range'
+              assign facet_style = 'price'
+            elsif label_down contains 'size'
+              assign facet_style = 'chips'
+            elsif label_down contains 'colour' or label_down contains 'color'
+              assign facet_style = 'swatch'
+            endif
+            assign rendered_facets = rendered_facets | plus: 1
+          -%}
+
+          <div class="alp-cat__facet">
+            <h2 class="alp-cat__facet-head">{{ filter.label | escape }}</h2>
+
+            {%- case facet_style -%}
+              {%- when 'price' -%}
+                <form class="alp-cat__price" method="get" action="{{ collection.url }}">
+                  {%- render 'alp-facet-state', collection: collection, skip_price: true -%}
+                  {%- if collection.sort_by != blank -%}
+                    <input type="hidden" name="sort_by" value="{{ collection.sort_by | escape }}">
+                  {%- endif -%}
+                  <div class="alp-cat__price-row">
+                    <label class="visually-hidden" for="alp-price-min-{{ section.id }}">Minimum price</label>
+                    <span class="alp-cat__price-field">
+                      <span aria-hidden="true">{{ cart.currency.symbol }}</span>
+                      <input
+                        id="alp-price-min-{{ section.id }}"
+                        type="number"
+                        inputmode="numeric"
+                        name="{{ filter.min_value.param_name }}"
+                        value="{{ filter.min_value.value | money_without_currency | replace: ',', '' }}"
+                        placeholder="0"
+                        min="0"
+                        max="{{ filter.range_max | money_without_currency | replace: ',', '' }}"
+                      >
+                    </span>
+                    <span class="alp-cat__price-dash" aria-hidden="true">–</span>
+                    <label class="visually-hidden" for="alp-price-max-{{ section.id }}">Maximum price</label>
+                    <span class="alp-cat__price-field">
+                      <span aria-hidden="true">{{ cart.currency.symbol }}</span>
+                      <input
+                        id="alp-price-max-{{ section.id }}"
+                        type="number"
+                        inputmode="numeric"
+                        name="{{ filter.max_value.param_name }}"
+                        value="{{ filter.max_value.value | money_without_currency | replace: ',', '' }}"
+                        placeholder="{{ filter.range_max | money_without_currency | replace: ',', '' }}"
+                        min="0"
+                        max="{{ filter.range_max | money_without_currency | replace: ',', '' }}"
+                      >
+                    </span>
+                  </div>
+                  <button class="alp-chip alp-cat__price-go" type="submit">Set price</button>
+                </form>
+
+              {%- when 'chips' -%}
+                <div class="alp-cat__chips">
+                  {%- for value in filter.values -%}
+                    {%- if value.count > 0 or value.active -%}
+                      <a
+                        class="alp-chip alp-chip--sm{% if value.active %} alp-chip--active{% endif %}"
+                        href="{% if value.active %}{{ value.url_to_remove }}{% else %}{{ value.url_to_add }}{% endif %}"
+                        {% if value.active %}aria-current="true"{% endif %}
+                      >{{ value.label | escape }}</a>
+                    {%- endif -%}
+                  {%- endfor -%}
+                </div>
+
+              {%- when 'swatch' -%}
+                <div class="alp-cat__swatches">
+                  {%- for value in filter.values -%}
+                    {%- if value.count > 0 or value.active -%}
+                      {%- liquid
+                        assign swatch_down = value.label | downcase
+                        assign swatch_hex = ''
+                        if value.swatch.color != blank
+                          assign swatch_hex = value.swatch.color
+                        elsif swatch_down contains 'olive'
+                          assign swatch_hex = '#4c4b3b'
+                        elsif swatch_down contains 'khaki'
+                          assign swatch_hex = '#828059'
+                        elsif swatch_down contains 'sage'
+                          assign swatch_hex = '#b9bea3'
+                        elsif swatch_down contains 'mist'
+                          assign swatch_hex = '#a7b8b4'
+                        elsif swatch_down contains 'flare' or swatch_down contains 'lemon'
+                          assign swatch_hex = '#ede270'
+                        elsif swatch_down contains 'bone' or swatch_down contains 'cream'
+                          assign swatch_hex = '#edecc5'
+                        else
+                          assign swatch_hex = '#b9bea3'
+                        endif
+                      -%}
+                      <a
+                        class="alp-cat__swatch{% if value.active %} is-active{% endif %}"
+                        style="--alp-swatch: {{ swatch_hex }}"
+                        href="{% if value.active %}{{ value.url_to_remove }}{% else %}{{ value.url_to_add }}{% endif %}"
+                        {% if value.active %}aria-current="true"{% endif %}
+                      >
+                        <span class="visually-hidden">{{ value.label | escape }}</span>
+                      </a>
+                    {%- endif -%}
+                  {%- endfor -%}
+                </div>
+
+              {%- else -%}
+                <ul class="alp-cat__facet-list" role="list">
+                  {%- for value in filter.values -%}
+                    {%- if value.count > 0 or value.active -%}
+                      <li>
+                        <a
+                          class="alp-cat__facet-link{% if value.active %} is-active{% endif %}"
+                          href="{% if value.active %}{{ value.url_to_remove }}{% else %}{{ value.url_to_add }}{% endif %}"
+                          {% if value.active %}aria-current="true"{% endif %}
+                        >{{ value.label | escape }} <span class="alp-cat__facet-count">{{ value.count }}</span></a>
+                      </li>
+                    {%- endif -%}
+                  {%- endfor -%}
+                </ul>
+            {%- endcase -%}
+          </div>
         {%- endfor -%}
 
-        {%- if chip_filter -%}
-          {%- assign any_active = false -%}
-          {%- for value in chip_filter.values -%}
-            {%- if value.active -%}{%- assign any_active = true -%}{%- endif -%}
-          {%- endfor -%}
-
-          <a class="alp-chip{% unless any_active %} alp-chip--active{% endunless %}" href="{{ chip_filter.url_to_remove }}">
-            All <span class="alp-glyph">✦</span>
-          </a>
-          {%- for value in chip_filter.values -%}
-            {%- if value.count > 0 or value.active -%}
-              <a
-                class="alp-chip{% if value.active %} alp-chip--active{% endif %}"
-                href="{% if value.active %}{{ value.url_to_remove }}{% else %}{{ value.url_to_add }}{% endif %}"
-              >{{ value.label | escape }}</a>
+        {%- comment -%}
+          No merchandised filters (or filtering isn't switched on): the rail
+          still needs a way around the shop, so it lists the collections that
+          actually exist and actually have stock in them. Nothing here can
+          404.
+        {%- endcomment -%}
+        {%- if rendered_facets == 0 and section.settings.show_category_nav -%}
+          {%- assign real_collections = 0 -%}
+          {%- for c in collections -%}
+            {%- if c.handle != 'all' and c.products_count > 0 -%}
+              {%- assign real_collections = real_collections | plus: 1 -%}
             {%- endif -%}
           {%- endfor -%}
+
+          {%- if real_collections > 0 -%}
+            <div class="alp-cat__facet">
+              <h2 class="alp-cat__facet-head">Category</h2>
+              <ul class="alp-cat__facet-list" role="list">
+                <li>
+                  <a
+                    class="alp-cat__facet-link{% if collection.handle == 'all' %} is-active{% endif %}"
+                    href="{{ routes.all_products_collection_url }}"
+                  >Everything</a>
+                </li>
+                {%- for c in collections -%}
+                  {%- if c.handle != 'all' and c.products_count > 0 -%}
+                    <li>
+                      <a
+                        class="alp-cat__facet-link{% if c.handle == collection.handle %} is-active{% endif %}"
+                        href="{{ c.url }}"
+                        {% if c.handle == collection.handle %}aria-current="page"{% endif %}
+                      >{{ c.title | escape }} <span class="alp-cat__facet-count">{{ c.products_count }}</span></a>
+                    </li>
+                  {%- endif -%}
+                {%- endfor -%}
+              </ul>
+            </div>
+          {%- endif -%}
         {%- endif -%}
+
+        {%- if active_filters > 0 -%}
+          <a class="alp-cat__clear" href="{{ collection.url }}">Clear filters</a>
+        {%- endif -%}
+    {%- endcapture -%}
+
+    <input class="alp-cat__toggle" type="checkbox" id="alp-facets-{{ section.id }}">
+
+    <div class="alp-cat__controls">
+      {%- if facet_rail != blank -%}
+        <label class="alp-cat__filter-btn" for="alp-facets-{{ section.id }}">
+          Filter{% if active_filters > 0 %} ({{ active_filters }}){% endif %}
+        </label>
       {%- endif -%}
 
       {%- if section.settings.show_sorting and collection.sort_options.size > 0 -%}
-        <form class="alp-cgrid__sort" method="get" action="{{ collection.url }}">
-          <label for="alp-sort-{{ section.id }}">Sort —</label>
-          <select id="alp-sort-{{ section.id }}" name="sort_by" onchange="this.form.submit()">
-            {%- for option in collection.sort_options -%}
-              <option value="{{ option.value }}" {% if option.value == collection.sort_by %}selected{% endif %}>{{ option.name | escape }}</option>
-            {%- endfor -%}
-          </select>
-          {%- for f in collection.filters -%}
-            {%- for v in f.active_values -%}
-              <input type="hidden" name="{{ v.param_name }}" value="{{ v.value }}">
-            {%- endfor -%}
-          {%- endfor -%}
-          <noscript><button class="alp-chip" type="submit">Apply</button></noscript>
-        </form>
+        {%- render 'alp-sort-form', collection: collection, section_id: section.id, suffix: 'm' -%}
       {%- endif -%}
     </div>
 
-    {%- if section.settings.show_count -%}
-      <p class="alp-cgrid__count">{{ collection.products_count }} {{ collection.products_count | pluralize: 'product', 'products' }}</p>
-    {%- endif -%}
+    <div class="alp-cat__body{% if facet_rail == blank %} alp-cat__body--full{% endif %}">
+      {%- if facet_rail != blank -%}
+        <aside class="alp-cat__side" aria-label="Filter">{{ facet_rail }}</aside>
+      {%- endif -%}
 
-    {%- if collection.products.size > 0 -%}
-      <div class="alp-cgrid__grid" style="--alp-cgrid-cols: {{ cols }}">
-        {%- for product in collection.products -%}
-          <article class="alp-card alp-reveal">
-            <a href="{{ product.url }}">
-              {%- if product.featured_image != blank -%}
-                {{ product.featured_image | image_url: width: 900 | image_tag: loading: 'lazy', alt: product.featured_image.alt | default: product.title }}
-              {%- else -%}
-                {%- assign ph_i = forloop.index0 | modulo: 4 | plus: 1 -%}
-                <img src="{{ 'alpine-ph-card-' | append: ph_i | append: '.svg' | asset_url }}" alt="" width="750" height="1000" loading="lazy">
-              {%- endif -%}
-              <div class="alp-chip-row">
-                <h2 class="alp-chip">{{ product.title | escape }} <span class="alp-glyph">✦</span></h2>
-                <p class="alp-chip alp-chip--price">
-                  {%- if product.price_varies -%}From {% endif -%}{{ product.price | money }}
-                </p>
-              </div>
-            </a>
-          </article>
-        {%- endfor -%}
+      <div class="alp-cat__main">
+        <div class="alp-cat__toolbar">
+          {%- if section.settings.show_count -%}
+            <p class="alp-cat__count">
+              {{ collection.products_count }} {{ collection.products_count | pluralize: 'product', 'products' }}
+              {%- if active_filters > 0 %} · {{ active_filters }} {{ active_filters | pluralize: 'filter', 'filters' }}{% endif -%}
+            </p>
+          {%- endif -%}
+
+          {%- if section.settings.show_sorting and collection.sort_options.size > 0 -%}
+            {%- render 'alp-sort-form', collection: collection, section_id: section.id, suffix: 'd' -%}
+          {%- endif -%}
+        </div>
+
+        {%- if collection.products.size > 0 -%}
+          <div class="alp-cat__grid" style="--alp-cat-cols: {{ cols }}">
+            {%- for product in collection.products -%}
+              <article class="alp-card alp-cat__card">
+                <a href="{{ product.url }}">
+                  <span class="alp-cat__card-media">
+                    {%- if product.featured_image != blank -%}
+                      {{
+                        product.featured_image
+                        | image_url: width: 900
+                        | image_tag: loading: 'lazy', alt: product.featured_image.alt | default: product.title
+                      }}
+                    {%- else -%}
+                      {%- assign ph_i = forloop.index0 | modulo: 4 | plus: 1 -%}
+                      <img
+                        src="{{ 'alpine-ph-card-' | append: ph_i | append: '.svg' | asset_url }}"
+                        alt=""
+                        width="750"
+                        height="1000"
+                        loading="lazy"
+                      >
+                    {%- endif -%}
+
+                    {%- comment -%}
+                      Sold out reads as "Waitlist", not "Sold out" — the product
+                      page carries a notify-me form, so the card is pointing at
+                      something you can still do.
+                    {%- endcomment -%}
+                    {%- unless product.available -%}
+                      <span class="alp-chip alp-chip--sm alp-cat__flag">Waitlist</span>
+                    {%- endunless -%}
+                  </span>
+
+                  <span class="alp-cat__card-row">
+                    <span class="alp-chip alp-chip--sm">{{ product.title | escape }} <span class="alp-glyph">✦</span></span>
+                    <span class="alp-chip alp-chip--sm alp-chip--price">
+                      {%- if product.price_varies -%}From {% endif -%}{{ product.price | money }}
+                    </span>
+                  </span>
+                </a>
+              </article>
+            {%- endfor -%}
+          </div>
+        {%- else -%}
+          <p class="alp-cat__empty">
+            {%- if active_filters > 0 -%}
+              Nothing matches that. <a class="alp-text-link" href="{{ collection.url }}">Clear the filters</a> and start again.
+            {%- else -%}
+              Nothing here yet. Take the long way back to the
+              <a class="alp-text-link" href="{{ routes.all_products_collection_url }}">full catalogue</a>.
+            {%- endif -%}
+          </p>
+        {%- endif -%}
+
+        {%- if paginate.pages > 1 -%}
+          <nav class="alp-cat__pager" aria-label="Pagination">
+            {%- if paginate.previous -%}
+              <a class="alp-chip alp-chip--sm" href="{{ paginate.previous.url }}">Back</a>
+            {%- endif -%}
+            <span class="alp-chip alp-chip--sm alp-chip--active">{{ paginate.current_page }} / {{ paginate.pages }}</span>
+            {%- if paginate.next -%}
+              <a class="alp-chip alp-chip--sm" href="{{ paginate.next.url }}">More</a>
+            {%- endif -%}
+          </nav>
+        {%- endif -%}
       </div>
-    {%- else -%}
-      <p class="alp-cgrid__empty">Nothing here yet. Take the long way back to the <a class="alp-text-link" href="{{ routes.all_products_collection_url }}">full catalogue</a>.</p>
-    {%- endif -%}
-
-    {%- if paginate.pages > 1 -%}
-      <nav class="alp-cgrid__pager" aria-label="Pagination">
-        {%- if paginate.previous -%}
-          <a class="alp-chip" href="{{ paginate.previous.url }}">Back</a>
-        {%- endif -%}
-        <span class="alp-chip alp-chip--price">{{ paginate.current_page }} / {{ paginate.pages }}</span>
-        {%- if paginate.next -%}
-          <a class="alp-chip" href="{{ paginate.next.url }}">More</a>
-        {%- endif -%}
-      </nav>
-    {%- endif -%}
+    </div>
   {%- endpaginate -%}
 </section>
+
+{%- if section.settings.show_cta -%}
+  <aside class="alp alp-cat__cta">
+    <div class="alp-cat__cta-text">
+      <h2>{{ section.settings.cta_heading | escape }}</h2>
+      {%- if section.settings.cta_text != blank -%}
+        <p>{{ section.settings.cta_text | escape }}</p>
+      {%- endif -%}
+    </div>
+    <a class="alp-chip alp-chip--flare" href="{{ map_url }}">{{ section.settings.cta_label | escape }}</a>
+  </aside>
+{%- endif -%}
 
 {% schema %}
 {
   "name": "Bush Riding catalogue",
   "tag": "section",
-  "class": "alp-cgrid-section",
+  "class": "alp-cat-section",
   "settings": [
-    { "type": "header", "content": "Hero" },
-    { "type": "checkbox", "id": "show_hero", "label": "Show split hero", "default": true },
+    { "type": "header", "content": "Banner" },
+    { "type": "checkbox", "id": "show_banner", "label": "Show banner", "default": true },
     { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Shop" },
-    { "type": "text", "id": "overlay_heading", "label": "Overlay heading", "info": "Leave blank to use the collection title." },
-    { "type": "checkbox", "id": "show_star", "label": "Show the four-point star", "default": true },
-    { "type": "image_picker", "id": "panel_left", "label": "Left panel image", "info": "Set the crop via the image's focal point." },
-    { "type": "image_picker", "id": "panel_right", "label": "Right panel image", "info": "Hidden on mobile." },
-    { "type": "product", "id": "panel_product", "label": "Right panel product chip" },
+    {
+      "type": "text",
+      "id": "overlay_heading",
+      "label": "Overlay heading",
+      "info": "Leave blank to use the collection title."
+    },
+    {
+      "type": "image_picker",
+      "id": "banner_image",
+      "label": "Banner image",
+      "info": "Leave blank to use the collection's own image. Set the crop via the image's focal point."
+    },
+    { "type": "header", "content": "Filters" },
+    {
+      "type": "checkbox",
+      "id": "show_category_nav",
+      "label": "Show category list when no filters are set",
+      "default": true
+    },
     { "type": "header", "content": "Grid" },
     { "type": "checkbox", "id": "show_description", "label": "Show collection description", "default": false },
-    { "type": "checkbox", "id": "show_filters", "label": "Show filter chips", "default": true },
     { "type": "checkbox", "id": "show_sorting", "label": "Show sort", "default": true },
     { "type": "checkbox", "id": "show_count", "label": "Show product count", "default": true },
-    { "type": "range", "id": "columns_desktop", "min": 2, "max": 5, "step": 1, "label": "Columns on desktop", "default": 4 },
-    { "type": "range", "id": "products_per_page", "min": 8, "max": 32, "step": 4, "label": "Products per page", "default": 16 }
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "min": 2,
+      "max": 4,
+      "step": 1,
+      "label": "Columns on desktop",
+      "default": 3
+    },
+    {
+      "type": "range",
+      "id": "products_per_page",
+      "min": 6,
+      "max": 24,
+      "step": 6,
+      "label": "Products per page",
+      "default": 12
+    },
+    { "type": "header", "content": "Closing band" },
+    { "type": "checkbox", "id": "show_cta", "label": "Show closing band", "default": true },
+    { "type": "text", "id": "cta_heading", "label": "Heading", "default": "Get the route. Join the bush." },
+    { "type": "text", "id": "cta_text", "label": "Text", "default": "Curated gravel routes and events." },
+    { "type": "text", "id": "cta_label", "label": "Button label", "default": "Open the map ↗" },
+    { "type": "url", "id": "cta_url", "label": "Button link", "info": "Defaults to the Bush Map." }
   ],
-  "presets": [
-    { "name": "Bush Riding catalogue" }
-  ]
+  "presets": [{ "name": "Bush Riding catalogue" }]
 }
 {% endschema %}

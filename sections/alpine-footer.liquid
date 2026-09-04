@@ -1,9 +1,28 @@
 {%- comment -%}
-  ALP1NE footer — newsletter ("Dispatches"), link columns, small print and the
-  oversized wordmark bleeding off the bottom of the page. The newsletter uses
-  Shopify's native customer form, so signups land in Admin → Customers with
+  Bush Riding footer — newsletter ("Ride with us."), link columns, small print
+  and the oversized wordmark bleeding off the bottom of the page. The newsletter
+  uses Shopify's native customer form, so signups land in Admin → Customers with
   the accepts-marketing flag, tagged "newsletter".
+
+  Links. The footer is the last thing a customer reads, so nothing in it is
+  allowed to 404. Two modes:
+
+    • Set link columns in the theme editor and those are what render — with any
+      row whose page/collection/product has since been deleted dropped, and a
+      column that ends up empty dropped with it.
+    • Set none (the default) and the footer builds itself out of what the store
+      actually has: the collections that exist and hold stock, the blogs that
+      have been published to, and the policies that have been written. A policy
+      that isn't written doesn't appear.
+
+  The Bush Map is the one outbound link, and the only flare on the slab is the
+  newsletter's button — the one thing to press.
 {%- endcomment -%}
+
+{%- liquid
+  assign map_url = section.settings.map_url | default: 'https://map.bushriding.cc'
+  assign map_label = section.settings.map_label | default: 'BUSH MAP™'
+-%}
 
 <footer class="alp alp-foot">
   <div class="alp-foot__dispatch" id="dispatches">
@@ -24,31 +43,106 @@
             autocomplete="email"
             required
           >
-          <button class="alp-chip alp-chip--submit" type="submit">Subscribe</button>
+          <button class="alp-chip alp-chip--submit" type="submit">
+            {{- section.settings.newsletter_button | default: 'Go' | escape -}}
+          </button>
         </div>
         {%- if form.errors -%}
-          <p class="alp-foot__note" role="alert">{{ form.errors.translated_fields.email | capitalize }} {{ form.errors.messages.email }}</p>
+          <p class="alp-foot__note" role="alert">
+            {{ form.errors.translated_fields.email | capitalize }} {{ form.errors.messages.email }}
+          </p>
         {%- endif -%}
       {%- endif -%}
     {%- endform -%}
   </div>
 
-  {%- if section.blocks.size > 0 -%}
-    <div class="alp-foot__columns">
-      {%- for block in section.blocks -%}
+  {%- comment -%}
+    Editor columns first. Each is captured before it is printed so a column
+    with nothing left in it after the dead rows are dropped never renders as a
+    bare heading.
+  {%- endcomment -%}
+  {%- capture editor_columns -%}
+    {%- for block in section.blocks -%}
+      {%- capture rows -%}
+        {%- for link in block.settings.menu.links -%}
+          {%- liquid
+            assign keep = true
+            case link.type
+              when 'page_link', 'product_link', 'collection_link', 'blog_link', 'article_link'
+                if link.object == blank
+                  assign keep = false
+                endif
+            endcase
+          -%}
+          {%- if keep -%}
+            <li><a href="{{ link.url }}">{{ link.title | escape }}</a></li>
+          {%- endif -%}
+        {%- endfor -%}
+      {%- endcapture -%}
+
+      {%- if rows != blank -%}
         <nav aria-label="{{ block.settings.heading | escape }}" {{ block.shopify_attributes }}>
           <h3>{{ block.settings.heading | escape }}</h3>
-          <ul role="list">
-            {%- for link in block.settings.menu.links -%}
-              <li><a href="{{ link.url }}">{{ link.title | escape }}</a></li>
-            {%- endfor -%}
-          </ul>
+          <ul role="list">{{ rows }}</ul>
         </nav>
-      {%- endfor -%}
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endcapture -%}
+
+  {%- capture legal_rows -%}{%- render 'alp-legal-links' -%}{%- endcapture -%}
+
+  {%- if editor_columns != blank -%}
+    <div class="alp-foot__columns">{{ editor_columns }}</div>
+  {%- else -%}
+    <div class="alp-foot__columns">
+      <nav aria-label="Shop">
+        <h3>Shop</h3>
+        <ul role="list">
+          <li><a href="{{ routes.all_products_collection_url }}">Everything</a></li>
+          {%- assign shown = 0 -%}
+          {%- for c in collections -%}
+            {%- if c.handle != 'all' and c.products_count > 0 and shown < 5 -%}
+              <li><a href="{{ c.url }}">{{ c.title | escape }}</a></li>
+              {%- assign shown = shown | plus: 1 -%}
+            {%- endif -%}
+          {%- endfor -%}
+        </ul>
+      </nav>
+
+      <nav aria-label="Explore">
+        <h3>Explore</h3>
+        <ul role="list">
+          <li><a href="{{ routes.root_url }}">Home</a></li>
+          <li><a href="{{ map_url }}">{{ map_label | escape }}</a></li>
+          {%- for blog in blogs -%}
+            {%- if blog.articles_count > 0 -%}
+              <li><a href="{{ blog.url }}">{{ blog.title | escape }}</a></li>
+            {%- endif -%}
+          {%- endfor -%}
+          <li><a href="{{ routes.cart_url }}">Cart</a></li>
+          {%- if shop.customer_accounts_enabled -%}
+            {%- if customer -%}
+              <li><a href="{{ routes.account_url }}">My account</a></li>
+            {%- else -%}
+              <li><a href="{{ routes.account_login_url }}">Sign in</a></li>
+            {%- endif -%}
+          {%- endif -%}
+        </ul>
+      </nav>
+
+      {%- if legal_rows != blank -%}
+        <nav aria-label="The fine print">
+          <h3>The fine print</h3>
+          <ul role="list">{{ legal_rows }}</ul>
+        </nav>
+      {%- endif -%}
     </div>
   {%- endif -%}
 
-  <p class="alp-foot__small">© {{ section.settings.wordmark | default: shop.name | escape }} {{ 'now' | date: '%Y' }}{% if section.settings.small_print != blank %} — {{ section.settings.small_print | escape }}{% endif %}</p>
+  <p class="alp-foot__small">
+    © {{ section.settings.wordmark | default: shop.name | escape }} {{ 'now' | date: '%Y' }}
+    {%- if section.settings.small_print != blank %} — {{ section.settings.small_print | escape }}{% endif -%}
+  </p>
 
   {%- comment -%}
     The oversized bleed lockup — artwork, not type. Was set in
@@ -61,7 +155,13 @@
     {%- if section.settings.wordmark_image != blank -%}
       {{ section.settings.wordmark_image | image_url: width: 2400 | image_tag: loading: 'lazy', alt: '' }}
     {%- else -%}
-      <img src="{{ 'wordmark-' | append: section.settings.wordmark_tone | append: '.svg' | asset_url }}" alt="" loading="lazy" width="1273" height="543">
+      <img
+        src="{{ 'wordmark-' | append: section.settings.wordmark_tone | append: '.svg' | asset_url }}"
+        alt=""
+        loading="lazy"
+        width="1273"
+        height="543"
+      >
     {%- endif -%}
   </div>
 </footer>
@@ -72,9 +172,28 @@
   "tag": "div",
   "settings": [
     { "type": "text", "id": "newsletter_heading", "label": "Newsletter heading", "default": "Ride with us." },
-    { "type": "text", "id": "newsletter_text", "label": "Newsletter text", "default": "One email a month from the bush — stories, routes and first looks. No noise." },
-    { "type": "text", "id": "wordmark", "label": "Wordmark", "default": "Bush Riding™", "info": "Leave blank to use the store name. Used for the © line and the bleed image's alt text fallback." },
+    {
+      "type": "text",
+      "id": "newsletter_text",
+      "label": "Newsletter text",
+      "default": "One email a month from the bush — stories, routes and first looks. No noise."
+    },
+    { "type": "text", "id": "newsletter_button", "label": "Newsletter button", "default": "Go" },
+    {
+      "type": "text",
+      "id": "wordmark",
+      "label": "Wordmark",
+      "default": "Bush Riding™",
+      "info": "Leave blank to use the store name. Used for the © line and the bleed image's alt text fallback."
+    },
     { "type": "text", "id": "small_print", "label": "Small print" },
+    { "type": "header", "content": "Automatic links" },
+    {
+      "type": "paragraph",
+      "content": "With no link columns set below, the footer lists the collections, blogs and policies the store actually has. Add a column to take over."
+    },
+    { "type": "text", "id": "map_label", "label": "Bush Map label", "default": "BUSH MAP™" },
+    { "type": "url", "id": "map_url", "label": "Bush Map link", "info": "Defaults to https://map.bushriding.cc." },
     { "type": "header", "content": "Bleed wordmark" },
     {
       "type": "select",

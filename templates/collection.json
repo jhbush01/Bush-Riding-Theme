@@ -3,15 +3,18 @@
     "collection-grid": {
       "type": "alpine-collection-grid",
       "settings": {
-        "show_hero": true,
+        "show_banner": true,
         "eyebrow": "Shop",
-        "show_star": true,
+        "show_category_nav": true,
         "show_description": false,
-        "show_filters": true,
         "show_sorting": true,
         "show_count": true,
-        "columns_desktop": 4,
-        "products_per_page": 16
+        "columns_desktop": 3,
+        "products_per_page": 12,
+        "show_cta": true,
+        "cta_heading": "Get the route. Join the bush.",
+        "cta_text": "Curated gravel routes and events.",
+        "cta_label": "Open the map ↗"
       }
     }
   },
