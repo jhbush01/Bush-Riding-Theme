@@ -76,6 +76,19 @@ button.alp-chip { cursor: pointer; }
 
 .alp-chip--price { font-weight: 500; }
 
+/* Compact chip — the catalogue's controls and card labels, where the full-size
+   chip would crowd a three-up grid. */
+.alp-chip--sm { padding: 6px 11px; font-size: 0.8rem; }
+
+/* Selected: the chip inverts to olive. One rule for facet values, the current
+   page in the pager, and any other "you are here" chip. */
+.alp-chip--active {
+  background: var(--alp-ink);
+  color: var(--alp-bg);
+  border-color: var(--alp-ink);
+}
+a.alp-chip--active:hover { background: var(--alp-accent); border-color: var(--alp-accent); color: var(--alp-bg); }
+
 /* ── Header ──────────────────────────────────────────────────────────────── */
 .alp-head {
   position: fixed;
@@ -99,10 +112,11 @@ button.alp-chip { cursor: pointer; }
 .alp-head__group { display: flex; align-items: center; gap: 10px; }
 .alp-head__nav { display: flex; gap: 6px; }
 
-/* Header text: bare translucent white type — the imagery reads through the
-   letters; a faint shadow keeps them from dissolving on bright sky. (A
-   difference blend was tried here: iOS renders video in a separate plane
-   that CSS blending cannot sample, so it silently fails over the hero.) */
+/* Header text. The base is bone with a faint scrim shadow — what the bar wore
+   when it floated over the home photograph. Every template now overrides it
+   (olive ink on the mist bar), so this is the fallback rather than the look.
+   (A difference blend was tried over that hero: iOS renders video in a
+   separate plane that CSS blending cannot sample, so it silently fails.) */
 .alp-nav-link {
   background: transparent;
   border: 0;
@@ -114,11 +128,11 @@ button.alp-chip { cursor: pointer; }
   line-height: 1.2;
   text-decoration: none;
   white-space: nowrap;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--alp-bg);
   text-shadow: 0 1px 4px rgba(47, 47, 38, 0.3);
 }
 
-.alp-nav-link:hover { color: rgba(255, 255, 255, 0.9); }
+.alp-nav-link:hover { color: var(--alp-citrus); }
 
 .alp-nav-link--wordmark { font-weight: 800; font-size: clamp(1.55rem, 2vw + 1rem, 2.85rem); letter-spacing: 0.01em; }
 .alp-nav-link--clock { font-weight: 500; font-variant-numeric: tabular-nums; font-size: clamp(1rem, 1.2vw + 0.7rem, 1.8rem); }
@@ -141,10 +155,8 @@ button.alp-chip { cursor: pointer; }
   height: clamp(3.4rem, 4.4vw + 2.2rem, 6.2rem);
   width: auto;
   max-width: none;
-  /* The artwork is cream on transparent, so it cannot inherit the citrus the
-     header type uses on the home screen. The drop-shadow matches the type's
-     text-shadow so it holds up over bright sky. */
-  filter: drop-shadow(0 1px 4px rgba(47, 47, 38, 0.3));
+  /* No shadow: the mark is olive artwork on a flat mist bar now, not cream
+     artwork over a photograph. */
 }
 
 /* Option 2a: the home bar sits on the mist gate, not over a photograph, so
@@ -210,7 +222,7 @@ body.alp-menu-open { overflow: hidden; }
   align-items: center;
   justify-content: center;
   width: 44px; height: 44px;
-  color: #fff;
+  color: var(--alp-bg);
   background: transparent;
   border: 0;
   cursor: pointer;
@@ -233,7 +245,7 @@ body.alp-menu-open { overflow: hidden; }
   display: flex;
   flex-direction: column;
   gap: 1px;
-  background: #fff; /* shows through the 1px gaps as thin white lines */
+  background: var(--alp-bg); /* shows through the 1px gaps as bone hairlines */
 }
 
 .alp-menu__q {
@@ -259,7 +271,7 @@ body.alp-menu-open { overflow: hidden; }
   border: 0;
 }
 .alp-menu.is-open .alp-menu__media { transform: scale(1); }
-span.alp-menu__media--ph { background: linear-gradient(135deg, #6d6c58, #4e4d3f); }
+span.alp-menu__media--ph { background: linear-gradient(135deg, var(--alp-accent), var(--alp-olive)); }
 .alp-menu__q::after { content: ""; position: absolute; inset: 0; z-index: -1; background: rgba(47, 47, 38, 0.4); }
 
 /* Live map feed as the Bush Map panel background. The iframe is a background
@@ -283,7 +295,7 @@ span.alp-menu__media--ph { background: linear-gradient(135deg, #6d6c58, #4e4d3f)
   display: flex;
   gap: 14px;
 }
-.alp-menu__social a { display: inline-flex; color: #fff; }
+.alp-menu__social a { display: inline-flex; color: var(--alp-bg); }
 .alp-menu__social svg { width: 24px; height: 24px; filter: drop-shadow(0 1px 3px rgba(47, 47, 38, 0.5)); }
 .alp-menu__social a:hover { color: var(--alp-citrus); }
 
@@ -366,7 +378,7 @@ span.alp-menu__media--ph { background: linear-gradient(135deg, #6d6c58, #4e4d3f)
 .alp-hero__wordmark img {
   height: clamp(2.6rem, 3.6vw + 1.6rem, 4.9rem);
   width: auto;
-  filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.5));
+  filter: drop-shadow(0 2px 10px rgba(47, 47, 38, 0.5));
 }
 
 .alp-hero__cta {
@@ -590,36 +602,12 @@ body.template-index .alp-card .alp-chip { background: var(--alp-mist); }
   display: block;
 }
 
-.alp-phero__bar {
-  position: absolute;
-  left: 0; right: 0; top: 0;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: max(14px, env(safe-area-inset-top)) var(--alp-pad-page) 0;
-}
-.alp-phero__wordmark img {
-  height: clamp(1.3rem, 1vw + 1rem, 1.7rem);
-  width: auto;
-  filter: drop-shadow(0 1px 5px rgba(0, 0, 0, 0.5));
-}
-.alp-phero__link {
-  font-family: var(--alp-font-ui);
-  font-weight: 600;
-  font-size: 0.75rem;
-  color: var(--alp-citrus);
-  text-decoration: none;
-  text-shadow: 0 1px 5px rgba(0, 0, 0, 0.5);
-}
-.alp-phero__link:hover { color: var(--alp-bg); }
-
 .alp-phero__caption {
   position: absolute;
   left: 0; right: 0; bottom: 0;
   z-index: 2;
   padding: 0 var(--alp-pad-page) clamp(20px, 3.6vw, 32px);
-  color: #fff;
+  color: var(--alp-bg);
 }
 .alp-phero__title {
   font-family: var(--alp-font-display);
@@ -627,14 +615,14 @@ body.template-index .alp-card .alp-chip { background: var(--alp-mist); }
   font-size: clamp(1.7rem, 3.4vw, 2.6rem);
   line-height: 1.08;
   margin: 0;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35);
+  text-shadow: 0 1px 8px rgba(47, 47, 38, 0.35);
 }
 .alp-phero__tagline {
   font-family: var(--alp-font-ui);
   font-size: clamp(0.85rem, 0.6vw + 0.7rem, 1rem);
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--alp-haze);
   margin: 6px 0 0;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
+  text-shadow: 0 1px 6px rgba(47, 47, 38, 0.35);
 }
 
 /* ── Story / Journal ─────────────────────────────────────────────────────── */
@@ -688,15 +676,19 @@ body.template-index .alp-card .alp-chip { background: var(--alp-mist); }
 }
 .alp-foot__form input[type='email']::placeholder { color: rgba(237, 236, 197, 0.55); }
 .alp-foot__form input[type='email']:focus { outline: 2px solid var(--alp-citrus); outline-offset: 1px; }
-/* Mist chip on the olive band — the page colour, carried into the footer. */
-.alp-chip--submit { background: var(--alp-mist); color: var(--alp-ink); border-color: var(--alp-ink); }
-.alp-chip--submit:hover { background: var(--alp-bg); color: var(--alp-ink); }
+/* Flare on the olive slab: the newsletter is the one thing to press down here,
+   so it takes the accent. (It was mist, which read as another piece of chrome
+   next to the input rather than the action.) */
+.alp-chip--submit { background: var(--alp-citrus); color: var(--alp-ink); border-color: var(--alp-citrus); }
+.alp-chip--submit:hover { background: var(--alp-bg); color: var(--alp-ink); border-color: var(--alp-bg); }
 
 .alp-foot__note { font-weight: 600; }
 
+/* auto-fit, because the column count is no longer fixed: the footer renders
+   however many columns the store actually has links for. */
 .alp-foot__columns {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 24px;
   padding-bottom: 48px;
   border-bottom: 1px solid rgba(167, 184, 180, 0.3);
@@ -714,7 +706,7 @@ body.template-index .alp-card .alp-chip { background: var(--alp-mist); }
 .alp-foot__columns a { color: var(--alp-haze); text-decoration: none; font-size: 0.9rem; }
 .alp-foot__columns a:hover { color: var(--alp-bg); text-decoration: underline; }
 
-.alp-foot__small { padding: 20px 0 0; font-size: 0.75rem; color: rgba(184, 188, 161, 0.75); }
+.alp-foot__small { padding: 20px 0 0; font-size: 0.75rem; color: rgba(185, 190, 163, 0.75); }
 
 .alp-foot__wordmark {
   display: flex;
@@ -728,14 +720,11 @@ body.template-index .alp-card .alp-chip { background: var(--alp-mist); }
   height: auto;
 }
 
-/* ── Home page: scrolling photo essay (option 1b) ────────────────────────────
-   The hero is still the biggest photograph on the site — a full-viewport
-   opener — but the page scrolls beneath it into the statement, manifesto,
-   launch grid and story sections, landing on the ordinary site footer (full
-   newsletter + columns + bleed wordmark) like every other template.
-   The footer stays hidden on every other template (1d/1g don't carry one),
-   and disappears while the Explore menu overlay is open. */
-body:not(.template-index) .alp-foot { display: none; }
+/* The footer closes every template, not just the home page. It used to be
+   hidden everywhere else — which left the collection, product, cart, search,
+   404 and policy pages with no newsletter, no links and no way out but the
+   header. A customer-facing site ends the same way on every page.
+   It still steps aside while the Explore overlay is open. */
 body.alp-menu-open .alp-foot { display: none; }
 
 body.template-index .alp-hero { height: 100svh; min-height: 100svh; }
@@ -793,29 +782,31 @@ body.template-index .alp-hero { height: 100svh; min-height: 100svh; }
   .alp-foot__columns { grid-template-columns: repeat(2, 1fr); gap: 32px 20px; }
 }
 
-/* ── Inner-page header: solid olive bar ──────────────────────────────────────
-   The wordmark artwork is cream on transparent, so on the bone page ground it
-   has nothing to sit against. Off the home hero the bar takes an olive fill and
-   the type goes bone; the mark needs no recolouring. The bar is also stepped
+/* ── Inner-page header: the same mist bar as the home page ───────────────────
+   Mist is chrome, everywhere. The bar used to fill olive off the home page,
+   which left the site with two different headers depending on where you were;
+   the catalogue design settles it — one mist bar, olive ink, on every
+   template. The mark goes with it: the olive wordmark artwork rather than the
+   cream one, because it now sits on a light field. The bar is also stepped
    down in height here — the hero-sized wordmark (up to 6.2rem) is taller than
    the 84px clearance #MainContent reserves. */
 body:not(.template-index) .alp-head {
-  background: var(--alp-olive);
+  background: var(--alp-mist);
   padding-top: max(10px, env(safe-area-inset-top));
   padding-bottom: 10px;
 }
 body:not(.template-index) .alp-nav-link {
-  color: var(--alp-bg);
+  color: var(--alp-ink);
   font-size: clamp(1rem, 0.5vw + 0.85rem, 1.15rem);
   text-shadow: none;
 }
-body:not(.template-index) .alp-nav-link:hover { color: var(--alp-citrus); }
+body:not(.template-index) .alp-nav-link:hover { color: var(--alp-accent); }
 body:not(.template-index) .alp-nav-link--wordmark { font-size: inherit; }
 body:not(.template-index) .alp-nav-link--wordmark .alp-wordmark__img {
   height: clamp(2.2rem, 1.4vw + 1.6rem, 2.9rem);
   filter: none;
 }
-body:not(.template-index) .alp-nav-link--clock { font-size: 0.8rem; color: var(--alp-haze); }
+body:not(.template-index) .alp-nav-link--clock { font-size: 0.8rem; color: var(--alp-accent); }
 
 /* (Option 1b's scroll-triggered header swap lived here. 2a's home bar is
    olive-on-mist from the top of the page, so there is no photo-to-page
@@ -823,154 +814,321 @@ body:not(.template-index) .alp-nav-link--clock { font-size: 0.8rem; color: var(-
 /* Clearance to match the shorter solid bar. */
 body:not(.template-index) #MainContent { padding-top: 76px; }
 
-/* ── Collection page (alpine-collection-grid) ────────────────────────────── */
-.alp-cgrid { padding: 0 0 var(--alp-space-section); }
+/* ── Catalogue / collection page (option 2c) ─────────────────────────────────
+   The system the wireframe names, and the reason this page reads as one thing:
 
-.alp-cgrid__hero { display: grid; grid-template-columns: 1.35fr 1fr; gap: 0; }
+     mist  = chrome and controls (banner ground, facet rail, closing band)
+     bone  = content (the grid)
+     olive = ink, and every active state
+     flare = the one thing to press (there is exactly one, in the closing band)
 
-.alp-cgrid__panel {
+   Nothing here introduces a colour outside those six. */
+.alp-cat { background: var(--alp-mist); }
+
+.alp-cat__banner {
   position: relative;
+  height: clamp(180px, 26vw, 300px);
   overflow: hidden;
-  margin: 0;
-  height: clamp(300px, 46vh, 520px);
   background: var(--alp-olive);
 }
-.alp-cgrid__panel img { width: 100%; height: 100%; object-fit: cover; }
+.alp-cat__banner img { width: 100%; height: 100%; object-fit: cover; }
 
 /* Type over photography always sits on a scrim. */
-.alp-cgrid__panel--left::after {
+.alp-cat__banner::after {
   content: "";
-  position: absolute; inset: 0;
-  background: linear-gradient(180deg, rgba(47, 47, 38, 0.1), rgba(47, 47, 38, 0.55));
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(47, 47, 38, 0.05) 40%, rgba(47, 47, 38, 0.62));
 }
 
-.alp-cgrid__star {
+.alp-cat__banner-overlay {
   position: absolute;
-  left: clamp(16px, 3vw, 40px);
-  top: 50%;
-  width: clamp(90px, 12vw, 150px);
-  transform: translateY(-50%);
-  fill: var(--alp-citrus);
-  opacity: 0.92;
+  left: var(--alp-pad-page);
+  bottom: clamp(14px, 2.4vw, 26px);
   z-index: 2;
 }
 
-.alp-cgrid__overlay {
-  position: absolute;
-  left: clamp(18px, 3vw, 40px);
-  bottom: clamp(18px, 3vw, 32px);
-  z-index: 3;
-}
-
-.alp-cgrid__eyebrow {
-  margin: 0 0 6px;
-  font-family: var(--alp-font-display);
+.alp-cat__eyebrow {
+  margin: 0 0 4px;
   font-size: 0.7rem;
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--alp-bg);
-  opacity: 0.85;
+  color: var(--alp-mist);
 }
 
-.alp-cgrid__title {
+.alp-cat__title {
   margin: 0;
   font-family: var(--alp-font-display);
   font-weight: 600;
-  font-size: clamp(1.8rem, 3.6vw, 3.2rem);
+  font-size: clamp(1.7rem, 3.6vw, 3rem);
   line-height: 1;
   letter-spacing: -0.01em;
   color: var(--alp-bg);
   text-wrap: pretty;
 }
+/* Banner off: the title still needs the page's ink, not the scrim's bone. */
+.alp-cat__title--plain {
+  color: var(--alp-ink);
+  padding: clamp(20px, 4vw, 40px) var(--alp-pad-page) 0;
+}
 
-.alp-cgrid__intro {
+.alp-cat__intro {
   max-width: 60ch;
-  padding: clamp(20px, 3vw, 32px) var(--alp-pad-page) 0;
+  padding: clamp(16px, 3vw, 28px) var(--alp-pad-page) 0;
   color: rgba(76, 75, 59, 0.85);
 }
 
-/* Chip bar — facets + sort. Active chip inverts to olive. */
-.alp-cgrid__bar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  padding: clamp(16px, 3vw, 28px) var(--alp-pad-page) 10px;
+/* ── Facet rail ─────────────────────────────────────────────────────────────
+   Desktop: a mist column beside the grid. Phone: a panel the Filter button
+   opens. The toggle is a clipped checkbox rather than a script, so the
+   disclosure survives with JavaScript off — and stays keyboard-reachable. */
+.alp-cat__toggle {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
-.alp-chip--active {
+.alp-cat__controls {
+  display: none;
+  gap: 8px;
+  align-items: center;
+  padding: 14px var(--alp-pad-page);
+}
+
+.alp-cat__filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  flex: 1;
+  justify-content: center;
   background: var(--alp-ink);
   color: var(--alp-bg);
-  border-color: var(--alp-ink);
+  border: 1px solid var(--alp-ink);
+  border-radius: 3px;
+  padding: 9px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
 }
-a.alp-chip--active:hover { background: var(--alp-accent); border-color: var(--alp-accent); color: var(--alp-bg); }
+.alp-cat__toggle:focus-visible + .alp-cat__controls .alp-cat__filter-btn,
+.alp-cat__toggle:focus-visible ~ .alp-cat__controls .alp-cat__filter-btn {
+  outline: 2px solid var(--alp-citrus);
+  outline-offset: 2px;
+}
 
-.alp-cgrid__sort {
+.alp-cat__body {
+  display: grid;
+  grid-template-columns: clamp(200px, 20vw, 260px) 1fr;
+  align-items: start;
+}
+/* No filters merchandised and no other collections to point at: the grid takes
+   the full width rather than leaving an empty mist column beside it. */
+.alp-cat__body--full { grid-template-columns: 1fr; }
+
+.alp-cat__side {
+  align-self: stretch;
+  background: var(--alp-mist);
+  padding: clamp(20px, 3vw, 32px) clamp(14px, 1.6vw, 22px) clamp(28px, 5vw, 60px) var(--alp-pad-page);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(18px, 2.4vw, 28px);
+}
+
+.alp-cat__facet-head {
+  margin: 0 0 10px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(76, 75, 59, 0.75);
+}
+
+.alp-cat__facet-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+.alp-cat__facet-link {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: var(--alp-ink);
+  text-decoration: none;
+}
+.alp-cat__facet-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+.alp-cat__facet-link.is-active { font-weight: 700; }
+.alp-cat__facet-count { color: rgba(76, 75, 59, 0.55); font-variant-numeric: tabular-nums; }
+
+.alp-cat__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.alp-cat__swatches { display: flex; flex-wrap: wrap; gap: 10px; }
+.alp-cat__swatch {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--alp-swatch, var(--alp-haze));
+  border: 1px solid var(--alp-line);
+  display: block;
+}
+.alp-cat__swatch:hover { border-color: var(--alp-ink); }
+.alp-cat__swatch.is-active { box-shadow: 0 0 0 2px var(--alp-mist), 0 0 0 4px var(--alp-ink); }
+.alp-cat__swatch:focus-visible { outline: 2px solid var(--alp-ink); outline-offset: 2px; }
+
+.alp-cat__price-row { display: flex; align-items: center; gap: 6px; }
+.alp-cat__price-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  background: var(--alp-bg);
+  border: 1px solid var(--alp-line);
+  border-radius: 3px;
+  padding: 5px 8px;
+  font-size: 0.85rem;
+  color: var(--alp-ink);
+}
+.alp-cat__price-field input {
+  font: inherit;
+  color: inherit;
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+.alp-cat__price-field input:focus-visible { outline: none; }
+.alp-cat__price-field:focus-within { border-color: var(--alp-ink); }
+.alp-cat__price-dash { color: rgba(76, 75, 59, 0.55); }
+.alp-cat__price-go { margin-top: 8px; }
+
+.alp-cat__clear {
+  align-self: flex-start;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--alp-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.alp-cat__clear:hover { color: var(--alp-accent); }
+
+/* ── Grid side ───────────────────────────────────────────────────────────── */
+.alp-cat__main {
+  background: var(--alp-bg);
+  padding: clamp(16px, 2.4vw, 26px) var(--alp-pad-page) clamp(30px, 5vw, 64px);
+  min-height: 40vh;
+}
+
+.alp-cat__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: clamp(12px, 2vw, 20px);
+}
+
+.alp-cat__count {
+  margin: 0;
+  font-size: 0.82rem;
+  color: rgba(76, 75, 59, 0.7);
+}
+
+.alp-cat__sort {
   margin-left: auto;
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   color: rgba(76, 75, 59, 0.7);
+  background: var(--alp-mist);
+  border: 1px solid var(--alp-line);
+  border-radius: 3px;
+  padding: 5px 10px;
 }
-.alp-cgrid__sort select {
+.alp-cat__sort select {
   font: inherit;
   color: var(--alp-ink);
   font-weight: 600;
   background: transparent;
   border: 0;
-  padding: 4px 2px;
+  padding: 0 2px;
   cursor: pointer;
 }
-.alp-cgrid__sort select:focus-visible { outline: 2px solid var(--alp-citrus); outline-offset: 2px; }
+.alp-cat__sort select:focus-visible { outline: 2px solid var(--alp-citrus); outline-offset: 2px; }
 
-.alp-cgrid__count {
-  margin: 0;
-  padding: 4px var(--alp-pad-page) 0;
-  font-size: 0.8rem;
-  color: rgba(76, 75, 59, 0.7);
-}
-
-.alp-cgrid__grid {
+.alp-cat__grid {
   display: grid;
-  grid-template-columns: repeat(var(--alp-cgrid-cols, 4), 1fr);
-  gap: 16px;
-  padding: 14px var(--alp-pad-page) 0;
+  grid-template-columns: repeat(var(--alp-cat-cols, 3), 1fr);
+  gap: clamp(10px, 1.4vw, 18px);
 }
 
-.alp-cgrid__pager {
+.alp-cat__card-media { position: relative; display: block; }
+/* The waitlist flag rides the image, top-left, in mist — chrome, not content. */
+.alp-cat__flag {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: var(--alp-mist);
+  border-color: var(--alp-ink);
+}
+
+.alp-cat__card-row { display: flex; gap: 6px; flex-wrap: wrap; padding-top: 8px; }
+
+.alp-cat__pager {
   display: flex;
   gap: 8px;
   justify-content: center;
   align-items: center;
-  padding: clamp(28px, 5vw, 56px) var(--alp-pad-page) 0;
+  padding: clamp(24px, 4vw, 48px) 0 0;
 }
 
-.alp-cgrid__empty {
-  padding: clamp(40px, 8vw, 90px) var(--alp-pad-page);
+.alp-cat__empty {
+  padding: clamp(40px, 8vw, 90px) 0;
   text-align: center;
   color: rgba(76, 75, 59, 0.7);
 }
 
+/* ── Closing band ───────────────────────────────────────────────────────────
+   Mist, so it reads as chrome closing the page, and the single flare button —
+   the one thing to press on the whole catalogue. */
+.alp-cat__cta {
+  background: var(--alp-mist);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: clamp(22px, 3.4vw, 40px) var(--alp-pad-page);
+}
+.alp-cat__cta-text h2 {
+  margin: 0;
+  font-family: var(--alp-font-display);
+  font-weight: 600;
+  font-size: clamp(1.15rem, 2vw, 1.6rem);
+  color: var(--alp-ink);
+}
+.alp-cat__cta-text p { margin: 4px 0 0; font-size: 0.9rem; color: rgba(76, 75, 59, 0.75); }
+
 @media (max-width: 989px) {
-  .alp-cgrid__grid { grid-template-columns: repeat(2, 1fr); }
+  .alp-cat__grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 860px) {
-  .alp-cgrid__hero { grid-template-columns: 1fr; }
-  .alp-cgrid__panel { height: clamp(220px, 34vh, 320px); }
-  /* One hero panel on a phone; the product chip moves to the grid below. */
-  .alp-cgrid__panel--right { display: none; }
-  .alp-cgrid__bar {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-  .alp-cgrid__bar::-webkit-scrollbar { display: none; }
-  .alp-cgrid__sort { margin-left: 8px; flex: 0 0 auto; }
-  .alp-cgrid__grid { gap: 10px; }
+  /* Phone: the rail becomes a panel under the Filter button. */
+  .alp-cat__controls { display: flex; }
+  .alp-cat__controls .alp-cat__sort { margin-left: 0; flex: 1; justify-content: center; background: transparent; border-style: dashed; }
+  .alp-cat__body { grid-template-columns: 1fr; }
+  .alp-cat__side { display: none; padding: 0 var(--alp-pad-page) clamp(20px, 5vw, 32px); }
+  .alp-cat__toggle:checked ~ .alp-cat__body .alp-cat__side { display: flex; }
+  .alp-cat__main { padding-top: clamp(12px, 3vw, 20px); }
+  /* One sort control per page: the toolbar's belongs to the desktop rail. */
+  .alp-cat__toolbar .alp-cat__sort { display: none; }
+  .alp-cat__toolbar { margin-bottom: 10px; }
 }
 
 /* ── Product page additions (option 1g — editorial) ──────────────────────── */

@@ -11,10 +11,7 @@
   "sections": {
     "hero": {
       "type": "alpine-product-hero",
-      "settings": {
-        "wordmark_tone": "flare",
-        "explore_label": "Explore"
-      }
+      "settings": {}
     },
     "main": {
       "type": "main-product",

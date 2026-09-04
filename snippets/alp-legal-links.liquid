@@ -1,0 +1,55 @@
+{%- comment -%}
+  The fine print, rendered as <li> rows — and only the rows that resolve.
+
+  Shopify's policy pages (/policies/*) 404 until the policy is written in
+  Settings → Policies, and /pages/contact 404s until that page exists. Both
+  used to be hardcoded here, which is how a customer-facing site ends up with
+  dead links in its footer. Everything below is asked for by object, so a
+  policy that hasn't been written simply doesn't appear.
+
+  Accepts:
+    menu_link - true to tag each link with data-alp-menu-link (the Explore
+                overlay closes itself on those)
+{%- endcomment -%}
+{%- if shop.privacy_policy != blank -%}
+  <li>
+    <a href="{{ shop.privacy_policy.url }}"{% if menu_link %} data-alp-menu-link{% endif %}>
+      {{- shop.privacy_policy.title | escape -}}
+    </a>
+  </li>
+{%- endif -%}
+{%- if shop.terms_of_service != blank -%}
+  <li>
+    <a href="{{ shop.terms_of_service.url }}"{% if menu_link %} data-alp-menu-link{% endif %}>
+      {{- shop.terms_of_service.title | escape -}}
+    </a>
+  </li>
+{%- endif -%}
+{%- if shop.shipping_policy != blank -%}
+  <li>
+    <a href="{{ shop.shipping_policy.url }}"{% if menu_link %} data-alp-menu-link{% endif %}>
+      {{- shop.shipping_policy.title | escape -}}
+    </a>
+  </li>
+{%- endif -%}
+{%- if shop.refund_policy != blank -%}
+  <li>
+    <a href="{{ shop.refund_policy.url }}"{% if menu_link %} data-alp-menu-link{% endif %}>
+      {{- shop.refund_policy.title | escape -}}
+    </a>
+  </li>
+{%- endif -%}
+{%- if shop.subscription_policy != blank -%}
+  <li>
+    <a href="{{ shop.subscription_policy.url }}"{% if menu_link %} data-alp-menu-link{% endif %}>
+      {{- shop.subscription_policy.title | escape -}}
+    </a>
+  </li>
+{%- endif -%}
+{%- if pages['contact'] != blank -%}
+  <li>
+    <a href="{{ pages['contact'].url }}"{% if menu_link %} data-alp-menu-link{% endif %}>
+      {{- pages['contact'].title | default: 'Contact' | escape -}}
+    </a>
+  </li>
+{%- endif -%}

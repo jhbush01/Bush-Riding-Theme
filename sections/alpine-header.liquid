@@ -23,13 +23,6 @@
   assign discover_label = section.settings.discover_label | default: 'Discover Launch Collection'
   assign discover_url = section.settings.discover_url | default: shop_url
   assign wordmark_text = section.settings.wordmark | default: shop.name
-  comment
-    Logo fallback. The brush wordmark already lives in Shopify Content > Files,
-    so the header shows it with no editor step. Pick an image in "Logo" to
-    override — that takes precedence and is what you want long term, because a
-    theme setting survives a file being re-uploaded under a new URL.
-  endcomment
-  assign logo_fallback = 'https://cdn.shopify.com/s/files/1/0838/6373/2480/files/IMG_0888-removebg-preview.png?v=1786853172'
 -%}
 
 <header class="alp alp-head" data-alp-header>
@@ -37,13 +30,25 @@
     {%- comment -%}
       The alt text is the link's accessible name AND what shows if the image
       ever fails, so it carries the wordmark — no aria-label, which would just
-      duplicate it. 600px wide covers the largest render (231 CSS px) at 2x.
+      duplicate it.
+
+      The bar is mist on every template now, so the mark ships as the olive
+      artwork rather than the cream file from Content > Files — cream on mist
+      is barely there. Set "Logo" to override, but give it a dark mark.
     {%- endcomment -%}
     <a class="alp-nav-link alp-nav-link--wordmark" href="{{ routes.root_url }}">
       {%- if section.settings.logo != blank -%}
         {{ section.settings.logo | image_url: width: 600 | image_tag: class: 'alp-wordmark__img', alt: wordmark_text, loading: 'eager', fetchpriority: 'high' }}
       {%- else -%}
-        <img class="alp-wordmark__img" src="{{ logo_fallback }}&width=600" alt="{{ wordmark_text | escape }}" width="1273" height="543" loading="eager" fetchpriority="high">
+        <img
+          class="alp-wordmark__img"
+          src="{{ 'wordmark-olive.svg' | asset_url }}"
+          alt="{{ wordmark_text | escape }}"
+          width="1273"
+          height="543"
+          loading="eager"
+          fetchpriority="high"
+        >
       {%- endif -%}
     </a>
     <span
@@ -152,10 +157,11 @@
       </div>
     </div>
 
-    {%- comment -%} Navigation + legal links — every way around the site,
-        12pt. Legal points at Shopify's auto policy pages (/policies/*),
-        which go live once the policies are filled in under
-        Settings → Policies in admin. {%- endcomment -%}
+    {%- comment -%} Navigation + legal links — every way around the site, 12pt.
+        Nothing here is written by hand any more: the fine print comes from the
+        shop's actual policies and pages (see snippets/alp-legal-links), and the
+        account row only appears where customer accounts are switched on. A link
+        that would 404 is not rendered at all. {%- endcomment -%}
     <nav class="alp-menu__links" aria-label="Site links">
       <div class="alp-menu__links-col">
         <h3>Navigate</h3>
@@ -165,23 +171,22 @@
           <li><a href="{{ discover_url }}" data-alp-menu-link>{{ discover_label | escape }}</a></li>
           <li><a href="{{ map_url }}" data-alp-menu-link>{{ map_label | escape }}</a></li>
           <li><a href="{{ routes.cart_url }}" data-alp-menu-link>Cart</a></li>
-          {%- if customer -%}
-            <li><a href="{{ routes.account_url }}" data-alp-menu-link>{{ customer.first_name | escape }} {{ customer.last_name | escape }} — my account</a></li>
-          {%- else -%}
-            <li><a href="{{ routes.account_login_url }}" data-alp-menu-link>Sign in</a></li>
+          {%- if shop.customer_accounts_enabled -%}
+            {%- if customer -%}
+              <li><a href="{{ routes.account_url }}" data-alp-menu-link>{{ customer.first_name | escape }} {{ customer.last_name | escape }} — my account</a></li>
+            {%- else -%}
+              <li><a href="{{ routes.account_login_url }}" data-alp-menu-link>Sign in</a></li>
+            {%- endif -%}
           {%- endif -%}
         </ul>
       </div>
-      <div class="alp-menu__links-col">
-        <h3>The fine print</h3>
-        <ul role="list">
-          <li><a href="/policies/privacy-policy" data-alp-menu-link>Privacy policy</a></li>
-          <li><a href="/policies/terms-of-service" data-alp-menu-link>Terms of service</a></li>
-          <li><a href="/policies/shipping-policy" data-alp-menu-link>Shipping</a></li>
-          <li><a href="/policies/refund-policy" data-alp-menu-link>Returns &amp; refunds</a></li>
-          <li><a href="/pages/contact" data-alp-menu-link>Contact</a></li>
-        </ul>
-      </div>
+      {%- capture legal_links -%}{%- render 'alp-legal-links', menu_link: true -%}{%- endcapture -%}
+      {%- if legal_links != blank -%}
+        <div class="alp-menu__links-col">
+          <h3>The fine print</h3>
+          <ul role="list">{{ legal_links }}</ul>
+        </div>
+      {%- endif -%}
       <p class="alp-menu__small">© {{ section.settings.wordmark | default: shop.name | escape }} {{ 'now' | date: '%Y' }} — Designed in Australia. Made for the detour.</p>
     </nav>
   </div>
@@ -192,7 +197,7 @@
   "name": "Bush Riding header",
   "tag": "div",
   "settings": [
-    { "type": "image_picker", "id": "logo", "label": "Logo", "info": "The brush wordmark shown in the bar. Leave empty to use the one already in Content > Files." },
+    { "type": "image_picker", "id": "logo", "label": "Logo", "info": "The brush wordmark shown in the bar. Leave empty to use the olive artwork that ships with the theme — the bar is mist, so a cream mark will not read on it." },
     { "type": "text", "id": "wordmark", "label": "Wordmark", "default": "Bush Riding™", "info": "Now the logo's alt text and the © line in the Explore menu. Leave blank to use the store name." },
     { "type": "text", "id": "clock_timezone", "label": "Clock time zone (IANA id)", "default": "Australia/Brisbane" },
     { "type": "text", "id": "clock_label", "label": "Clock zone label", "default": "AEST" },
