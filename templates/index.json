@@ -44,6 +44,7 @@
           "type": "photo",
           "settings": {
             "image": "shopify://shop_images/autumn-trees-hillside.jpg",
+            "video_url": "https://cdn.shopify.com/videos/c/o/v/e3a3e900b3154a1baf53e0a1cb5a2c2e.mov",
             "caption": "",
             "link": ""
           }

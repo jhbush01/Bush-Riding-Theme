@@ -447,7 +447,7 @@ a.alp-chip--flare:hover { background: var(--alp-ink); color: var(--alp-citrus); 
 .alp-trio { padding: 0 var(--alp-pad-page) clamp(30px, 5vw, 64px); }
 .alp-trio__grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 12px; }
 .alp-trio__cell { margin: 0; }
-.alp-trio__cell img {
+.alp-trio__cell img, .alp-trio__cell video {
   width: 100%;
   height: clamp(200px, 30vw, 460px);
   object-fit: cover;
@@ -462,8 +462,8 @@ a.alp-chip--flare:hover { background: var(--alp-ink); color: var(--alp-citrus); 
   /* Phone: the lead photograph carries it, the other two sit side by side. */
   .alp-trio__grid { grid-template-columns: 1fr 1fr; gap: 10px; }
   .alp-trio__cell:first-child { grid-column: 1 / -1; }
-  .alp-trio__cell img { height: clamp(150px, 34vw, 220px); }
-  .alp-trio__cell:first-child img { height: clamp(190px, 46vw, 280px); }
+  .alp-trio__cell img, .alp-trio__cell video { height: clamp(150px, 34vw, 220px); }
+  .alp-trio__cell:first-child img, .alp-trio__cell:first-child video { height: clamp(190px, 46vw, 280px); }
 }
 
 /* Product-card chips on the mist ground read as mist, not paper — white would
