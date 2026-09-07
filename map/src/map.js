@@ -442,9 +442,16 @@ function initUI() {
 function initBrandLogo() {
   const link = document.querySelector(".map-brand__logo");
   const img = link && link.querySelector(".map-brand__mark");
-  if (!link || !img) return;
+  const span = link && link.querySelector(".map-brand__wordmark");
+  if (!link || !img || !span) return;
 
-  const useText = () => link.classList.add("is-textonly");
+  // Toggle the `hidden` attribute rather than a class, so which of the two
+  // shows never depends on app.css having arrived. A stale stylesheet next to
+  // a fresh index.html is what put the logo and the text side by side once.
+  const useText = () => {
+    img.hidden = true;
+    span.hidden = false;
+  };
   const tryFallback = () => {
     const alt = img.dataset.fallback;
     if (alt && img.getAttribute("src") !== alt) {

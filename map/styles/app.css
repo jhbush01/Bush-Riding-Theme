@@ -14,7 +14,11 @@
   --line: rgba(76, 75, 59, 0.24);
   --olive: #4c4b3b;
   --sage: #b9bea3;
-  --lemon: #ede270;                /* active/selected only */
+  /* Flare. Was "active/selected only"; it now also grounds the brand chip that
+     leads back to the storefront, matching .alp-chip--flare there. Two uses on
+     one screen, both deliberate — don't spend it on a third. */
+  --lemon: #ede270;
+  --lemon-deep: #e2d558;           /* flare, pressed */
   --water: #a7b8b4;
   --ui-font: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   --head-font: "Archivo", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -398,15 +402,17 @@ body {
   filter: drop-shadow(0 1px 2px rgba(255, 255, 255, 0.9));
 }
 
+/* The way back to the storefront, wearing the storefront's own flare chip:
+   #ede270 ground, olive hairline, 3px corners — the same recipe as
+   .alp-chip--flare in the theme. No backdrop blur any more; the ground is
+   opaque now, so it was filtering nothing. */
 .map-brand__logo {
   display: inline-flex;
   align-items: center;
   padding: 7px 14px;
-  background: rgba(244, 239, 226, 0.82);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 999px;
+  background: var(--lemon);
+  border: 1px solid var(--ink);
+  border-radius: 3px;
   box-shadow: 0 2px 10px rgba(28, 26, 21, 0.14);
   font-family: var(--head-font);
   font-size: 19px;
@@ -415,7 +421,10 @@ body {
   text-decoration: none;
   white-space: nowrap;
 }
-.map-brand__logo:hover { color: var(--olive); }
+/* The theme's chip inverts to olive on hover. This one can't: the wordmark is
+   fixed-colour artwork, and olive-on-olive is nothing at all. It deepens the
+   flare instead, which reads as the same gesture. */
+.map-brand__logo:hover { background: var(--lemon-deep); }
 
 /* The brush wordmark (assets/wordmark-olive.svg, copied to public/logo.svg).
    Sized by height so the 940:205 artwork keeps its ratio.
@@ -431,11 +440,13 @@ body {
   max-width: 46vw;
   object-fit: contain;
 }
-/* Text is the understudy: hidden while the image is doing its job, swapped in
-   by initBrandLogo() if the file is missing. */
-.map-brand__wordmark { display: none; }
-.map-brand__logo.is-textonly .map-brand__mark { display: none; }
-.map-brand__logo.is-textonly .map-brand__wordmark { display: inline; }
+/* `display: block` above outranks the UA's `[hidden] { display: none }`, so
+   without this the image stays on screen next to the fallback text — which is
+   the doubled-wordmark bug, arriving by a second route. */
+.map-brand__mark[hidden] { display: none; }
+/* The fallback text carries the `hidden` attribute in the markup and map.js
+   flips it, so showing one of the two never depends on this stylesheet having
+   arrived. Deliberately no display rules here. */
 
 /* ---------- Route detail surface (sheet / panel) ---------- */
 /* One node, three layouts: a draggable bottom sheet on mobile, a roomier
