@@ -417,12 +417,16 @@ body {
 }
 .map-brand__logo:hover { color: var(--olive); }
 
-/* The wordmark image. Sized by height so any sensible aspect ratio works —
-   export it tight-cropped, with no padding baked in, or it renders small
-   inside its own whitespace. */
+/* The brush wordmark (assets/wordmark-olive.svg, copied to public/logo.svg).
+   Sized by height so the 940:205 artwork keeps its ratio.
+
+   26px looks tall next to the 19px type it replaces, but they aren't
+   comparable: the script's cap height is only about 46% of the artwork, the
+   rest being ascenders and descenders. 26px lands the letters at the same
+   visual size, and ~119px wide against the ~148px the text occupied. */
 .map-brand__mark {
   display: block;
-  height: 21px;
+  height: 26px;
   width: auto;
   max-width: 46vw;
   object-fit: contain;
@@ -1960,7 +1964,7 @@ textarea.field-input {
     font-size: clamp(12px, 3.9vw, 19px);
   }
   .map-brand__mark {
-    height: clamp(14px, 4.4vw, 21px);
+    height: clamp(17px, 5.4vw, 26px);
   }
   .stage {
     gap: 7px;
