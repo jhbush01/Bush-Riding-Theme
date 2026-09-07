@@ -823,6 +823,23 @@ body {
   .sidebar.is-open {
     transform: translateX(0);
   }
+
+  /* The map tools sit above the drawer (z-index 8 against its 5), and on a
+     390px screen the Satellite button lands at x≈235 while the drawer's close
+     button spans 256–290. They were stacked on top of each other, so the ×
+     could not be pressed.
+
+     Hidden rather than moved. The drawer covers ~77% of the screen while it is
+     open, so Satellite and 2D/3D have almost no map left to act on — and the
+     alternatives are worse: the × can't go left because the hamburger and
+     wordmark already own that corner, and narrowing the drawer would spend
+     content width on every phone to dodge a control that shouldn't be there
+     anyway. The zoom buttons stay: they sit at x≈344+, clear of the drawer.
+
+     `~` works because .map-tools follows #sidebar in the markup. */
+  .sidebar.is-open ~ .map-tools {
+    display: none;
+  }
 }
 
 /* ===================== Ride diary ===================== */
