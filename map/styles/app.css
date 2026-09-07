@@ -394,6 +394,8 @@ body {
 }
 
 .map-brand__logo {
+  display: inline-flex;
+  align-items: center;
   padding: 7px 14px;
   background: rgba(244, 239, 226, 0.82);
   -webkit-backdrop-filter: blur(10px);
@@ -409,6 +411,22 @@ body {
   white-space: nowrap;
 }
 .map-brand__logo:hover { color: var(--olive); }
+
+/* The wordmark image. Sized by height so any sensible aspect ratio works —
+   export it tight-cropped, with no padding baked in, or it renders small
+   inside its own whitespace. */
+.map-brand__mark {
+  display: block;
+  height: 21px;
+  width: auto;
+  max-width: 46vw;
+  object-fit: contain;
+}
+/* Text is the understudy: hidden while the image is doing its job, swapped in
+   by initBrandLogo() if the file is missing. */
+.map-brand__wordmark { display: none; }
+.map-brand__logo.is-textonly .map-brand__mark { display: none; }
+.map-brand__logo.is-textonly .map-brand__wordmark { display: inline; }
 
 /* ---------- Route detail surface (sheet / panel) ---------- */
 /* One node, three layouts: a draggable bottom sheet on mobile, a roomier
@@ -1930,6 +1948,9 @@ textarea.field-input {
   .map-brand__logo {
     padding: 7px 12px;
     font-size: clamp(12px, 3.9vw, 19px);
+  }
+  .map-brand__mark {
+    height: clamp(14px, 4.4vw, 21px);
   }
   .stage {
     gap: 7px;

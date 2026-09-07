@@ -419,6 +419,7 @@ function preloadPhoto(src) {
 // Wire everything that does NOT depend on the map being up.
 function initUI() {
   requestDownload = setupGate();
+  initBrandLogo();
   setupFilters(routeFeatures, refresh);
   setupDetailPanel();
   setupSidebarToggle();
@@ -429,6 +430,34 @@ function initUI() {
   // loads; onLoad redraws the line once the map is ready.
   selectFromHash();
   window.addEventListener("hashchange", selectFromHash);
+}
+
+/* Brand pill: the wordmark logo, or the set text if the logo isn't there.
+
+   The image is tried first, then the `data-fallback` path (so an SVG or a PNG
+   both work without a code change), then the typeset wordmark that has always
+   been in the markup. An empty pill in the corner of the map would be worse
+   than either, and this is the same src → fallback → give-up ladder the route
+   card's photo uses. */
+function initBrandLogo() {
+  const link = document.querySelector(".map-brand__logo");
+  const img = link && link.querySelector(".map-brand__mark");
+  if (!link || !img) return;
+
+  const useText = () => link.classList.add("is-textonly");
+  const tryFallback = () => {
+    const alt = img.dataset.fallback;
+    if (alt && img.getAttribute("src") !== alt) {
+      img.src = alt; // one more go; a second error lands on useText
+    } else {
+      useText();
+    }
+  };
+
+  img.addEventListener("error", tryFallback);
+  // The image may already have failed before this ran — a cached 404 resolves
+  // before the module executes, and then no error event is ever coming.
+  if (img.complete && img.naturalWidth === 0) tryFallback();
 }
 
 function selectFromHash() {

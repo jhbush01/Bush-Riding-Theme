@@ -158,7 +158,12 @@
           <line x1="3" y1="18" x2="21" y2="18" />
         </svg>
       </button>
-      <a class="map-brand__logo" href="https://bushriding.cc" aria-label="Bush Riding home">Bush Riding™</a>
+      <!-- The wordmark logo, with the set text as a fallback. map.js swaps to
+           the text if the image is missing, so the pill is never empty. -->
+      <a class="map-brand__logo" href="https://bushriding.cc" aria-label="Bush Riding home">
+        <img class="map-brand__mark" src="public/logo.svg" alt="" data-fallback="public/logo.png" />
+        <span class="map-brand__wordmark">Bush Riding™</span>
+      </a>
     </div>
 
     <!-- Top-right map tools: aerial photography, and flat vs 3D relief. The
