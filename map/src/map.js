@@ -526,6 +526,11 @@ async function initMap() {
   }
 
   map = new maplibregl.Map(mapOpts);
+  // A handle on the map for anything driving this page from outside it:
+  // scripts/build-og-card.js frames the share card with it, and it is the
+  // first thing you want in a console when a layer misbehaves. Read-only by
+  // convention — nothing in the app reads it back.
+  window.brmMap = map;
   // Zoom in / zoom out live top-right, tucked under the 2D/3D switch, so every
   // piece of map chrome is in one corner and none of it crowds the wordmark.
   map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");

@@ -20,6 +20,8 @@
  * Env:
  *   OG_URL                     page to capture (default the live map)
  *   OG_VIEW                    "3d" (default) or "2d"
+ *   OG_CENTER                  "lng,lat" to frame on
+ *   OG_ZOOM / OG_PITCH / OG_BEARING
  *   PLAYWRIGHT_CHROMIUM_PATH   use a browser that's already installed
  */
 "use strict";
@@ -31,6 +33,20 @@ const OUT = path.join(ROOT, "map", "public", "og-card.jpg");
 
 const URL_ = process.env.OG_URL || "https://map.bushriding.cc/";
 const VIEW = (process.env.OG_VIEW || "3d").toLowerCase();
+
+/* Framing is an editorial choice, not the map's own default.
+   Left to fit every published route, the camera pulls back to take in QLD, NSW
+   AND Victoria, and the card becomes a continent with a few specks on it —
+   which is what the first run produced. A share card has to look like
+   somewhere you would ride, so it frames the country the routes are thickest
+   in and lets the rest sit off-frame. Override with OG_CENTER/OG_ZOOM when the
+   centre of gravity moves. */
+const CAM = {
+  center: (process.env.OG_CENTER || "151.9,-26.8").split(",").map(Number),
+  zoom: Number(process.env.OG_ZOOM || 6.15),
+  pitch: Number(process.env.OG_PITCH || 55),
+  bearing: Number(process.env.OG_BEARING || -16),
+};
 // Facebook, LinkedIn, iMessage and WhatsApp all want 1.91:1. Captured at twice
 // this and downsampled, so the labels stay crisp without shipping a 2400px file.
 const W = 1200;
@@ -73,17 +89,43 @@ const HIDE = [
 
   // The basemap has to actually be on screen before this is worth capturing.
   await page.waitForSelector("#map canvas", { timeout: 30000 });
-  await settle(page, 4000);
+  await page.waitForFunction(() => window.brmMap && window.brmMap.isStyleLoaded(), { timeout: 30000 });
 
   if (VIEW === "3d") {
+    // Click the real control, so terrain attaches the way it does for a rider
+    // rather than by poking at internals.
     const btn = await page.$("#view-3d");
-    if (!btn) {
-      console.warn("No #view-3d button found — capturing flat.");
-    } else {
-      await btn.click();
-      // Terrain means a fresh set of DEM tiles and a mesh rebuild; give it room.
-      await settle(page, 7000);
-    }
+    if (!btn) throw new Error("No #view-3d button — the page is not what this script expects.");
+    await btn.click();
+    await page.waitForTimeout(1200);
+  }
+
+  // Frame it. jumpTo rather than easeTo: there is nobody to watch the
+  // animation, and an in-flight camera is a race against the screenshot.
+  const camera = VIEW === "3d" ? CAM : { ...CAM, pitch: 0, bearing: 0 };
+  await page.evaluate((c) => window.brmMap.jumpTo(c), camera);
+
+  // Wait for the tiles the new camera just asked for, not a guessed interval.
+  await page.evaluate(
+    () =>
+      new Promise((res) => {
+        if (window.brmMap.loaded() && window.brmMap.areTilesLoaded()) return res();
+        window.brmMap.once("idle", res);
+        setTimeout(res, 25000); // never hang the job on one stubborn tile
+      })
+  );
+  await settle(page, 3500);
+
+  // Refuse to ship a card that isn't what was asked for. The first run of this
+  // script committed a flat, continent-wide capture without complaint.
+  const cam = await page.evaluate(() => ({
+    pitch: Math.round(window.brmMap.getPitch()),
+    zoom: +window.brmMap.getZoom().toFixed(2),
+    center: window.brmMap.getCenter().toArray().map((v) => +v.toFixed(3)),
+  }));
+  console.log("Camera:", JSON.stringify(cam));
+  if (VIEW === "3d" && cam.pitch < 10) {
+    throw new Error(`Asked for 3D and got pitch ${cam.pitch} — refusing to write a flat card.`);
   }
 
   await page.addStyleTag({ content: HIDE.join(",") + "{display:none !important}" });
