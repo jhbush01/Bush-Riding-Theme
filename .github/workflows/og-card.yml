@@ -1,0 +1,64 @@
+# Regenerate the social share card from the live map.
+#
+# map/public/og-card.jpg is the link preview for map.bushriding.cc, /submit and
+# every route page without its own hero photo. It is a real screenshot of the
+# live site, so it goes stale as routes are added — this keeps it current.
+#
+# Runs monthly, on demand, and whenever the capture script changes. Commits
+# only if the image actually changed; the push uses GITHUB_TOKEN, which does
+# not re-trigger workflows.
+name: Build OG card
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "0 15 1 * *" # 01:00 AEST on the 1st
+  push:
+    branches: [main]
+    paths:
+      - "scripts/build-og-card.js"
+      - ".github/workflows/og-card.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: og-card
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Playwright + Chromium
+        run: npm i --no-save playwright && npx playwright install --with-deps chromium
+
+      - name: Capture the map
+        run: node scripts/build-og-card.js
+
+      - name: Upload for inspection
+        uses: actions/upload-artifact@v4
+        with:
+          name: og-card
+          path: map/public/og-card.jpg
+          if-no-files-found: error
+
+      - name: Commit if changed
+        run: |
+          git config user.name "og-card-bot"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add map/public/og-card.jpg
+          if git diff --cached --quiet; then
+            echo "Card unchanged."
+          else
+            git commit -m "Regenerate the share card from the live map"
+            git push origin HEAD:main
+          fi
