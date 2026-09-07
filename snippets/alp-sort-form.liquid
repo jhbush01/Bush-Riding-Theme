@@ -1,0 +1,26 @@
+{%- comment -%}
+  Sort control. A GET form, so it works with JavaScript off (the select
+  auto-submits when scripting is on; the noscript chip submits it when not).
+
+  Accepts:
+    collection - the collection being sorted
+    section_id - for unique ids
+    suffix     - 'd' / 'm', because the desktop toolbar and the mobile control
+                 bar both render one and ids have to stay unique
+{%- endcomment -%}
+{%- liquid
+  assign sort_id = 'alp-sort-' | append: section_id | append: '-' | append: suffix
+  assign current_sort = collection.sort_by | default: collection.default_sort_by
+-%}
+<form class="alp-cat__sort" method="get" action="{{ collection.url }}">
+  <label for="{{ sort_id }}">Sort —</label>
+  <select id="{{ sort_id }}" name="sort_by" onchange="this.form.submit()">
+    {%- for option in collection.sort_options -%}
+      <option value="{{ option.value }}" {% if option.value == current_sort %}selected{% endif %}>
+        {{- option.name | escape -}}
+      </option>
+    {%- endfor -%}
+  </select>
+  {%- render 'alp-facet-state', collection: collection -%}
+  <noscript><button class="alp-chip alp-chip--sm" type="submit">Apply</button></noscript>
+</form>

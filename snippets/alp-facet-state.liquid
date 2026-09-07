@@ -1,0 +1,35 @@
+{%- comment -%}
+  Carries the collection's active filters through a GET form as hidden inputs,
+  so sorting (or setting a price) narrows the same selection instead of
+  clearing it.
+
+  Accepts:
+    collection - the collection whose filters are active
+    skip_price - true to leave the price range out (the price form owns those
+                 inputs itself, and repeating them would submit two values)
+{%- endcomment -%}
+{%- for f in collection.filters -%}
+  {%- case f.type -%}
+    {%- when 'price_range' -%}
+      {%- unless skip_price -%}
+        {%- if f.min_value.value != blank -%}
+          <input
+            type="hidden"
+            name="{{ f.min_value.param_name }}"
+            value="{{ f.min_value.value | money_without_currency | replace: ',', '' }}"
+          >
+        {%- endif -%}
+        {%- if f.max_value.value != blank -%}
+          <input
+            type="hidden"
+            name="{{ f.max_value.param_name }}"
+            value="{{ f.max_value.value | money_without_currency | replace: ',', '' }}"
+          >
+        {%- endif -%}
+      {%- endunless -%}
+    {%- else -%}
+      {%- for v in f.active_values -%}
+        <input type="hidden" name="{{ v.param_name }}" value="{{ v.value | escape }}">
+      {%- endfor -%}
+  {%- endcase -%}
+{%- endfor -%}

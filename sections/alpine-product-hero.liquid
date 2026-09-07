@@ -1,0 +1,55 @@
+{%- comment -%}
+  Bush Riding product hero (option 1g — editorial). Full-bleed product-in-
+  action photograph with the product title low in the frame — the same
+  full-bleed language as the home hero and statement, doing the visual work so
+  the buy block below the fold (main-product) can stay lean: text and a
+  bordered buy card, no second gallery.
+
+  It used to draw its own wordmark + Explore bar across the top of the
+  photograph. The site header is fixed above it, so that put two wordmarks and
+  two Explores on the screen, 76px apart. The header is the header; this band
+  is a photograph and a title.
+
+  Sits above `main` in templates/product.json; only makes sense on the
+  product template, so it always reads from the `product` object.
+{%- endcomment -%}
+
+{%- liquid
+  assign tagline = section.settings.tagline
+  if tagline == blank and product.description != blank
+    assign tagline = product.description | strip_html | truncate: 140
+  endif
+-%}
+
+<section class="alp alp-phero">
+  <div class="alp-phero__media">
+    {%- if section.settings.image != blank -%}
+      {{ section.settings.image | image_url: width: 2400 | image_tag: loading: 'eager', fetchpriority: 'high', alt: section.settings.image.alt | default: '' }}
+    {%- elsif product.featured_image != blank -%}
+      {{ product.featured_image | image_url: width: 2400 | image_tag: loading: 'eager', fetchpriority: 'high', alt: '' }}
+    {%- else -%}
+      <img src="{{ 'alpine-ph-hero.svg' | asset_url }}" alt="" width="800" height="1000" loading="eager"
+        data-asset-note="Full-bleed product-in-action photograph — the rider wearing/using this product on the trail">
+    {%- endif -%}
+  </div>
+
+  <div class="alp-phero__caption">
+    <h1 class="alp-phero__title">{{ product.title | escape }}</h1>
+    {%- if tagline != blank -%}<p class="alp-phero__tagline">{{ tagline | escape }}</p>{%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Bush Riding product hero",
+  "tag": "div",
+  "settings": [
+    { "type": "paragraph", "content": "Full-bleed band above the buy block. Falls back to the product's featured image, then a placeholder, if no image is set here." },
+    { "type": "image_picker", "id": "image", "label": "Image", "info": "Leave blank to use the product's featured image." },
+    { "type": "text", "id": "tagline", "label": "One-line tagline", "info": "Leave blank to use the start of the product description." }
+  ],
+  "presets": [
+    { "name": "Bush Riding product hero" }
+  ]
+}
+{% endschema %}

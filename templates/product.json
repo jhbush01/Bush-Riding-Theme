@@ -9,6 +9,10 @@
  */
 {
   "sections": {
+    "hero": {
+      "type": "alpine-product-hero",
+      "settings": {}
+    },
     "main": {
       "type": "main-product",
       "blocks": {
@@ -67,9 +71,9 @@
         "share"
       ],
       "settings": {
-        "enable_sticky_info": true,
+        "enable_sticky_info": false,
         "color_scheme": "scheme-1",
-        "media_size": "large",
+        "media_size": "small",
         "constrain_to_viewport": true,
         "media_fit": "contain",
         "gallery_layout": "stacked",
@@ -78,8 +82,48 @@
         "image_zoom": "lightbox",
         "hide_variants": true,
         "enable_video_looping": false,
-        "padding_top": 36,
+        "padding_top": 20,
         "padding_bottom": 12
+      }
+    },
+    "waitlist": {
+      "type": "product-waitlist-banner",
+      "settings": {
+        "force_show": false
+      }
+    },
+    "kit_bundle": {
+      "type": "product-kit-bundle",
+      "settings": {
+        "heading": "Build the kit — save 15%",
+        "discount_percent": 15
+      }
+    },
+    "specs": {
+      "type": "product-specs",
+      "settings": {
+        "title": "The details"
+      }
+    },
+    "fit_gallery": {
+      "type": "product-fit-gallery",
+      "blocks": {
+        "rider_a": {
+          "type": "rider",
+          "settings": { "caption": "Rider A · 178 cm · M" }
+        },
+        "rider_b": {
+          "type": "rider",
+          "settings": { "caption": "Rider B · 165 cm · S" }
+        },
+        "rider_c": {
+          "type": "rider",
+          "settings": { "caption": "Rider C · 190 cm · L" }
+        }
+      },
+      "block_order": ["rider_a", "rider_b", "rider_c"],
+      "settings": {
+        "heading": "Fit gallery"
       }
     },
     "disclosures": {
@@ -139,12 +183,6 @@
       ],
       "settings": {}
     },
-    "specs": {
-      "type": "product-specs",
-      "settings": {
-        "title": "The details"
-      }
-    },
     "sticky_atc": {
       "type": "sticky-atc",
       "settings": {
@@ -153,9 +191,13 @@
     }
   },
   "order": [
+    "hero",
     "main",
     "value_bar",
+    "waitlist",
+    "kit_bundle",
     "specs",
+    "fit_gallery",
     "disclosures",
     "related-products",
     "sticky_atc"

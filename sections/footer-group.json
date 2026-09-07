@@ -13,26 +13,16 @@
   "sections": {
     "footer": {
       "type": "alpine-footer",
-      "blocks": {
-        "col_shop": {
-          "type": "column",
-          "settings": { "heading": "Shop", "menu": "main-menu" }
-        },
-        "col_company": {
-          "type": "column",
-          "settings": { "heading": "Company", "menu": "main-menu" }
-        },
-        "col_legal": {
-          "type": "column",
-          "settings": { "heading": "Legal", "menu": "main-menu" }
-        }
-      },
-      "block_order": ["col_shop", "col_company", "col_legal"],
+      "blocks": {},
+      "block_order": [],
       "settings": {
         "newsletter_heading": "Ride with us.",
         "newsletter_text": "One email a month from the bush — stories, routes and first looks. No noise.",
+        "newsletter_button": "Go",
         "wordmark": "Bush Riding™",
-        "small_print": "Designed in Australia. Made for the detour."
+        "small_print": "Designed in Australia. Made for the detour.",
+        "map_label": "BUSH MAP™",
+        "wordmark_tone": "mist"
       }
     }
   },

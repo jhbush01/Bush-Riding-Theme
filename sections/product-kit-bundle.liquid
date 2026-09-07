@@ -1,0 +1,100 @@
+{%- comment -%}
+  Bush Riding kit bundle (option 1g). "Build the kit — save 15%": a fixed set
+  of products (configured as blocks), their combined price struck through
+  against the discounted total, one "Add kit to cart" link.
+
+  No bundling app is wired up, so this uses a plain Shopify cart permalink
+  (`/cart/VARIANT:QTY,VARIANT:QTY`) to add every item in one request — no JS
+  required. The struck-through total is for display only; for the charged
+  price to match, set "Discount code" to an automatic-discount-eligible code,
+  or create a matching automatic discount in Admin → Discounts scoped to
+  these products. Simplified from the wireframe's per-item checkboxes to a
+  fixed set for this first pass — toggling items in and out would need its
+  own price-recompute JS, which isn't wired up here.
+{%- endcomment -%}
+
+{%- liquid
+  assign items = section.blocks
+  assign item_count = items.size
+  assign full_total = 0
+  assign variant_line = ''
+  for block in items
+    assign p = block.settings.product
+    if p != blank
+      assign v = p.selected_or_first_available_variant
+      assign full_total = full_total | plus: v.price
+      if variant_line == blank
+        assign variant_line = v.id | append: ':1'
+      else
+        assign variant_line = variant_line | append: ',' | append: v.id | append: ':1'
+      endif
+    endif
+  endfor
+  assign discount_pct = section.settings.discount_percent
+  assign kept_pct = 100 | minus: discount_pct
+  assign discounted_total = full_total | times: kept_pct | divided_by: 100
+  assign cart_href = routes.cart_url | append: '/' | append: variant_line
+  if section.settings.discount_code != blank
+    assign cart_href = cart_href | append: '?discount=' | append: section.settings.discount_code
+  endif
+-%}
+
+{%- if item_count > 0 and variant_line != blank -%}
+  <div class="alp alp-kit">
+    <h2 class="alp-kit__heading">{{ section.settings.heading | escape }}</h2>
+    <div class="alp-kit__row">
+      <div class="alp-kit__items">
+        {%- for block in items -%}
+          {%- assign p = block.settings.product -%}
+          {%- if p != blank -%}
+            <div class="alp-kit__item" {{ block.shopify_attributes }}>
+              <a href="{{ p.url }}" class="alp-kit__item-media">
+                {%- if p.featured_image != blank -%}
+                  {{ p.featured_image | image_url: width: 500 | image_tag: loading: 'lazy', alt: p.featured_image.alt | default: p.title }}
+                {%- else -%}
+                  <img src="{{ 'alpine-ph-card-1.svg' | asset_url }}" alt="" width="750" height="1000" loading="lazy">
+                {%- endif -%}
+              </a>
+              <span class="alp-chip">{{ p.title | escape }} {{ p.selected_or_first_available_variant.price | money }}</span>
+            </div>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+      <div class="alp-kit__buy">
+        <p class="alp-kit__price">
+          <s>{{ full_total | money }}</s> → <strong>{{ discounted_total | money }}</strong>
+        </p>
+        <a class="alp-chip alp-chip--fill alp-kit__cta" href="{{ cart_href }}">{{ section.settings.button_label | escape }}</a>
+      </div>
+    </div>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Bush Riding kit bundle",
+  "tag": "div",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Build the kit — save 15%" },
+    { "type": "text", "id": "button_label", "label": "Button label", "default": "Add kit to cart" },
+    { "type": "range", "id": "discount_percent", "label": "Discount shown (%)", "min": 0, "max": 50, "step": 5, "default": 15 },
+    { "type": "text", "id": "discount_code", "label": "Discount code (optional)", "info": "Applied via the cart link (?discount=CODE) so checkout matches the price shown. Create a matching discount in Admin → Discounts." }
+  ],
+  "blocks": [
+    {
+      "type": "item",
+      "name": "Kit item",
+      "settings": [
+        { "type": "product", "id": "product", "label": "Product" }
+      ]
+    }
+  ],
+  "max_blocks": 4,
+  "presets": [
+    {
+      "name": "Bush Riding kit bundle",
+      "blocks": [{ "type": "item" }, { "type": "item" }, { "type": "item" }]
+    }
+  ]
+}
+{% endschema %}

@@ -9,20 +9,94 @@
  */
 {
   "sections": {
-    "alpine_hero": {
-      "type": "alpine-hero",
+    "alpine_gate": {
+      "type": "alpine-gate",
       "settings": {
-        "image": "shopify://shop_images/IMG_2419.jpg",
-        "video_url": "https://cdn.shopify.com/videos/c/o/v/e3a3e900b3154a1baf53e0a1cb5a2c2e.mov",
-        "shorts_product": "",
-        "shorts_label": "",
-        "shorts_fallback_url": "/products/bush-riding-shorts",
-        "map_label": "",
+        "wordmark_tone": "olive",
+        "wordmark_alt": "",
+        "tagline": "Made for the detour",
+        "shop_label": "Shop the launch",
+        "shop_url": "/collections/all",
+        "map_label": "BUSH MAP™",
         "map_url": "https://map.bushriding.cc"
+      }
+    },
+    "alpine_photo_trio": {
+      "type": "alpine-photo-trio",
+      "blocks": {
+        "photo_lead": {
+          "type": "photo",
+          "settings": {
+            "image": "shopify://shop_images/Bush_Background.jpg",
+            "caption": "",
+            "link": ""
+          }
+        },
+        "photo_rider": {
+          "type": "photo",
+          "settings": {
+            "image": "shopify://shop_images/IMG_2419.jpg",
+            "caption": "Mooloolah Forest, QLD",
+            "link": ""
+          }
+        },
+        "photo_detail": {
+          "type": "photo",
+          "settings": {
+            "image": "shopify://shop_images/autumn-trees-hillside.jpg",
+            "video_url": "https://cdn.shopify.com/videos/c/o/v/e3a3e900b3154a1baf53e0a1cb5a2c2e.mov",
+            "caption": "",
+            "link": ""
+          }
+        }
+      },
+      "block_order": [
+        "photo_lead",
+        "photo_rider",
+        "photo_detail"
+      ],
+      "settings": {}
+    },
+    "alpine_manifesto": {
+      "type": "alpine-manifesto",
+      "blocks": {
+        "para_1": {
+          "type": "paragraph",
+          "settings": {
+            "text": "<p>We ride for the detour ∧ the café stop ∧ the track that didn't make the map.</p>"
+          }
+        },
+        "refrain_1": {
+          "type": "refrain",
+          "settings": {
+            "text": "<p>Ride with us ✦</p>"
+          }
+        }
+      },
+      "block_order": [
+        "para_1",
+        "refrain_1"
+      ],
+      "settings": {
+        "ground": "page"
+      }
+    },
+    "alpine_launch_grid": {
+      "type": "alpine-collection",
+      "settings": {
+        "heading": "Designed in Qld, Australia, Made in Vic",
+        "tagline": "",
+        "show_duo": false,
+        "collection": "",
+        "products_to_show": 4,
+        "panel_product": ""
       }
     }
   },
   "order": [
-    "alpine_hero"
+    "alpine_gate",
+    "alpine_photo_trio",
+    "alpine_manifesto",
+    "alpine_launch_grid"
   ]
 }
