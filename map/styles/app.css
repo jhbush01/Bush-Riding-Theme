@@ -14,12 +14,12 @@
   --line: rgba(76, 75, 59, 0.24);
   --olive: #4c4b3b;
   --sage: #b9bea3;
-  /* Flare. Was "active/selected only"; it now also grounds the brand chip that
-     leads back to the storefront, matching .alp-chip--flare there. Two uses on
-     one screen, both deliberate — don't spend it on a third. */
-  --lemon: #ede270;
-  --lemon-deep: #e2d558;           /* flare, pressed */
-  --water: #a7b8b4;
+  --lemon: #ede270;                /* active/selected only */
+  /* Mist — the brand chip's ground, and the theme's home-page ground. NOTE it
+     is a near-neighbour of the basemap's water (#A7BFBD in bush.json), so the
+     chip leans on its olive edge to stay separate over a coastline. */
+  --mist: #a7b8b4;
+  --mist-deep: #94a7a3;            /* mist, pressed */
   --ui-font: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   --head-font: "Archivo", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
@@ -402,18 +402,24 @@ body {
   filter: drop-shadow(0 1px 2px rgba(255, 255, 255, 0.9));
 }
 
-/* The way back to the storefront, wearing the storefront's own flare chip:
-   #ede270 ground, olive hairline, 3px corners — the same recipe as
-   .alp-chip--flare in the theme. No backdrop blur any more; the ground is
-   opaque now, so it was filtering nothing. */
+/* The way back to the storefront: mist ground, olive wordmark, olive edge,
+   3px corners — the theme's chip shape in the theme's mist rather than its
+   flare, which was shouting over the map.
+
+   The 2px edge does real work. Mist is a near-neighbour of the basemap's water
+   (#A7BFBD), so over a coastline the ground alone would not separate the chip
+   from the sea — the olive keeps its outline regardless of what is under it.
+   2 and not 1.5: browsers floor sub-pixel borders on non-retina screens, and
+   an edge this load-bearing shouldn't quietly halve itself on a cheap laptop.
+   No backdrop blur — the ground is opaque, so it was filtering nothing. */
 .map-brand__logo {
   display: inline-flex;
   align-items: center;
   padding: 7px 14px;
-  background: var(--lemon);
-  border: 1px solid var(--ink);
+  background: var(--mist);
+  border: 2px solid var(--ink);
   border-radius: 3px;
-  box-shadow: 0 2px 10px rgba(28, 26, 21, 0.14);
+  box-shadow: 0 2px 10px rgba(28, 26, 21, 0.18);
   font-family: var(--head-font);
   font-size: 19px;
   line-height: 1;
@@ -423,8 +429,8 @@ body {
 }
 /* The theme's chip inverts to olive on hover. This one can't: the wordmark is
    fixed-colour artwork, and olive-on-olive is nothing at all. It deepens the
-   flare instead, which reads as the same gesture. */
-.map-brand__logo:hover { background: var(--lemon-deep); }
+   mist instead, which reads as the same gesture. */
+.map-brand__logo:hover { background: var(--mist-deep); }
 
 /* The brush wordmark (assets/wordmark-olive.svg, copied to public/logo.svg).
    Sized by height so the 940:205 artwork keeps its ratio.
