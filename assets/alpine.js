@@ -26,6 +26,59 @@
   tick();
   setInterval(tick, 10000);
 
+  /* ── Deferred video ──
+     Nothing with a `data-alp-video` src is fetched until it is actually wanted.
+     This matters more than it looks: the Explore overlay is hidden with
+     visibility/clip-path rather than display:none, so a plain `<video autoplay>`
+     inside it is still laid out — and still downloads and plays — on every page
+     of the site, for a panel most visitors never open. Now the overlay's clips
+     load when the overlay opens, and everything else loads when it scrolls
+     near the viewport.
+
+     The src goes on the element rather than a <source type="...">: the type
+     attribute is a promise about the container, and a .mov labelled video/mp4
+     is one some browsers refuse outright. Let the browser sniff it. */
+  function playVideo(el) {
+    if (!el.getAttribute('src')) {
+      var src = el.getAttribute('data-alp-video');
+      if (!src) return;
+      el.setAttribute('src', src);
+      el.load();
+    }
+    var played = el.play();
+    /* Autoplay refusal is a normal outcome, not an error worth surfacing. */
+    if (played && played.catch) played.catch(function () {});
+  }
+
+  var videoIo = null;
+
+  function initVideos() {
+    var targets = document.querySelectorAll('[data-alp-video]');
+    if (!targets.length) return;
+
+    if (!('IntersectionObserver' in window)) {
+      targets.forEach(function (el) {
+        if (!el.closest('[data-alp-menu]')) playVideo(el);
+      });
+      return;
+    }
+    if (!videoIo) {
+      videoIo = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          playVideo(entry.target);
+          videoIo.unobserve(entry.target);
+        });
+      }, { rootMargin: '200px' });
+    }
+    targets.forEach(function (el) {
+      /* The overlay's own clips are handled on open, not on scroll — it is
+         permanently "in view" while hidden. */
+      if (el.closest('[data-alp-menu]')) return;
+      videoIo.observe(el);
+    });
+  }
+
   /* ── Quartered menu overlay — opens with a clip-path expand from the corner.
      Delegated so a re-rendered header keeps working. */
   function closeMenu(focusBtn) {
@@ -35,6 +88,8 @@
     overlay.classList.remove('is-open');
     overlay.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('alp-menu-open');
+    /* Stop paying for playback the moment it is off screen again. */
+    overlay.querySelectorAll('video').forEach(function (v) { v.pause(); });
     if (openBtn) {
       openBtn.setAttribute('aria-expanded', 'false');
       if (focusBtn) openBtn.focus();
@@ -57,9 +112,10 @@
         overlay.style.setProperty('--alp-cy', (r.top + r.height / 2) + 'px');
         void overlay.offsetWidth; /* flush: commit the new origin to the closed state */
       }
-      /* Lazy-load the live map only the first time the menu opens. */
+      /* Lazy-load the live map and the panel clips only once the menu opens. */
       var mapFrame = overlay.querySelector('[data-alp-map-src]');
       if (mapFrame && !mapFrame.src) mapFrame.src = mapFrame.getAttribute('data-alp-map-src');
+      overlay.querySelectorAll('[data-alp-video]').forEach(playVideo);
       overlay.classList.add('is-open');
       overlay.setAttribute('aria-hidden', 'false');
       document.body.classList.add('alp-menu-open');
@@ -105,7 +161,11 @@
   }
 
   initReveals();
+  initVideos();
 
-  /* Editor hooks: re-run reveal setup whenever a section is (re)loaded. */
-  document.addEventListener('shopify:section:load', initReveals);
+  /* Editor hooks: re-run setup whenever a section is (re)loaded. */
+  document.addEventListener('shopify:section:load', function () {
+    initReveals();
+    initVideos();
+  });
 })();

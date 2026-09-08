@@ -80,10 +80,16 @@
       {%- comment -%} Discover Launch Collection — desktop top-left / mobile 1st {%- endcomment -%}
       <a class="alp-menu__q alp-menu__q--discover" href="{{ discover_url }}" data-alp-menu-link>
         {%- if section.settings.discover_video_url != blank -%}
-          <video class="alp-menu__media" autoplay muted loop playsinline aria-hidden="true"
-            {% if section.settings.discover_image != blank %}poster="{{ section.settings.discover_image | image_url: width: 1600 }}"{% endif %}>
-            <source src="{{ section.settings.discover_video_url }}" type="video/mp4">
-          </video>
+          <video
+            class="alp-menu__media"
+            data-alp-video="{{ section.settings.discover_video_url }}"
+            muted
+            loop
+            playsinline
+            preload="none"
+            aria-hidden="true"
+            {% if section.settings.discover_image != blank %}poster="{{ section.settings.discover_image | image_url: width: 1600 }}"{% endif %}
+          ></video>
         {%- elsif section.settings.discover_image != blank -%}
           {{ section.settings.discover_image | image_url: width: 1800 | image_tag: class: 'alp-menu__media', loading: 'lazy', alt: '' }}
         {%- else -%}
@@ -95,10 +101,16 @@
       {%- comment -%} Shop — desktop top-right only (mobile has Shop in the bar) {%- endcomment -%}
       <a class="alp-menu__q alp-menu__q--shop" href="{{ shop_url }}" data-alp-menu-link>
         {%- if section.settings.menu_shop_video_url != blank -%}
-          <video class="alp-menu__media" autoplay muted loop playsinline aria-hidden="true"
-            {% if section.settings.menu_shop_image != blank %}poster="{{ section.settings.menu_shop_image | image_url: width: 1600 }}"{% endif %}>
-            <source src="{{ section.settings.menu_shop_video_url }}" type="video/mp4">
-          </video>
+          <video
+            class="alp-menu__media"
+            data-alp-video="{{ section.settings.menu_shop_video_url }}"
+            muted
+            loop
+            playsinline
+            preload="none"
+            aria-hidden="true"
+            {% if section.settings.menu_shop_image != blank %}poster="{{ section.settings.menu_shop_image | image_url: width: 1600 }}"{% endif %}
+          ></video>
         {%- elsif section.settings.menu_shop_image != blank -%}
           {{ section.settings.menu_shop_image | image_url: width: 1800 | image_tag: class: 'alp-menu__media', loading: 'lazy', alt: '' }}
         {%- else -%}
@@ -110,10 +122,16 @@
       {%- comment -%} Bush Map — live feed background {%- endcomment -%}
       <a class="alp-menu__q alp-menu__q--map" href="{{ map_url }}" data-alp-menu-link>
         {%- if section.settings.map_video_url != blank -%}
-          <video class="alp-menu__media" autoplay muted loop playsinline aria-hidden="true"
-            {% if section.settings.map_image != blank %}poster="{{ section.settings.map_image | image_url: width: 1600 }}"{% endif %}>
-            <source src="{{ section.settings.map_video_url }}" type="video/mp4">
-          </video>
+          <video
+            class="alp-menu__media"
+            data-alp-video="{{ section.settings.map_video_url }}"
+            muted
+            loop
+            playsinline
+            preload="none"
+            aria-hidden="true"
+            {% if section.settings.map_image != blank %}poster="{{ section.settings.map_image | image_url: width: 1600 }}"{% endif %}
+          ></video>
         {%- elsif section.settings.map_image != blank -%}
           {{ section.settings.map_image | image_url: width: 1800 | image_tag: class: 'alp-menu__media', loading: 'lazy', alt: '' }}
         {%- else -%}
@@ -125,10 +143,16 @@
       {%- comment -%} Video + socials {%- endcomment -%}
       <div class="alp-menu__q alp-menu__q--video">
         {%- if section.settings.menu_video_url != blank -%}
-          <video class="alp-menu__media" autoplay muted loop playsinline aria-hidden="true"
-            {% if section.settings.menu_video_poster != blank %}poster="{{ section.settings.menu_video_poster | image_url: width: 1600 }}"{% endif %}>
-            <source src="{{ section.settings.menu_video_url }}" type="video/mp4">
-          </video>
+          <video
+            class="alp-menu__media"
+            data-alp-video="{{ section.settings.menu_video_url }}"
+            muted
+            loop
+            playsinline
+            preload="none"
+            aria-hidden="true"
+            {% if section.settings.menu_video_poster != blank %}poster="{{ section.settings.menu_video_poster | image_url: width: 1600 }}"{% endif %}
+          ></video>
         {%- elsif section.settings.menu_video_poster != blank -%}
           {{ section.settings.menu_video_poster | image_url: width: 1800 | image_tag: class: 'alp-menu__media', loading: 'lazy', alt: '' }}
         {%- else -%}
