@@ -42,16 +42,19 @@ const FAMOUS_PIN = OLIVE;
 const EVENT_PIN = LEMON; // events sit top of the hierarchy — the one bright mark
 const EVENT_PAST = SAGE; // faded, and further muted by opacity at the layer
 
-/* Route casing / outline. Was a dark bush green, which read well on the cream
-   basemap and then sank into the trees on satellite imagery. This rust reads
-   on both, and matches the line the static route pages already draw (#b04a24).
+/* Route casing / core. Olive outline around a cream core — the same two-tone
+   idea as the pins, and now the same two colours the static route pages draw
+   (scripts/generate-route-pages.js has always used olive; the rust this
+   replaces was the odd one out, not the match its old comment claimed).
 
-   NOTE it is the one mark on the map outside the six above — it was chosen
-   deliberately for legibility over every basemap, so it has been left alone
-   while the pins moved onto the palette. Swapping it to OLIVE is a one-line
-   change here if the palette should be absolute. */
-const ROUTE_LINE = "#c0774c";
-const ROUTE_CORE = "#F6F1E4"; // off-white core — legible on cream AND on imagery
+   The single-colour version of this line is what failed twice before: a dark
+   line alone vanishes into canopy on satellite, and a rust line alone was the
+   only mark on the map outside the brand palette. Split across two tones it
+   needs neither compromise — olive is 6.88:1 on the cream basemap where the
+   cream core disappears, and the cream core is what carries the line over
+   canopy, where olive is 1.07:1. Never make these one colour. */
+const ROUTE_LINE = "#4c4b3b";
+const ROUTE_CORE = "#edecc5";
 
 /* ── 3D relief ────────────────────────────────────────────────────────────
    Elevation comes from Mapterhorn (free, no key; Geoscience Australia 5 m
@@ -609,10 +612,10 @@ function onLoad() {
   });
 
   // --- Layers --------------------------------------------------------------
-  // Two layers, casing first so it draws underneath: a dark-green outline
-  // around an off-white core. A single dark line vanished against green
-  // satellite imagery; this treatment holds up on both cream paper and
-  // photography, so there is no mode-dependent styling to keep in sync.
+  // Two layers, casing first so it draws underneath: an olive outline around
+  // a cream core. A single dark line vanished against green satellite
+  // imagery; two tones hold up on both cream paper and photography, so there
+  // is no mode-dependent styling to keep in sync. See ROUTE_LINE above.
   map.addLayer({
     id: "selected-route-casing",
     type: "line",

@@ -4,11 +4,9 @@
 
        TWO COLOURS, both from the brand palette (Artboard 9): cream #EDECC5 and
        olive #4C4B3B. Nothing else. The mark previously drew its loop in the
-       route rust #C0774C, which is not a palette colour — it is a cartographic
-       choice made for the map's route lines, and it had no business being the
-       brand mark. Note that the map's route LINES are still rust: if the
-       palette is meant to be absolute there too, that is ROUTE_LINE in
-       map/src/map.js, not this file.
+       route rust #C0774C, which is not a palette colour. The map's route lines
+       have since moved to this same olive, so the mark and the routes it
+       depicts are drawn in one colour again.
 
        The trailhead is cream on olive, 7.32:1, which is what lets it survive
        being 4px across. Every alternative was measured at 16/24/32/48/96/180
