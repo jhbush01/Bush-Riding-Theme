@@ -5,7 +5,8 @@
   --cream: #edecc5;
   --cream-panel: #f4f3dc;          /* bone lifted ~4% — derived, flagged */
   --ink: #4c4b3b;
-  /* Brief §3.1 specifies khaki #828059 here. Measured, khaki is 3.36:1 on bone
+  /* Brief §3.1 specifies khaki here (#93916C in the current palette; the
+     brief printed #828059). Measured, khaki is 3.36:1 on bone
      and 3.61:1 on the panel — it fails AA for the 11-13px secondary copy this
      token carries. Per the brief's own Risks note ("bump those labels to olive
      if they fail your bar"), muted TEXT uses olive; khaki is kept for non-text
@@ -14,12 +15,13 @@
   --line: rgba(76, 75, 59, 0.24);
   --olive: #4c4b3b;
   --sage: #b9bea3;
-  --lemon: #ede270;                /* active/selected only */
-  /* Mist — the brand chip's ground, and the theme's home-page ground. NOTE it
-     is a near-neighbour of the basemap's water (#A7BFBD in bush.json), so the
-     chip leans on its olive edge to stay separate over a coastline. */
+  --lemon: #ede270;                /* focus rings, and the community event pin */
+  --khaki: #93916c;                /* the route pin */
+  /* Mist stays declared because the theme's home page uses it, but nothing on
+     the MAP does any more: it is a near-neighbour of the basemap's own water
+     (#A7BFBD in bush.json, 1.07:1), which made it a poor mark on a map with
+     this much coastline. Don't reach for it for pins or chips here. */
   --mist: #a7b8b4;
-  --mist-deep: #94a7a3;            /* mist, pressed */
   --ui-font: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   --head-font: "Archivo", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
@@ -177,9 +179,9 @@ body {
   width: 11px; height: 11px; border-radius: 50%; flex: none;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08) inset;
 }
-.legend__dot--routes { background: #4c4b3b; }
-.legend__dot--famous { background: var(--mist); box-shadow: 0 0 0 1px var(--ink) inset; }
-.legend__dot--bush { background: #828059; }
+.legend__dot--routes { background: var(--khaki); box-shadow: 0 0 0 1px var(--olive) inset; }
+.legend__dot--famous { background: var(--olive); box-shadow: 0 0 0 1px var(--cream) inset; }
+.legend__dot--bush { background: var(--lemon); box-shadow: 0 0 0 1px var(--olive) inset; }
 
 .filter__range {
   width: 100%;
@@ -264,16 +266,16 @@ body {
   flex: none;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08) inset;
 }
-.cat__dot--routes { background: #4c4b3b; }
-.cat__dot--bush { background: #828059; }
-.cat__dot--famous { background: var(--mist); box-shadow: 0 0 0 1px var(--ink) inset; }
+.cat__dot--routes { background: var(--khaki); box-shadow: 0 0 0 1px var(--olive) inset; }
+.cat__dot--bush { background: var(--lemon); box-shadow: 0 0 0 1px var(--olive) inset; }
+.cat__dot--famous { background: var(--olive); box-shadow: 0 0 0 1px var(--cream) inset; }
 .cat:hover { border-color: #ac9e79; }
 .cat:not(.is-active) {
   opacity: 0.55;
   background: transparent;
   color: var(--ink-soft);
 }
-.cat:not(.is-active) .cat__dot { background: #ada48b; }
+.cat:not(.is-active) .cat__dot { background: var(--sage); box-shadow: none; }
 .cat.is-active { border-color: #ac9e79; }
 
 .filter__reset {
@@ -402,46 +404,50 @@ body {
   filter: drop-shadow(0 1px 2px rgba(255, 255, 255, 0.9));
 }
 
-/* The way back to the storefront: mist ground, olive wordmark, olive edge,
-   3px corners — the theme's chip shape in the theme's mist rather than its
-   flare, which was shouting over the map.
+/* The way back to the storefront. Previously a mist slab with a 2px olive
+   edge and a 26px wordmark — roughly 215x62 next to a 40px hamburger, which
+   is what made it read as a billboard parked on the map rather than a logo.
 
-   The 2px edge does real work. Mist is a near-neighbour of the basemap's water
-   (#A7BFBD), so over a coastline the ground alone would not separate the chip
-   from the sea — the olive keeps its outline regardless of what is under it.
-   2 and not 1.5: browsers floor sub-pixel borders on non-retina screens, and
-   an edge this load-bearing shouldn't quietly halve itself on a cheap laptop.
-   No backdrop blur — the ground is opaque, so it was filtering nothing. */
+   Rebuilt as a TILE, not a banner: olive ground, bone wordmark, and the
+   hamburger's own geometry — same 10px radius, same shadow, and a height
+   matched to it exactly, so the two read as one control cluster instead of a
+   button standing next to an advertisement. About half the previous area.
+
+   Olive ground rather than a pale one because the wordmark artwork is bone
+   (#EDECC5); on a light chip it would be invisible. Bone on olive is 7.32:1,
+   and an olive tile holds its shape over cream basemap (6.88:1) and pale
+   scrub (3.18:1). Over dark canopy the tile itself recedes — but the bone
+   letters are still 7.32:1 against it, so the wordmark never goes missing,
+   only its background does. No border: at this size the edge was noise, and
+   the shadow already separates the tile from the map. */
 .map-brand__logo {
   display: inline-flex;
   align-items: center;
-  padding: 7px 14px;
-  background: var(--mist);
-  border: 2px solid var(--ink);
-  border-radius: 3px;
+  padding: 11px 13px; /* 11 + 18px mark + 11 = 40px, the hamburger's height */
+  background: var(--olive);
+  border-radius: 10px;
   box-shadow: 0 2px 10px rgba(28, 26, 21, 0.18);
   font-family: var(--head-font);
-  font-size: 19px;
+  font-size: 15px;
   line-height: 1;
-  color: var(--ink);
+  color: var(--cream);
   text-decoration: none;
   white-space: nowrap;
 }
-/* The theme's chip inverts to olive on hover. This one can't: the wordmark is
-   fixed-colour artwork, and olive-on-olive is nothing at all. It deepens the
-   mist instead, which reads as the same gesture. */
-.map-brand__logo:hover { background: var(--mist-deep); }
+/* The theme's chip inverts on hover. Here the wordmark is fixed-colour
+   artwork, so the ground lifts towards khaki instead — the same gesture, and
+   bone still clears 4.5:1 against it. */
+.map-brand__logo:hover { background: #5f5d49; }
 
-/* The brush wordmark (assets/wordmark-olive.svg, copied to public/logo.svg).
+/* The brush wordmark (assets/wordmark-bone.svg, copied to public/logo.svg).
    Sized by height so the 940:205 artwork keeps its ratio.
 
-   26px looks tall next to the 19px type it replaces, but they aren't
-   comparable: the script's cap height is only about 46% of the artwork, the
-   rest being ascenders and descenders. 26px lands the letters at the same
-   visual size, and ~119px wide against the ~148px the text occupied. */
+   18px, down from 26px. The script's cap height is only about 46% of the
+   artwork — the rest is ascenders and descenders — so 18px sets the letters
+   at roughly 8px tall and the tile at ~110px wide, against ~215px before. */
 .map-brand__mark {
   display: block;
-  height: 26px;
+  height: 18px;
   width: auto;
   max-width: 46vw;
   object-fit: contain;
@@ -732,7 +738,7 @@ body {
   font-weight: 400;
   font-size: 23px;
   line-height: 1.1;
-  color: #2c2a24;
+  color: var(--olive);
 }
 .route-chooser__sub {
   margin: 0 2px 10px;
@@ -812,7 +818,7 @@ body {
 }
 .route-pick:first-of-type { margin-top: 0; }
 .route-pick:hover { border-color: #4c4b3b; background: #fff; }
-.route-pick__name { font-size: 13.5px; font-weight: 600; color: #2c2a24; }
+.route-pick__name { font-size: 13.5px; font-weight: 600; color: var(--olive); }
 .route-pick__meta { font-size: 11.5px; color: var(--olive); }
 
 /* ---------- Responsive ---------- */
@@ -1092,7 +1098,7 @@ textarea.field-input {
 .subs-item__link:hover { text-decoration: underline; }
 .subs-submit {
   display: block; margin: 0 16px 8px; padding: 11px; text-align: center;
-  background: #2c2a24; color: #f4eddc; border-radius: 10px;
+  background: var(--olive); color: var(--cream); border-radius: 10px;
   font-family: var(--ui-font); font-weight: 700; font-size: 13.5px; text-decoration: none;
 }
 .subs-submit:hover { background: #000; }
@@ -1348,7 +1354,7 @@ textarea.field-input {
   --card-muted-2: #4c4b3b;         /* not in brief §3.2; used by 6 rules */
   --card-label: #4c4b3b;
   --card-rust: #4c4b3b;
-  --card-rust-2: #828059;
+  --card-rust-2: #93916c;          /* was #828059, off-palette */
   --card-line: rgba(76, 75, 59, 0.18);
 }
 
@@ -1405,7 +1411,7 @@ textarea.field-input {
 .famous-route:hover { border-color: #4c4b3b; background: #fff; }
 /* Name on its own line, meta beneath — never glued together. */
 .famous-route__text { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
-.famous-route__name { font-size: 15px; font-weight: 600; line-height: 1.25; color: var(--card-ink, #2c2a24); }
+.famous-route__name { font-size: 15px; font-weight: 600; line-height: 1.25; color: var(--card-ink, #4c4b3b); }
 .famous-route__meta { font-size: 12.5px; color: var(--card-muted, #8a8068); }
 .famous-route__chev { flex: none; color: #4c4b3b; }
 .famous-panel__link {
@@ -1993,12 +1999,16 @@ textarea.field-input {
   /* Brand and tools are pinned to opposite corners of the same row, so on the
      narrowest handsets the wordmark scales with the viewport rather than
      running into them. Caps at the desktop size well before tablet width. */
+  /* Fixed, not clamped. The point of the tile is that it matches the
+     hamburger's 40px exactly; a viewport-scaled mark misses that height at
+     every width but one. 16 + 12 + 12 = 40, and the tile is ~97px wide, which
+     still leaves the map tools their corner on a 320px handset. */
   .map-brand__logo {
-    padding: 7px 12px;
-    font-size: clamp(12px, 3.9vw, 19px);
+    padding: 12px 12px;
+    font-size: 13px;
   }
   .map-brand__mark {
-    height: clamp(17px, 5.4vw, 26px);
+    height: 16px;
   }
   .stage {
     gap: 7px;
