@@ -1187,3 +1187,187 @@ body:not(.template-index) #MainContent { padding-top: 76px; }
   .alp-kit__cta { width: 100%; }
   .alp-fit-gallery__grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
 }
+
+/* ── Waitlist / password page ────────────────────────────────────────────────
+   The pre-launch front door. It used to carry its own palette and its own two
+   typefaces, which is how it was still showing the study's yellow (#F9C80E)
+   and Instrument Serif long after the brand board retired both. It reads the
+   same tokens as the rest of the site now: bone type on a scrimmed video,
+   sage for the quiet lines, and flare spent once on the button. */
+body.waitlist {
+  background: var(--alp-olive);
+  font-family: var(--alp-font-ui);
+  color: var(--alp-bg);
+}
+/* No fixed header on this template, so no bar to clear. */
+body.waitlist #MainContent { padding-top: 0; }
+
+.wl {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--alp-olive);
+  padding: clamp(28px, 6vw, 64px) var(--alp-pad-page);
+}
+
+.wl__media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+/* The system's scrim tone, not black — heavier top and bottom so the mark and
+   the microcopy both hold on a bright sky. */
+.wl__scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(47, 47, 38, 0.55), rgba(47, 47, 38, 0.3) 45%, rgba(47, 47, 38, 0.6));
+}
+
+.wl__inner {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* The mark is artwork, sized by height like every other lockup in the system,
+   and it is the page's h1 — so the accessible name is the shop, not a line of
+   marketing. */
+.wl__mark { margin: 0; }
+.wl__mark img {
+  display: block;
+  height: clamp(3.6rem, 9vw + 1.2rem, 8rem);
+  width: auto;
+  max-width: 100%;
+  margin-inline: auto;
+}
+
+.wl__tagline {
+  margin: clamp(12px, 2vw, 18px) 0 0;
+  font-size: clamp(0.6rem, 0.3vw + 0.55rem, 0.75rem);
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--alp-haze);
+}
+
+.wl__form-wrap { width: 100%; }
+
+.wl__heading {
+  margin: clamp(26px, 5vw, 44px) 0 0;
+  font-family: var(--alp-font-display);
+  font-weight: 600;
+  font-size: clamp(1.5rem, 3.4vw, 2.4rem);
+  line-height: 1.12;
+  color: var(--alp-bg);
+  text-wrap: pretty;
+}
+
+.wl__body {
+  margin: 10px auto 0;
+  max-width: 44ch;
+  font-size: clamp(0.9rem, 0.4vw + 0.82rem, 1rem);
+  line-height: 1.55;
+  color: var(--alp-haze);
+}
+
+.wl__form {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  max-width: 460px;
+  margin: clamp(18px, 3vw, 26px) auto 0;
+}
+
+/* Clipped, not hidden: base.css isn't loaded on this layout, so the page
+   carries its own visually-hidden. */
+.wl__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.wl__input {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  font-size: 0.9rem;
+  padding: 11px 14px;
+  border: 1px solid rgba(237, 236, 197, 0.55);
+  border-radius: 3px;
+  background: rgba(47, 47, 38, 0.35);
+  color: var(--alp-bg);
+}
+.wl__input::placeholder { color: rgba(237, 236, 197, 0.6); }
+.wl__input:focus {
+  outline: 2px solid var(--alp-citrus);
+  outline-offset: 1px;
+  border-color: var(--alp-citrus);
+}
+
+.wl__submit { flex: none; }
+
+.wl__micro {
+  margin: 12px 0 0;
+  font-size: 0.75rem;
+  color: var(--alp-haze);
+}
+
+.wl__error {
+  margin: 12px 0 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--alp-citrus);
+}
+
+.wl__done {
+  margin: clamp(26px, 5vw, 44px) auto 0;
+  max-width: 40ch;
+  font-family: var(--alp-font-display);
+  font-weight: 600;
+  font-size: clamp(1.1rem, 2vw, 1.5rem);
+  line-height: 1.25;
+  color: var(--alp-bg);
+}
+
+.wl__social {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  margin-top: clamp(28px, 5vw, 44px);
+}
+.wl__social-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(237, 236, 197, 0.4);
+  border-radius: 3px;
+  color: var(--alp-bg);
+}
+.wl__social-link:hover { background: var(--alp-bg); color: var(--alp-olive); }
+.wl__social-link svg { width: 20px; height: 20px; display: block; }
+
+@media (max-width: 749px) {
+  .wl__form { flex-direction: column; }
+  .wl__submit { justify-content: center; }
+}
