@@ -178,7 +178,7 @@ body {
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08) inset;
 }
 .legend__dot--routes { background: #4c4b3b; }
-.legend__dot--famous { background: #ede270; }
+.legend__dot--famous { background: var(--mist); box-shadow: 0 0 0 1px var(--ink) inset; }
 .legend__dot--bush { background: #828059; }
 
 .filter__range {
@@ -266,7 +266,7 @@ body {
 }
 .cat__dot--routes { background: #4c4b3b; }
 .cat__dot--bush { background: #828059; }
-.cat__dot--famous { background: #ede270; }
+.cat__dot--famous { background: var(--mist); box-shadow: 0 0 0 1px var(--ink) inset; }
 .cat:hover { border-color: #ac9e79; }
 .cat:not(.is-active) {
   opacity: 0.55;

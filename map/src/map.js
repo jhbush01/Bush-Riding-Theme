@@ -5,9 +5,11 @@ import { setupGate } from "./gate.js";
 const CONFIG = window.BRM_CONFIG || {};
 // Single swappable line for the basemap tiles (set in index.html config block).
 
-// Bush-lemon highlights the selected pin; the route line is dark green for
-// legibility against the muted basemap.
-const LEMON = "#ede270";
+// Mist marks the selected route pin AND the famous-ride pins. Note it is a
+// near-neighbour of the basemap's water (#A7BFBD, 1.07:1), and only 1.71:1 on
+// cream land — so every mist pin carries an OLIVE ring, and the ring is what
+// makes it legible, not the fill. Same reasoning as the brand chip.
+const MIST = "#a7b8b4";
 // Route casing / outline. Was a dark bush green, which read well on the cream
 // basemap and then sank into the trees on satellite imagery. This rust reads
 // on both, and matches the line the static route pages already draw (#b04a24).
@@ -19,9 +21,9 @@ const SAGE = "#b9bea3";
 // pins win the visual hierarchy over route pins. Past events render muted grey.
 const TERRACOTTA = "#828059";
 const EVENT_PAST = "#817a68";
-// Route-series / event pin — flare, distinct from route (olive), community-event
-// (khaki) and cluster (sage) pins, so a multi-route event reads at a glance.
-const SERIES = "#ede270";
+// Famous-ride pins share mist with the selected pin. They were already the same
+// colour as each other before this (both flare), so nothing new is conflated —
+// a famous pin is still told apart by its route-count badge and larger core.
 
 /* ── 3D relief ────────────────────────────────────────────────────────────
    Elevation comes from Mapterhorn (free, no key; Geoscience Australia 5 m
@@ -648,9 +650,12 @@ function onLoad() {
         [">", ["get", "count"], 1], 11,
         9,
       ],
-      "circle-color": ["case", ["boolean", ["feature-state", "selected"], false], LEMON, OLIVE],
-      "circle-stroke-width": 2,
-      "circle-stroke-color": "#f4efe2",
+      "circle-color": ["case", ["boolean", ["feature-state", "selected"], false], MIST, OLIVE],
+      // Selected swaps to an olive ring, and a thicker one. Mist is paler than
+      // the olive it replaces, so on a pale basemap the fill alone would make
+      // the selected pin RECEDE — the opposite of what selection should do.
+      "circle-stroke-width": ["case", ["boolean", ["feature-state", "selected"], false], 3, 2],
+      "circle-stroke-color": ["case", ["boolean", ["feature-state", "selected"], false], OLIVE, "#f4efe2"],
     },
   });
 
@@ -908,9 +913,9 @@ function setupFamousLayers() {
     source: "famous-rides",
     paint: {
       "circle-radius": 11,
-      "circle-color": SERIES,
+      "circle-color": MIST,
       "circle-stroke-width": 2.5,
-      "circle-stroke-color": "#f4efe2",
+      "circle-stroke-color": OLIVE,
     },
   });
   // Route count on the core.
@@ -926,14 +931,14 @@ function setupFamousLayers() {
       "text-allow-overlap": true,
       "text-ignore-placement": true,
     },
-    paint: { "text-color": "#f4efe2" },
+    paint: { "text-color": OLIVE },
   });
   // Generous invisible hit target.
   map.addLayer({
     id: "famous-hit",
     type: "circle",
     source: "famous-rides",
-    paint: { "circle-radius": 22, "circle-color": SERIES, "circle-opacity": 0 },
+    paint: { "circle-radius": 22, "circle-color": MIST, "circle-opacity": 0 },
   });
 }
 
