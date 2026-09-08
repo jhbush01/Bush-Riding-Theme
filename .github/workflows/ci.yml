@@ -55,6 +55,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Lighthouse
+        id: shopify_lighthouse
         uses: shopify/lighthouse-ci-action@v1
         with:
           store: ${{ secrets.SHOP_STORE_OS2 }}
@@ -63,6 +64,30 @@ jobs:
           collection_handle: all
           lhci_github_app_token: ${{ secrets.LHCI_GITHUB_TOKEN }}
           pull_theme: ${{ secrets.SHOP_PULL_THEME }}
+
+      # This action posts a check run with no output, so when it fails the only
+      # record is the job log — which is how it stayed red and unexplained for
+      # months. Leave a pointer and the shortlist of causes in the summary.
+      - name: Explain the failure
+        if: failure()
+        run: |
+          {
+            echo "### Lighthouse (Shopify preview): failed"
+            echo
+            echo "The store credentials ARE set — this job only runs when they are —"
+            echo "so this is not a missing-secrets problem. The action failed at its own"
+            echo "step. Open the job log for the reason; the usual candidates are:"
+            echo
+            echo "- the Theme Access token has expired or lacks theme write scope"
+            echo '- `SHOP_PASSWORD_OS2` is wrong, and the storefront is password-protected'
+            echo '- `SHOP_PULL_THEME` names a theme id that no longer exists'
+            echo '- `collection_handle: all` resolves to no products to audit'
+            echo "- LHCI assertions failed, i.e. the site is genuinely below the budget"
+            echo
+            echo "The last one is the one worth ruling in or out first: it would mean this"
+            echo "check has been reporting a real result all along. The public Lighthouse"
+            echo "job measures the live site with no credentials and always reports scores."
+          } >> "$GITHUB_STEP_SUMMARY"
 
   # Audits the live site with no credentials at all, so there is always a real
   # number to look at. While the store is password-protected this measures the
