@@ -5,25 +5,53 @@ import { setupGate } from "./gate.js";
 const CONFIG = window.BRM_CONFIG || {};
 // Single swappable line for the basemap tiles (set in index.html config block).
 
-// Mist marks the selected route pin AND the famous-ride pins. Note it is a
-// near-neighbour of the basemap's water (#A7BFBD, 1.07:1), and only 1.71:1 on
-// cream land — so every mist pin carries an OLIVE ring, and the ring is what
-// makes it legible, not the fill. Same reasoning as the brand chip.
-const MIST = "#a7b8b4";
-// Route casing / outline. Was a dark bush green, which read well on the cream
-// basemap and then sank into the trees on satellite imagery. This rust reads
-// on both, and matches the line the static route pages already draw (#b04a24).
+/* ── Palette ───────────────────────────────────────────────────────────────
+   The brand palette is six colours (Artboard 9) and the map's marks use
+   nothing else. Anything here that isn't one of these six is either the
+   basemap's own cartography (bush.json paints land, water and roads on its
+   own tonal ramp) or the route line, noted below.
+
+   Mist (#A7B8B4) is the sixth and is deliberately unused here: it is a
+   near-neighbour of the basemap's own water (#A7BFBD, 1.07:1), which is what
+   made it a poor pin colour on a map with this much coastline. */
+const CREAM = "#edecc5";
+const SAGE = "#b9bea3";
+const KHAKI = "#93916c";
+const OLIVE = "#4c4b3b";
+const LEMON = "#ede270";
+
+/* How the pins divide up those six.
+
+   Every pin is TWO-TONE on purpose, because no single colour survives all
+   four grounds this map draws over — cream land, water, dark tree canopy and
+   pale scrub. A mid-tone fill inside a dark ring reads on the pale grounds;
+   the fill itself carries the dark ones. Measured, worst ground first:
+
+     route pin   khaki fill  1.16 on pale scrub, 2.92 on canopy
+                 olive ring  6.88 on cream land, 3.18 on pale scrub
+     famous pin  olive fill  6.88 on cream land, 3.18 on pale scrub
+                 cream ring  strong on canopy, invisible on cream land
+
+   So route and famous are deliberate inverses — mid disc/dark edge against
+   dark disc/light edge. Even where one of the two vanishes, the other holds
+   the mark, and the pair never reads as the same pin. The cream halo under
+   the route pins (routes-halo) is what rescues khaki over satellite, where
+   both its fill and its olive ring go quiet at once. */
+const ROUTE_PIN = KHAKI;
+const FAMOUS_PIN = OLIVE;
+const EVENT_PIN = LEMON; // events sit top of the hierarchy — the one bright mark
+const EVENT_PAST = SAGE; // faded, and further muted by opacity at the layer
+
+/* Route casing / outline. Was a dark bush green, which read well on the cream
+   basemap and then sank into the trees on satellite imagery. This rust reads
+   on both, and matches the line the static route pages already draw (#b04a24).
+
+   NOTE it is the one mark on the map outside the six above — it was chosen
+   deliberately for legibility over every basemap, so it has been left alone
+   while the pins moved onto the palette. Swapping it to OLIVE is a one-line
+   change here if the palette should be absolute. */
 const ROUTE_LINE = "#c0774c";
 const ROUTE_CORE = "#F6F1E4"; // off-white core — legible on cream AND on imagery
-const OLIVE = "#4c4b3b";
-const SAGE = "#b9bea3";
-// Community Bush Ride event accent — khaki (brand has no terracotta) so event
-// pins win the visual hierarchy over route pins. Past events render muted grey.
-const TERRACOTTA = "#828059";
-const EVENT_PAST = "#817a68";
-// Famous-ride pins share mist with the selected pin. They were already the same
-// colour as each other before this (both flare), so nothing new is conflated —
-// a famous pin is still told apart by its route-count badge and larger core.
 
 /* ── 3D relief ────────────────────────────────────────────────────────────
    Elevation comes from Mapterhorn (free, no key; Geoscience Australia 5 m
@@ -616,7 +644,7 @@ function onLoad() {
       "circle-opacity": 0.9,
       "circle-radius": ["step", ["get", "point_count"], 16, 5, 20, 15, 26],
       "circle-stroke-width": 1.5,
-      "circle-stroke-color": "#f4efe2",
+      "circle-stroke-color": CREAM,
     },
   });
 
@@ -630,7 +658,32 @@ function onLoad() {
       "text-font": ["Noto Sans Regular"],
       "text-size": 12,
     },
-    paint: { "text-color": "#2c2a24" },
+    paint: { "text-color": OLIVE },
+  });
+
+  /* Cream halo, drawn under the pin itself. Khaki is a mid-tone, so over
+     satellite it can lose its fill and its olive ring at the same time — on
+     pale scrub the fill is 1.16:1 and over canopy the ring is 1.07:1. Two
+     cream pixels outside the ring give the pin a third tone, so at least one
+     of the three always separates from whatever is underneath. Invisible on
+     the cream basemap, which is exactly where it isn't needed. Same idea as
+     the route line's off-white core inside its casing. */
+  map.addLayer({
+    id: "routes-halo",
+    type: "circle",
+    source: "routes-points",
+    filter: ["!", ["has", "point_count"]],
+    paint: {
+      "circle-color": CREAM,
+      // Pin radius + its stroke + 2. Keep in step with `unclustered` below:
+      // selected 12+3.5, grouped 11+2, single 9+2.
+      "circle-radius": [
+        "case",
+        ["boolean", ["feature-state", "selected"], false], 17.5,
+        [">", ["get", "count"], 1], 15,
+        13,
+      ],
+    },
   });
 
   map.addLayer({
@@ -650,12 +703,15 @@ function onLoad() {
         [">", ["get", "count"], 1], 11,
         9,
       ],
-      "circle-color": ["case", ["boolean", ["feature-state", "selected"], false], MIST, OLIVE],
-      // Selected swaps to an olive ring, and a thicker one. Mist is paler than
-      // the olive it replaces, so on a pale basemap the fill alone would make
-      // the selected pin RECEDE — the opposite of what selection should do.
-      "circle-stroke-width": ["case", ["boolean", ["feature-state", "selected"], false], 3, 2],
-      "circle-stroke-color": ["case", ["boolean", ["feature-state", "selected"], false], OLIVE, "#f4efe2"],
+      "circle-color": ROUTE_PIN,
+      /* Selection is carried by SIZE AND WEIGHT, not by hue. Every colour that
+         would have read as "lit" is already spoken for — olive is the famous
+         pin, lemon is an event — and the two that are left (cream, mist) both
+         vanish into the cream basemap, so recolouring the selected pin would
+         have made it recede on the default view. It grows 9 -> 12 and its ring
+         thickens instead, which reads on every ground the map draws. */
+      "circle-stroke-width": ["case", ["boolean", ["feature-state", "selected"], false], 3.5, 2],
+      "circle-stroke-color": OLIVE,
     },
   });
 
@@ -749,7 +805,7 @@ function centroid(coords) {
 // Build a points FeatureCollection from each route's marker (or line start).
 // Two kinds of grouping collapse overlapping pins into one:
 //   • Event / series (an explicit `series` name, e.g. "Clarkes Gambit"): every
-//     route in the series shares ONE plum pin at the set's centre, regardless of
+//     route in the series shares ONE olive pin at the set's centre, regardless of
 //     how spread out the starts are.
 //   • Shared trailhead: remaining routes starting within ~50 m of each other
 //     (e.g. a 50/95/135 km set) merge into one pin. Proximity — not coordinate
@@ -791,7 +847,7 @@ function pointsFC(features) {
   return { type: "FeatureCollection", features: out };
 }
 
-// Famous-ride pins: one pulsing plum marker per famous ride, at the centre of
+// Famous-ride pins: one olive marker per famous ride, at the centre of
 // its routes. Always shown (not clustered, not filtered) so a well-known event
 // stays prominent even zoomed out. Carries its members + event metadata.
 function famousFC(features) {
@@ -905,17 +961,19 @@ function setupFamousLayers() {
 
   // No ripple here. The pulse is now reserved as the bush-event signature, so
   // a pulsing pin means "something is happening" rather than just "pin".
-  // Famous rides read as plum + a route count instead.
-  // Filled plum core.
+  // Famous rides read as an olive core + a route count instead.
+  // Filled olive core — the dark inverse of the khaki route pin.
   map.addLayer({
     id: "famous-core",
     type: "circle",
     source: "famous-rides",
     paint: {
       "circle-radius": 11,
-      "circle-color": MIST,
+      "circle-color": FAMOUS_PIN,
+      // Cream, not olive: the core is the dark tone now, so the ring has to be
+      // the light one or the pin is a single flat disc with no edge at all.
       "circle-stroke-width": 2.5,
-      "circle-stroke-color": OLIVE,
+      "circle-stroke-color": CREAM,
     },
   });
   // Route count on the core.
@@ -931,14 +989,15 @@ function setupFamousLayers() {
       "text-allow-overlap": true,
       "text-ignore-placement": true,
     },
-    paint: { "text-color": OLIVE },
+    // The count sits ON the olive core, so it inverts with it: 7.32:1.
+    paint: { "text-color": CREAM },
   });
   // Generous invisible hit target.
   map.addLayer({
     id: "famous-hit",
     type: "circle",
     source: "famous-rides",
-    paint: { "circle-radius": 22, "circle-color": MIST, "circle-opacity": 0 },
+    paint: { "circle-radius": 22, "circle-color": FAMOUS_PIN, "circle-opacity": 0 },
   });
 }
 
@@ -978,9 +1037,9 @@ function setupEventLayers() {
       filter: ["==", ["get", "status"], "upcoming"],
       paint: {
         "circle-radius": reduceMotion ? 18 : 12,
-        "circle-color": TERRACOTTA,
+        "circle-color": EVENT_PIN,
         "circle-opacity": 0, // hollow — the ring is the stroke
-        "circle-stroke-color": TERRACOTTA,
+        "circle-stroke-color": EVENT_PIN,
         "circle-stroke-width": 2.5,
         "circle-stroke-opacity": reduceMotion ? 0.22 : 0,
       },
@@ -988,22 +1047,27 @@ function setupEventLayers() {
     if (reduceMotion) break; // one static ring is enough
   }
 
-  // Inner filled anchor circle. Past events: muted grey at reduced opacity.
+  /* Inner filled anchor circle. Past events fade back to sage.
+
+     The ring and the flag both inverted with the fill. They were white on
+     terracotta, which was a dark-ish ground; lemon is the brightest thing on
+     the map, and white on lemon is 1.28:1 — the flag would simply have gone
+     missing. Olive on lemon is 6.61:1. */
   map.addLayer({
     id: "event-core",
     type: "circle",
     source: "community-events",
     paint: {
       "circle-radius": 10,
-      "circle-color": ["match", ["get", "status"], "past", EVENT_PAST, TERRACOTTA],
+      "circle-color": ["match", ["get", "status"], "past", EVENT_PAST, EVENT_PIN],
       "circle-opacity": ["match", ["get", "status"], "past", 0.4, 1],
       "circle-stroke-width": 2,
-      "circle-stroke-color": "#ffffff",
+      "circle-stroke-color": OLIVE,
       "circle-stroke-opacity": ["match", ["get", "status"], "past", 0.4, 1],
     },
   });
 
-  // White flag icon centered on the core. Fall back to no icon (the filled
+  // Flag icon centered on the core. Fall back to no icon (the filled
   // circle still reads as a pin) if the image can't be added.
   let hasIcon = false;
   try {
@@ -1033,7 +1097,7 @@ function setupEventLayers() {
     id: "event-hit",
     type: "circle",
     source: "community-events",
-    paint: { "circle-radius": 22, "circle-color": TERRACOTTA, "circle-opacity": 0 },
+    paint: { "circle-radius": 22, "circle-color": EVENT_PIN, "circle-opacity": 0 },
   });
 }
 
@@ -1049,15 +1113,16 @@ function eventsFC() {
   };
 }
 
-// A small white flag drawn to a canvas, returned as ImageData for addImage.
+// A small olive flag drawn to a canvas, returned as ImageData for addImage.
+// Olive, not white: it sits on the lemon event core (see event-core above).
 function makeFlagIcon() {
   const s = 44; // 2x of ~22px
   const c = document.createElement("canvas");
   c.width = s;
   c.height = s;
   const x = c.getContext("2d");
-  x.strokeStyle = "#fff";
-  x.fillStyle = "#fff";
+  x.strokeStyle = OLIVE;
+  x.fillStyle = OLIVE;
   x.lineWidth = 3;
   x.lineCap = "round";
   x.lineJoin = "round";
@@ -1074,7 +1139,7 @@ function makeFlagIcon() {
   return x.getImageData(0, 0, s, s);
 }
 
-// Pulse the outer rings of the event (terracotta) and famous-ride (plum) pins:
+// Pulse the outer rings of the event (lemon) and famous-ride pins:
 // expand and fade over ~2s, looping. Under reduced motion the static rings set
 // on each layer stay and we do nothing.
 function startPulse() {
@@ -2500,7 +2565,7 @@ function closeDetail() {
 
 // ---- Card fill (shared redesigned card for routes and events) ------------
 
-// Theme the route card as a "Famous Ride" (plum) and fill its event details.
+// Theme the route card as a "Famous Ride" and fill its event details.
 function setFamous(p, isFamous) {
   if (isFamous) els.detail.dataset.famous = "1";
   else els.detail.removeAttribute("data-famous");

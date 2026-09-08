@@ -50,7 +50,7 @@ const SIZES = [
   for (const { file, size } of SIZES) {
     const page = await browser.newPage({ viewport: { width: size, height: size }, deviceScaleFactor: 1 });
     await page.setContent(
-      `<style>html,body{margin:0;padding:0;background:#e9e2d0}img{display:block}</style>` +
+      `<style>html,body{margin:0;padding:0;background:#edecc5}img{display:block}</style>` +
       `<img src="${uri}" width="${size}" height="${size}">`
     );
     await page.waitForTimeout(120);
