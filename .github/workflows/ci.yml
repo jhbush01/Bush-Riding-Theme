@@ -149,6 +149,40 @@ jobs:
           const weight = (r.audits || {})['total-byte-weight'];
           if (weight) console.log(`| ${weight.title} | ${weight.displayValue || 'n/a'} |`);
 
+          // The scores say how bad; these say what to do about it. Without this
+          // the only way to see which audits failed was to download the HTML
+          // report, which is exactly the friction that let the old check sit
+          // red and unread.
+          const kb = (b) => (b == null ? null : Math.round(b / 1024) + ' KiB');
+          const opportunities = Object.values(r.audits || {})
+            .filter((a) => a && a.details && a.details.type === 'opportunity')
+            .filter((a) => (a.details.overallSavingsMs || 0) > 0 || (a.details.overallSavingsBytes || 0) > 0)
+            .sort((a, b) => (b.details.overallSavingsMs || 0) - (a.details.overallSavingsMs || 0));
+
+          if (opportunities.length) {
+            console.log('\n#### Worth fixing, biggest first\n');
+            console.log('| Opportunity | Est. saving |');
+            console.log('| --- | --- |');
+            for (const a of opportunities) {
+              const ms = a.details.overallSavingsMs ? Math.round(a.details.overallSavingsMs) + ' ms' : null;
+              const by = kb(a.details.overallSavingsBytes);
+              console.log(`| ${a.title} | ${[ms, by].filter(Boolean).join(' · ') || '—'} |`);
+            }
+          }
+
+          // Everything else that scored below par, by category, so Best
+          // Practices and SEO stop being a bare number nobody can act on.
+          for (const key of ['best-practices', 'seo', 'accessibility']) {
+            const c = cats[key];
+            if (!c || !c.auditRefs) continue;
+            const failed = c.auditRefs
+              .map((ref) => (r.audits || {})[ref.id])
+              .filter((a) => a && a.score !== null && a.score < 0.9 && a.scoreDisplayMode !== 'notApplicable');
+            if (!failed.length) continue;
+            console.log(`\n#### ${c.title} — what is failing\n`);
+            for (const a of failed) console.log(`- **${a.title}**${a.displayValue ? ' — ' + a.displayValue : ''}`);
+          }
+
           console.log('\nFull HTML report is attached to this run as an artifact.');
           JS
 
