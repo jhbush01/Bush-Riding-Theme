@@ -16,7 +16,22 @@
         <figure class="alp-trio__cell alp-reveal" {{ block.shopify_attributes }}>
           {%- if block.settings.link != blank -%}<a href="{{ block.settings.link }}">{%- endif -%}
           {%- if block.settings.video_url != blank -%}
-            <video src="{{ block.settings.video_url }}" autoplay muted loop playsinline aria-label="{{ block.settings.caption | default: '' }}"></video>
+            {%- comment -%}
+              Deferred: the src is only fetched once the cell scrolls near the
+              viewport (see data-alp-video in alpine.js). The block's image, if
+              one is set, is the poster — so the cell is never a blank hole
+              while the clip loads, and on a slow connection it just stays a
+              photograph.
+            {%- endcomment -%}
+            <video
+              data-alp-video="{{ block.settings.video_url }}"
+              muted
+              loop
+              playsinline
+              preload="none"
+              aria-label="{{ block.settings.caption | default: '' }}"
+              {% if block.settings.image != blank %}poster="{{ block.settings.image | image_url: width: 1600 }}"{% endif %}
+            ></video>
           {%- elsif block.settings.image != blank -%}
             {{ block.settings.image | image_url: width: 1600 | image_tag: loading: 'lazy', alt: block.settings.caption | default: '' }}
           {%- else -%}
