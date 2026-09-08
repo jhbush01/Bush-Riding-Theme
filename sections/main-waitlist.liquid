@@ -1,313 +1,190 @@
-<style>
-  /* ── Design tokens ─────────────────────────────────────────────────────── */
-  :root {
-    --ivory:       #F5F0E8;
-    --lemon:       #F9C80E;
-    --btn-text:    #2A2318;
-    --overlay:     rgba(0, 0, 0, 0.05);
-  }
+{%- comment -%}
+  Bush Riding waitlist — the password page, and the first thing anyone sees
+  before launch.
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  It is a waitlist for the shorts, not an early-access list: nobody gets in
+  early, we email you when the first run lands. The copy says exactly that.
 
-  body.waitlist {
-    background: #F5F0E8;
-    font-family: 'General Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-    height: 100dvh;
-    overflow: hidden;
-  }
+  Brand: the storefront's own tokens (alpine.css is linked in
+  layout/password.liquid), so bone, olive, mist and flare here are the same
+  values the shop uses. The mark is the brush artwork, never typeset. Flare is
+  spent once, on the button — the one thing to press.
 
-  /* ── Hero ──────────────────────────────────────────────────────────────── */
-  .wl-hero {
-    position: relative;
-    width: 100%;
-    height: 100dvh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #F5F0E8;
-    overflow: hidden;
-  }
+  Signups land in Admin → Customers tagged so the shorts list can be segmented
+  out of the general newsletter.
+{%- endcomment -%}
 
-  /* ── Video ─────────────────────────────────────────────────────────────── */
-  .wl-video {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    z-index: 0;
-  }
+{%- liquid
+  assign tone = section.settings.wordmark_tone | default: 'bone'
+  assign tags = section.settings.signup_tags | default: 'waitlist, bush-riding-shorts'
+-%}
 
-  .wl-overlay {
-    position: absolute;
-    inset: 0;
-    background: var(--overlay);
-    z-index: 1;
-  }
+<section class="wl">
+  {%- if section.settings.video_url != blank -%}
+    <video
+      class="wl__media"
+      autoplay
+      muted
+      loop
+      playsinline
+      aria-hidden="true"
+      {% if section.settings.poster != blank %}poster="{{ section.settings.poster | image_url: width: 1600 }}"{% endif %}
+    >
+      <source src="{{ section.settings.video_url }}" type="video/mp4">
+    </video>
+  {%- elsif section.settings.poster != blank -%}
+    {{ section.settings.poster | image_url: width: 2400 | image_tag: class: 'wl__media', loading: 'eager', fetchpriority: 'high', alt: '' }}
+  {%- endif -%}
 
-  /* ── Content stack ─────────────────────────────────────────────────────── */
-  .wl-content {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 0 24px;
-    width: 100%;
-    max-width: 700px;
-  }
+  {%- comment -%} Type over photography always sits on a scrim. {%- endcomment -%}
+  <div class="wl__scrim" aria-hidden="true"></div>
 
-  .wl-content form {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-  }
-
-  /* ── Brand mark ────────────────────────────────────────────────────────── */
-  .wl-brand-mark {
-    max-height: 140px;
-    width: auto;
-    display: block;
-    margin-bottom: 28px;
-    animation: wl-fade-in 2.8s ease-out both;
-  }
-
-  @media (max-width: 767px) {
-    .wl-brand-mark { max-height: 90px; }
-  }
-
-  /* ── Headline ──────────────────────────────────────────────────────────── */
-  .wl-headline {
-    display: block;
-    font-family: 'Instrument Serif', serif;
-    font-size: clamp(56px, 8vw, 96px);
-    font-weight: 400;
-    line-height: 1.05;
-    color: var(--lemon);
-    animation: wl-fade-in 2.8s ease-out both;
-  }
-
-  @keyframes wl-fade-in {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .wl-headline { animation: none; }
-  }
-
-  .wl-rule { display: none; }
-
-  /* ── Subhead ───────────────────────────────────────────────────────────── */
-  .wl-subhead {
-    font-family: 'General Sans', sans-serif;
-    font-size: 0.95rem;
-    font-weight: 400;
-    color: var(--ivory);
-    opacity: 0.85;
-    white-space: nowrap;
-    margin-bottom: 32px;
-    text-shadow: 0 1px 6px rgba(0,0,0,0.55), 0 0 20px rgba(0,0,0,0.4);
-  }
-
-  /* ── Email form ────────────────────────────────────────────────────────── */
-  .wl-form {
-    display: flex;
-    gap: 10px;
-    width: 100%;
-    max-width: 480px;
-    margin-bottom: 14px;
-  }
-
-  .wl-form__input {
-    flex: 1;
-    min-width: 0;
-    background: transparent;
-    border: 1px solid var(--ivory);
-    border-radius: 9999px;
-    padding: 13px 20px;
-    font-family: 'General Sans', sans-serif;
-    font-size: 0.9rem;
-    color: var(--ivory);
-    outline: none;
-    transition: border-color 0.15s;
-  }
-
-  .wl-form__input::placeholder { color: rgba(245, 240, 232, 0.55); }
-  .wl-form__input:focus { border-color: var(--lemon); }
-
-  .wl-form__submit {
-    flex-shrink: 0;
-    border: none;
-    outline: none;
-    cursor: pointer;
-    background: var(--lemon);
-    color: var(--btn-text);
-    font-family: 'General Sans', sans-serif;
-    font-size: 0.85rem;
-    font-weight: 500;
-    letter-spacing: 0.02em;
-    padding: 13px 22px;
-    border-radius: 9999px;
-    white-space: nowrap;
-    transition: opacity 0.15s;
-  }
-
-  .wl-form__submit:hover { opacity: 0.88; }
-  .wl-form__submit:disabled { opacity: 0.55; cursor: not-allowed; }
-
-  /* ── Microcopy ─────────────────────────────────────────────────────────── */
-  .wl-micro {
-    font-family: 'General Sans', sans-serif;
-    font-size: 0.72rem;
-    color: var(--ivory);
-    opacity: 0.85;
-    text-shadow: 0 1px 6px rgba(0,0,0,0.55), 0 0 20px rgba(0,0,0,0.4);
-  }
-
-  /* ── Status ────────────────────────────────────────────────────────────── */
-  .wl-status {
-    margin-top: 12px;
-    font-family: 'General Sans', sans-serif;
-    font-size: 0.85rem;
-    color: var(--ivory);
-    min-height: 1.2em;
-  }
-
-  .wl-status--error   { color: #ffb3ae; }
-  .wl-status--success { color: #b9f6ca; }
-
-  .wl-success-msg {
-    font-family: 'General Sans', sans-serif;
-    font-size: 1rem;
-    color: var(--ivory);
-    text-shadow: 0 1px 6px rgba(0,0,0,0.55);
-    opacity: 0.75;
-  }
-
-  /* ── Social links (liquid glass) ───────────────────────────────────────── */
-  .wl-social {
-    display: flex;
-    gap: 16px;
-    justify-content: center;
-    margin-top: 36px;
-  }
-
-  .wl-social__link {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 52px;
-    height: 52px;
-    border-radius: 9999px;
-    color: var(--ivory);
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(245, 240, 232, 0.35);
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
-    box-shadow: inset 0 1px 1px rgba(255,255,255,0.25), 0 4px 18px rgba(0,0,0,0.25);
-    transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
-  }
-
-  .wl-social__link:hover {
-    transform: translateY(-2px);
-    background: rgba(255, 255, 255, 0.16);
-    border-color: rgba(245, 240, 232, 0.6);
-  }
-
-  .wl-social__link svg {
-    width: 24px;
-    height: 24px;
-    display: block;
-  }
-
-  /* ── Mobile ────────────────────────────────────────────────────────────── */
-  @media (max-width: 767px) {
-    .wl-headline { font-size: clamp(40px, 11vw, 56px); }
-
-    .wl-subhead { white-space: normal; }
-
-    .wl-form {
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .wl-form__input,
-    .wl-form__submit {
-      width: 100%;
-    }
-  }
-</style>
-
-<section class="wl-hero">
-  <video class="wl-video" autoplay muted loop playsinline aria-hidden="true">
-    <source src="https://cdn.shopify.com/videos/c/o/v/f0e0ccc583fc45589dc4a168fc145f35.mp4" type="video/mp4">
-  </video>
-  <div class="wl-overlay" aria-hidden="true"></div>
-
-  <div class="wl-content">
-    {%- form 'customer', id: 'WaitlistForm' -%}
-      {%- if form.posted_successfully? -%}
-
-        <p class="wl-success-msg">Thank you — we will send you regular launch updates keeping you in the loop.</p>
-
+  <div class="wl__inner">
+    <h1 class="wl__mark">
+      {%- if section.settings.wordmark_image != blank -%}
+        {{ section.settings.wordmark_image | image_url: width: 1400 | image_tag: loading: 'eager', fetchpriority: 'high', alt: shop.name }}
       {%- else -%}
+        <img
+          src="{{ 'wordmark-' | append: tone | append: '.svg' | asset_url }}"
+          alt="{{ shop.name | escape }}"
+          width="1273"
+          height="543"
+          loading="eager"
+          fetchpriority="high"
+        >
+      {%- endif -%}
+    </h1>
 
-        <div class="wl-headline-wrap">
-          <span class="wl-headline">Welcome to the Bush</span>
-        </div>
-        <p class="wl-subhead" style="margin-top:20px;">Get early access to Bush Riding's first release — the Bush Riding Shorts.</p>
+    {%- if section.settings.tagline != blank -%}
+      <p class="wl__tagline">{{ section.settings.tagline | escape }}</p>
+    {%- endif -%}
 
-        <input type="hidden" name="contact[tags]" value="waitlist">
-        <div class="wl-form">
+    {%- form 'customer', id: 'WaitlistForm', class: 'wl__form-wrap' -%}
+      {%- if form.posted_successfully? -%}
+        <p class="wl__done" role="status">{{ section.settings.success_text | escape }}</p>
+      {%- else -%}
+        {%- if section.settings.heading != blank -%}
+          <h2 class="wl__heading">{{ section.settings.heading | escape }}</h2>
+        {%- endif -%}
+        {%- if section.settings.body != blank -%}
+          <p class="wl__body">{{ section.settings.body | escape }}</p>
+        {%- endif -%}
+
+        <input type="hidden" name="contact[tags]" value="{{ tags | escape }}">
+        <input type="hidden" name="contact[note]" value="{{ section.settings.signup_note | escape }}">
+
+        <div class="wl__form">
+          <label class="wl__label" for="WaitlistEmail">Email address</label>
           <input
-            class="wl-form__input"
+            class="wl__input"
+            id="WaitlistEmail"
             type="email"
             name="contact[email]"
-            id="waitlist-email"
-            placeholder="your@email.com"
+            placeholder="Email address"
             autocomplete="email"
             required
           >
-          <button class="wl-form__submit" type="submit">Join early access</button>
+          <button class="alp-chip alp-chip--flare wl__submit" type="submit">
+            {{- section.settings.button_label | escape -}}
+          </button>
         </div>
+
+        {%- if section.settings.microcopy != blank -%}
+          <p class="wl__micro">{{ section.settings.microcopy | escape }}</p>
+        {%- endif -%}
+
         {%- if form.errors -%}
-          <p class="wl-status wl-status--error">
+          <p class="wl__error" role="alert">
             {%- if form.errors contains 'email' -%}
-              Please enter a valid email address.
+              That email address doesn't look right. Try again.
             {%- else -%}
-              Something went wrong. Please try again.
+              Something went wrong at our end. Try again.
             {%- endif -%}
           </p>
         {%- endif -%}
-
       {%- endif -%}
     {%- endform -%}
 
-    <div class="wl-social">
-      <a class="wl-social__link" href="https://www.instagram.com/bushriding" target="_blank" rel="noopener" aria-label="Bush Riding on Instagram">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <rect x="3" y="3" width="18" height="18" rx="5"></rect>
-          <circle cx="12" cy="12" r="4"></circle>
-          <circle cx="17.2" cy="6.8" r="1" fill="currentColor" stroke="none"></circle>
-        </svg>
-      </a>
-      <a class="wl-social__link" href="https://youtube.com/@bushriding" target="_blank" rel="noopener" aria-label="Bush Riding on YouTube">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <rect x="2.5" y="6" width="19" height="12" rx="3.5"></rect>
-          <path d="M10.2 9.3v5.4l4.6-2.7z" fill="currentColor" stroke="none"></path>
-        </svg>
-      </a>
-    </div>
+    {%- if section.settings.instagram_url != blank
+        or section.settings.youtube_url != blank
+        or section.settings.strava_url != blank
+    -%}
+      <div class="wl__social">
+        {%- if section.settings.instagram_url != blank -%}
+          <a class="wl__social-link" href="{{ section.settings.instagram_url }}" target="_blank" rel="noopener" aria-label="Bush Riding on Instagram">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="4.5"/><circle cx="12" cy="12" r="3.6"/><circle cx="17.2" cy="6.8" r="1" fill="currentColor" stroke="none"/></svg>
+          </a>
+        {%- endif -%}
+        {%- if section.settings.strava_url != blank -%}
+          <a class="wl__social-link" href="{{ section.settings.strava_url }}" target="_blank" rel="noopener" aria-label="Bush Riding on Strava">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.8 2 7.3 14.6h3.9L13.8 9l2.6 5.6h3.8L13.8 2zM16.4 14.6 14.6 18l-1.8-3.4H10l4.6 8.4L19 14.6h-2.6z"/></svg>
+          </a>
+        {%- endif -%}
+        {%- if section.settings.youtube_url != blank -%}
+          <a class="wl__social-link" href="{{ section.settings.youtube_url }}" target="_blank" rel="noopener" aria-label="Bush Riding on YouTube">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23 12s0-3.2-.4-4.7a2.5 2.5 0 0 0-1.7-1.7C19.4 5.2 12 5.2 12 5.2s-7.4 0-8.9.4A2.5 2.5 0 0 0 1.4 7.3C1 8.8 1 12 1 12s0 3.2.4 4.7a2.5 2.5 0 0 0 1.7 1.7c1.5.4 8.9.4 8.9.4s7.4 0 8.9-.4a2.5 2.5 0 0 0 1.7-1.7C23 15.2 23 12 23 12zM9.8 15.3V8.7l5.7 3.3-5.7 3.3z"/></svg>
+          </a>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
   </div>
 </section>
 
 {% schema %}
 {
-  "name": "Waitlist",
+  "name": "Bush Riding waitlist",
   "tag": "section",
-  "class": "waitlist-section"
+  "class": "waitlist-section",
+  "settings": [
+    { "type": "header", "content": "Background" },
+    { "type": "url", "id": "video_url", "label": "Video MP4 URL", "info": "Plays muted and looping. The image below becomes its poster." },
+    { "type": "image_picker", "id": "poster", "label": "Image / poster", "info": "Used on its own if no video is set." },
+    { "type": "header", "content": "Mark" },
+    {
+      "type": "select",
+      "id": "wordmark_tone",
+      "label": "Wordmark tone",
+      "options": [
+        { "value": "bone", "label": "Bone (default over the scrim)" },
+        { "value": "mist", "label": "Mist" },
+        { "value": "sage", "label": "Sage" },
+        { "value": "flare", "label": "Flare" },
+        { "value": "olive", "label": "Olive" },
+        { "value": "khaki", "label": "Khaki" },
+        { "value": "white", "label": "White" },
+        { "value": "black", "label": "Black" }
+      ],
+      "default": "bone"
+    },
+    { "type": "image_picker", "id": "wordmark_image", "label": "Wordmark image override" },
+    { "type": "text", "id": "tagline", "label": "Tagline", "default": "Made for the detour" },
+    { "type": "header", "content": "Waitlist" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "The shorts are coming." },
+    {
+      "type": "textarea",
+      "id": "body",
+      "label": "Body",
+      "default": "The first run of Bush Riding Shorts lands soon. Join the waitlist and we'll email you when they do."
+    },
+    { "type": "text", "id": "button_label", "label": "Button", "default": "Join the waitlist" },
+    { "type": "text", "id": "microcopy", "label": "Microcopy", "default": "One email when the shorts land. Nothing else." },
+    {
+      "type": "textarea",
+      "id": "success_text",
+      "label": "Success message",
+      "default": "You're on the list. We'll email you when the shorts land."
+    },
+    { "type": "header", "content": "Where signups land" },
+    {
+      "type": "paragraph",
+      "content": "Signups go to Admin → Customers. The tags below segment this list out of the general newsletter."
+    },
+    { "type": "text", "id": "signup_tags", "label": "Customer tags", "default": "waitlist, bush-riding-shorts" },
+    { "type": "text", "id": "signup_note", "label": "Customer note", "default": "Shorts waitlist — pre-launch" },
+    { "type": "header", "content": "Social" },
+    { "type": "url", "id": "instagram_url", "label": "Instagram URL" },
+    { "type": "url", "id": "strava_url", "label": "Strava URL" },
+    { "type": "url", "id": "youtube_url", "label": "YouTube URL" }
+  ]
 }
 {% endschema %}
