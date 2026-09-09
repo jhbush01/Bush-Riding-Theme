@@ -100,6 +100,12 @@ jobs:
     name: Lighthouse (public URL)
     if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    # To post the summary back onto the commit. GitHub renders step summaries
+    # in the browser but does not serve them over the API, so a commit comment
+    # is the only form of this report a tool (or a person on a phone) can read
+    # without downloading the run's artifact.
+    permissions:
+      contents: write
     steps:
       - name: Audit
         env:
@@ -119,7 +125,7 @@ jobs:
         env:
           TARGET_URL: ${{ github.event.inputs.url || vars.LIGHTHOUSE_URL || 'https://bushriding.cc' }}
         run: |
-          node - <<'JS' >> "$GITHUB_STEP_SUMMARY"
+          node - <<'JS' > summary.md
           const fs = require('fs');
           const r = JSON.parse(fs.readFileSync('./lighthouse.report.json', 'utf8'));
           const pct = (c) => (c && c.score != null ? Math.round(c.score * 100) : null);
@@ -185,6 +191,18 @@ jobs:
 
           console.log('\nFull HTML report is attached to this run as an artifact.');
           JS
+          cat summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Post the summary onto the commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          python3 -c "import json;print(json.dumps({'body': open('summary.md').read()}))" > comment.json
+          gh api "repos/$REPO/commits/$SHA/comments" --input comment.json --silent
+          echo "Posted the Lighthouse summary to commit $SHA."
 
       - uses: actions/upload-artifact@v4
         if: always()
