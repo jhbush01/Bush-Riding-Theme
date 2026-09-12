@@ -27,8 +27,9 @@
         "photo_lead": {
           "type": "photo",
           "settings": {
-            "image": "shopify://shop_images/Bush_Background.jpg",
-            "caption": "",
+            "image": "shopify://shop_images/IMG_4812.jpg",
+            "video_url": "",
+            "caption": "Mount Beerwah, Glass House Mountains",
             "link": ""
           }
         },
@@ -36,6 +37,7 @@
           "type": "photo",
           "settings": {
             "image": "shopify://shop_images/IMG_2419.jpg",
+            "video_url": "",
             "caption": "Mooloolah Forest, QLD",
             "link": ""
           }
