@@ -1,0 +1,33 @@
+<!-- @dsCard group="Components" viewport="700x300" name="Storefront primitives" subtitle="Chip, NavLink, Wordmark, ProductCard, TextLink" -->
+<!doctype html><html lang="en"><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{margin:0;padding:0;background:var(--alp-bg)}#root{padding:20px}</style>
+</head><body><div id="root"></div>
+<script type="text/babel">
+const { Chip, NavLink, Wordmark, ProductCard, TextLink } = window.BushRidingDesignSystem_e1a4ad;
+function Demo(){return (<div style={{display:'grid',gap:18}}>
+  <div style={{display:'flex',gap:12,flexWrap:'wrap',alignItems:'center'}}>
+    <Chip href="#">Shop</Chip>
+    <Chip glyph href="#">Discover Launch Collection</Chip>
+    <Chip variant="submit" as="button" type="button">Sign up</Chip>
+    <Chip variant="price">$189</Chip>
+  </div>
+  <div style={{background:'#5a5a44',borderRadius:6,padding:'14px 18px',display:'flex',alignItems:'center',gap:18,flexWrap:'wrap'}}>
+    <Wordmark href="#" height={44} src="../../assets/logo-wordmark.png" />
+    <NavLink tone="home" href="#">Shop</NavLink>
+    <NavLink tone="home" href="#">Explore</NavLink>
+    <NavLink tone="home" clock>9:14 AEST</NavLink>
+  </div>
+  <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:14}}>
+    <ProductCard name="Gaiters" price="$89" />
+    <ProductCard name="Pack" price="$240" />
+    <ProductCard name="Jacket" price="$310" />
+    <ProductCard name="Boots" price="$189" />
+  </div>
+  <div style={{fontSize:15}}>Read the <TextLink href="#">launch story</TextLink>.</div>
+</div>);}
+ReactDOM.createRoot(document.getElementById('root')).render(<Demo />);
+</script></body></html>

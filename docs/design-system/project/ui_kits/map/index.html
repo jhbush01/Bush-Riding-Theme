@@ -1,0 +1,96 @@
+<!-- @dsCard group="Bush Map" viewport="1280x760" name="Bush Map — routes" subtitle="map.bushriding.cc: filter sidebar, pins, and the route detail card" -->
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Bush Map</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../styles.css">
+<link rel="stylesheet" href="_layout.css">
+</head><body>
+<div class="brm">
+  <a class="skip-link" href="#sidebar">Skip to routes</a>
+
+  <!-- Map -->
+  <div class="map" id="map">
+    <svg class="map__lines" viewBox="0 0 1280 760" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M470 520 C 560 430, 640 470, 720 360 S 900 250, 980 300" fill="none" stroke="#4c4b3b" stroke-width="3" stroke-opacity=".45" stroke-dasharray="2 8" stroke-linecap="round"/>
+      <path d="M540 600 C 620 560, 700 590, 760 520" fill="none" stroke="#828059" stroke-width="3" stroke-opacity=".5" stroke-dasharray="2 8" stroke-linecap="round"/>
+    </svg>
+    <button class="pin pin--routes is-active" style="left:56%;top:40%" data-name="Wonnangatta loop" aria-label="Wonnangatta loop"></button>
+    <button class="pin pin--routes" style="left:73%;top:50%" aria-label="Alpine Way"></button>
+    <button class="pin pin--bush" style="left:62%;top:62%" aria-label="Bush event"></button>
+    <button class="pin pin--famous" style="left:78%;top:38%" aria-label="Famous event"></button>
+    <button class="pin pin--routes" style="left:48%;top:66%" aria-label="Route"></button>
+  </div>
+
+  <!-- Brand cluster -->
+  <div class="map-brand">
+    <button class="sidebar-toggle" aria-label="Toggle filters"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+    <a class="map-brand__logo" href="https://bushriding.cc">Bush Riding™</a>
+  </div>
+
+  <!-- Layer nav -->
+  <nav class="map-nav" aria-label="Map layers"><a href="#" class="is-active">Routes</a><a href="#">Events</a></nav>
+
+  <!-- View tools -->
+  <div class="map-tools"><div class="view-switch" role="group" aria-label="Map view"><button class="view-switch__btn is-active">2D</button><button class="view-switch__btn">3D</button></div></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <header class="sidebar__head">
+      <h1 class="sidebar__title"><a href="#">Bush Map</a></h1>
+      <p class="sidebar__sub">Explore more with our curated gravel routes and events</p>
+      <div class="sidebar__nav"><a class="sidebar__submit" href="#">+ Submit a route</a><button class="sidebar__myrides">My Submissions</button></div>
+    </header>
+    <form class="filters" onsubmit="return false">
+      <div class="filter"><span class="filter__label">What the pins mean</span>
+        <ul class="legend"><li><span class="legend__dot legend__dot--routes"></span>Community Routes</li><li><span class="legend__dot legend__dot--famous"></span>Famous Events</li><li><span class="legend__dot legend__dot--bush"></span>Bush Events</li></ul></div>
+      <div class="filter"><label class="filter__label" for="d">Distance <span class="filter__val">up to 200 km</span></label><input id="d" class="filter__range" type="range" min="0" max="200" step="10" value="200"></div>
+      <div class="filter"><span class="filter__label">Location</span><div class="filter__row"><select class="filter__select" aria-label="State"><option>All states</option><option>VIC</option><option>NSW</option><option>SA</option><option>WA</option></select><select class="filter__select" aria-label="Region"><option>All regions</option><option>High country</option><option>Flinders</option></select></div></div>
+      <div class="filter"><span class="filter__label">Terrain</span><div class="toggle-group"><button type="button" class="toggle">Groomed</button><button type="button" class="toggle is-active">Rocky</button><button type="button" class="toggle">Proper Mud</button></div></div>
+      <button type="button" class="filter__reset">Reset filters</button>
+    </form>
+    <div class="results">
+      <p class="results__count">4 routes</p>
+      <ul class="results__list">
+        <li class="result is-active"><p class="result__name">Wonnangatta loop</p><p class="result__meta">210 km · Gravel · VIC</p></li>
+        <li class="result"><p class="result__name">Alpine Way</p><p class="result__meta">148 km · Tar · NSW</p></li>
+        <li class="result"><p class="result__name">Billy Goat Bluff</p><p class="result__meta">64 km · Gravel · VIC</p></li>
+        <li class="result"><p class="result__name">Flinders Ranges run</p><p class="result__meta">340 km · Gravel · SA</p></li>
+      </ul>
+    </div>
+  </aside>
+
+  <!-- Route detail card -->
+  <section class="sheet card" aria-label="Route detail">
+    <button class="card__close" aria-label="Close"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
+    <div class="card__head">
+      <span class="card__eyebrow">Community Route</span>
+      <h2 class="card__title">Wonnangatta loop</h2>
+      <div class="card__stats">
+        <div class="card__stat"><span class="card__stat-val">210 km</span><span class="card__stat-label">Distance</span></div>
+        <div class="card__stat-div"></div>
+        <div class="card__stat"><span class="card__stat-val">3,140 m</span><span class="card__stat-label">Climb</span></div>
+      </div>
+      <div class="card__cta-row">
+        <a class="card__cta" href="#"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h11l5 5v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/><path d="M14 4v6h6M8 14h8M8 18h5"/></svg>Full route page</a>
+        <button class="card__cta card__cta--sec">GPX</button>
+      </div>
+    </div>
+    <div class="sheet__scroll">
+      <div class="card__elev">
+        <div class="card__mini-label">Elevation profile</div>
+        <svg class="card__elev-svg" viewBox="0 0 340 46" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#828059" stop-opacity=".38"/><stop offset="1" stop-color="#828059" stop-opacity=".05"/></linearGradient></defs><path d="M0 40 L40 30 L90 34 L150 12 L210 22 L270 6 L340 18 L340 46 L0 46 Z" fill="url(#g)"/><path d="M0 40 L40 30 L90 34 L150 12 L210 22 L270 6 L340 18" fill="none" stroke="#4c4b3b" stroke-width="1.5"/></svg>
+      </div>
+      <figure class="card__photo">
+        <img src="../storefront/img/story.svg" alt="Wonnangatta valley">
+        <div class="card__chip"><span>Gravel</span><span>·</span><span>Rocky</span></div>
+      </figure>
+      <p class="card__desc">River crossings, cattlemen huts and a climb that will cook your clutch if you rush it. Fuel at the halfway store, which shuts at four. Two creek crossings, both impassable after rain.</p>
+    </div>
+  </section>
+</div>
+
+<script>
+document.querySelectorAll('.toggle').forEach(function(t){t.addEventListener('click',function(){document.querySelectorAll('.toggle').forEach(function(x){x.classList.remove('is-active')});t.classList.add('is-active')})});
+document.querySelectorAll('.result').forEach(function(r){r.addEventListener('click',function(){document.querySelectorAll('.result').forEach(function(x){x.classList.remove('is-active')});r.classList.add('is-active')})});
+document.querySelectorAll('.view-switch__btn').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.view-switch__btn').forEach(function(x){x.classList.remove('is-active')});b.classList.add('is-active')})});
+</script>
+</body></html>

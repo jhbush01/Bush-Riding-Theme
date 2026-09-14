@@ -86,6 +86,14 @@ most of the work — text and icon as support. Show, don't tell.
   (diary.bushriding.cc, reached same-origin via the `/diary-api` Pages
   proxy): accounts + ride diary. Both Workers deploy via Cloudflare's
   Git-connected builds (root dirs `/worker`, `/diary-worker`).
+- **`docs/design-system/`** — the archived Claude Design handoff bundle.
+  `docs/design-system/project/readme.md` is the governing design document:
+  the palette (with the brand-board PDFs that prove the hexes), the type
+  tiers, content rules and visual foundations. Read it before changing
+  anything visual. Nothing here ships — Shopify only uploads the recognised
+  theme directories, and Theme Check is told to skip `docs/`. The prototypes
+  are mockups; `assets/alpine.css` is the shipping source of truth, and when
+  the two disagree the live theme wins and the document gets corrected.
 
 ## Branch workflow
 

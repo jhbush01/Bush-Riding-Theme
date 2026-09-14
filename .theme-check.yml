@@ -1,3 +1,9 @@
+# docs/ holds the archived Claude Design handoff bundle — HTML/CSS prototypes
+# and reference material, not theme code. Shopify never uploads it and Theme
+# Check shouldn't read it either.
+ignore:
+  - docs/**
+
 MatchingTranslations:
   enabled: false
 TemplateLength:
