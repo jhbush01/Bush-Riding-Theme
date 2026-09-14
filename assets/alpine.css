@@ -1511,13 +1511,243 @@ body.waitlist #MainContent { padding-top: 0; }
   .alp-ethos__passage { grid-template-columns: 1fr; gap: 9px; }
 }
 
+/* ── Tile ────────────────────────────────────────────────────────────────────
+   A full-bleed picture with its name in the corner. Stacked without gutters
+   these are what make the page read as one continuous run of photography
+   rather than a stack of separate sections.
+
+   The plate is a gradient of scrim, not a solid bar: the design system asks
+   for type over photography to sit on a scrim, and a gradient does that
+   without drawing a box across the bottom of every image. */
+.alp-tile { position: relative; overflow: hidden; }
+.alp-tile__hit { display: block; color: inherit; text-decoration: none; }
+
+.alp-tile__media,
+.alp-tile__media img,
+.alp-tile__media video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.alp-tile__media { height: 100%; }
+
+/* Heights. Set on the section, and on the anchor when there is one, so the
+   link fills the tile rather than shrink-wrapping the picture. */
+.alp-tile--band,
+.alp-tile--band .alp-tile__hit { height: clamp(150px, 22vw, 260px); }
+.alp-tile--short,
+.alp-tile--short .alp-tile__hit { height: clamp(240px, 34vw, 420px); }
+.alp-tile--medium,
+.alp-tile--medium .alp-tile__hit { height: clamp(330px, 48vw, 620px); }
+.alp-tile--tall,
+.alp-tile--tall .alp-tile__hit { height: clamp(440px, 72vw, 820px); }
+.alp-tile--full,
+.alp-tile--full .alp-tile__hit { height: min(88svh, 900px); }
+
+.alp-tile--inset { padding: 0 var(--alp-pad-page); }
+
+.alp-tile__plate {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: clamp(34px, 7vw, 64px) var(--alp-pad-page) clamp(14px, 2.4vw, 24px);
+  background: linear-gradient(to top, rgba(47, 47, 38, 0.55), rgba(47, 47, 38, 0));
+  pointer-events: none;
+}
+
+.alp-tile__eyebrow {
+  margin: 0 0 4px;
+  font-family: var(--alp-font-ui);
+  font-weight: 600;
+  font-size: clamp(0.58rem, 0.25vw + 0.52rem, 0.7rem);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(237, 236, 197, 0.78);
+}
+
+.alp-tile__label {
+  margin: 0;
+  font-family: var(--alp-font-ui);
+  font-weight: 600;
+  font-size: clamp(1rem, 0.9vw + 0.8rem, 1.45rem);
+  line-height: 1.2;
+  color: var(--alp-bg);
+}
+/* Underlined only when it goes somewhere — the label on a tile that is just a
+   photograph is a caption, and a caption that looks like a link is a lie. */
+.alp-tile__label--link { text-decoration: underline; text-underline-offset: 0.18em; text-decoration-thickness: 1px; }
+.alp-tile__hit:hover .alp-tile__label--link { color: var(--alp-citrus); }
+
+.alp-tile__blurb {
+  margin: 5px 0 0;
+  font-size: clamp(0.78rem, 0.3vw + 0.72rem, 0.9rem);
+  color: rgba(237, 236, 197, 0.82);
+  max-width: 46ch;
+}
+
+/* ── Shelf ───────────────────────────────────────────────────────────────────
+   Products edge to edge on bone, separated by a single olive hairline rather
+   than by space. Two across on a phone, up to four on desktop.
+
+   The hairlines are drawn as insets on each cell rather than as a grid gap:
+   a gap would show the mist ground through the grid and break the field. */
+.alp-shelf { background: var(--alp-bg); }
+
+.alp-shelf__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: clamp(18px, 2.6vw, 30px) var(--alp-pad-page) clamp(12px, 1.8vw, 18px);
+}
+.alp-shelf__heading {
+  margin: 0;
+  font-family: var(--alp-font-display);
+  font-weight: 600;
+  font-size: clamp(1.05rem, 1.1vw + 0.8rem, 1.6rem);
+  line-height: 1.15;
+}
+.alp-shelf__more {
+  font-family: var(--alp-font-ui);
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--alp-accent);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  white-space: nowrap;
+}
+.alp-shelf__more:hover { color: var(--alp-ink); }
+
+.alp-shelf__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--alp-line);
+}
+
+.alp-shelf__cell {
+  display: block;
+  padding: 10px 12px 16px;
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid var(--alp-line);
+  border-right: 1px solid var(--alp-line);
+}
+/* The right-hand column would otherwise draw a rule down the page edge. */
+.alp-shelf__grid > .alp-shelf__cell:nth-child(2n) { border-right: 0; }
+
+.alp-shelf__pic { position: relative; }
+.alp-shelf__pic img {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: contain;
+}
+
+.alp-shelf__flag {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  background: var(--alp-mist);
+  border: 1px solid var(--alp-line);
+  border-radius: 3px;
+  padding: 3px 7px;
+  font-family: var(--alp-font-ui);
+  font-weight: 600;
+  font-size: 0.66rem;
+  letter-spacing: 0.04em;
+}
+
+.alp-shelf__name {
+  margin: 9px 0 0;
+  font-family: var(--alp-font-ui);
+  font-weight: 600;
+  font-size: clamp(0.8rem, 0.3vw + 0.74rem, 0.92rem);
+  line-height: 1.3;
+}
+a.alp-shelf__cell:hover .alp-shelf__name { color: var(--alp-accent); }
+
+.alp-shelf__price {
+  margin: 3px 0 0;
+  font-size: clamp(0.78rem, 0.25vw + 0.73rem, 0.88rem);
+  color: rgba(76, 75, 59, 0.72);
+}
+.alp-shelf__price s { margin-right: 5px; color: rgba(76, 75, 59, 0.45); }
+
+/* Editor-only notice — the section renders nothing at all on the storefront
+   when the catalogue is empty. */
+.alp-shelf__empty {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: clamp(20px, 3vw, 36px) var(--alp-pad-page);
+  font-size: 0.85rem;
+  color: rgba(76, 75, 59, 0.7);
+}
+
+@media (min-width: 750px) {
+  .alp-shelf--3up .alp-shelf__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .alp-shelf--4up .alp-shelf__grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+  /* Re-hang the "no rule on the last column" rule at each column count. */
+  .alp-shelf--3up .alp-shelf__grid > .alp-shelf__cell:nth-child(2n) { border-right: 1px solid var(--alp-line); }
+  .alp-shelf--3up .alp-shelf__grid > .alp-shelf__cell:nth-child(3n) { border-right: 0; }
+  .alp-shelf--4up .alp-shelf__grid > .alp-shelf__cell:nth-child(2n) { border-right: 1px solid var(--alp-line); }
+  .alp-shelf--4up .alp-shelf__grid > .alp-shelf__cell:nth-child(4n) { border-right: 0; }
+
+  .alp-shelf__cell { padding: 14px 16px 20px; }
+}
+
+/* Scroll cue under the hero wordmark. */
+.alp-hero__cue {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(64px, 11vh, 104px);
+  transform: translateX(-50%);
+  z-index: 2;
+  width: 12px;
+  height: clamp(40px, 7vh, 64px);
+  fill: none;
+  stroke: var(--alp-bg);
+  stroke-width: 1.2;
+  stroke-dasharray: 3 5;
+  opacity: 0.85;
+  filter: drop-shadow(0 1px 4px rgba(47, 47, 38, 0.45));
+  pointer-events: none;
+}
+.alp-hero__cue path:last-child { stroke-dasharray: none; }
+
 /* ── Home page density ───────────────────────────────────────────────────────
-   The launch grid was carrying up to 160px of padding at each end — 320px of
-   nothing around a product row, on the one page a new brand most needs to look
-   busy. Scoped to the home template so the collection and product pages keep
-   the editorial spacing the design system asks for. */
-body.template-index .alp-collection { padding: clamp(36px, 5vw, 72px) var(--alp-pad-page); }
-body.template-index .alp-collection__head { margin-bottom: clamp(18px, 2.4vw, 28px); }
+   The home page runs compact: tiles and shelves butt straight against each
+   other with no gutter and no space between sections, so the page reads as one
+   continuous run rather than a stack of widely-spaced panels. A new brand with
+   a handful of sections cannot afford 160px of nothing at each end of every
+   one of them.
+
+   All of it is scoped to the home template. Collection, product and policy
+   pages keep the editorial spacing the design system asks for. */
+body.template-index .alp-collection { padding: clamp(28px, 4vw, 56px) var(--alp-pad-page); }
+body.template-index .alp-collection__head { margin-bottom: clamp(14px, 2vw, 24px); }
 body.template-index .alp-gate { padding: clamp(28px, 4.5vw, 56px) var(--alp-pad-page) clamp(22px, 3vw, 40px); }
-body.template-index .alp-trio { padding-bottom: clamp(22px, 3vw, 40px); }
+body.template-index .alp-trio { padding: 0; }
+body.template-index .alp-trio__grid { gap: 1px; }
 body.template-index .alp-manifesto--page { padding: clamp(20px, 3vw, 40px) var(--alp-pad-page); }
+body.template-index .alp-ethos { padding-block: clamp(26px, 4vw, 56px); }
+
+/* The hero sits below the bar rather than under it, as on every other
+   template, so its full-screen height has to come off the same clearance. */
+body.template-index .alp-hero { min-height: calc(100svh - 76px); }
+
+/* One bar on every template. The home page used to hide the wordmark here
+   because the mist gate carried it directly underneath; the gate is no longer
+   what opens the page, so the mark belongs back in the bar where it stays
+   visible the whole way down. */
+body.template-index .alp-head {
+  padding-top: max(10px, env(safe-area-inset-top));
+  padding-bottom: 10px;
+}
+body.template-index .alp-nav-link--wordmark { display: flex; font-size: inherit; }
+body.template-index .alp-nav-link--wordmark .alp-wordmark__img {
+  height: clamp(2.2rem, 1.4vw + 1.6rem, 2.9rem);
+}
+body.template-index #MainContent { padding-top: 76px; }

@@ -1,0 +1,127 @@
+{%- comment -%}
+  Bush Riding shelf — products edge to edge, hairline-ruled, name and price
+  set plainly underneath.
+
+  Deliberately not the chip-labelled card used elsewhere: chips floating over
+  every image is a lot of chrome to repeat down a long page, and chrome is
+  what makes a grid feel like an interface rather than a shop. Here the cells
+  butt together separated by a single olive hairline, and the words sit below
+  the picture in the page's own ink.
+
+  Bone, not paper. The design system scopes white to chips and cards; a grid
+  this size is a field, and a white field would punch a hole in the mist.
+{%- endcomment -%}
+
+{%- liquid
+  comment
+    No collection assigned falls back to the whole catalogue, not to
+    placeholders. A shelf that has to be configured before it shows anything
+    real is a shelf that ships fake products to the live home page — which is
+    what the old launch grid did, four invented items and all.
+  endcomment
+  assign coll = section.settings.collection
+  if coll == blank or coll.products_count == 0
+    assign coll = collections['all']
+  endif
+
+  assign limit = section.settings.products_to_show | default: 8
+  assign cols = section.settings.columns | default: 4
+
+  assign has_products = false
+  if coll != blank and coll.products_count > 0
+    assign has_products = true
+  endif
+-%}
+
+{%- if has_products or request.design_mode -%}
+<section class="alp alp-shelf alp-shelf--{{ cols }}up" {% if section.settings.heading != blank %}aria-label="{{ section.settings.heading | escape }}"{% endif %}>
+  {%- if section.settings.heading != blank or section.settings.link_label != blank -%}
+    <header class="alp-shelf__head">
+      {%- if section.settings.heading != blank -%}
+        <h2 class="alp-shelf__heading">{{ section.settings.heading | escape }}</h2>
+      {%- endif -%}
+      {%- if section.settings.link_label != blank -%}
+        <a class="alp-shelf__more" href="{{ section.settings.link_url | default: routes.all_products_collection_url }}">{{ section.settings.link_label | escape }}</a>
+      {%- endif -%}
+    </header>
+  {%- endif -%}
+
+  <div class="alp-shelf__grid">
+    {%- if has_products -%}
+      {%- for product in coll.products limit: limit -%}
+        <a class="alp-shelf__cell" href="{{ product.url }}">
+          <div class="alp-shelf__pic">
+            {%- if product.featured_image != blank -%}
+              {{ product.featured_image | image_url: width: 1000 | image_tag: loading: 'lazy', alt: product.featured_image.alt | default: product.title }}
+            {%- else -%}
+              <img src="{{ 'alpine-ph-card-1.svg' | asset_url }}" alt="" width="750" height="1000" loading="lazy">
+            {%- endif -%}
+            {%- if product.available == false -%}
+              <span class="alp-shelf__flag">Sold out</span>
+            {%- elsif product.compare_at_price > product.price -%}
+              <span class="alp-shelf__flag">On sale</span>
+            {%- endif -%}
+          </div>
+          <p class="alp-shelf__name">{{ product.title | escape }}</p>
+          <p class="alp-shelf__price">
+            {%- if product.compare_at_price > product.price -%}
+              <s>{{ product.compare_at_price | money }}</s>
+            {%- endif -%}
+            {{ product.price | money }}
+          </p>
+        </a>
+      {%- endfor -%}
+    {%- else -%}
+      {%- comment -%}
+        The store genuinely has no products yet — not "no collection picked",
+        which the fallback above already handles. Say so in the editor rather
+        than inventing a catalogue, and render nothing on the storefront: an
+        empty shelf is honest, four made-up products are not.
+      {%- endcomment -%}
+      <p class="alp-shelf__empty">This shelf is empty because the store has no products yet. Add products and they appear here automatically. Nothing is shown to customers meanwhile.</p>
+    {%- endif -%}
+  </div>
+</section>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Bush Riding shelf",
+  "tag": "div",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Products edge to edge, hairline-ruled, name and price underneath. Assign a collection or it falls back to placeholder stills."
+    },
+    { "type": "collection", "id": "collection", "label": "Collection" },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "min": 2,
+      "max": 12,
+      "step": 1,
+      "label": "Products to show",
+      "default": 8
+    },
+    {
+      "type": "select",
+      "id": "columns",
+      "label": "Columns on desktop",
+      "options": [
+        { "value": "2", "label": "2" },
+        { "value": "3", "label": "3" },
+        { "value": "4", "label": "4" }
+      ],
+      "default": "4",
+      "info": "Always two across on a phone."
+    },
+    { "type": "header", "content": "Header" },
+    { "type": "text", "id": "heading", "label": "Heading", "info": "Optional. Leave blank for a bare grid." },
+    { "type": "text", "id": "link_label", "label": "Link label", "info": "e.g. \"All products\"." },
+    { "type": "url", "id": "link_url", "label": "Link URL", "info": "Defaults to the all-products catalogue." }
+  ],
+  "presets": [
+    { "name": "Bush Riding shelf" }
+  ]
+}
+{% endschema %}
