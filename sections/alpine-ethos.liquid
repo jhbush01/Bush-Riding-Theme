@@ -1,0 +1,149 @@
+{%- comment -%}
+  Bush Riding ethos — the brand story, set dense.
+
+  This section exists because the home page read as unfinished: four sections,
+  each saying one short thing, with the page's full width unused. The answer is
+  not more padding tricks, it is more substance, laid out tight.
+
+  Three movements, deliberately different shapes so the eye keeps moving:
+
+    1. The lead — what the gear is for. A statement, then three supporting
+       lines running in columns beside it rather than under it.
+    2. The country — one line per landscape, as a numbered ledger across two
+       or three columns. Hairline-separated, numerals in khaki. This is the
+       block that does the most work against empty space.
+    3. The passage — the drovers, then the turn. Two columns of body copy,
+       read left to right.
+
+  Copy lives in settings and blocks, so the words can change without a deploy.
+{%- endcomment -%}
+
+{%- liquid
+  assign ground = section.settings.ground | default: 'bone'
+-%}
+
+<section class="alp alp-ethos alp-ethos--{{ ground }}" id="ethos" aria-label="{{ section.settings.eyebrow | default: 'Ethos' | escape }}">
+  <div class="alp-ethos__inner">
+    <div class="alp-ethos__lead alp-reveal">
+      {%- if section.settings.eyebrow != blank -%}
+        <p class="alp-ethos__eyebrow">{{ section.settings.eyebrow | escape }}</p>
+      {%- endif -%}
+
+      {%- if section.settings.statement != blank -%}
+        <h2 class="alp-ethos__statement">{{ section.settings.statement | escape }}</h2>
+      {%- endif -%}
+
+      {%- if section.settings.intro != blank -%}
+        <div class="alp-ethos__intro">{{ section.settings.intro }}</div>
+      {%- endif -%}
+    </div>
+
+    {%- if section.settings.country_line != blank -%}
+      <p class="alp-ethos__country alp-reveal">{{ section.settings.country_line | escape }}</p>
+    {%- endif -%}
+
+    {%- if section.blocks.size > 0 -%}
+      <ol class="alp-ethos__ledger" role="list">
+        {%- for block in section.blocks -%}
+          <li class="alp-ethos__row alp-reveal" {{ block.shopify_attributes }}>
+            {%- comment -%}
+              The numeral is decoration, not content — the line reads the same
+              without it, and a screen reader shouldn't count the weather.
+            {%- endcomment -%}
+            <span class="alp-ethos__n" aria-hidden="true">{{ forloop.index | prepend: '0' | slice: -2, 2 }}</span>
+            <p class="alp-ethos__line">{{ block.settings.text | escape }}</p>
+          </li>
+        {%- endfor -%}
+      </ol>
+    {%- endif -%}
+
+    {%- if section.settings.passage_a != blank or section.settings.passage_b != blank -%}
+      <div class="alp-ethos__passage alp-reveal">
+        {%- if section.settings.passage_a != blank -%}
+          <div class="alp-ethos__col">{{ section.settings.passage_a }}</div>
+        {%- endif -%}
+        {%- if section.settings.passage_b != blank -%}
+          <div class="alp-ethos__col">{{ section.settings.passage_b }}</div>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Bush Riding ethos",
+  "tag": "div",
+  "settings": [
+    {
+      "type": "select",
+      "id": "ground",
+      "label": "Ground",
+      "options": [
+        { "value": "bone", "label": "Bone — content ground, reads as a panel on the mist page" },
+        { "value": "mist", "label": "Mist — continuous with the home page" },
+        { "value": "olive", "label": "Olive — dark slab, bone type" }
+      ],
+      "default": "bone"
+    },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Made for the detour" },
+    {
+      "type": "textarea",
+      "id": "statement",
+      "label": "Statement",
+      "default": "Bush Riding designs are made for riding a bike through the Australian Bush."
+    },
+    {
+      "type": "richtext",
+      "id": "intro",
+      "label": "Intro",
+      "default": "<p>We make gear for those who feel drawn to adventure and the unknown.</p><p>Allowing for comfortable exploration in one of our planet's most unforgiving climates.</p><p>For those who embark on a journey through the Aussie bush, better come prepared.</p>"
+    },
+    { "type": "header", "content": "The country" },
+    {
+      "type": "textarea",
+      "id": "country_line",
+      "label": "Opening line",
+      "default": "Our country is vast, breath-taking and at times, unforgiving."
+    },
+    {
+      "type": "paragraph",
+      "content": "Each landscape below is a block. Add, reorder or remove them — the numerals renumber themselves."
+    },
+    { "type": "header", "content": "The passage" },
+    {
+      "type": "richtext",
+      "id": "passage_a",
+      "label": "Left column",
+      "default": "<p>For centuries, people traversed this land atop a saddle.</p><p>Trusting their steed to confidently navigate the unforgiving terrain and arid climate.</p><p>Years spent droving, leaving behind the trails we still ride today.</p>"
+    },
+    {
+      "type": "richtext",
+      "id": "passage_b",
+      "label": "Right column",
+      "default": "<p>We've swapped the steed for a steel frame and the drover's swag for a bar bag.</p><p>We ride the same dirt, chase the same horizons, seek the same shelter.</p><p>Because somewhere beyond the city limits, the noise falls away.</p><p>The road narrows. The surface softens and the country opens up.</p>"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "line",
+      "name": "Landscape",
+      "settings": [{ "type": "textarea", "id": "text", "label": "Line" }]
+    }
+  ],
+  "max_blocks": 12,
+  "presets": [
+    {
+      "name": "Bush Riding ethos",
+      "blocks": [
+        { "type": "line", "settings": { "text": "Sweltering summer storms electrocute the sky and clap our ears with thunder." } },
+        { "type": "line", "settings": { "text": "Ancient river red gums groan and creak, whispering secrets older than the trails beneath them." } },
+        { "type": "line", "settings": { "text": "Icy mountain mornings bite our fingers and fog our breath before the warm sun crests the horizon." } },
+        { "type": "line", "settings": { "text": "Coastal cliffs roar with salt spray, drowning our thoughts beneath crashing swell." } },
+        { "type": "line", "settings": { "text": "Rainforest canopies drip and hum, drenching our skin in humidity thick enough to taste." } },
+        { "type": "line", "settings": { "text": "Star-choked outback skies swallow the darkness whole, humbling us beneath more light than we've ever known." } }
+      ]
+    }
+  ]
+}
+{% endschema %}

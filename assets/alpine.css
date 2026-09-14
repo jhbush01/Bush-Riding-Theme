@@ -1371,3 +1371,153 @@ body.waitlist #MainContent { padding-top: 0; }
   .wl__form { flex-direction: column; }
   .wl__submit { justify-content: center; }
 }
+
+/* ── Ethos (the brand story) ─────────────────────────────────────────────────
+   Built for density. The home page's problem was never spacing values, it was
+   that four sections each said one short thing and left the width unused; this
+   one says a lot and uses all of it.
+
+   Three shapes in a row so the eye keeps moving: a statement with its support
+   running beside it, a numbered ledger of landscapes across the full measure,
+   then two columns of prose. Hairlines do the dividing — no boxes, no cards. */
+.alp-ethos { padding: clamp(40px, 6vw, 84px) var(--alp-pad-page); }
+.alp-ethos--bone { background: var(--alp-bg); color: var(--alp-ink); }
+.alp-ethos--mist { background: var(--alp-mist); color: var(--alp-ink); }
+.alp-ethos--olive { background: var(--alp-olive); color: var(--alp-bg); }
+
+.alp-ethos__inner { max-width: 1280px; margin: 0 auto; }
+
+/* Lead: statement left, supporting lines right. On a phone they stack, and the
+   statement stops being a column heading and just leads. */
+.alp-ethos__lead {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: clamp(16px, 3vw, 48px);
+  align-items: start;
+  padding-bottom: clamp(20px, 3vw, 32px);
+}
+
+.alp-ethos__eyebrow {
+  grid-column: 1 / -1;
+  margin: 0 0 clamp(10px, 1.6vw, 18px);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--alp-accent);
+}
+.alp-ethos--olive .alp-ethos__eyebrow { color: var(--alp-haze); }
+
+.alp-ethos__statement {
+  margin: 0;
+  font-family: var(--alp-font-display);
+  font-weight: 600;
+  font-size: clamp(1.35rem, 2.6vw, 2.1rem);
+  line-height: 1.14;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+.alp-ethos__intro { display: flex; flex-direction: column; gap: 10px; }
+.alp-ethos__intro p {
+  margin: 0;
+  font-size: clamp(0.92rem, 0.5vw + 0.82rem, 1.02rem);
+  line-height: 1.5;
+  color: rgba(76, 75, 59, 0.82);
+}
+.alp-ethos--olive .alp-ethos__intro p { color: var(--alp-haze); }
+
+/* The hinge line between the lead and the ledger — full measure, a size up,
+   with the rule above it doing the separating. */
+.alp-ethos__country {
+  margin: 0;
+  padding: clamp(18px, 2.6vw, 28px) 0 clamp(14px, 2vw, 22px);
+  border-top: 1px solid var(--alp-line);
+  font-family: var(--alp-font-display);
+  font-weight: 600;
+  font-size: clamp(1.05rem, 1.8vw, 1.5rem);
+  line-height: 1.2;
+  text-wrap: balance;
+}
+.alp-ethos--olive .alp-ethos__country { border-top-color: var(--alp-line-on-dark, rgba(237, 236, 197, 0.3)); }
+
+/* The ledger. Three columns of landscapes on a desktop, two on a tablet, one
+   on a phone — the rows keep their hairline at every width, so it reads as a
+   list rather than a set of cards. */
+.alp-ethos__ledger {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0 clamp(16px, 2.4vw, 40px);
+}
+
+.alp-ethos__row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: baseline;
+  padding: clamp(12px, 1.6vw, 18px) 0;
+  border-top: 1px solid var(--alp-line);
+}
+.alp-ethos--olive .alp-ethos__row { border-top-color: rgba(237, 236, 197, 0.3); }
+
+.alp-ethos__n {
+  font-size: 0.7rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+  color: var(--alp-accent);
+}
+.alp-ethos--olive .alp-ethos__n { color: var(--alp-haze); }
+
+.alp-ethos__line {
+  margin: 0;
+  font-size: clamp(0.88rem, 0.45vw + 0.8rem, 0.98rem);
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+/* The passage: two columns of prose, rule above, a size down from the ledger's
+   neighbours so the section lands quietly rather than shouting to the end. */
+.alp-ethos__passage {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(16px, 3vw, 48px);
+  margin-top: clamp(22px, 3vw, 36px);
+  padding-top: clamp(18px, 2.6vw, 28px);
+  border-top: 1px solid var(--alp-line);
+}
+.alp-ethos--olive .alp-ethos__passage { border-top-color: rgba(237, 236, 197, 0.3); }
+
+.alp-ethos__col { display: flex; flex-direction: column; gap: 9px; }
+.alp-ethos__col p {
+  margin: 0;
+  font-size: clamp(0.9rem, 0.45vw + 0.82rem, 1rem);
+  line-height: 1.5;
+  color: rgba(76, 75, 59, 0.88);
+  text-wrap: pretty;
+}
+.alp-ethos--olive .alp-ethos__col p { color: var(--alp-haze); }
+
+@media (max-width: 989px) {
+  .alp-ethos__ledger { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 749px) {
+  .alp-ethos__lead { grid-template-columns: 1fr; }
+  .alp-ethos__ledger { grid-template-columns: 1fr; }
+  .alp-ethos__passage { grid-template-columns: 1fr; gap: 9px; }
+}
+
+/* ── Home page density ───────────────────────────────────────────────────────
+   The launch grid was carrying up to 160px of padding at each end — 320px of
+   nothing around a product row, on the one page a new brand most needs to look
+   busy. Scoped to the home template so the collection and product pages keep
+   the editorial spacing the design system asks for. */
+body.template-index .alp-collection { padding: clamp(36px, 5vw, 72px) var(--alp-pad-page); }
+body.template-index .alp-collection__head { margin-bottom: clamp(18px, 2.4vw, 28px); }
+body.template-index .alp-gate { padding: clamp(28px, 4.5vw, 56px) var(--alp-pad-page) clamp(22px, 3vw, 40px); }
+body.template-index .alp-trio { padding-bottom: clamp(22px, 3vw, 40px); }
+body.template-index .alp-manifesto--page { padding: clamp(20px, 3vw, 40px) var(--alp-pad-page); }

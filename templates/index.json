@@ -93,11 +93,70 @@
         "products_to_show": 4,
         "panel_product": ""
       }
+    },
+    "alpine_ethos": {
+      "type": "alpine-ethos",
+      "blocks": {
+        "line_1": {
+          "type": "line",
+          "settings": {
+            "text": "Sweltering summer storms electrocute the sky and clap our ears with thunder."
+          }
+        },
+        "line_2": {
+          "type": "line",
+          "settings": {
+            "text": "Ancient river red gums groan and creak, whispering secrets older than the trails beneath them."
+          }
+        },
+        "line_3": {
+          "type": "line",
+          "settings": {
+            "text": "Icy mountain mornings bite our fingers and fog our breath before the warm sun crests the horizon."
+          }
+        },
+        "line_4": {
+          "type": "line",
+          "settings": {
+            "text": "Coastal cliffs roar with salt spray, drowning our thoughts beneath crashing swell."
+          }
+        },
+        "line_5": {
+          "type": "line",
+          "settings": {
+            "text": "Rainforest canopies drip and hum, drenching our skin in humidity thick enough to taste."
+          }
+        },
+        "line_6": {
+          "type": "line",
+          "settings": {
+            "text": "Star-choked outback skies swallow the darkness whole, humbling us beneath more light than we've ever known."
+          }
+        }
+      },
+      "block_order": [
+        "line_1",
+        "line_2",
+        "line_3",
+        "line_4",
+        "line_5",
+        "line_6"
+      ],
+      "settings": {
+        "ground": "bone",
+        "eyebrow": "Made for the detour",
+        "statement": "Bush Riding designs are made for riding a bike through the Australian Bush.",
+        "intro": "<p>We make gear for those who feel drawn to adventure and the unknown.</p><p>Allowing for comfortable exploration in one of our planet's most unforgiving climates.</p><p>For those who embark on a journey through the Aussie bush, better come prepared.</p>",
+        "country_line": "Our country is vast, breath-taking and at times, unforgiving.",
+        "passage_a": "<p>For centuries, people traversed this land atop a saddle.</p><p>Trusting their steed to confidently navigate the unforgiving terrain and arid climate.</p><p>Years spent droving, leaving behind the trails we still ride today.</p>",
+        "passage_b": "<p>We've swapped the steed for a steel frame and the drover's swag for a bar bag.</p><p>We ride the same dirt, chase the same horizons, seek the same shelter.</p><p>Because somewhere beyond the city limits, the noise falls away.</p><p>The road narrows. The surface softens and the country opens up.</p>"
+      }
     }
   },
   "order": [
     "alpine_gate",
     "alpine_photo_trio",
+    "alpine_ethos",
     "alpine_manifesto",
     "alpine_launch_grid"
   ]
