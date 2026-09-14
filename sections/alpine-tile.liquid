@@ -1,0 +1,139 @@
+{%- comment -%}
+  Bush Riding tile — one full-bleed image or clip with its name in the
+  bottom-left corner, edge to edge, no gutter.
+
+  This is the workhorse of the dense home page. Stacked, tiles read as a
+  continuous run of photography with the words sitting IN the picture rather
+  than in a caption beneath it, which is what stops a page with only a handful
+  of sections from looking like a handful of sections.
+
+  Two ways to fill one:
+
+    1. Point it at a collection. It takes the collection's image, title and
+       URL by itself, so the tile keeps working when the collection's artwork
+       changes and there is nothing to keep in sync by hand.
+    2. Set the image (or a clip URL) and the label yourself, for the tiles
+       that aren't a collection — a place, a story, the map.
+
+  An explicit image always wins over the collection's, so option 1 can be
+  overridden one field at a time rather than abandoned.
+{%- endcomment -%}
+
+{%- liquid
+  assign coll = section.settings.collection
+
+  assign media = section.settings.image
+  if media == blank and coll != blank
+    assign media = coll.featured_image
+  endif
+
+  assign label = section.settings.label
+  if label == blank and coll != blank
+    assign label = coll.title
+  endif
+
+  assign url = section.settings.link
+  if url == blank and coll != blank
+    assign url = coll.url
+  endif
+
+  assign height = section.settings.height | default: 'medium'
+-%}
+
+<section
+  class="alp alp-tile alp-tile--{{ height }}{% if section.settings.full_width == false %} alp-tile--inset{% endif %}"
+  {% if label != blank %}aria-label="{{ label | escape }}"{% endif %}
+>
+  {%- if url != blank -%}<a class="alp-tile__hit" href="{{ url }}">{%- endif -%}
+
+  <div class="alp-tile__media">
+    {%- if section.settings.video_url != blank -%}
+      {%- comment -%}
+        Deferred like every other clip on the site: alpine.js only sets the src
+        once the tile is near the viewport, and the image (if set) is the
+        poster, so a slow connection gets a photograph rather than a hole.
+      {%- endcomment -%}
+      <video
+        data-alp-video="{{ section.settings.video_url }}"
+        muted
+        loop
+        playsinline
+        preload="none"
+        {% if label != blank %}aria-label="{{ label | escape }}"{% else %}aria-hidden="true"{% endif %}
+        {% if media != blank %}poster="{{ media | image_url: width: 1800 }}"{% endif %}
+      ></video>
+    {%- elsif media != blank -%}
+      {{ media | image_url: width: 2400 | image_tag: loading: 'lazy', alt: label | default: '' }}
+    {%- else -%}
+      <img
+        src="{{ 'alpine-ph-panel-portrait.svg' | asset_url }}"
+        alt=""
+        width="900"
+        height="1100"
+        loading="lazy"
+        data-asset-note="Warm, dusty Australian landscape — riders small in frame. Set an image on this tile, or point it at a collection that has one."
+      >
+    {%- endif -%}
+  </div>
+
+  {%- if label != blank or section.settings.blurb != blank -%}
+    <div class="alp-tile__plate">
+      {%- if section.settings.eyebrow != blank -%}
+        <p class="alp-tile__eyebrow">{{ section.settings.eyebrow | escape }}</p>
+      {%- endif -%}
+      {%- if label != blank -%}
+        <p class="alp-tile__label{% if url != blank %} alp-tile__label--link{% endif %}">{{ label | escape }}</p>
+      {%- endif -%}
+      {%- if section.settings.blurb != blank -%}
+        <p class="alp-tile__blurb">{{ section.settings.blurb | escape }}</p>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+
+  {%- if url != blank -%}</a>{%- endif -%}
+</section>
+
+{% schema %}
+{
+  "name": "Bush Riding tile",
+  "tag": "div",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "A full-bleed image or clip with its name in the corner. Point it at a collection and it fills itself in; otherwise set the image and label by hand."
+    },
+    { "type": "collection", "id": "collection", "label": "Collection", "info": "Supplies the image, label and link unless you override them below." },
+    { "type": "header", "content": "Overrides" },
+    { "type": "image_picker", "id": "image", "label": "Image", "info": "Wins over the collection's image. Set the crop with the image's focal point." },
+    { "type": "url", "id": "video_url", "label": "Clip URL", "info": "Optional. A direct mp4/mov file URL — plays muted and looping in place of the image, which becomes its poster." },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "info": "Small line above the label." },
+    { "type": "text", "id": "label", "label": "Label", "info": "Defaults to the collection's title." },
+    { "type": "text", "id": "blurb", "label": "Blurb", "info": "One short line under the label. Leave blank on most tiles." },
+    { "type": "url", "id": "link", "label": "Link", "info": "Defaults to the collection." },
+    { "type": "header", "content": "Shape" },
+    {
+      "type": "select",
+      "id": "height",
+      "label": "Height",
+      "options": [
+        { "value": "band", "label": "Band — a slice, for rhythm between grids" },
+        { "value": "short", "label": "Short" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "tall", "label": "Tall" },
+        { "value": "full", "label": "Full screen" }
+      ],
+      "default": "medium"
+    },
+    {
+      "type": "checkbox",
+      "id": "full_width",
+      "label": "Run edge to edge",
+      "default": true,
+      "info": "Off insets the tile inside the page margin."
+    }
+  ],
+  "presets": [
+    { "name": "Bush Riding tile" }
+  ]
+}
+{% endschema %}
