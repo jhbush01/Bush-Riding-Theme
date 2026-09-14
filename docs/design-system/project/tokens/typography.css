@@ -1,0 +1,28 @@
+:root{
+  --font-display:'Caveat Brush',cursive;                 /* sub for DX Burst */
+  --font-heading:'Archivo','Helvetica Neue',sans-serif; /* sub for Aktiv Grotesk Semibold */
+  --weight-heading:600;                                /* Semibold, per the board */
+  --font-body:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+
+  --weight-regular:400;
+  --weight-medium:500;
+  --weight-semibold:600;
+  --weight-bold:700;
+
+  --size-display:clamp(2.4rem,6vw,4.5rem);
+  --size-h1:clamp(1.9rem,4.4vw,3.2rem);
+  --size-h2:clamp(1.5rem,3vw,2.25rem);
+  --size-h3:1.35rem;
+  --size-h4:1.05rem;
+  --size-body-lg:1.125rem;
+  --size-body:1rem;
+  --size-small:0.875rem;
+  --size-micro:0.75rem;
+
+  --leading-display:1.02;
+  --leading-heading:1.15;
+  --leading-body:1.6;
+
+  --tracking-heading:0.005em;
+  --tracking-caps:0.12em;
+}

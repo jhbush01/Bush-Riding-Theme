@@ -1,0 +1,12 @@
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-font-smoothing:antialiased}
+body{margin:0;background:var(--surface-page);color:var(--text-body);font-family:var(--font-body);font-size:var(--size-body);line-height:var(--leading-body)}
+img{display:block;max-width:100%;height:auto}
+h1,h2,h3,h4{font-family:var(--font-heading);font-weight:var(--weight-heading);color:var(--text-heading);line-height:var(--leading-heading);letter-spacing:var(--tracking-heading);margin:0 0 var(--space-5)}
+h1{font-size:var(--size-h1)}h2{font-size:var(--size-h2)}h3{font-size:var(--size-h3)}h4{font-size:var(--size-h4)}
+p{margin:0 0 var(--space-5);text-wrap:pretty}
+a{color:var(--text-body);text-decoration:underline;text-underline-offset:4px}
+a:hover{color:var(--khaki)}
+:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.br-display{font-family:var(--font-display);font-size:var(--size-display);line-height:var(--leading-display)}
+.br-caps{font-family:var(--font-heading);font-weight:var(--weight-heading);font-size:var(--size-micro);letter-spacing:var(--tracking-caps);text-transform:uppercase}

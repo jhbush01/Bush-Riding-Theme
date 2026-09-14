@@ -1,0 +1,48 @@
+<!-- @dsCard group="Components" viewport="700x360" name="Bush Map primitives" subtitle="Button, FilterPill, Toggle, Field, Select, Legend, StatusBadge, Toast, ResultItem, MapPill" -->
+<!doctype html><html lang="en"><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{margin:0;padding:0}.brm{background:var(--cream);padding:20px}</style>
+</head><body><div id="root"></div>
+<script type="text/babel">
+const { Button, FilterPill, Toggle, Field, Select, Legend, StatusBadge, Toast, ResultItem, MapPill } = window.BushRidingDesignSystem_e1a4ad;
+function Demo(){
+  const [t,setT]=React.useState('rocky');
+  const [cats,setCats]=React.useState({routes:true,bush:true,famous:false});
+  return (<div className="brm"><div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:20,alignItems:'start'}}>
+    <div style={{display:'grid',gap:14}}>
+      <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+        <Button variant="primary" style={{width:'auto'}}>Get the route</Button>
+        <Button>Navigate</Button>
+        <Button variant="danger">Delete</Button>
+      </div>
+      <div style={{display:'flex',gap:7,flexWrap:'wrap'}}>
+        <FilterPill tone="routes" active={cats.routes} onClick={()=>setCats(c=>({...c,routes:!c.routes}))}>Community Routes</FilterPill>
+        <FilterPill tone="bush" active={cats.bush} onClick={()=>setCats(c=>({...c,bush:!c.bush}))}>Bush Events</FilterPill>
+        <FilterPill tone="famous" active={cats.famous} onClick={()=>setCats(c=>({...c,famous:!c.famous}))}>Famous Events</FilterPill>
+      </div>
+      <Toggle items={[{value:'groomed',label:'Groomed'},{value:'rocky',label:'Rocky'},{value:'proper-mud',label:'Proper Mud'}]} value={t} onChange={setT} />
+      <div style={{display:'flex',gap:6}}>
+        <Select label="State" options={['All states','VIC','NSW','SA','WA']} style={{flex:1}} />
+        <Select label="Region" options={['All regions','High country','Flinders']} style={{flex:1}} />
+      </div>
+      <MapPill items={[{value:'routes',label:'Routes'},{value:'events',label:'Events'}]} value="routes" onChange={()=>{}} />
+    </div>
+    <div style={{display:'grid',gap:14}}>
+      <Field label="Email" type="email" placeholder="you@email.com" />
+      <div><div style={{fontSize:11,fontWeight:600,textTransform:'uppercase',letterSpacing:'.08em',color:'var(--ink-soft)',marginBottom:8}}>What the pins mean</div><Legend /></div>
+      <div style={{display:'flex',gap:8}}>
+        <StatusBadge tone="pending">Pending</StatusBadge><StatusBadge tone="approved">Approved</StatusBadge><StatusBadge tone="rejected">Rejected</StatusBadge>
+      </div>
+      <ul style={{listStyle:'none',margin:0,padding:0,background:'var(--cream-panel)',border:'1px solid var(--line)',borderRadius:4}}>
+        <ResultItem name="Wonnangatta loop" meta="210 km · Gravel · VIC" active />
+        <ResultItem name="Billy Goat Bluff" meta="64 km · Gravel · VIC" />
+      </ul>
+      <Toast>Route saved to My Rides</Toast>
+    </div>
+  </div></div>);
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<Demo />);
+</script></body></html>

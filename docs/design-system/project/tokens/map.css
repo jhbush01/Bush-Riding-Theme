@@ -1,0 +1,31 @@
+/* Bush Map skin. Same variable names as map/styles/app.css so the app's markup
+   keeps working, re-skinned strictly to the brand palette. The app's terracotta
+   and plum pins are replaced with khaki and flare. */
+.brm{
+  --cream:var(--bone);
+  --cream-panel:#f4f3dc;      /* bone lifted ~4% for panels — derived, flagged */
+  --ink:var(--olive);
+  --ink-soft:var(--khaki);
+  --line:rgba(76,75,59,0.24);
+  --olive:#4c4b3b;
+  --sage:#b9bea3;
+  --lemon:#ede270;
+  --water:#a7b8b4;
+  --terracotta:#828059;       /* replaced: brand has no terracotta */
+  --plum:#ede270;             /* replaced: brand has no plum */
+  --card-bg:#eceada;
+  --card-inset:#f4f3dc;
+  --card-inset-line:rgba(76,75,59,0.18);
+  --card-ink:#4c4b3b;
+  --card-ink-2:#4c4b3b;
+  --card-ink-3:#6d6c58;
+  --card-muted:#828059;
+  --card-label:#828059;
+  --card-rust:#828059;
+  --card-rust-2:#828059;
+  --card-line:rgba(76,75,59,0.18);
+  --ui-font:var(--font-heading);
+  --head-font:var(--font-heading);
+  font-family:var(--font-body);
+  color:var(--olive);
+}

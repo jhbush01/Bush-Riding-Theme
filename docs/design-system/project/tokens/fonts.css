@@ -1,0 +1,13 @@
+/* Bush Riding type — STRICTLY the three tiers on the brand board (Artboard 10).
+     1. DX Burst                 display / logo — the wordmark and print headings
+     2. Aktiv Grotesk Semibold   subheadings + all website headings
+     3. Inter Regular            all body copy
+
+   SUBSTITUTIONS (no binaries supplied — see readme):
+     DX Burst                 -> "Caveat Brush" (nearest free heavy brush script).
+                                 The real logo is artwork (assets/logo-wordmark.png);
+                                 use the image wherever the mark appears, never this fallback.
+     Aktiv Grotesk Semibold   -> "Archivo" 600 (nearest free neo-grotesque)
+     Inter Regular            -> EXACT.
+   Send the licensed .woff2 files and swap this @import for @font-face rules. */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Archivo:wght@400;500;600;700&family=Caveat+Brush&display=swap');

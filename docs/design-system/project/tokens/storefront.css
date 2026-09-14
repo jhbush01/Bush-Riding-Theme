@@ -1,0 +1,19 @@
+/* Storefront skin. The Shopify theme namespaces everything --alp-*; those names
+   are kept so theme markup keeps working, but every VALUE is now the brand
+   board's. The theme's own navy (#2E2F9E) and lavender haze (#B9B3DF) are
+   retired — they are not brand colours. */
+:root{
+  --alp-bg:var(--bone);
+  --alp-surface:var(--paper);
+  --alp-ink:var(--olive);
+  --alp-olive:var(--olive);
+  --alp-haze:var(--sage);      /* was lavender — now sage on olive */
+  --alp-accent:var(--khaki);   /* was navy — now khaki */
+  --alp-citrus:var(--flare);   /* was #E8F13C — now the board's flare */
+  --alp-line:var(--line);
+  --alp-font-display:var(--font-heading); /* Aktiv Grotesk Semibold, not Outfit */
+  --alp-font-ui:var(--font-body);
+  --alp-space-section:var(--space-section);
+  --alp-pad-page:var(--pad-page);
+  --alp-radius-chip:var(--radius-chip);
+}
