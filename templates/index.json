@@ -14,158 +14,72 @@
       "settings": {
         "video_url": "https://cdn.shopify.com/videos/c/o/v/e3a3e900b3154a1baf53e0a1cb5a2c2e.mov",
         "image": "shopify://shop_images/IMG_4812.jpg",
+        "tagline": "Made for the detour",
+        "place": "Mount Beerwah, Glass House Mountains",
+        "frame": "01",
+        "show_next_ride": true,
+        "next_ride_note": "Free · all welcome",
         "show_wordmark": true,
-        "wordmark_tone": "bone",
-        "show_scroll_cue": true,
-        "shorts_label": "Shop the launch",
-        "shorts_fallback_url": "/collections/all",
-        "map_label": "BUSH MAP™",
-        "map_url": "https://map.bushriding.cc"
+        "wordmark_tone": "mist"
+      }
+    },
+    "alpine_country": {
+      "type": "alpine-passage",
+      "settings": {
+        "ground": "bone",
+        "size": "large",
+        "rule_below": true,
+        "eyebrow": "The country",
+        "heading": "Our country is vast, breath-taking and at times, unforgiving.",
+        "body": "<p>Sweltering summer storms electrocute the sky and clap our ears with thunder.</p><p>Star-choked outback skies swallow the darkness whole.</p>"
+      }
+    },
+    "alpine_tile_story": {
+      "type": "alpine-tile",
+      "settings": {
+        "collection": "",
+        "image": "shopify://shop_images/autumn-trees-hillside.jpg",
+        "video_url": "",
+        "eyebrow": "Gap Creek Reserve, Bellbowrie",
+        "label": "",
+        "blurb": "",
+        "frame": "02",
+        "link": "",
+        "veil": true,
+        "height": "medium",
+        "full_width": true
       }
     },
     "alpine_shelf": {
       "type": "alpine-shelf",
       "settings": {
         "collection": "",
-        "products_to_show": 8,
-        "columns": "4",
-        "heading": "The launch",
-        "link_label": "All products",
+        "products_to_show": 3,
+        "columns": "3",
+        "eyebrow": "The launch<br>November",
+        "heading": "Eight pieces, cut for long days.",
+        "link_label": "Shop the launch ✦",
         "link_url": "/collections/all"
       }
     },
-    "alpine_tile_shop": {
-      "type": "alpine-tile",
+    "alpine_map": {
+      "type": "alpine-passage",
       "settings": {
-        "collection": "",
-        "image": "shopify://shop_images/IMG_4812.jpg",
-        "video_url": "",
-        "eyebrow": "Mount Beerwah, Glass House Mountains",
-        "label": "Shop all",
-        "blurb": "",
-        "link": "/collections/all",
-        "height": "tall",
-        "full_width": true
-      }
-    },
-    "alpine_ethos": {
-      "type": "alpine-ethos",
-      "blocks": {
-        "line_1": {
-          "type": "line",
-          "settings": {
-            "text": "Sweltering summer storms electrocute the sky and clap our ears with thunder."
-          }
-        },
-        "line_2": {
-          "type": "line",
-          "settings": {
-            "text": "Ancient river red gums groan and creak, whispering secrets older than the trails beneath them."
-          }
-        },
-        "line_3": {
-          "type": "line",
-          "settings": {
-            "text": "Icy mountain mornings bite our fingers and fog our breath before the warm sun crests the horizon."
-          }
-        },
-        "line_4": {
-          "type": "line",
-          "settings": {
-            "text": "Coastal cliffs roar with salt spray, drowning our thoughts beneath crashing swell."
-          }
-        },
-        "line_5": {
-          "type": "line",
-          "settings": {
-            "text": "Rainforest canopies drip and hum, drenching our skin in humidity thick enough to taste."
-          }
-        },
-        "line_6": {
-          "type": "line",
-          "settings": {
-            "text": "Star-choked outback skies swallow the darkness whole, humbling us beneath more light than we've ever known."
-          }
-        }
-      },
-      "block_order": [
-        "line_1",
-        "line_2",
-        "line_3",
-        "line_4",
-        "line_5",
-        "line_6"
-      ],
-      "settings": {
-        "ground": "bone",
-        "eyebrow": "Made for the detour",
-        "statement": "Bush Riding designs are made for riding a bike through the Australian Bush.",
-        "intro": "<p>We make gear for those who feel drawn to adventure and the unknown.</p><p>Allowing for comfortable exploration in one of our planet's most unforgiving climates.</p><p>For those who embark on a journey through the Aussie bush, better come prepared.</p>",
-        "country_line": "Our country is vast, breath-taking and at times, unforgiving.",
-        "passage_a": "<p>For centuries, people traversed this land atop a saddle.</p><p>Trusting their steed to confidently navigate the unforgiving terrain and arid climate.</p><p>Years spent droving, leaving behind the trails we still ride today.</p>",
-        "passage_b": "<p>We've swapped the steed for a steel frame and the drover's swag for a bar bag.</p><p>We ride the same dirt, chase the same horizons, seek the same shelter.</p><p>Because somewhere beyond the city limits, the noise falls away.</p><p>The road narrows. The surface softens and the country opens up.</p>"
-      }
-    },
-    "alpine_tile_map": {
-      "type": "alpine-tile",
-      "settings": {
-        "collection": "",
-        "image": "shopify://shop_images/IMG_2419.jpg",
-        "video_url": "",
-        "eyebrow": "Mooloolah Forest, Sunshine Coast",
-        "label": "BUSH MAP™",
-        "blurb": "Gravel routes, ride diaries, and the tracks that didn't make the map.",
-        "link": "https://map.bushriding.cc",
-        "height": "medium",
-        "full_width": true
-      }
-    },
-    "alpine_manifesto": {
-      "type": "alpine-manifesto",
-      "blocks": {
-        "para_1": {
-          "type": "paragraph",
-          "settings": {
-            "text": "<p>We ride for the detour ∧ the café stop ∧ the track that didn't make the map.</p>"
-          }
-        },
-        "refrain_1": {
-          "type": "refrain",
-          "settings": {
-            "text": "<p>Ride with us ✦</p>"
-          }
-        }
-      },
-      "block_order": [
-        "para_1",
-        "refrain_1"
-      ],
-      "settings": {
-        "ground": "page"
-      }
-    },
-    "alpine_tile_band": {
-      "type": "alpine-tile",
-      "settings": {
-        "collection": "",
-        "image": "shopify://shop_images/autumn-trees-hillside.jpg",
-        "video_url": "",
-        "eyebrow": "",
-        "label": "Gap Creek Reserve, Bellbowrie",
-        "blurb": "",
-        "link": "",
-        "height": "band",
-        "full_width": true
+        "ground": "olive",
+        "size": "large",
+        "rule_below": false,
+        "eyebrow": "Bush Map™",
+        "heading": "Gravel routes, ride diaries, and the tracks that didn't make the map.",
+        "cta_label": "Open the map",
+        "cta_url": "https://map.bushriding.cc"
       }
     }
   },
   "order": [
     "alpine_hero",
+    "alpine_country",
+    "alpine_tile_story",
     "alpine_shelf",
-    "alpine_tile_shop",
-    "alpine_ethos",
-    "alpine_tile_map",
-    "alpine_manifesto",
-    "alpine_tile_band"
+    "alpine_map"
   ]
 }

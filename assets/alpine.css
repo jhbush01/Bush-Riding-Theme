@@ -432,6 +432,8 @@ body.alp-menu-open { overflow: hidden; }
 @media (min-width: 990px) {
   .alp-fab,
   .alp-sheet { display: none; }
+  /* The rail already carries the next ride down the side of every page. */
+  .alp-nr--card { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -439,7 +441,14 @@ body.alp-menu-open { overflow: hidden; }
   .alp-sheet__scrim { transition: none; }
 }
 
-/* ── Hero (f_01/f_16: full-bleed media, chip product tags over the image) ── */
+/* ── Hero ────────────────────────────────────────────────────────────────────
+   Full-bleed media under an olive veil, wordmark and tagline centred, and a
+   caption row naming the country at the foot.
+
+   Desktop fills the viewport. Mobile deliberately does not: the hero stops
+   short of the fold so the next-ride card below it is already partly visible,
+   and so that card's CTA clears the floating chips. Sizing the mobile hero to
+   the full fold is exactly what pushed that CTA under the nav band before. */
 .alp-hero { position: relative; min-height: 100svh; overflow: hidden; }
 
 .alp-hero__media,
@@ -451,39 +460,186 @@ body.alp-menu-open { overflow: hidden; }
   object-fit: cover;
 }
 
-/* Centred wordmark over the hero photo — sized by height so it holds its
-   aspect ratio, drop-shadow matched to the nav type's text-shadow so it reads
-   over bright sky the same way the header does. */
-.alp-hero__wordmark {
+/* A ramp, not a flat fill: the photograph keeps some air at the top while the
+   caption row at the foot sits on the darkest ground it has. */
+.alp-hero__veil {
   position: absolute;
-  top: 44%;
-  left: 0;
-  right: 0;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    rgba(76, 75, 59, 0.7) 0%,
+    rgba(76, 75, 59, 0.76) 55%,
+    rgba(76, 75, 59, 0.92) 100%
+  );
+}
+
+.alp-hero__centre {
+  position: absolute;
+  inset: 0;
   z-index: 2;
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
+  gap: 26px;
+  padding: 0 var(--alp-pad-page);
   pointer-events: none;
 }
-.alp-hero__wordmark img {
-  height: clamp(2.6rem, 3.6vw + 1.6rem, 4.9rem);
-  width: auto;
-  filter: drop-shadow(0 2px 10px rgba(47, 47, 38, 0.5));
+
+/* Two classes deep so it beats the blanket `.alp img` max-width rule (0,1,1),
+   which would otherwise cap the mark at the container width. */
+.alp-hero__centre .alp-hero__mark {
+  display: block;
+  width: min(520px, 62vw);
+  height: auto;
+  max-width: none;
 }
 
-.alp-hero__cta {
+.alp-hero__tagline {
+  margin: 0;
+  font-family: var(--alp-font-ui);
+  font-size: 0.594rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--alp-bg);
+  text-align: center;
+}
+
+.alp-hero__caption {
   position: absolute;
-  bottom: clamp(20px, 4vh, 40px);
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
+  bottom: 34px;
   z-index: 2;
   display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 56px;
 }
 
-@media (max-width: 749px) {
-  .alp-hero__cta-map { display: none; }
+.alp-hero__place {
+  margin: 0;
+  font-family: var(--alp-font-ui);
+  font-size: 0.594rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--alp-bg);
+}
+
+@media (max-width: 989px) {
+  .alp-hero { min-height: 64svh; }
+  .alp-hero__centre { gap: 18px; }
+  .alp-hero__caption { bottom: 24px; padding: 0 20px; }
+}
+
+/* ── Passage (the caption-gutter primitive) ──────────────────────────────────
+   200px of gutter for the eyebrow, the rest for the field. Every text block in
+   the desktop system runs on this grid so the caption column stays on one line
+   the whole way down the site. The gutter collapses on a phone — 200px of a
+   390px screen is not a gutter, it is half the page. */
+.alp-passage {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 56px;
+  padding: 80px 56px;
+  background: var(--alp-bg);
+  color: var(--alp-ink);
+}
+
+.alp-passage__eyebrow {
+  margin: 0;
+  font-family: var(--alp-font-ui);
+  font-size: 0.594rem;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: inherit;
+}
+
+.alp-passage__field {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.alp-passage__heading {
+  margin: 0;
+  font-family: var(--alp-font-display);
+  font-weight: 600;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  text-wrap: pretty;
+  color: inherit;
+}
+.alp-passage--large .alp-passage__heading { font-size: clamp(1.75rem, 2.2vw + 1rem, 2.5rem); max-width: 22ch; }
+.alp-passage--medium .alp-passage__heading { font-size: clamp(1.5rem, 1.4vw + 1rem, 1.75rem); letter-spacing: -0.015em; }
+
+.alp-passage__body { max-width: 640px; color: inherit; }
+.alp-passage__body > :first-child { margin-top: 0; }
+.alp-passage__body > :last-child { margin-bottom: 0; }
+.alp-passage__body p {
+  margin: 0 0 14px;
+  font-size: 1rem;
+  line-height: 1.65;
+  text-wrap: pretty;
+}
+/* The supporting paragraph steps down — the design runs the opening line at
+   16px and everything after it at 15px. */
+.alp-passage__body p + p { font-size: 0.9375rem; }
+
+.alp-passage__cta { margin-top: 2px; padding: 13px 20px; }
+
+/* The 3px mist divider. Thick enough to read as a deliberate rule rather than
+   a hairline that got away — it is the system's section break. */
+.alp-passage--ruled { border-bottom: 3px solid var(--alp-mist); }
+
+/* Olive — the slab that does the heavy work. Sage carries the eyebrow and the
+   supporting copy; bone carries the headline. */
+.alp-passage--olive { background: var(--alp-ink); color: var(--alp-bg); }
+.alp-passage--olive .alp-passage__eyebrow { color: var(--alp-haze); }
+.alp-passage--olive .alp-passage__body p + p { color: var(--alp-haze); }
+.alp-passage--olive .alp-passage__cta {
+  background: var(--alp-bg);
+  border-color: var(--alp-bg);
+  color: var(--alp-ink);
+}
+.alp-passage--olive a.alp-passage__cta:hover { background: var(--alp-haze); border-color: var(--alp-haze); }
+
+/* Mist — headline scale only. The eyebrow moves onto an olive tab rather than
+   sitting on the colour, because olive on mist is 4.35:1 and will not carry
+   9.5px of letterspaced caps. */
+.alp-passage--mist {
+  background: var(--alp-mist);
+  align-items: center;
+}
+.alp-passage--mist .alp-passage__eyebrow {
+  display: inline-block;
+  justify-self: start;
+  padding: 6px 9px;
+  background: var(--alp-ink);
+  color: var(--alp-bg);
+}
+.alp-passage--mist .alp-passage__cta {
+  background: var(--alp-ink);
+  border-color: var(--alp-ink);
+  color: var(--alp-bg);
+}
+
+@media (max-width: 989px) {
+  .alp-passage {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 30px var(--alp-pad-page);
+  }
+  .alp-passage__field { gap: 16px; }
+  .alp-passage--large .alp-passage__heading { max-width: none; }
+  .alp-passage--mist { align-items: stretch; }
 }
 
 /* ── Gate (option 2a) ─────────────────────────────────────────────────────────
@@ -1628,62 +1784,110 @@ body.waitlist #MainContent { padding-top: 0; }
   max-width: 46ch;
 }
 
-/* ── Shelf ───────────────────────────────────────────────────────────────────
-   Products edge to edge on bone, separated by a single olive hairline rather
-   than by space. Two across on a phone, up to four on desktop.
+/* Veil + corner caption (turn 7b/9a).
 
-   The hairlines are drawn as insets on each cell rather than as a grid gap:
-   a gap would show the mist ground through the grid and break the field. */
+   The veil is a ramp rather than the plate's short scrim, so a caption at the
+   foot of a tall picture has real ground under it. Where it is on, the plate's
+   own gradient would only double it up. */
+.alp-tile__veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(rgba(76, 75, 59, 0) 40%, rgba(76, 75, 59, 0.88));
+  pointer-events: none;
+}
+.alp-tile__veil ~ .alp-tile__plate { background: none; }
+
+/* The caption runs corner to corner — place on the left, frame number on the
+   right — so a stack of tiles reads as a contact sheet. */
+.alp-tile__plate {
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+}
+.alp-tile__plate-main { min-width: 0; }
+.alp-tile__frame { flex: none; margin: 0; }
+
+/* Full bone, not 78% of it: a letterspaced 9.5px cap line at 0.78 opacity over
+   photography is the exact case that failed contrast in review. */
+.alp-tile__eyebrow { color: var(--alp-bg); }
+
+/* ── Shelf ───────────────────────────────────────────────────────────────────
+   Products on bone, a mist rule under each picture, gaps between cells rather
+   than hairlines around them.
+
+   The grid used to draw hairline insets on every cell precisely because a gap
+   would have shown the mist home-page ground through the field. The ground is
+   bone now, so a gap shows bone — and the rule that carries meaning has moved
+   to the meta line under each picture, where it is mist like every other
+   dividing rule in the system. */
 .alp-shelf { background: var(--alp-bg); }
 
+/* The head runs on the same caption gutter as every passage. */
 .alp-shelf__head {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 56px;
+  align-items: baseline;
+  padding: 90px 56px 40px;
+}
+
+.alp-shelf__eyebrow {
+  margin: 0;
+  font-family: var(--alp-font-ui);
+  font-size: 0.594rem;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.alp-shelf__headfield {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
-  padding: clamp(18px, 2.6vw, 30px) var(--alp-pad-page) clamp(12px, 1.8vw, 18px);
 }
+
 .alp-shelf__heading {
   margin: 0;
   font-family: var(--alp-font-display);
   font-weight: 600;
-  font-size: clamp(1.05rem, 1.1vw + 0.8rem, 1.6rem);
-  line-height: 1.15;
+  font-size: clamp(1.3rem, 1.4vw + 0.95rem, 1.75rem);
+  line-height: 1.2;
+  letter-spacing: -0.015em;
 }
+
+/* An olive chip, not an underlined link: this is the one call to action in the
+   block and it should read as a thing you press. */
 .alp-shelf__more {
-  font-family: var(--alp-font-ui);
-  font-weight: 600;
-  font-size: 0.8rem;
-  color: var(--alp-accent);
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
+  background: var(--alp-ink);
+  border-color: var(--alp-ink);
+  color: var(--alp-bg);
   white-space: nowrap;
 }
-.alp-shelf__more:hover { color: var(--alp-ink); }
+a.alp-shelf__more:hover { background: var(--alp-accent); border-color: var(--alp-accent); color: var(--alp-bg); }
 
 .alp-shelf__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  border-top: 1px solid var(--alp-line);
+  gap: 14px;
+  padding: 0 var(--alp-pad-page) 30px;
 }
 
-.alp-shelf__cell {
-  display: block;
-  padding: 10px 12px 16px;
-  color: inherit;
-  text-decoration: none;
-  border-bottom: 1px solid var(--alp-line);
-  border-right: 1px solid var(--alp-line);
-}
-/* The right-hand column would otherwise draw a rule down the page edge. */
-.alp-shelf__grid > .alp-shelf__cell:nth-child(2n) { border-right: 0; }
+.alp-shelf__cell { display: block; color: inherit; text-decoration: none; }
 
 .alp-shelf__pic { position: relative; }
+/* Cover, not contain: the brand shoots product in the country rather than
+   cut out on white, and a 3:4 documentary frame wants filling. Switch to
+   `contain` if the catalogue ever moves to packshots. */
 .alp-shelf__pic img {
   width: 100%;
-  aspect-ratio: 4 / 5;
-  object-fit: contain;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
 }
 
 .alp-shelf__flag {
@@ -1700,19 +1904,29 @@ body.waitlist #MainContent { padding-top: 0; }
   letter-spacing: 0.04em;
 }
 
+.alp-shelf__meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--alp-mist);
+}
+
 .alp-shelf__name {
-  margin: 9px 0 0;
+  margin: 0;
   font-family: var(--alp-font-ui);
-  font-weight: 600;
-  font-size: clamp(0.8rem, 0.3vw + 0.74rem, 0.92rem);
+  font-weight: 400;
+  font-size: clamp(0.781rem, 0.3vw + 0.72rem, 0.9375rem);
   line-height: 1.3;
 }
 a.alp-shelf__cell:hover .alp-shelf__name { color: var(--alp-accent); }
 
 .alp-shelf__price {
-  margin: 3px 0 0;
-  font-size: clamp(0.78rem, 0.25vw + 0.73rem, 0.88rem);
-  color: rgba(76, 75, 59, 0.72);
+  margin: 0;
+  flex: none;
+  font-size: clamp(0.781rem, 0.3vw + 0.72rem, 0.9375rem);
 }
 .alp-shelf__price s { margin-right: 5px; color: rgba(76, 75, 59, 0.45); }
 
@@ -1729,34 +1943,19 @@ a.alp-shelf__cell:hover .alp-shelf__name { color: var(--alp-accent); }
 @media (min-width: 750px) {
   .alp-shelf--3up .alp-shelf__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .alp-shelf--4up .alp-shelf__grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-
-  /* Re-hang the "no rule on the last column" rule at each column count. */
-  .alp-shelf--3up .alp-shelf__grid > .alp-shelf__cell:nth-child(2n) { border-right: 1px solid var(--alp-line); }
-  .alp-shelf--3up .alp-shelf__grid > .alp-shelf__cell:nth-child(3n) { border-right: 0; }
-  .alp-shelf--4up .alp-shelf__grid > .alp-shelf__cell:nth-child(2n) { border-right: 1px solid var(--alp-line); }
-  .alp-shelf--4up .alp-shelf__grid > .alp-shelf__cell:nth-child(4n) { border-right: 0; }
-
-  .alp-shelf__cell { padding: 14px 16px 20px; }
 }
 
-/* Scroll cue under the hero wordmark. */
-.alp-hero__cue {
-  position: absolute;
-  left: 50%;
-  bottom: clamp(64px, 11vh, 104px);
-  transform: translateX(-50%);
-  z-index: 2;
-  width: 12px;
-  height: clamp(40px, 7vh, 64px);
-  fill: none;
-  stroke: var(--alp-bg);
-  stroke-width: 1.2;
-  stroke-dasharray: 3 5;
-  opacity: 0.85;
-  filter: drop-shadow(0 1px 4px rgba(47, 47, 38, 0.45));
-  pointer-events: none;
+@media (min-width: 990px) {
+  .alp-shelf__grid { gap: 24px; padding: 0 56px 90px; }
 }
-.alp-hero__cue path:last-child { stroke-dasharray: none; }
+
+@media (max-width: 989px) {
+  .alp-shelf__head {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 30px var(--alp-pad-page) 14px;
+  }
+}
 
 /* ── Home page density ───────────────────────────────────────────────────────
    The home page runs compact: tiles and shelves butt straight against each
