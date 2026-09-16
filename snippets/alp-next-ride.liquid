@@ -1,0 +1,54 @@
+{%- comment -%}
+  The next Bush Ride, in four places: the desktop rail foot, the home page
+  card, the mobile menu sheet and the foot of the journal.
+
+  Empty on arrival and filled by alpine.js from the routes worker's public
+  /events feed, so nobody has to remember to update a date before a ride.
+  Until that resolves — and if it never does — the block stays `hidden` and
+  the page reads as though it was never there.
+
+  Deep link: the map selects by hash only for ROUTES (map.js selectFromHash),
+  so an event reaches the map through its own route_id when it has one; the
+  events index is the fallback. Both are resolved in JS, where the event data
+  lives.
+
+  Accepts:
+    variant - 'rail' | 'card' | 'panel'
+    heading - eyebrow text, default 'Next ride'
+    note    - optional right-hand eyebrow (card only), e.g. "Free · all welcome"
+    cta     - link label, default 'View on BUSH MAP™ →'
+{%- endcomment -%}
+
+{%- liquid
+  assign nr_variant = variant | default: 'card'
+  assign nr_heading = heading | default: 'Next ride'
+  assign nr_cta = cta | default: 'View on BUSH MAP™ →'
+-%}
+
+{%- case nr_variant -%}
+  {%- when 'rail' -%}
+    <div class="alp-nr alp-nr--rail" data-alp-next-ride hidden>
+      <span class="alp-nr__rule" aria-hidden="true"></span>
+      <p class="alp-nr__date">{{ nr_heading | escape }}<br><span data-nr-date></span></p>
+      <p class="alp-nr__place"><span data-nr-place></span><br><span data-nr-note></span></p>
+      <a class="alp-nr__link" href="#" data-nr-link>Join the ride <span class="alp-glyph">✦</span></a>
+    </div>
+
+  {%- when 'panel' -%}
+    <a class="alp-nr alp-nr--panel" href="#" data-alp-next-ride data-nr-link hidden>
+      <span class="alp-nr__tab">{{ nr_heading | escape }}</span>
+      <span class="alp-nr__date"><span data-nr-date></span><br><span data-nr-place></span></span>
+      <span class="alp-chip alp-nr__cta">{{ nr_cta | escape }}</span>
+    </a>
+
+  {%- else -%}
+    <a class="alp-nr alp-nr--card" href="#" data-alp-next-ride data-nr-link hidden>
+      <span class="alp-nr__head">
+        <span class="alp-nr__eyebrow">{{ nr_heading | escape }}</span>
+        {%- if note != blank -%}<span class="alp-nr__eyebrow">{{ note | escape }}</span>{%- endif -%}
+      </span>
+      <span class="alp-nr__date"><span data-nr-date></span> — <span data-nr-place></span></span>
+      <span class="alp-nr__note" data-nr-note></span>
+      <span class="alp-chip alp-nr__cta">{{ nr_cta | escape }}</span>
+    </a>
+{%- endcase -%}

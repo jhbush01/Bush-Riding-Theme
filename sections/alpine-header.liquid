@@ -1,17 +1,24 @@
 {%- comment -%}
-  Bush Riding header.
+  Bush Riding navigation — two deliberately different systems.
 
-  Bar (both platforms, one line): Bush Riding™ + clock on the left,
-  Shop + Explore on the right.
+  Desktop (>= 990px): a fixed bone rail down the left, 196px wide with a
+  hairline edge. Wordmark and nav at the top, the active page marked by a mist
+  bar; the rail's lower half changes per template (filters on the catalogue,
+  the dispatch index on the journal, the section index on a page) and its foot
+  carries the next ride and the cart. The changing lower half is the whole
+  argument for the rail over a top bar — it is a persistent object beside the
+  content, not a strip above it.
 
-  Explore menu (expands from the button): a vertical scroll of full-width
-  16:9 landscape sections on every platform — Discover Launch Collection,
-  Shop (desktop only; mobile has Shop in the bar), Bush Map (live feed, or
-  image/video when set), Video + socials — titled by off-white chip buttons
-  bottom-right, with nav/legal links underneath.
+  Mobile (< 990px): the rail collapses to two floating chips at the bottom of
+  the screen — Menu and Cart — with the menu opening as a bottom sheet. Nothing
+  is pinned to the top, so the full height of a phone goes to the photography.
 
-  Panel media: image via image_tag (so the focal point set in the editor is
-  honoured) and/or a video — video plays when set, with the image as poster.
+  Replaces the fixed chip bar + quartered Explore overlay. The Explore panels'
+  merchant settings are kept and re-used as the sheet's two cards, so nobody
+  has to re-pick images in the editor.
+
+  Panel media goes through image_url | image_tag so the focal point set in the
+  editor is honoured (CLAUDE.md rule 7).
 {%- endcomment -%}
 
 {%- liquid
@@ -19,29 +26,91 @@
   assign map_url = section.settings.map_url | default: 'https://map.bushriding.cc'
   assign shop_label = section.settings.shop_label | default: 'Shop'
   assign map_label = section.settings.map_label | default: 'BUSH MAP™'
-  assign explore_label = section.settings.explore_label | default: 'Explore'
-  assign discover_label = section.settings.discover_label | default: 'Discover Launch Collection'
+  assign menu_label = section.settings.menu_label | default: 'Menu'
+  assign discover_label = section.settings.discover_label | default: 'The launch'
   assign discover_url = section.settings.discover_url | default: shop_url
   assign wordmark_text = section.settings.wordmark | default: shop.name
+  assign events_api = section.settings.events_api | default: 'https://map-api.bushriding.cc'
+  assign events_url = section.settings.events_url | default: 'https://map.bushriding.cc/events/'
+  assign show_next_ride = section.settings.next_ride_enabled
+
+  comment
+    Journal and About are only drawn when they resolve. A blog that has not been
+    created, or an About page that has not been written, would otherwise put a
+    404 in the primary navigation of every page on the site — the same rule
+    alp-legal-links already applies to the fine print.
+  endcomment
+  assign journal_blog = blogs[section.settings.journal_handle]
+  assign journal_url = section.settings.journal_url
+  if journal_url == blank and journal_blog != blank
+    assign journal_url = journal_blog.url
+  endif
+  assign journal_label = section.settings.journal_label | default: 'Journal'
+
+  assign about_page = pages[section.settings.about_handle]
+  assign about_url = section.settings.about_url
+  if about_url == blank and about_page != blank
+    assign about_url = about_page.url
+  endif
+  assign about_label = section.settings.about_label | default: 'About'
+
+  comment
+    Which nav row wears the mist bar. Product counts as Shop: a product is
+    somewhere inside the catalogue, and leaving the rail unmarked there reads
+    as a page that belongs to nothing.
+  endcomment
+  assign nav_here = ''
+  case template.name
+    when 'index'
+      assign nav_here = 'home'
+    when 'collection', 'product', 'list-collections', 'search'
+      assign nav_here = 'shop'
+    when 'blog', 'article'
+      assign nav_here = 'journal'
+    when 'page'
+      if about_page != blank and page.handle == about_page.handle
+        assign nav_here = 'about'
+      endif
+  endcase
 -%}
 
-<header class="alp alp-head" data-alp-header>
-  <div class="alp-head__group">
-    {%- comment -%}
-      The alt text is the link's accessible name AND what shows if the image
-      ever fails, so it carries the wordmark — no aria-label, which would just
-      duplicate it.
+{%- capture nav_rows -%}
+  <a class="alp-rail__link{% if nav_here == 'home' %} is-on{% endif %}" href="{{ routes.root_url }}"
+    {% if nav_here == 'home' %}aria-current="page"{% endif %} data-alp-menu-link>Home</a>
+  <a class="alp-rail__link{% if nav_here == 'shop' %} is-on{% endif %}" href="{{ shop_url }}"
+    {% if nav_here == 'shop' %}aria-current="page"{% endif %} data-alp-menu-link>{{ shop_label | escape }}</a>
+  {%- if journal_url != blank -%}
+    <a class="alp-rail__link{% if nav_here == 'journal' %} is-on{% endif %}" href="{{ journal_url }}"
+      {% if nav_here == 'journal' %}aria-current="page"{% endif %} data-alp-menu-link>{{ journal_label | escape }}</a>
+  {%- endif -%}
+  {%- if about_url != blank -%}
+    <a class="alp-rail__link{% if nav_here == 'about' %} is-on{% endif %}" href="{{ about_url }}"
+      {% if nav_here == 'about' %}aria-current="page"{% endif %} data-alp-menu-link>{{ about_label | escape }}</a>
+  {%- endif -%}
+  <a class="alp-rail__link" href="{{ map_url }}" data-alp-menu-link>{{ map_label | escape }}</a>
+{%- endcapture -%}
 
-      The bar is mist on every template now, so the mark ships as the olive
-      artwork rather than the cream file from Content > Files — cream on mist
-      is barely there. Set "Logo" to override, but give it a dark mark.
-    {%- endcomment -%}
-    <a class="alp-nav-link alp-nav-link--wordmark" href="{{ routes.root_url }}">
+{%- capture cart_row -%}
+  <a class="alp-rail__cart" href="{{ routes.cart_url }}" data-alp-menu-link>
+    Cart ({{ cart.item_count }})
+  </a>
+{%- endcapture -%}
+
+{%- comment -%} ── Desktop: the rail ──────────────────────────────────────── {%- endcomment -%}
+<header
+  class="alp alp-rail"
+  data-alp-rail
+  data-alp-events-api="{{ events_api | escape }}"
+  data-alp-events-url="{{ events_url | escape }}"
+  data-alp-map-url="{{ map_url | escape }}"
+>
+  <div class="alp-rail__top">
+    <a class="alp-rail__wordmark" href="{{ routes.root_url }}">
       {%- if section.settings.logo != blank -%}
-        {{ section.settings.logo | image_url: width: 600 | image_tag: class: 'alp-wordmark__img', alt: wordmark_text, loading: 'eager', fetchpriority: 'high' }}
+        {{ section.settings.logo | image_url: width: 600 | image_tag: class: 'alp-rail__mark', alt: wordmark_text, loading: 'eager', fetchpriority: 'high' }}
       {%- else -%}
         <img
-          class="alp-wordmark__img"
+          class="alp-rail__mark"
           src="{{ 'wordmark-olive.svg' | asset_url }}"
           alt="{{ wordmark_text | escape }}"
           width="1273"
@@ -51,168 +120,141 @@
         >
       {%- endif -%}
     </a>
-    <span
-      class="alp-nav-link alp-nav-link--clock"
-      data-alp-clock="{{ section.settings.clock_timezone | default: 'Australia/Brisbane' | escape }}"
-      data-alp-clock-label="{{ section.settings.clock_label | default: 'AEST' | escape }}"
-    ></span>
+
+    <nav class="alp-rail__nav" aria-label="Primary">{{ nav_rows }}</nav>
+
+    {%- comment -%}
+      The rail's changing lower half. Each template's own section renders into
+      this slot — see the per-page work in alpine-collection-grid, main-product,
+      main-blog and the About page. Empty is a valid state (the home page has
+      nothing to put here).
+    {%- endcomment -%}
+    <div class="alp-rail__slot" data-alp-rail-slot></div>
   </div>
 
-  <div class="alp-head__group">
-    <a class="alp-nav-link" href="{{ shop_url }}">{{ shop_label | escape }}</a>
-    <button class="alp-nav-link alp-nav-link--menu" type="button" data-alp-menu-open aria-expanded="false" aria-controls="alp-menu-overlay">{{ explore_label | escape }}</button>
+  <div class="alp-rail__foot">
+    {%- if template.name == 'cart' -%}
+      <span class="alp-nr__rule" aria-hidden="true"></span>
+      <p class="alp-rail__eyebrow">Cart</p>
+      <p class="alp-rail__summary">
+        {{ cart.item_count }} {% if cart.item_count == 1 %}item{% else %}items{% endif %}
+        {%- if cart.item_count > 0 %} · {{ cart.total_price | money_without_trailing_zeros }}{% endif -%}
+      </p>
+    {%- else -%}
+      {%- if show_next_ride -%}{%- render 'alp-next-ride', variant: 'rail' -%}{%- endif -%}
+      {{ cart_row }}
+    {%- endif -%}
   </div>
 </header>
 
-<div class="alp alp-menu" id="alp-menu-overlay" data-alp-menu aria-hidden="true">
-  <div class="alp-menu__corner">
-    <a class="alp-menu__icon" href="{{ routes.cart_url }}" aria-label="Cart" data-alp-menu-link>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h2l1.5 11h10L20 8H7"/><circle cx="9.5" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/></svg>
-      {%- if cart.item_count > 0 -%}<span class="alp-menu__cart-count">{{ cart.item_count }}</span>{%- endif -%}
-    </a>
-    <button class="alp-menu__icon alp-menu__close" type="button" data-alp-menu-close aria-label="Close menu">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
-    </button>
-  </div>
+{%- comment -%} ── Mobile: the floating chips ─────────────────────────────── {%- endcomment -%}
+<div class="alp alp-fab" data-alp-fab>
+  <button class="alp-chip alp-chip--flare alp-fab__btn" type="button" data-alp-menu-open aria-expanded="false" aria-controls="alp-menu-overlay">
+    {{ menu_label | escape }} <span class="alp-glyph">✦</span>
+  </button>
+  <a class="alp-chip alp-fab__btn" href="{{ routes.cart_url }}">
+    Cart{% if cart.item_count > 0 %} {{ cart.item_count }}{% endif %}
+  </a>
+</div>
 
-  <div class="alp-menu__scroll">
-    <div class="alp-menu__grid">
-      {%- comment -%} Discover Launch Collection — desktop top-left / mobile 1st {%- endcomment -%}
-      <a class="alp-menu__q alp-menu__q--discover" href="{{ discover_url }}" data-alp-menu-link>
-        {%- if section.settings.discover_video_url != blank -%}
-          <video
-            class="alp-menu__media"
-            data-alp-video="{{ section.settings.discover_video_url }}"
-            muted
-            loop
-            playsinline
-            preload="none"
-            aria-hidden="true"
-            {% if section.settings.discover_image != blank %}poster="{{ section.settings.discover_image | image_url: width: 1600 }}"{% endif %}
-          ></video>
-        {%- elsif section.settings.discover_image != blank -%}
-          {{ section.settings.discover_image | image_url: width: 1800 | image_tag: class: 'alp-menu__media', loading: 'lazy', alt: '' }}
-        {%- else -%}
-          <span class="alp-menu__media alp-menu__media--ph"></span>
-        {%- endif -%}
-        <span class="alp-chip alp-menu__chip">{{ discover_label | escape }} <span class="alp-glyph">✦</span></span>
-      </a>
+{%- comment -%} ── Mobile: the menu sheet ─────────────────────────────────── {%- endcomment -%}
+<div class="alp alp-sheet" id="alp-menu-overlay" data-alp-menu aria-hidden="true">
+  <div class="alp-sheet__scrim" data-alp-menu-close></div>
 
-      {%- comment -%} Shop — desktop top-right only (mobile has Shop in the bar) {%- endcomment -%}
-      <a class="alp-menu__q alp-menu__q--shop" href="{{ shop_url }}" data-alp-menu-link>
-        {%- if section.settings.menu_shop_video_url != blank -%}
-          <video
-            class="alp-menu__media"
-            data-alp-video="{{ section.settings.menu_shop_video_url }}"
-            muted
-            loop
-            playsinline
-            preload="none"
-            aria-hidden="true"
-            {% if section.settings.menu_shop_image != blank %}poster="{{ section.settings.menu_shop_image | image_url: width: 1600 }}"{% endif %}
-          ></video>
-        {%- elsif section.settings.menu_shop_image != blank -%}
-          {{ section.settings.menu_shop_image | image_url: width: 1800 | image_tag: class: 'alp-menu__media', loading: 'lazy', alt: '' }}
-        {%- else -%}
-          <span class="alp-menu__media alp-menu__media--ph"></span>
-        {%- endif -%}
-        <span class="alp-chip alp-menu__chip">{{ shop_label | escape }} <span class="alp-glyph">✦</span></span>
-      </a>
-
-      {%- comment -%} Bush Map — live feed background {%- endcomment -%}
-      <a class="alp-menu__q alp-menu__q--map" href="{{ map_url }}" data-alp-menu-link>
-        {%- if section.settings.map_video_url != blank -%}
-          <video
-            class="alp-menu__media"
-            data-alp-video="{{ section.settings.map_video_url }}"
-            muted
-            loop
-            playsinline
-            preload="none"
-            aria-hidden="true"
-            {% if section.settings.map_image != blank %}poster="{{ section.settings.map_image | image_url: width: 1600 }}"{% endif %}
-          ></video>
-        {%- elsif section.settings.map_image != blank -%}
-          {{ section.settings.map_image | image_url: width: 1800 | image_tag: class: 'alp-menu__media', loading: 'lazy', alt: '' }}
-        {%- else -%}
-          <iframe class="alp-menu__map" data-alp-map-src="{{ map_url }}" title="Live map" tabindex="-1" loading="lazy" referrerpolicy="no-referrer"></iframe>
-        {%- endif -%}
-        <span class="alp-chip alp-menu__chip">{{ map_label | escape }}</span>
-      </a>
-
-      {%- comment -%} Video + socials {%- endcomment -%}
-      <div class="alp-menu__q alp-menu__q--video">
-        {%- if section.settings.menu_video_url != blank -%}
-          <video
-            class="alp-menu__media"
-            data-alp-video="{{ section.settings.menu_video_url }}"
-            muted
-            loop
-            playsinline
-            preload="none"
-            aria-hidden="true"
-            {% if section.settings.menu_video_poster != blank %}poster="{{ section.settings.menu_video_poster | image_url: width: 1600 }}"{% endif %}
-          ></video>
-        {%- elsif section.settings.menu_video_poster != blank -%}
-          {{ section.settings.menu_video_poster | image_url: width: 1800 | image_tag: class: 'alp-menu__media', loading: 'lazy', alt: '' }}
-        {%- else -%}
-          <span class="alp-menu__media alp-menu__media--ph"></span>
-        {%- endif -%}
-        {%- if section.settings.menu_video_label != blank -%}
-          <span class="alp-chip alp-menu__chip">{{ section.settings.menu_video_label | escape }}</span>
-        {%- endif -%}
-        <div class="alp-menu__social">
-          {%- if section.settings.youtube_url != blank -%}
-            <a href="{{ section.settings.youtube_url }}" target="_blank" rel="noopener" aria-label="YouTube">
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23 12s0-3.2-.4-4.7a2.5 2.5 0 0 0-1.7-1.7C19.4 5.2 12 5.2 12 5.2s-7.4 0-8.9.4A2.5 2.5 0 0 0 1.4 7.3C1 8.8 1 12 1 12s0 3.2.4 4.7a2.5 2.5 0 0 0 1.7 1.7c1.5.4 8.9.4 8.9.4s7.4 0 8.9-.4a2.5 2.5 0 0 0 1.7-1.7C23 15.2 23 12 23 12zM9.8 15.3V8.7l5.7 3.3-5.7 3.3z"/></svg>
-            </a>
-          {%- endif -%}
-          {%- if section.settings.strava_url != blank -%}
-            <a href="{{ section.settings.strava_url }}" target="_blank" rel="noopener" aria-label="Strava">
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.8 2 7.3 14.6h3.9L13.8 9l2.6 5.6h3.8L13.8 2zM16.4 14.6 14.6 18l-1.8-3.4H10l4.6 8.4L19 14.6h-2.6z"/></svg>
-            </a>
-          {%- endif -%}
-          {%- if section.settings.instagram_url != blank -%}
-            <a href="{{ section.settings.instagram_url }}" target="_blank" rel="noopener" aria-label="Instagram">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="4.5"/><circle cx="12" cy="12" r="3.6"/><circle cx="17.2" cy="6.8" r="1" fill="currentColor" stroke="none"/></svg>
-            </a>
-          {%- endif -%}
-        </div>
-      </div>
+  <div class="alp-sheet__panel" role="dialog" aria-modal="true" aria-label="Menu">
+    <div class="alp-sheet__bar">
+      <img
+        class="alp-sheet__mark"
+        src="{{ 'wordmark-olive.svg' | asset_url }}"
+        alt="{{ wordmark_text | escape }}"
+        width="1273"
+        height="543"
+        loading="lazy"
+      >
+      <button class="alp-sheet__close" type="button" data-alp-menu-close aria-label="Close menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
     </div>
 
-    {%- comment -%} Navigation + legal links — every way around the site, 12pt.
-        Nothing here is written by hand any more: the fine print comes from the
-        shop's actual policies and pages (see snippets/alp-legal-links), and the
-        account row only appears where customer accounts are switched on. A link
-        that would 404 is not rendered at all. {%- endcomment -%}
-    <nav class="alp-menu__links" aria-label="Site links">
-      <div class="alp-menu__links-col">
-        <h3>Navigate</h3>
-        <ul role="list">
-          <li><a href="{{ routes.root_url }}" data-alp-menu-link>Home</a></li>
-          <li><a href="{{ shop_url }}" data-alp-menu-link>{{ shop_label | escape }}</a></li>
-          <li><a href="{{ discover_url }}" data-alp-menu-link>{{ discover_label | escape }}</a></li>
-          <li><a href="{{ map_url }}" data-alp-menu-link>{{ map_label | escape }}</a></li>
-          <li><a href="{{ routes.cart_url }}" data-alp-menu-link>Cart</a></li>
-          {%- if shop.customer_accounts_enabled -%}
-            {%- if customer -%}
-              <li><a href="{{ routes.account_url }}" data-alp-menu-link>{{ customer.first_name | escape }} {{ customer.last_name | escape }} — my account</a></li>
-            {%- else -%}
-              <li><a href="{{ routes.account_login_url }}" data-alp-menu-link>Sign in</a></li>
-            {%- endif -%}
+    <div class="alp-sheet__scroll">
+      {%- if show_next_ride -%}{%- render 'alp-next-ride', variant: 'panel' -%}{%- endif -%}
+
+      <nav class="alp-sheet__nav" aria-label="Primary">
+        {{ nav_rows }}
+        {{ cart_row }}
+      </nav>
+
+      <div class="alp-sheet__cards">
+        <a class="alp-sheet__card" href="{{ discover_url }}" data-alp-menu-link>
+          {%- if section.settings.discover_image != blank -%}
+            {{ section.settings.discover_image | image_url: width: 900 | image_tag: class: 'alp-sheet__media', loading: 'lazy', alt: '' }}
+          {%- else -%}
+            <span class="alp-sheet__media alp-sheet__media--ph"></span>
           {%- endif -%}
-        </ul>
+          <span class="alp-sheet__cardlabel">{{ discover_label | escape }}</span>
+        </a>
+
+        {%- comment -%}
+          The second card is the latest dispatch — the article itself, with its
+          own featured image, rather than a picture someone has to keep in sync
+          by hand. Falls back to the Explore menu's old Shop panel image when
+          there is no blog yet.
+        {%- endcomment -%}
+        {%- assign latest = journal_blog.articles.first -%}
+        {%- if latest != blank -%}
+          <a class="alp-sheet__card" href="{{ latest.url }}" data-alp-menu-link>
+            {%- if latest.image != blank -%}
+              {{ latest.image | image_url: width: 900 | image_tag: class: 'alp-sheet__media', loading: 'lazy', alt: '' }}
+            {%- else -%}
+              <span class="alp-sheet__media alp-sheet__media--ph"></span>
+            {%- endif -%}
+            <span class="alp-sheet__cardlabel">Latest dispatch</span>
+          </a>
+        {%- elsif section.settings.menu_shop_image != blank -%}
+          <a class="alp-sheet__card" href="{{ shop_url }}" data-alp-menu-link>
+            {{ section.settings.menu_shop_image | image_url: width: 900 | image_tag: class: 'alp-sheet__media', loading: 'lazy', alt: '' }}
+            <span class="alp-sheet__cardlabel">{{ shop_label | escape }}</span>
+          </a>
+        {%- endif -%}
       </div>
-      {%- capture legal_links -%}{%- render 'alp-legal-links', menu_link: true -%}{%- endcapture -%}
-      {%- if legal_links != blank -%}
-        <div class="alp-menu__links-col">
-          <h3>The fine print</h3>
-          <ul role="list">{{ legal_links }}</ul>
-        </div>
+
+      <div class="alp-sheet__columns">
+        {%- capture legal_links -%}{%- render 'alp-legal-links', menu_link: true -%}{%- endcapture -%}
+        {%- if legal_links != blank -%}
+          <div class="alp-sheet__col">
+            <p class="alp-rail__eyebrow">The fine print</p>
+            <ul role="list">{{ legal_links }}</ul>
+          </div>
+        {%- endif -%}
+
+        {%- if section.settings.instagram_url != blank or section.settings.strava_url != blank or section.settings.youtube_url != blank -%}
+          <div class="alp-sheet__col">
+            <p class="alp-rail__eyebrow">Follow</p>
+            <ul role="list">
+              {%- if section.settings.instagram_url != blank -%}
+                <li><a href="{{ section.settings.instagram_url }}" target="_blank" rel="noopener">Instagram</a></li>
+              {%- endif -%}
+              {%- if section.settings.strava_url != blank -%}
+                <li><a href="{{ section.settings.strava_url }}" target="_blank" rel="noopener">Strava</a></li>
+              {%- endif -%}
+              {%- if section.settings.youtube_url != blank -%}
+                <li><a href="{{ section.settings.youtube_url }}" target="_blank" rel="noopener">YouTube</a></li>
+              {%- endif -%}
+            </ul>
+          </div>
+        {%- endif -%}
+      </div>
+
+      {%- if shop.customer_accounts_enabled -%}
+        <p class="alp-sheet__account">
+          {%- if customer -%}
+            <a href="{{ routes.account_url }}" data-alp-menu-link>{{ customer.first_name | escape }} — my account</a>
+          {%- else -%}
+            <a href="{{ routes.account_login_url }}" data-alp-menu-link>Sign in</a>
+          {%- endif -%}
+        </p>
       {%- endif -%}
-      <p class="alp-menu__small">© {{ section.settings.wordmark | default: shop.name | escape }} {{ 'now' | date: '%Y' }} — Designed in Australia. Made for the detour.</p>
-    </nav>
+    </div>
   </div>
 </div>
 
@@ -221,31 +263,30 @@
   "name": "Bush Riding header",
   "tag": "div",
   "settings": [
-    { "type": "image_picker", "id": "logo", "label": "Logo", "info": "The brush wordmark shown in the bar. Leave empty to use the olive artwork that ships with the theme — the bar is mist, so a cream mark will not read on it." },
-    { "type": "text", "id": "wordmark", "label": "Wordmark", "default": "Bush Riding™", "info": "Now the logo's alt text and the © line in the Explore menu. Leave blank to use the store name." },
-    { "type": "text", "id": "clock_timezone", "label": "Clock time zone (IANA id)", "default": "Australia/Brisbane" },
-    { "type": "text", "id": "clock_label", "label": "Clock zone label", "default": "AEST" },
-    { "type": "header", "content": "Bar items" },
+    { "type": "image_picker", "id": "logo", "label": "Logo", "info": "The brush wordmark in the rail and the menu sheet. Leave empty to use the olive artwork that ships with the theme — both sit on bone, so the mark must be dark." },
+    { "type": "text", "id": "wordmark", "label": "Wordmark", "default": "Bush Riding™", "info": "The logo's alt text. Leave blank to use the store name." },
+    { "type": "header", "content": "Navigation" },
     { "type": "text", "id": "shop_label", "label": "Shop label", "default": "Shop" },
     { "type": "url", "id": "shop_url", "label": "Shop URL", "info": "Defaults to the all-products catalog." },
-    { "type": "text", "id": "explore_label", "label": "Menu button label", "default": "Explore" },
-    { "type": "header", "content": "Explore — Discover panel" },
-    { "type": "text", "id": "discover_label", "label": "Label", "default": "Discover Launch Collection" },
-    { "type": "url", "id": "discover_url", "label": "Link", "info": "Defaults to the Shop URL." },
-    { "type": "image_picker", "id": "discover_image", "label": "Image", "info": "Set the crop via the image's focal point (edit the image in the picker)." },
-    { "type": "url", "id": "discover_video_url", "label": "Video MP4 URL", "info": "Plays when set; the image becomes its poster." },
-    { "type": "header", "content": "Explore — Shop panel (desktop only)" },
-    { "type": "image_picker", "id": "menu_shop_image", "label": "Image" },
-    { "type": "url", "id": "menu_shop_video_url", "label": "Video MP4 URL" },
-    { "type": "header", "content": "Explore — Bush Map panel" },
-    { "type": "text", "id": "map_label", "label": "Label", "default": "BUSH MAP™" },
-    { "type": "url", "id": "map_url", "label": "URL", "info": "Defaults to https://map.bushriding.cc." },
-    { "type": "image_picker", "id": "map_image", "label": "Image", "info": "Image/video replace the live map feed when set." },
-    { "type": "url", "id": "map_video_url", "label": "Video MP4 URL" },
-    { "type": "header", "content": "Explore — Video panel" },
-    { "type": "url", "id": "menu_video_url", "label": "Video MP4 URL" },
-    { "type": "image_picker", "id": "menu_video_poster", "label": "Image / poster" },
-    { "type": "text", "id": "menu_video_label", "label": "Label (optional)" },
+    { "type": "text", "id": "journal_label", "label": "Journal label", "default": "Journal" },
+    { "type": "text", "id": "journal_handle", "label": "Journal blog handle", "default": "journal", "info": "Which blog the Journal link points at. The link is hidden entirely if no blog with this handle exists." },
+    { "type": "url", "id": "journal_url", "label": "Journal URL override" },
+    { "type": "text", "id": "about_label", "label": "About label", "default": "About" },
+    { "type": "text", "id": "about_handle", "label": "About page handle", "default": "about", "info": "Hidden entirely if no page with this handle exists." },
+    { "type": "url", "id": "about_url", "label": "About URL override" },
+    { "type": "text", "id": "map_label", "label": "Map label", "default": "BUSH MAP™" },
+    { "type": "url", "id": "map_url", "label": "Map URL", "info": "Defaults to https://map.bushriding.cc." },
+    { "type": "header", "content": "Next ride" },
+    { "type": "checkbox", "id": "next_ride_enabled", "label": "Show the next ride", "default": true, "info": "Pulled live from the Bush Map events feed. The block hides itself when there is no upcoming ride, so it can never show a stale date." },
+    { "type": "text", "id": "events_api", "label": "Events API base", "default": "https://map-api.bushriding.cc", "info": "The routes worker that serves /events. Clear this to switch the next-ride block off entirely." },
+    { "type": "url", "id": "events_url", "label": "Events page URL", "info": "Where the next-ride link goes when the event has no route on the map. Defaults to the map's events index." },
+    { "type": "header", "content": "Menu sheet (mobile)" },
+    { "type": "text", "id": "menu_label", "label": "Menu chip label", "default": "Menu" },
+    { "type": "text", "id": "discover_label", "label": "First card label", "default": "The launch" },
+    { "type": "url", "id": "discover_url", "label": "First card link", "info": "Defaults to the Shop URL." },
+    { "type": "image_picker", "id": "discover_image", "label": "First card image", "info": "Set the crop via the image's focal point (edit the image in the picker)." },
+    { "type": "image_picker", "id": "menu_shop_image", "label": "Fallback second card image", "info": "Only used before the journal has its first article — the second card is normally the latest dispatch." },
+    { "type": "header", "content": "Follow" },
     { "type": "url", "id": "youtube_url", "label": "YouTube URL" },
     { "type": "url", "id": "strava_url", "label": "Strava URL" },
     { "type": "url", "id": "instagram_url", "label": "Instagram URL" }

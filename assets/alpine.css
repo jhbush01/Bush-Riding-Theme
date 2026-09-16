@@ -29,17 +29,30 @@ body {
   color: var(--alp-ink);
 }
 
-/* The chip header is fixed. Option 2a's home page opens on a mist gate rather
-   than a full-bleed photo, so there is no longer a hero for the bar to float
-   over — every template, home included, needs clearance below it. */
-#MainContent { padding-top: 84px; }
+/* ── The rail, and what it does to the page ──────────────────────────────────
+   Desktop navigation is a fixed column down the left rather than a bar across
+   the top, so the page is inset by its width instead of by its height. The
+   inset goes on <body> so the footer moves with the content — the rail runs
+   the full height of the viewport and nothing may pass under it.
 
-/* ── Option 2a: mist is the home page ────────────────────────────────────────
-   Mist replaces bone as the ground on the home page only; inner pages
-   (collection, product) stay on bone, so mist reads as "this is the front
-   door" rather than a whole-site repaint. Olive still carries every word on
-   it — olive on mist is the same ink, just a colder paper. */
-body.template-index { background-color: var(--alp-mist); }
+   Below 990px there is no rail: navigation is two floating chips at the bottom
+   of the screen, so the page needs bottom clearance instead, and the top of
+   the screen is free for photography. */
+:root { --alp-rail-w: 196px; }
+
+@media (min-width: 990px) {
+  body { padding-left: var(--alp-rail-w); }
+}
+
+/* Clearance for the floating chips at rest. Sections that end on their own
+   olive slab add their own. */
+@media (max-width: 989px) {
+  #MainContent { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+}
+
+/* Bone is the ground on every template. (Option 2a made the home page mist;
+   the rail system puts mist back to rules, wayfinding and headline grounds
+   only — olive on mist is 4.35:1, which will not carry small copy.) */
 
 .alp {
   font-family: var(--alp-font-ui);
@@ -89,265 +102,341 @@ button.alp-chip { cursor: pointer; }
 }
 a.alp-chip--active:hover { background: var(--alp-accent); border-color: var(--alp-accent); color: var(--alp-bg); }
 
-/* ── Header ──────────────────────────────────────────────────────────────── */
-.alp-head {
+/* ── The rail (desktop navigation) ───────────────────────────────────────────
+   A fixed bone column with a hairline edge, holding the wordmark and nav at the
+   top, a per-template block in the middle and the next ride plus the cart at
+   the foot. The middle block is the point of the thing: filters on the
+   catalogue, the dispatch index on the journal, the section index on a page.
+   A top bar cannot hold any of that without becoming a second page. */
+.alp-rail {
   position: fixed;
-  top: 0; left: 0; right: 0;
+  inset: 0 auto 0 0;
+  width: var(--alp-rail-w);
   z-index: 50;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0 12px;
-  /* With viewport-fit=cover the page draws under the notch; keep the bar's
-     text below it. */
-  padding: max(10px, env(safe-area-inset-top)) var(--alp-pad-page) 10px;
-  transition: background-color 0.25s ease-out;
-}
-
-/* The bar is pinned at the top on every template. (Option 1a floated it at the
-   hero's vertical centre for the one-screen design; 2a opens on the mist gate
-   instead, so it stays at top: 0 throughout.) */
-
-.alp-head__group { display: flex; align-items: center; gap: 10px; }
-.alp-head__nav { display: flex; gap: 6px; }
-
-/* Header text. The base is bone with a faint scrim shadow — what the bar wore
-   when it floated over the home photograph. Every template now overrides it
-   (olive ink on the mist bar), so this is the fallback rather than the look.
-   (A difference blend was tried over that hero: iOS renders video in a
-   separate plane that CSS blending cannot sample, so it silently fails.) */
-.alp-nav-link {
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-  padding: 8px 10px;
-  font-family: var(--alp-font-ui);
-  font-size: clamp(1.4rem, 1.8vw + 0.9rem, 2.625rem);
-  font-weight: 600;
-  line-height: 1.2;
-  text-decoration: none;
-  white-space: nowrap;
-  color: var(--alp-bg);
-  text-shadow: 0 1px 4px rgba(47, 47, 38, 0.3);
-}
-
-.alp-nav-link:hover { color: var(--alp-citrus); }
-
-.alp-nav-link--wordmark { font-weight: 800; font-size: clamp(1.55rem, 2vw + 1rem, 2.85rem); letter-spacing: 0.01em; }
-.alp-nav-link--clock { font-weight: 500; font-variant-numeric: tabular-nums; font-size: clamp(1rem, 1.2vw + 0.7rem, 1.8rem); }
-
-/* Brush wordmark. Sized by HEIGHT so it holds its aspect ratio, and flex on the
-   anchor so there is no inline-baseline gap under it.
-
-   The heights look large next to the old font sizes because they are not
-   comparable: in the artwork the cap "B" occupies only ~46% of the image's
-   height (the script's ascenders and descenders take the rest). Scaling the old
-   cap height by ~1/0.46 lands the letters at the same visual size as the type
-   they replace, and the resulting width (~230px desktop) closely matches the
-   width "Bush Riding™" used to occupy. */
-.alp-nav-link--wordmark { display: flex; align-items: center; }
-/* Selector is two classes deep on purpose: the blanket `.alp img` rule above is
-   (0,1,1), so a lone `.alp-wordmark__img` (0,1,0) LOSES to it and the logo
-   renders at its intrinsic 1273px width. Do not flatten this selector. */
-.alp-nav-link--wordmark .alp-wordmark__img {
-  display: block;
-  height: clamp(3.4rem, 4.4vw + 2.2rem, 6.2rem);
-  width: auto;
-  max-width: none;
-  /* No shadow: the mark is olive artwork on a flat mist bar now, not cream
-     artwork over a photograph. */
-}
-
-/* Option 2a: the home bar sits on the mist gate, not over a photograph, so
-   its type is olive ink like the rest of the page — no shadow, no flare. The
-   bar takes a mist fill so content scrolling under it stays legible. */
-body.template-index .alp-head { background: var(--alp-mist); }
-body.template-index .alp-nav-link {
-  color: var(--alp-ink);
-  text-shadow: none;
-  font-size: clamp(1rem, 0.5vw + 0.85rem, 1.15rem);
-}
-body.template-index .alp-nav-link:hover { color: var(--alp-accent); }
-body.template-index .alp-nav-link--clock { font-size: 0.8rem; color: var(--alp-ink); }
-/* The gate carries the mark on 2a — the giant olive wordmark sits directly
-   under the bar, so repeating it in the bar would double it up. Hidden, not
-   removed: the anchor still exists for every other template. */
-body.template-index .alp-nav-link--wordmark { display: none; }
-
-/* ── Explore menu overlay ────────────────────────────────────────────────────
-   Expands from the Explore button itself (JS sets --alp-cx/--alp-cy to the
-   button's centre) with a clip-path circle — the page is wiped away and the
-   menu appears. Desktop: 2×2 quarters split by thin white lines, with the
-   nav/legal links a short scroll below. Mobile: a vertical scroll of 16:9
-   cards with chip-button titles, links underneath. */
-.alp-menu {
-  position: fixed; inset: 0; z-index: 60;
-  /* Bone, not paper: the board scopes white to chips and cards, never a
-     full-screen field. (Brief §1.2's recommended option.) */
+  box-sizing: border-box;
+  padding: 28px 22px;
   background: var(--alp-bg);
-  visibility: hidden;
-  pointer-events: none;
-  clip-path: circle(0% at var(--alp-cx, 100%) var(--alp-cy, 0%));
-  transition: clip-path 0.6s cubic-bezier(0.76, 0, 0.24, 1), visibility 0s linear 0.6s;
-}
-.alp-menu.is-open {
-  visibility: visible;
-  pointer-events: auto;
-  clip-path: circle(150% at var(--alp-cx, 100%) var(--alp-cy, 0%));
-  transition: clip-path 0.6s cubic-bezier(0.76, 0, 0.24, 1), visibility 0s;
-}
-
-/* The overlay itself scrolls; the page behind is locked (body.alp-menu-open). */
-.alp-menu__scroll {
-  position: absolute; inset: 0;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-}
-body.alp-menu-open { overflow: hidden; }
-
-/* Corner cluster: cart + close, top right. */
-.alp-menu__corner {
-  position: fixed;
-  top: max(20px, env(safe-area-inset-top));
-  right: max(16px, env(safe-area-inset-right));
-  z-index: 4;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.alp-menu__icon {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px; height: 44px;
-  color: var(--alp-bg);
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-  text-decoration: none;
-}
-.alp-menu__icon svg { width: 24px; height: 24px; filter: drop-shadow(0 1px 3px rgba(47, 47, 38, 0.5)); }
-.alp-menu__cart-count {
-  position: absolute; top: 4px; right: 2px;
-  min-width: 16px; height: 16px; padding: 0 3px;
-  border-radius: 8px;
-  background: var(--alp-citrus); color: var(--alp-ink);
-  font-size: 0.62rem; font-weight: 700; line-height: 16px; text-align: center;
-}
-
-/* All platforms: a vertical stack of full-width landscape sections, split by
-   thin white lines. aspect-ratio 16:9 native for 4K footage; max-height caps
-   the section on very wide screens (35mm 3:2 stills crop gently top/bottom —
-   set the focal point in the editor to steer it). */
-.alp-menu__grid {
+  border-right: 1px solid var(--alp-line);
   display: flex;
   flex-direction: column;
-  gap: 1px;
-  background: var(--alp-bg); /* shows through the 1px gaps as bone hairlines */
+  justify-content: space-between;
+  gap: 24px;
+  overflow-y: auto;
+  scrollbar-width: none;
 }
+.alp-rail::-webkit-scrollbar { display: none; }
 
-.alp-menu__q {
-  position: relative;
-  overflow: hidden;
+.alp-rail__top { display: flex; flex-direction: column; gap: 34px; }
+
+.alp-rail__wordmark { display: block; }
+/* Two classes deep on purpose: the blanket `.alp img` rule is (0,1,1), so a
+   lone `.alp-rail__mark` (0,1,0) loses to it and the logo renders at its
+   intrinsic 1273px width. Do not flatten this selector. */
+.alp-rail__wordmark .alp-rail__mark {
   display: block;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  max-height: 86vh;
-  max-height: 86svh;
-  text-decoration: none;
-  background: var(--alp-olive);
-  isolation: isolate;
+  height: 30px;
+  width: auto;
+  max-width: none;
 }
 
-.alp-menu__media {
-  position: absolute; inset: 0;
-  z-index: -1;
-  width: 100%; height: 100%;
-  object-fit: cover;
-  transform: scale(1.06);
-  transition: transform 0.7s ease;
-  border: 0;
-}
-.alp-menu.is-open .alp-menu__media { transform: scale(1); }
-span.alp-menu__media--ph { background: linear-gradient(135deg, var(--alp-accent), var(--alp-olive)); }
-.alp-menu__q::after { content: ""; position: absolute; inset: 0; z-index: -1; background: rgba(47, 47, 38, 0.4); }
+.alp-rail__nav { display: flex; flex-direction: column; gap: 12px; }
 
-/* Live map feed as the Bush Map panel background. The iframe is a background
-   layer; clicks fall through to the panel's own link. */
-.alp-menu__map {
-  position: absolute; inset: 0;
-  z-index: -1;
-  width: 100%; height: 100%;
-  border: 0;
-  pointer-events: none;
-  transform: scale(1.02);
-}
-.alp-menu__q--map::after { background: rgba(47, 47, 38, 0.28); }
-
-/* Social icons, bottom-left of the video panel. */
-.alp-menu__social {
-  position: absolute;
-  left: clamp(18px, 4vw, 40px);
-  bottom: clamp(18px, 4vw, 40px);
-  z-index: 2;
-  display: flex;
-  gap: 14px;
-}
-.alp-menu__social a { display: inline-flex; color: var(--alp-bg); }
-.alp-menu__social svg { width: 24px; height: 24px; filter: drop-shadow(0 1px 3px rgba(47, 47, 38, 0.5)); }
-.alp-menu__social a:hover { color: var(--alp-citrus); }
-
-
-/* Section titles: the small off-white box button (same chip as the home
-   page), bottom right of every section. */
-.alp-menu__chip {
-  position: absolute;
-  right: clamp(16px, 3vw, 36px);
-  bottom: clamp(16px, 3vw, 36px);
-  z-index: 2;
-}
-
-/* Content fades/lifts in once the wipe is nearly complete. */
-.alp-menu__chip, .alp-menu__social {
-  opacity: 0; transform: translateY(14px);
-  transition: opacity 0.4s ease 0.25s, transform 0.4s ease 0.25s;
-}
-.alp-menu.is-open .alp-menu__chip,
-.alp-menu.is-open .alp-menu__social { opacity: 1; transform: none; }
-
-/* Nav + legal links below the panels — every way around the site, 12pt. */
-.alp-menu__links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 28px clamp(40px, 8vw, 120px);
-  padding: clamp(28px, 5vw, 56px) var(--alp-pad-page) calc(28px + env(safe-area-inset-bottom));
-  background: var(--alp-bg);
-}
-.alp-menu__links-col h3 {
-  margin: 0 0 10px;
+.alp-rail__link {
   font-family: var(--alp-font-ui);
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgba(76, 75, 59, 0.6);
-}
-.alp-menu__links-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
-.alp-menu__links-col a {
-  font-family: var(--alp-font-ui);
-  font-size: 12pt;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1;
   color: var(--alp-ink);
   text-decoration: none;
 }
-.alp-menu__links-col a:hover { text-decoration: underline; }
-.alp-menu__small { flex-basis: 100%; margin: 4px 0 0; font-size: 0.72rem; color: rgba(76, 75, 59, 0.6); }
+.alp-rail__link:hover { color: var(--alp-accent); }
+
+/* The mist bar marks where you are. Pulled left by its own width plus the
+   padding so the type stays on the same optical line as the rows above it. */
+.alp-rail__link.is-on {
+  border-left: 3px solid var(--alp-mist);
+  padding-left: 10px;
+  margin-left: -13px;
+}
+
+.alp-rail__slot { display: flex; flex-direction: column; gap: 11px; }
+/* The home page has nothing to put here; an empty slot must not add its gap. */
+.alp-rail__slot:empty { display: none; }
+
+.alp-rail__foot { display: flex; flex-direction: column; gap: 14px; }
+
+.alp-rail__eyebrow {
+  margin: 0;
+  font-family: var(--alp-font-ui);
+  font-size: 0.594rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--alp-ink);
+}
+
+.alp-rail__summary {
+  margin: 0;
+  font-family: var(--alp-font-display);
+  font-weight: 600;
+  font-size: 1.125rem;
+  line-height: 1.2;
+}
+
+.alp-rail__cart {
+  font-family: var(--alp-font-ui);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--alp-ink);
+  text-decoration: none;
+  border-top: 1px solid var(--alp-line);
+  padding-top: 14px;
+}
+.alp-rail__cart:hover { color: var(--alp-accent); }
+
+/* ── Next ride ───────────────────────────────────────────────────────────────
+   One block, three shapes: the rail foot, the home page card, and the mist
+   panel used at the top of the menu sheet and the foot of the journal.
+
+   It arrives empty and alpine.js fills it from the events feed, so `hidden`
+   has to beat the display values below — otherwise an unresolved block lays
+   out as an empty card. */
+.alp-nr[hidden] { display: none !important; }
+
+.alp-nr__rule { display: block; height: 3px; width: 44px; background: var(--alp-mist); }
+
+.alp-nr--rail { display: flex; flex-direction: column; gap: 10px; }
+.alp-nr--rail .alp-nr__date {
+  margin: 0;
+  font-family: var(--alp-font-display);
+  font-weight: 600;
+  font-size: 1.125rem;
+  line-height: 1.2;
+}
+.alp-nr--rail .alp-nr__place { margin: 0; font-size: 0.781rem; line-height: 1.45; }
+.alp-nr--rail .alp-nr__link {
+  font-family: var(--alp-font-ui);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--alp-ink);
+  text-decoration: none;
+}
+.alp-nr--rail .alp-nr__link:hover { color: var(--alp-accent); }
+
+/* The home page card — under the hero, above the story, with a mist rule under
+   it rather than a border box. */
+.alp-nr--card {
+  display: block;
+  text-decoration: none;
+  color: var(--alp-ink);
+  padding: 20px;
+  border-bottom: 3px solid var(--alp-mist);
+}
+.alp-nr__head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; gap: 12px; }
+.alp-nr__eyebrow {
+  font-family: var(--alp-font-ui);
+  font-size: 0.594rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.alp-nr--card .alp-nr__date {
+  display: block;
+  font-family: var(--alp-font-display);
+  font-weight: 600;
+  font-size: 1.1875rem;
+  line-height: 1.2;
+}
+.alp-nr__note { display: block; font-size: 0.8125rem; line-height: 1.65; margin-top: 6px; }
+
+/* Olive chip, bone label — the one place the next ride asks for a tap. */
+.alp-nr__cta {
+  margin-top: 14px;
+  background: var(--alp-ink);
+  color: var(--alp-bg);
+  border-color: var(--alp-ink);
+  min-height: 46px;
+  padding: 0 16px;
+}
+.alp-nr--card:hover .alp-nr__cta,
+.alp-nr--panel:hover .alp-nr__cta { background: var(--alp-accent); border-color: var(--alp-accent); }
+
+/* The mist panel. Mist carries headline-scale type only — the eyebrow sits on
+   an olive tab rather than directly on the mist, which would be 4.35:1. */
+.alp-nr--panel {
+  display: block;
+  text-decoration: none;
+  color: var(--alp-ink);
+  padding: 20px;
+  background: var(--alp-mist);
+}
+.alp-nr__tab {
+  display: inline-block;
+  margin-bottom: 10px;
+  padding: 6px 9px;
+  background: var(--alp-ink);
+  color: var(--alp-bg);
+  font-family: var(--alp-font-ui);
+  font-size: 0.594rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.alp-nr--panel .alp-nr__date {
+  display: block;
+  font-family: var(--alp-font-display);
+  font-weight: 600;
+  font-size: 1.5rem;
+  line-height: 1.2;
+}
+
+/* ── Mobile: the floating chips ──────────────────────────────────────────────
+   Menu and Cart, centred at the foot of the screen. Nothing is pinned to the
+   top on a phone, so the full height goes to the photography. */
+.alp-fab {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(20px + env(safe-area-inset-bottom));
+  display: flex;
+  gap: 8px;
+  z-index: 55;
+}
+.alp-fab__btn {
+  box-shadow: 0 4px 16px rgba(76, 75, 59, 0.28);
+  min-height: 46px;
+  box-sizing: border-box;
+  padding: 0 18px;
+  font-size: 0.8125rem;
+}
+
+/* ── Mobile: the menu sheet ──────────────────────────────────────────────────
+   A bottom sheet over a dimmed page, rather than the old full-screen wipe. It
+   rises from the bottom because that is where the chip that opens it lives. */
+.alp-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  visibility: hidden;
+  pointer-events: none;
+}
+.alp-sheet.is-open { visibility: visible; pointer-events: auto; }
+
+.alp-sheet__scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(76, 75, 59, 0.6);
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+}
+.alp-sheet.is-open .alp-sheet__scrim { opacity: 1; }
+
+.alp-sheet__panel {
+  position: absolute;
+  inset: 56px 0 0;
+  background: var(--alp-bg);
+  border-radius: 18px 18px 0 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform: translateY(100%);
+  transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.alp-sheet.is-open .alp-sheet__panel { transform: none; }
+
+.alp-sheet__bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--alp-line);
+}
+.alp-sheet__bar .alp-sheet__mark { display: block; height: 18px; width: auto; max-width: none; }
+
+.alp-sheet__close {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: var(--alp-ink);
+  width: 44px;
+  height: 44px;
+  margin: -10px -10px -10px 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+.alp-sheet__close svg { width: 20px; height: 20px; }
+
+.alp-sheet__scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+body.alp-menu-open { overflow: hidden; }
+
+/* Nav rows inside the sheet: display scale, 44px tall, tight stack. */
+.alp-sheet__nav {
+  padding: 14px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-bottom: 1px solid var(--alp-line);
+}
+.alp-sheet__nav .alp-rail__link,
+.alp-sheet__nav .alp-rail__cart {
+  font-family: var(--alp-font-display);
+  font-size: 1.3125rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  border-top: 0;
+  padding: 0;
+}
+/* The mist bar is a desktop-rail device; in the sheet the row you are on is
+   simply where you already are. */
+.alp-sheet__nav .alp-rail__link.is-on { border-left: 0; padding-left: 0; margin-left: 0; }
+
+.alp-sheet__cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 20px; }
+.alp-sheet__card { display: block; text-decoration: none; color: var(--alp-ink); }
+.alp-sheet__card .alp-sheet__media {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  background: var(--alp-haze);
+}
+.alp-sheet__cardlabel {
+  display: block;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--alp-mist);
+  font-size: 0.781rem;
+}
+
+.alp-sheet__columns { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; padding: 6px 20px 20px; }
+.alp-sheet__col ul { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.alp-sheet__col a { font-size: 0.8125rem; line-height: 1.35; color: var(--alp-ink); text-decoration: none; }
+.alp-sheet__col a:hover { text-decoration: underline; }
+
+.alp-sheet__account { margin: 0; padding: 0 20px 40px; }
+.alp-sheet__account a { font-size: 0.8125rem; color: var(--alp-ink); }
+
+/* ── Which system is on ──────────────────────────────────────────────────── */
+@media (max-width: 989px) {
+  .alp-rail { display: none; }
+}
+@media (min-width: 990px) {
+  .alp-fab,
+  .alp-sheet { display: none; }
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .alp-menu, .alp-menu.is-open { transition: visibility 0s; clip-path: none; }
-  .alp-menu:not(.is-open) { clip-path: circle(0%); }
-  .alp-menu__media, .alp-menu__chip, .alp-menu__social { transition: none; }
+  .alp-sheet__panel,
+  .alp-sheet__scrim { transition: none; }
 }
 
 /* ── Hero (f_01/f_16: full-bleed media, chip product tags over the image) ── */
@@ -747,23 +836,6 @@ body.template-index .alp-hero { height: 100svh; min-height: 100svh; }
 }
 
 @media (max-width: 860px) {
-  /* Mobile bar: Bush Riding™ + clock left, Shop + Explore right, one line.
-     Type steps down so everything fits across a phone. */
-  .alp-nav-link { font-size: 1rem; padding: 8px 6px; }
-  .alp-nav-link--wordmark { font-size: 1.1rem; }
-  /* Same 1/0.46 scaling as desktop, against the 1.1rem the type steps down to,
-     so the logo takes about the width the wordmark text used to on a phone. */
-  .alp-nav-link--wordmark .alp-wordmark__img { height: 2.4rem; }
-  .alp-nav-link--clock { font-size: 0.85rem; }
-  .alp-head { flex-wrap: nowrap; gap: 0 6px; }
-  .alp-head__group { gap: 2px; }
-
-  /* Mobile Explore menu: the Shop card hides — Shop lives in the bar. The
-     first section runs to the very top (no white gap); the fixed corner icons
-     float over it, kept legible by their drop-shadow. */
-  .alp-menu__q--shop { display: none; }
-
-
   .alp-collection__duo { grid-template-columns: 1fr; }
   .alp-collection__panel { height: 62vh; }
 
@@ -782,37 +854,6 @@ body.template-index .alp-hero { height: 100svh; min-height: 100svh; }
   .alp-foot__columns { grid-template-columns: repeat(2, 1fr); gap: 32px 20px; }
 }
 
-/* ── Inner-page header: the same mist bar as the home page ───────────────────
-   Mist is chrome, everywhere. The bar used to fill olive off the home page,
-   which left the site with two different headers depending on where you were;
-   the catalogue design settles it — one mist bar, olive ink, on every
-   template. The mark goes with it: the olive wordmark artwork rather than the
-   cream one, because it now sits on a light field. The bar is also stepped
-   down in height here — the hero-sized wordmark (up to 6.2rem) is taller than
-   the 84px clearance #MainContent reserves. */
-body:not(.template-index) .alp-head {
-  background: var(--alp-mist);
-  padding-top: max(10px, env(safe-area-inset-top));
-  padding-bottom: 10px;
-}
-body:not(.template-index) .alp-nav-link {
-  color: var(--alp-ink);
-  font-size: clamp(1rem, 0.5vw + 0.85rem, 1.15rem);
-  text-shadow: none;
-}
-body:not(.template-index) .alp-nav-link:hover { color: var(--alp-accent); }
-body:not(.template-index) .alp-nav-link--wordmark { font-size: inherit; }
-body:not(.template-index) .alp-nav-link--wordmark .alp-wordmark__img {
-  height: clamp(2.2rem, 1.4vw + 1.6rem, 2.9rem);
-  filter: none;
-}
-body:not(.template-index) .alp-nav-link--clock { font-size: 0.8rem; color: var(--alp-accent); }
-
-/* (Option 1b's scroll-triggered header swap lived here. 2a's home bar is
-   olive-on-mist from the top of the page, so there is no photo-to-page
-   transition left to handle and the .alp-scrolled machinery is gone.) */
-/* Clearance to match the shorter solid bar. */
-body:not(.template-index) #MainContent { padding-top: 76px; }
 
 /* ── Catalogue / collection page (option 2c) ─────────────────────────────────
    The system the wireframe names, and the reason this page reads as one thing:
@@ -1734,20 +1775,3 @@ body.template-index .alp-trio__grid { gap: 1px; }
 body.template-index .alp-manifesto--page { padding: clamp(20px, 3vw, 40px) var(--alp-pad-page); }
 body.template-index .alp-ethos { padding-block: clamp(26px, 4vw, 56px); }
 
-/* The hero sits below the bar rather than under it, as on every other
-   template, so its full-screen height has to come off the same clearance. */
-body.template-index .alp-hero { min-height: calc(100svh - 76px); }
-
-/* One bar on every template. The home page used to hide the wordmark here
-   because the mist gate carried it directly underneath; the gate is no longer
-   what opens the page, so the mark belongs back in the bar where it stays
-   visible the whole way down. */
-body.template-index .alp-head {
-  padding-top: max(10px, env(safe-area-inset-top));
-  padding-bottom: 10px;
-}
-body.template-index .alp-nav-link--wordmark { display: flex; font-size: inherit; }
-body.template-index .alp-nav-link--wordmark .alp-wordmark__img {
-  height: clamp(2.2rem, 1.4vw + 1.6rem, 2.9rem);
-}
-body.template-index #MainContent { padding-top: 76px; }

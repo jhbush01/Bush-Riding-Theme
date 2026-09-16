@@ -9,32 +9,8 @@
 
   var DESIGN_MODE = window.Shopify && window.Shopify.designMode;
 
-  /* ── Live clock — minimalist: "14:07 AEST" ──
-     The element is re-queried every tick so a re-rendered header keeps a
-     working clock without re-binding anything. */
-  function tick() {
-    var clock = document.querySelector('[data-alp-clock]');
-    if (!clock) return;
-    var tz = clock.getAttribute('data-alp-clock') || 'Australia/Brisbane';
-    var label = clock.getAttribute('data-alp-clock-label') || 'AEST';
-    var time = new Intl.DateTimeFormat('en-GB', {
-      hour: '2-digit', minute: '2-digit',
-      hour12: false, timeZone: tz
-    }).format(new Date());
-    clock.textContent = time + ' ' + label;
-  }
-  tick();
-  setInterval(tick, 10000);
-
   /* ── Deferred video ──
      Nothing with a `data-alp-video` src is fetched until it is actually wanted.
-     This matters more than it looks: the Explore overlay is hidden with
-     visibility/clip-path rather than display:none, so a plain `<video autoplay>`
-     inside it is still laid out — and still downloads and plays — on every page
-     of the site, for a panel most visitors never open. Now the overlay's clips
-     load when the overlay opens, and everything else loads when it scrolls
-     near the viewport.
-
      The src goes on the element rather than a <source type="...">: the type
      attribute is a promise about the container, and a .mov labelled video/mp4
      is one some browsers refuse outright. Let the browser sniff it. */
@@ -57,9 +33,7 @@
     if (!targets.length) return;
 
     if (!('IntersectionObserver' in window)) {
-      targets.forEach(function (el) {
-        if (!el.closest('[data-alp-menu]')) playVideo(el);
-      });
+      targets.forEach(playVideo);
       return;
     }
     if (!videoIo) {
@@ -71,25 +45,19 @@
         });
       }, { rootMargin: '200px' });
     }
-    targets.forEach(function (el) {
-      /* The overlay's own clips are handled on open, not on scroll — it is
-         permanently "in view" while hidden. */
-      if (el.closest('[data-alp-menu]')) return;
-      videoIo.observe(el);
-    });
+    targets.forEach(function (el) { videoIo.observe(el); });
   }
 
-  /* ── Quartered menu overlay — opens with a clip-path expand from the corner.
+  /* ── Menu sheet (mobile) ──
+     Rises from the bottom, because the chip that opens it is at the bottom.
      Delegated so a re-rendered header keeps working. */
   function closeMenu(focusBtn) {
-    var overlay = document.querySelector('[data-alp-menu]');
+    var sheet = document.querySelector('[data-alp-menu]');
     var openBtn = document.querySelector('[data-alp-menu-open]');
-    if (!overlay) return;
-    overlay.classList.remove('is-open');
-    overlay.setAttribute('aria-hidden', 'true');
+    if (!sheet) return;
+    sheet.classList.remove('is-open');
+    sheet.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('alp-menu-open');
-    /* Stop paying for playback the moment it is off screen again. */
-    overlay.querySelectorAll('video').forEach(function (v) { v.pause(); });
     if (openBtn) {
       openBtn.setAttribute('aria-expanded', 'false');
       if (focusBtn) openBtn.focus();
@@ -97,30 +65,16 @@
   }
 
   document.addEventListener('click', function (e) {
-    var overlay = document.querySelector('[data-alp-menu]');
-    var openBtn = document.querySelector('[data-alp-menu-open]');
-    if (!overlay) return;
+    var sheet = document.querySelector('[data-alp-menu]');
+    if (!sheet) return;
 
     if (e.target.closest('[data-alp-menu-open]')) {
-      /* Expand from the Explore button's centre. Set the origin, then force a
-         style flush so the CLOSED clip-path is recomputed at the new origin
-         before we open — otherwise the very first click interpolates position
-         from the default top-right corner instead of growing from the button. */
-      if (openBtn) {
-        var r = openBtn.getBoundingClientRect();
-        overlay.style.setProperty('--alp-cx', (r.left + r.width / 2) + 'px');
-        overlay.style.setProperty('--alp-cy', (r.top + r.height / 2) + 'px');
-        void overlay.offsetWidth; /* flush: commit the new origin to the closed state */
-      }
-      /* Lazy-load the live map and the panel clips only once the menu opens. */
-      var mapFrame = overlay.querySelector('[data-alp-map-src]');
-      if (mapFrame && !mapFrame.src) mapFrame.src = mapFrame.getAttribute('data-alp-map-src');
-      overlay.querySelectorAll('[data-alp-video]').forEach(playVideo);
-      overlay.classList.add('is-open');
-      overlay.setAttribute('aria-hidden', 'false');
+      var openBtn = document.querySelector('[data-alp-menu-open]');
+      sheet.classList.add('is-open');
+      sheet.setAttribute('aria-hidden', 'false');
       document.body.classList.add('alp-menu-open');
       if (openBtn) openBtn.setAttribute('aria-expanded', 'true');
-      var closeBtn = overlay.querySelector('[data-alp-menu-close]');
+      var closeBtn = sheet.querySelector('[data-alp-menu-close]');
       if (closeBtn) closeBtn.focus();
     } else if (e.target.closest('[data-alp-menu-close]')) {
       closeMenu(true);
@@ -130,9 +84,107 @@
   });
 
   document.addEventListener('keydown', function (e) {
-    var overlay = document.querySelector('[data-alp-menu]');
-    if (e.key === 'Escape' && overlay && overlay.classList.contains('is-open')) closeMenu(true);
+    var sheet = document.querySelector('[data-alp-menu]');
+    if (e.key === 'Escape' && sheet && sheet.classList.contains('is-open')) closeMenu(true);
   });
+
+  /* ── Next ride ──
+     The date appears in up to four places at once (rail foot, home card, menu
+     sheet, journal foot) and nobody should have to remember to update it before
+     a ride, so it comes from the routes worker's public /events feed — the same
+     feed the map draws its Bush Event pins from.
+
+     The blocks ship `hidden` and are only revealed once a ride resolves. That
+     is the whole failure strategy: no feed, no upcoming ride, no network — the
+     page reads as though the block was never there, which is strictly better
+     than a stale November date sitting on the site in December.
+
+     The answer is cached in `ride` so the editor's re-renders re-fill the new
+     DOM without hitting the network again. */
+  var ride = null;
+  var rideAsked = false;
+
+  function rideConfig() {
+    var el = document.querySelector('[data-alp-rail]');
+    if (!el) return null;
+    return {
+      api: el.getAttribute('data-alp-events-api') || '',
+      eventsUrl: el.getAttribute('data-alp-events-url') || '',
+      mapUrl: el.getAttribute('data-alp-map-url') || ''
+    };
+  }
+
+  function fill(el, sel, value) {
+    var target = el.querySelector(sel);
+    if (target) target.textContent = value || '';
+  }
+
+  function applyRide() {
+    if (!ride) return;
+    var blocks = document.querySelectorAll('[data-alp-next-ride]');
+    if (!blocks.length) return;
+
+    blocks.forEach(function (el) {
+      fill(el, '[data-nr-date]', ride.when);
+      fill(el, '[data-nr-place]', ride.place);
+      fill(el, '[data-nr-note]', ride.note);
+      /* On the card and the panel the block itself is the link; in the rail the
+         link is a row inside it. */
+      var link = el.hasAttribute('data-nr-link') ? el : el.querySelector('[data-nr-link]');
+      if (link && ride.href) link.setAttribute('href', ride.href);
+      el.hidden = false;
+    });
+  }
+
+  function pickRide(features, cfg) {
+    /* date_iso sorts correctly as a string — comparing the ISO prefix avoids
+       parsing a date in the visitor's timezone and landing a day out. */
+    var today = new Date().toISOString().slice(0, 10);
+
+    var upcoming = features.filter(function (f) {
+      var p = (f && f.properties) || {};
+      if (!p.date_iso) return false;
+      if (p.status && p.status !== 'upcoming') return false;
+      return String(p.date_iso).slice(0, 10) >= today;
+    }).sort(function (a, b) {
+      return String(a.properties.date_iso).localeCompare(String(b.properties.date_iso));
+    });
+
+    if (!upcoming.length) return null;
+    var p = upcoming[0].properties;
+
+    /* The map selects by hash for ROUTES only (map.js selectFromHash), so an
+       event reaches the map through the route it runs on. Without one, the
+       events index is the closest honest destination. */
+    var href = p.route_id && cfg.mapUrl
+      ? cfg.mapUrl.replace(/\/$/, '') + '/#' + encodeURIComponent(p.route_id)
+      : cfg.eventsUrl;
+
+    return {
+      when: p.date_display ? (p.time ? p.date_display + ', ' + p.time : p.date_display) : p.time,
+      place: p.meeting_point || p.name,
+      note: p.subtitle || '',
+      href: href
+    };
+  }
+
+  function initNextRide() {
+    if (!document.querySelector('[data-alp-next-ride]')) return;
+    if (rideAsked) { applyRide(); return; }
+
+    var cfg = rideConfig();
+    if (!cfg || !cfg.api) return;
+    rideAsked = true;
+
+    fetch(cfg.api.replace(/\/$/, '') + '/events', { headers: { Accept: 'application/json' } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (!data || !data.features) return;
+        ride = pickRide(data.features, cfg);
+        applyRide();
+      })
+      .catch(function () { /* no ride shown; the block stays hidden */ });
+  }
 
   /* ── Scroll reveal ──
      Skipped entirely in the theme editor (sections are re-rendered on every
@@ -162,10 +214,12 @@
 
   initReveals();
   initVideos();
+  initNextRide();
 
   /* Editor hooks: re-run setup whenever a section is (re)loaded. */
   document.addEventListener('shopify:section:load', function () {
     initReveals();
     initVideos();
+    initNextRide();
   });
 })();
