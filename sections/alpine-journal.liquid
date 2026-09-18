@@ -1,0 +1,150 @@
+{%- comment -%}
+  Bush Riding journal — one section covering both the blog index and a single
+  dispatch, per turns 8d and 9f.
+
+  They are the same page with a different middle: a full-bleed lead, the mist
+  rule, then either the article's body on the caption gutter or the dated index
+  of everything else. Keeping them in one section is what stops the two drifting
+  apart, which is how a blog ends up looking like a different website from its
+  own articles.
+
+  The rail carries the dispatch index on desktop (see alpine-header), so the
+  index here is the phone's copy of it and is hidden above 990px on an article.
+{%- endcomment -%}
+
+{%- liquid
+  assign is_article = false
+  if article != blank
+    assign is_article = true
+  endif
+
+  comment
+    The lead is the article you are reading, or the most recent one on the
+    index. A blog with nothing in it renders neither, rather than a hole.
+  endcomment
+  assign lead = article
+  if is_article == false
+    assign lead = blog.articles.first
+  endif
+-%}
+
+{%- if lead != blank -%}
+  <section class="alp alp-journal">
+    <div class="alp-journal__lead">
+      {%- if lead.image != blank -%}
+        {{ lead.image | image_url: width: 2400 | image_tag: loading: 'eager', fetchpriority: 'high', alt: lead.image.alt | default: lead.title }}
+      {%- else -%}
+        <img src="{{ 'alpine-ph-story.svg' | asset_url }}" alt="" width="1600" height="900" loading="eager"
+          data-asset-note="Ride photograph for this dispatch — set a featured image on the article.">
+      {%- endif -%}
+
+      <div class="alp-journal__veil" aria-hidden="true"></div>
+
+      <div class="alp-journal__leadtext">
+        {%- liquid
+          assign lead_eyebrow = lead.tags | join: ' · '
+          if lead_eyebrow == blank
+            assign lead_eyebrow = blog.title
+          endif
+        -%}
+        {%- if lead_eyebrow != blank -%}
+          <p class="alp-journal__eyebrow">{{ lead_eyebrow | escape }}</p>
+        {%- endif -%}
+
+        {%- if is_article -%}
+          <h1 class="alp-journal__title">{{ lead.title | escape }}</h1>
+        {%- else -%}
+          <h1 class="alp-journal__title"><a href="{{ lead.url }}">{{ lead.title | escape }}</a></h1>
+        {%- endif -%}
+      </div>
+    </div>
+
+    <div class="alp-journal__rule" aria-hidden="true"></div>
+
+    {%- if is_article -%}
+      <div class="alp-passage alp-passage--bone alp-passage--large">
+        <p class="alp-passage__eyebrow">
+          {{- article.published_at | date: '%B %Y' -}}
+        </p>
+        <div class="alp-passage__field">
+          <div class="alp-passage__body rte">{{ article.content }}</div>
+        </div>
+      </div>
+    {%- else -%}
+      {%- if lead.excerpt_or_content != blank -%}
+        <div class="alp-passage alp-passage--bone alp-passage--large">
+          <p class="alp-passage__eyebrow">{{ lead.published_at | date: '%B %Y' }}</p>
+          <div class="alp-passage__field">
+            <div class="alp-passage__body rte">{{ lead.excerpt_or_content | strip_html | truncatewords: 40 }}</div>
+          </div>
+        </div>
+      {%- endif -%}
+    {%- endif -%}
+
+    {%- comment -%}
+      The dated index. On an article this is the phone's copy of what the rail
+      already shows on desktop, so it hides above 990px; on the blog index it is
+      the page's whole point and always shows.
+    {%- endcomment -%}
+    {%- assign rest = 0 -%}
+    {%- for a in blog.articles -%}
+      {%- unless a.id == lead.id -%}{%- assign rest = rest | plus: 1 -%}{%- endunless -%}
+    {%- endfor -%}
+
+    {%- if rest > 0 -%}
+      <div class="alp-journal__index{% if is_article %} alp-journal__index--phone{% endif %}">
+        <p class="alp-passage__eyebrow">All dispatches</p>
+        <div class="alp-journal__rows">
+          {%- for a in blog.articles limit: 12 -%}
+            {%- unless a.id == lead.id -%}
+              <a class="alp-journal__row" href="{{ a.url }}">
+                <span class="alp-journal__rowtitle">{{ a.title | escape }}</span>
+                <span class="alp-journal__rowdate">{{ a.published_at | date: '%b' }}</span>
+              </a>
+            {%- endunless -%}
+          {%- endfor -%}
+        </div>
+      </div>
+    {%- endif -%}
+
+    {%- if section.settings.show_next_ride -%}
+      <div class="alp-journal__ride">
+        {%- render 'alp-next-ride', variant: 'panel' -%}
+      </div>
+    {%- endif -%}
+  </section>
+{%- else -%}
+  {%- comment -%}
+    Nothing published yet. Say so in the editor and render nothing at all to a
+    customer, rather than an empty frame.
+  {%- endcomment -%}
+  {%- if request.design_mode -%}
+    <p class="alp alp-cat__empty">No dispatches yet. Publish an article in this blog and the journal builds itself from it.</p>
+  {%- endif -%}
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Bush Riding journal",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Covers both the blog index and a single dispatch. The lead is the article you are reading, or the newest one."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_next_ride",
+      "label": "Show the next ride at the foot",
+      "default": true,
+      "info": "Pulled live from the Bush Map events feed, and hidden entirely when there is no upcoming ride."
+    }
+  ],
+  "presets": [
+    { "name": "Bush Riding journal" }
+  ],
+  "enabled_on": {
+    "templates": ["blog", "article"]
+  }
+}
+{% endschema %}

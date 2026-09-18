@@ -1,0 +1,71 @@
+{%- comment -%}
+  The product page's rail block — title, price, size and add-to-cart, per
+  turn 8b. The images then take the whole field, which is the point: the buy
+  controls are always on screen in the rail, so the photography never has to
+  share the fold with them.
+
+  IT DOES NOT OWN ANY STATE. There is exactly one product form on the page —
+  Dawn's, in main-product — and this block drives it:
+
+    • the size buttons click the real radio in <variant-selects>, which is
+      precisely what a visitor clicking the on-page picker does, so Dawn
+      updates the variant, the price and availability by its own code path;
+    • Add to cart calls requestSubmit() on that same form, so the cart drawer
+      and notification behave exactly as a native add;
+    • the price here is re-read from the page after each change.
+
+  This is the mechanism sticky-atc already uses in production. A second form,
+  or a second copy of the variant state, is how a buy button ends up adding
+  the wrong variant.
+
+  The primary nav is deliberately absent on this template — 8b replaces it
+  with "← Shop" and the buy block. The wordmark above still goes home.
+{%- endcomment -%}
+
+{%- liquid
+  assign v = product.selected_or_first_available_variant
+
+  comment
+    The size axis. Named options win; otherwise the first option is it, which
+    is right for a single-axis product and harmless for none.
+  endcomment
+  assign size_option = blank
+  for option in product.options_with_values
+    assign name_down = option.name | downcase
+    if name_down contains 'size' and size_option == blank
+      assign size_option = option
+    endif
+  endfor
+  if size_option == blank and product.has_only_default_variant == false
+    assign size_option = product.options_with_values.first
+  endif
+-%}
+
+<a class="alp-rail__back" href="{{ collection.url | default: routes.all_products_collection_url }}">← Shop</a>
+
+<div class="alp-rail__product">
+  <p class="alp-rail__ptitle">{{ product.title | escape }}</p>
+  <p class="alp-rail__pprice" data-alp-rp-price>
+    {{- v.price | money }} {{ cart.currency.iso_code -}}
+  </p>
+</div>
+
+{%- if size_option != blank -%}
+  <div class="alp-rail__sizes">
+    <p class="alp-rail__eyebrow">{{ size_option.name | escape }}</p>
+    <div class="alp-rail__sizerow" data-alp-rp-options data-alp-rp-position="{{ size_option.position }}">
+      {%- for value in size_option.values -%}
+        <button
+          class="alp-rail__size{% if value == size_option.selected_value %} is-on{% endif %}"
+          type="button"
+          data-alp-rp-value="{{ value | escape }}"
+          {% if value == size_option.selected_value %}aria-current="true"{% endif %}
+        >{{ value | escape }}</button>
+      {%- endfor -%}
+    </div>
+  </div>
+{%- endif -%}
+
+<button class="alp-chip alp-rail__atc" type="button" data-alp-rp-submit>
+  {%- if v.available -%}Add to cart{%- else -%}Sold out{%- endif -%}
+</button>

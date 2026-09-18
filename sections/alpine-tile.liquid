@@ -76,16 +76,30 @@
     {%- endif -%}
   </div>
 
-  {%- if label != blank or section.settings.blurb != blank -%}
+  {%- comment -%}
+    The veil is what lets the words sit IN the picture. Without it the caption
+    depends on whatever happens to be behind it, which is how a caption ends up
+    legible on the art director's photograph and invisible on the merchant's.
+  {%- endcomment -%}
+  {%- if section.settings.veil -%}
+    <div class="alp-tile__veil" aria-hidden="true"></div>
+  {%- endif -%}
+
+  {%- if label != blank or section.settings.blurb != blank or section.settings.eyebrow != blank or section.settings.frame != blank -%}
     <div class="alp-tile__plate">
-      {%- if section.settings.eyebrow != blank -%}
-        <p class="alp-tile__eyebrow">{{ section.settings.eyebrow | escape }}</p>
-      {%- endif -%}
-      {%- if label != blank -%}
-        <p class="alp-tile__label{% if url != blank %} alp-tile__label--link{% endif %}">{{ label | escape }}</p>
-      {%- endif -%}
-      {%- if section.settings.blurb != blank -%}
-        <p class="alp-tile__blurb">{{ section.settings.blurb | escape }}</p>
+      <div class="alp-tile__plate-main">
+        {%- if section.settings.eyebrow != blank -%}
+          <p class="alp-tile__eyebrow">{{ section.settings.eyebrow | escape }}</p>
+        {%- endif -%}
+        {%- if label != blank -%}
+          <p class="alp-tile__label alp-tile__label--{{ section.settings.label_size | default: 'label' }}{% if url != blank %} alp-tile__label--link{% endif %}">{{ label | escape }}</p>
+        {%- endif -%}
+        {%- if section.settings.blurb != blank -%}
+          <p class="alp-tile__blurb">{{ section.settings.blurb | escape }}</p>
+        {%- endif -%}
+      </div>
+      {%- if section.settings.frame != blank -%}
+        <p class="alp-tile__eyebrow alp-tile__frame">{{ section.settings.frame | escape }}</p>
       {%- endif -%}
     </div>
   {%- endif -%}
@@ -109,7 +123,19 @@
     { "type": "text", "id": "eyebrow", "label": "Eyebrow", "info": "Small line above the label." },
     { "type": "text", "id": "label", "label": "Label", "info": "Defaults to the collection's title." },
     { "type": "text", "id": "blurb", "label": "Blurb", "info": "One short line under the label. Leave blank on most tiles." },
+    {
+      "type": "select",
+      "id": "label_size",
+      "label": "Label size",
+      "options": [
+        { "value": "label", "label": "Label \u2014 a name in the corner" },
+        { "value": "headline", "label": "Headline \u2014 a statement over the photograph" }
+      ],
+      "default": "label"
+    },
+    { "type": "text", "id": "frame", "label": "Frame number", "info": "Sits at the opposite corner from the caption, e.g. \"02\"." },
     { "type": "url", "id": "link", "label": "Link", "info": "Defaults to the collection." },
+    { "type": "checkbox", "id": "veil", "label": "Darken the photograph", "default": true, "info": "Keeps the caption legible whatever the picture is. Turn off only on a tile with no words on it." },
     { "type": "header", "content": "Shape" },
     {
       "type": "select",

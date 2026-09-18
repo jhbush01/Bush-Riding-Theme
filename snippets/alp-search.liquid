@@ -1,0 +1,37 @@
+{%- comment -%}
+  Search, as a plain GET form.
+
+  Predictive search is switched on in this store's settings but had no entry
+  point anywhere in the navigation — the rail and the menu sheet both dropped
+  it, and so did the Explore overlay before them. With the launch collection
+  landing in November that is a shop you cannot search.
+
+  No JavaScript: it is a form pointed at Shopify's own search route, so it
+  works with scripts off and needs nothing re-initialised when the theme editor
+  re-renders the header.
+
+  Accepts:
+    variant - 'sheet' (mobile menu) or 'rail' (desktop)
+    id      - unique suffix, since this renders in two places on one page
+{%- endcomment -%}
+
+{%- assign s_variant = variant | default: 'sheet' -%}
+
+<form class="alp-search alp-search--{{ s_variant }}" action="{{ routes.search_url }}" method="get" role="search">
+  <label class="visually-hidden" for="alp-search-{{ id }}">Search</label>
+  <input
+    class="alp-search__field"
+    id="alp-search-{{ id }}"
+    type="search"
+    name="q"
+    value="{{ search.terms | escape }}"
+    placeholder="Search the shop"
+    autocomplete="off"
+  >
+  <input type="hidden" name="options[prefix]" value="last">
+  <button class="alp-search__go" type="submit" aria-label="Search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+      <circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>
+    </svg>
+  </button>
+</form>

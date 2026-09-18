@@ -22,6 +22,16 @@
 
   --alp-space-section: clamp(72px, 12vw, 160px);
   --alp-pad-page: clamp(16px, 4vw, 48px);
+
+  /* The caption-gutter measures. These were hardcoded as 200px / 56px in five
+     places — the wireframe's 1440 artboard, pinned. They never scaled, so
+     between 990 and 1400 the gutter ate a fixed 200px of a shrinking field
+     while the bands above and below stayed at their full height: cramped
+     columns inside airy slabs, which is the worst of both. */
+  --alp-gutter: clamp(104px, 13vw, 200px);
+  --alp-gutter-gap: clamp(20px, 2.6vw, 56px);
+  --alp-field-pad: clamp(20px, 4vw, 56px);
+  --alp-band: clamp(40px, 5.5vw, 80px);
 }
 
 body {
@@ -29,17 +39,30 @@ body {
   color: var(--alp-ink);
 }
 
-/* The chip header is fixed. Option 2a's home page opens on a mist gate rather
-   than a full-bleed photo, so there is no longer a hero for the bar to float
-   over — every template, home included, needs clearance below it. */
-#MainContent { padding-top: 84px; }
+/* ── The rail, and what it does to the page ──────────────────────────────────
+   Desktop navigation is a fixed column down the left rather than a bar across
+   the top, so the page is inset by its width instead of by its height. The
+   inset goes on <body> so the footer moves with the content — the rail runs
+   the full height of the viewport and nothing may pass under it.
 
-/* ── Option 2a: mist is the home page ────────────────────────────────────────
-   Mist replaces bone as the ground on the home page only; inner pages
-   (collection, product) stay on bone, so mist reads as "this is the front
-   door" rather than a whole-site repaint. Olive still carries every word on
-   it — olive on mist is the same ink, just a colder paper. */
-body.template-index { background-color: var(--alp-mist); }
+   Below 990px there is no rail: navigation is two floating chips at the bottom
+   of the screen, so the page needs bottom clearance instead, and the top of
+   the screen is free for photography. */
+:root { --alp-rail-w: 196px; }
+
+@media (min-width: 990px) {
+  body { padding-left: var(--alp-rail-w); }
+}
+
+/* Clearance for the floating chips at rest. Sections that end on their own
+   olive slab add their own. */
+@media (max-width: 989px) {
+  #MainContent { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+}
+
+/* Bone is the ground on every template. (Option 2a made the home page mist;
+   the rail system puts mist back to rules, wayfinding and headline grounds
+   only — olive on mist is 4.35:1, which will not carry small copy.) */
 
 .alp {
   font-family: var(--alp-font-ui);
@@ -89,268 +112,664 @@ button.alp-chip { cursor: pointer; }
 }
 a.alp-chip--active:hover { background: var(--alp-accent); border-color: var(--alp-accent); color: var(--alp-bg); }
 
-/* ── Header ──────────────────────────────────────────────────────────────── */
-.alp-head {
+/* ── The rail (desktop navigation) ───────────────────────────────────────────
+   A fixed bone column with a hairline edge, holding the wordmark and nav at the
+   top, a per-template block in the middle and the next ride plus the cart at
+   the foot. The middle block is the point of the thing: filters on the
+   catalogue, the dispatch index on the journal, the section index on a page.
+   A top bar cannot hold any of that without becoming a second page. */
+.alp-rail {
   position: fixed;
-  top: 0; left: 0; right: 0;
+  inset: 0 auto 0 0;
+  width: var(--alp-rail-w);
   z-index: 50;
+  box-sizing: border-box;
+  padding: 28px 22px;
+  background: var(--alp-bg);
+  border-right: 1px solid var(--alp-line);
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  flex-direction: column;
   justify-content: space-between;
-  gap: 0 12px;
-  /* With viewport-fit=cover the page draws under the notch; keep the bar's
-     text below it. */
-  padding: max(10px, env(safe-area-inset-top)) var(--alp-pad-page) 10px;
-  transition: background-color 0.25s ease-out;
+  gap: 24px;
+  /* The rail itself does not scroll — its TOP does. On a 700px laptop the
+     About page's rail wanted 776px, and when the whole column scrolled that
+     pushed the next ride and the cart off the bottom, where nobody would think
+     to look for them. Now the nav and the per-page block take the scroll and
+     the foot stays put. */
+  overflow: hidden;
+  scrollbar-width: none;
 }
+.alp-rail::-webkit-scrollbar { display: none; }
 
-/* The bar is pinned at the top on every template. (Option 1a floated it at the
-   hero's vertical centre for the one-screen design; 2a opens on the mist gate
-   instead, so it stays at top: 0 throughout.) */
-
-.alp-head__group { display: flex; align-items: center; gap: 10px; }
-.alp-head__nav { display: flex; gap: 6px; }
-
-/* Header text. The base is bone with a faint scrim shadow — what the bar wore
-   when it floated over the home photograph. Every template now overrides it
-   (olive ink on the mist bar), so this is the fallback rather than the look.
-   (A difference blend was tried over that hero: iOS renders video in a
-   separate plane that CSS blending cannot sample, so it silently fails.) */
-.alp-nav-link {
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-  padding: 8px 10px;
-  font-family: var(--alp-font-ui);
-  font-size: clamp(1.4rem, 1.8vw + 0.9rem, 2.625rem);
-  font-weight: 600;
-  line-height: 1.2;
-  text-decoration: none;
-  white-space: nowrap;
-  color: var(--alp-bg);
-  text-shadow: 0 1px 4px rgba(47, 47, 38, 0.3);
+.alp-rail__top {
+  display: flex;
+  flex-direction: column;
+  gap: 34px;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
 }
+.alp-rail__top::-webkit-scrollbar { display: none; }
+.alp-rail__foot { flex: none; }
 
-.alp-nav-link:hover { color: var(--alp-citrus); }
-
-.alp-nav-link--wordmark { font-weight: 800; font-size: clamp(1.55rem, 2vw + 1rem, 2.85rem); letter-spacing: 0.01em; }
-.alp-nav-link--clock { font-weight: 500; font-variant-numeric: tabular-nums; font-size: clamp(1rem, 1.2vw + 0.7rem, 1.8rem); }
-
-/* Brush wordmark. Sized by HEIGHT so it holds its aspect ratio, and flex on the
-   anchor so there is no inline-baseline gap under it.
-
-   The heights look large next to the old font sizes because they are not
-   comparable: in the artwork the cap "B" occupies only ~46% of the image's
-   height (the script's ascenders and descenders take the rest). Scaling the old
-   cap height by ~1/0.46 lands the letters at the same visual size as the type
-   they replace, and the resulting width (~230px desktop) closely matches the
-   width "Bush Riding™" used to occupy. */
-.alp-nav-link--wordmark { display: flex; align-items: center; }
-/* Selector is two classes deep on purpose: the blanket `.alp img` rule above is
-   (0,1,1), so a lone `.alp-wordmark__img` (0,1,0) LOSES to it and the logo
-   renders at its intrinsic 1273px width. Do not flatten this selector. */
-.alp-nav-link--wordmark .alp-wordmark__img {
+.alp-rail__wordmark { display: block; }
+/* Two classes deep on purpose: the blanket `.alp img` rule is (0,1,1), so a
+   lone `.alp-rail__mark` (0,1,0) loses to it and the logo renders at its
+   intrinsic 1273px width. Do not flatten this selector. */
+.alp-rail__wordmark .alp-rail__mark {
   display: block;
-  height: clamp(3.4rem, 4.4vw + 2.2rem, 6.2rem);
+  height: 30px;
   width: auto;
   max-width: none;
-  /* No shadow: the mark is olive artwork on a flat mist bar now, not cream
-     artwork over a photograph. */
 }
 
-/* Option 2a: the home bar sits on the mist gate, not over a photograph, so
-   its type is olive ink like the rest of the page — no shadow, no flare. The
-   bar takes a mist fill so content scrolling under it stays legible. */
-body.template-index .alp-head { background: var(--alp-mist); }
-body.template-index .alp-nav-link {
+.alp-rail__nav { display: flex; flex-direction: column; gap: 12px; }
+
+.alp-rail__link {
+  font-family: var(--alp-font-ui);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1;
   color: var(--alp-ink);
-  text-shadow: none;
-  font-size: clamp(1rem, 0.5vw + 0.85rem, 1.15rem);
+  text-decoration: none;
 }
-body.template-index .alp-nav-link:hover { color: var(--alp-accent); }
-body.template-index .alp-nav-link--clock { font-size: 0.8rem; color: var(--alp-ink); }
-/* The gate carries the mark on 2a — the giant olive wordmark sits directly
-   under the bar, so repeating it in the bar would double it up. Hidden, not
-   removed: the anchor still exists for every other template. */
-body.template-index .alp-nav-link--wordmark { display: none; }
+.alp-rail__link:hover { color: var(--alp-accent); }
 
-/* ── Explore menu overlay ────────────────────────────────────────────────────
-   Expands from the Explore button itself (JS sets --alp-cx/--alp-cy to the
-   button's centre) with a clip-path circle — the page is wiped away and the
-   menu appears. Desktop: 2×2 quarters split by thin white lines, with the
-   nav/legal links a short scroll below. Mobile: a vertical scroll of 16:9
-   cards with chip-button titles, links underneath. */
-.alp-menu {
-  position: fixed; inset: 0; z-index: 60;
-  /* Bone, not paper: the board scopes white to chips and cards, never a
-     full-screen field. (Brief §1.2's recommended option.) */
-  background: var(--alp-bg);
-  visibility: hidden;
-  pointer-events: none;
-  clip-path: circle(0% at var(--alp-cx, 100%) var(--alp-cy, 0%));
-  transition: clip-path 0.6s cubic-bezier(0.76, 0, 0.24, 1), visibility 0s linear 0.6s;
-}
-.alp-menu.is-open {
-  visibility: visible;
-  pointer-events: auto;
-  clip-path: circle(150% at var(--alp-cx, 100%) var(--alp-cy, 0%));
-  transition: clip-path 0.6s cubic-bezier(0.76, 0, 0.24, 1), visibility 0s;
+/* The mist bar marks where you are. Pulled left by its own width plus the
+   padding so the type stays on the same optical line as the rows above it. */
+.alp-rail__link.is-on {
+  border-left: 3px solid var(--alp-mist);
+  padding-left: 10px;
+  margin-left: -13px;
 }
 
-/* The overlay itself scrolls; the page behind is locked (body.alp-menu-open). */
-.alp-menu__scroll {
-  position: absolute; inset: 0;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-}
-body.alp-menu-open { overflow: hidden; }
+.alp-rail__slot { display: flex; flex-direction: column; gap: 11px; }
+/* The home page has nothing to put here; an empty slot must not add its gap. */
+.alp-rail__slot:empty { display: none; }
 
-/* Corner cluster: cart + close, top right. */
-.alp-menu__corner {
-  position: fixed;
-  top: max(20px, env(safe-area-inset-top));
-  right: max(16px, env(safe-area-inset-right));
-  z-index: 4;
+/* What the slot holds — today the catalogue's facets, rendered from the same
+   snippet the phone's Filter panel uses. A hairline separates it from the nav
+   above so the rail reads as two stacked jobs rather than one long list. */
+.alp-rail__slot {
+  border-top: 1px solid var(--alp-line);
+  padding-top: 18px;
+}
+.alp-rail__slot .alp-cat__facet { display: flex; flex-direction: column; }
+.alp-rail__slot .alp-cat__facet + .alp-cat__facet { margin-top: 18px; }
+.alp-rail__slot .alp-cat__facet-head {
+  margin: 0 0 10px;
+  font-size: 0.594rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  color: var(--alp-ink);
+}
+.alp-rail__slot .alp-cat__facet-link { font-size: 0.8125rem; }
+/* The dispatch you are reading, marked the way the nav marks the page you are on. */
+.alp-rail__slot .alp-rail__detail.is-on { font-weight: 700; }
+/* The rail gives about 152px of usable width, so the price row stacks rather
+   than sitting side by side. It must not simply be hidden: the phone's Filter
+   panel is the only other place these controls exist, and that panel is gone
+   above 990px — hiding it here would put the price filter out of reach on
+   desktop entirely. */
+.alp-rail__slot .alp-cat__price-row { flex-direction: column; align-items: stretch; gap: 8px; }
+.alp-rail__slot .alp-cat__price-dash { display: none; }
+.alp-rail__slot .alp-cat__price-go { width: 100%; justify-content: center; }
+.alp-rail__slot .alp-cat__swatches { gap: 8px; }
+
+.alp-rail__foot { display: flex; flex-direction: column; gap: 14px; }
+
+.alp-rail__eyebrow {
+  margin: 0;
+  font-family: var(--alp-font-ui);
+  font-size: 0.594rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--alp-ink);
+}
+
+.alp-rail__summary {
+  margin: 0;
+  font-family: var(--alp-font-display);
+  font-weight: 600;
+  font-size: 1.125rem;
+  line-height: 1.2;
+}
+
+.alp-rail__cart {
+  font-family: var(--alp-font-ui);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--alp-ink);
+  text-decoration: none;
+  border-top: 1px solid var(--alp-line);
+  padding-top: 14px;
+}
+.alp-rail__cart:hover { color: var(--alp-accent); }
+
+/* ── The rail's buy block (product page) ──────────────────────────────────── */
+.alp-rail__back {
+  font-family: var(--alp-font-ui);
+  font-size: 0.75rem;
+  color: var(--alp-ink);
+  text-decoration: none;
+}
+.alp-rail__back:hover { color: var(--alp-accent); }
+
+.alp-rail__product {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 6px;
+  border-top: 1px solid var(--alp-line);
+  padding-top: 18px;
 }
-.alp-menu__icon {
-  position: relative;
+.alp-rail__ptitle {
+  margin: 0;
+  font-family: var(--alp-font-display);
+  font-weight: 600;
+  font-size: 1.25rem;
+  line-height: 1.18;
+  letter-spacing: -0.01em;
+}
+.alp-rail__pprice { margin: 0; font-size: 0.875rem; }
+
+.alp-rail__sizes { display: flex; flex-direction: column; gap: 10px; }
+.alp-rail__sizerow { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.alp-rail__size {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px; height: 44px;
-  color: var(--alp-bg);
+  min-width: 34px;
+  padding: 8px 9px;
+  border: 1px solid rgba(76, 75, 59, 0.35);
+  border-radius: 3px;
   background: transparent;
-  border: 0;
+  font-family: var(--alp-font-ui);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--alp-ink);
   cursor: pointer;
-  text-decoration: none;
 }
-.alp-menu__icon svg { width: 24px; height: 24px; filter: drop-shadow(0 1px 3px rgba(47, 47, 38, 0.5)); }
-.alp-menu__cart-count {
-  position: absolute; top: 4px; right: 2px;
-  min-width: 16px; height: 16px; padding: 0 3px;
-  border-radius: 8px;
-  background: var(--alp-citrus); color: var(--alp-ink);
-  font-size: 0.62rem; font-weight: 700; line-height: 16px; text-align: center;
-}
+.alp-rail__size:hover { border-color: var(--alp-ink); }
+.alp-rail__size.is-on { background: var(--alp-ink); border-color: var(--alp-ink); color: var(--alp-bg); }
 
-/* All platforms: a vertical stack of full-width landscape sections, split by
-   thin white lines. aspect-ratio 16:9 native for 4K footage; max-height caps
-   the section on very wide screens (35mm 3:2 stills crop gently top/bottom —
-   set the focal point in the editor to steer it). */
-.alp-menu__grid {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  background: var(--alp-bg); /* shows through the 1px gaps as bone hairlines */
+.alp-rail__atc {
+  justify-content: center;
+  padding: 15px;
+  background: var(--alp-ink);
+  border-color: var(--alp-ink);
+  color: var(--alp-bg);
 }
+.alp-rail__atc:hover:not(:disabled) { background: var(--alp-accent); border-color: var(--alp-accent); }
+.alp-rail__atc:disabled { opacity: 0.5; cursor: default; }
 
-.alp-menu__q {
-  position: relative;
-  overflow: hidden;
-  display: block;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  max-height: 86vh;
-  max-height: 86svh;
-  text-decoration: none;
-  background: var(--alp-olive);
-  isolation: isolate;
-}
-
-.alp-menu__media {
-  position: absolute; inset: 0;
-  z-index: -1;
-  width: 100%; height: 100%;
-  object-fit: cover;
-  transform: scale(1.06);
-  transition: transform 0.7s ease;
-  border: 0;
-}
-.alp-menu.is-open .alp-menu__media { transform: scale(1); }
-span.alp-menu__media--ph { background: linear-gradient(135deg, var(--alp-accent), var(--alp-olive)); }
-.alp-menu__q::after { content: ""; position: absolute; inset: 0; z-index: -1; background: rgba(47, 47, 38, 0.4); }
-
-/* Live map feed as the Bush Map panel background. The iframe is a background
-   layer; clicks fall through to the panel's own link. */
-.alp-menu__map {
-  position: absolute; inset: 0;
-  z-index: -1;
-  width: 100%; height: 100%;
-  border: 0;
-  pointer-events: none;
-  transform: scale(1.02);
-}
-.alp-menu__q--map::after { background: rgba(47, 47, 38, 0.28); }
-
-/* Social icons, bottom-left of the video panel. */
-.alp-menu__social {
-  position: absolute;
-  left: clamp(18px, 4vw, 40px);
-  bottom: clamp(18px, 4vw, 40px);
-  z-index: 2;
-  display: flex;
-  gap: 14px;
-}
-.alp-menu__social a { display: inline-flex; color: var(--alp-bg); }
-.alp-menu__social svg { width: 24px; height: 24px; filter: drop-shadow(0 1px 3px rgba(47, 47, 38, 0.5)); }
-.alp-menu__social a:hover { color: var(--alp-citrus); }
-
-
-/* Section titles: the small off-white box button (same chip as the home
-   page), bottom right of every section. */
-.alp-menu__chip {
-  position: absolute;
-  right: clamp(16px, 3vw, 36px);
-  bottom: clamp(16px, 3vw, 36px);
-  z-index: 2;
-}
-
-/* Content fades/lifts in once the wipe is nearly complete. */
-.alp-menu__chip, .alp-menu__social {
-  opacity: 0; transform: translateY(14px);
-  transition: opacity 0.4s ease 0.25s, transform 0.4s ease 0.25s;
-}
-.alp-menu.is-open .alp-menu__chip,
-.alp-menu.is-open .alp-menu__social { opacity: 1; transform: none; }
-
-/* Nav + legal links below the panels — every way around the site, 12pt. */
-.alp-menu__links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 28px clamp(40px, 8vw, 120px);
-  padding: clamp(28px, 5vw, 56px) var(--alp-pad-page) calc(28px + env(safe-area-inset-bottom));
-  background: var(--alp-bg);
-}
-.alp-menu__links-col h3 {
-  margin: 0 0 10px;
+.alp-rail__detail {
   font-family: var(--alp-font-ui);
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgba(76, 75, 59, 0.6);
-}
-.alp-menu__links-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
-.alp-menu__links-col a {
-  font-family: var(--alp-font-ui);
-  font-size: 12pt;
+  font-size: 0.8125rem;
+  line-height: 1.35;
   color: var(--alp-ink);
   text-decoration: none;
 }
-.alp-menu__links-col a:hover { text-decoration: underline; }
-.alp-menu__small { flex-basis: 100%; margin: 4px 0 0; font-size: 0.72rem; color: rgba(76, 75, 59, 0.6); }
+.alp-rail__detail:hover { color: var(--alp-accent); }
 
-@media (prefers-reduced-motion: reduce) {
-  .alp-menu, .alp-menu.is-open { transition: visibility 0s; clip-path: none; }
-  .alp-menu:not(.is-open) { clip-path: circle(0%); }
-  .alp-menu__media, .alp-menu__chip, .alp-menu__social { transition: none; }
+/* 8b gives the images the whole field by moving the buy controls into the
+   rail. The page's own block only steps aside once alpine.js has CONFIRMED it
+   can reach Dawn's form and button — the class is added by script, never by
+   Liquid. Without JS, or with a form we cannot reach, the page keeps the
+   controls it has always had. A product must never become unbuyable because a
+   rail failed to load.
+
+   Hidden, not removed: the rail drives those very radios by clicking them, so
+   they have to stay in the DOM. */
+@media (min-width: 990px) {
+  body.alp-rail-buy .product__info-container .product-form,
+  body.alp-rail-buy .product__info-container .price,
+  body.alp-rail-buy .product__info-container .product-form__input { display: none; }
 }
 
-/* ── Hero (f_01/f_16: full-bleed media, chip product tags over the image) ── */
+/* ── Next ride ───────────────────────────────────────────────────────────────
+   One block, three shapes: the rail foot, the home page card, and the mist
+   panel used at the top of the menu sheet and the foot of the journal.
+
+   It arrives empty and alpine.js fills it from the events feed, so `hidden`
+   has to beat the display values below — otherwise an unresolved block lays
+   out as an empty card. */
+.alp-nr[hidden] { display: none !important; }
+
+.alp-nr__rule { display: block; height: 3px; width: 44px; background: var(--alp-mist); }
+
+.alp-nr--rail { display: flex; flex-direction: column; gap: 10px; }
+.alp-nr--rail .alp-nr__date {
+  margin: 0;
+  font-family: var(--alp-font-display);
+  font-weight: 600;
+  font-size: 1.125rem;
+  line-height: 1.2;
+}
+.alp-nr--rail .alp-nr__place { margin: 0; font-size: 0.781rem; line-height: 1.45; }
+.alp-nr--rail .alp-nr__link {
+  font-family: var(--alp-font-ui);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--alp-ink);
+  text-decoration: none;
+}
+.alp-nr--rail .alp-nr__link:hover { color: var(--alp-accent); }
+
+/* The home page card — under the hero, above the story, with a mist rule under
+   it rather than a border box. */
+.alp-nr--card {
+  display: block;
+  text-decoration: none;
+  color: var(--alp-ink);
+  padding: 20px;
+  border-bottom: 3px solid var(--alp-mist);
+}
+.alp-nr__head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; gap: 12px; }
+.alp-nr__eyebrow {
+  font-family: var(--alp-font-ui);
+  font-size: 0.594rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.alp-nr--card .alp-nr__date {
+  display: block;
+  font-family: var(--alp-font-display);
+  font-weight: 600;
+  font-size: 1.1875rem;
+  line-height: 1.2;
+}
+.alp-nr__note { display: block; font-size: 0.8125rem; line-height: 1.65; margin-top: 6px; }
+
+/* Olive chip, bone label — the one place the next ride asks for a tap. */
+.alp-nr__cta {
+  margin-top: 14px;
+  background: var(--alp-ink);
+  color: var(--alp-bg);
+  border-color: var(--alp-ink);
+  min-height: 46px;
+  padding: 0 16px;
+}
+.alp-nr--card:hover .alp-nr__cta,
+.alp-nr--panel:hover .alp-nr__cta { background: var(--alp-accent); border-color: var(--alp-accent); }
+
+/* The mist panel. Mist carries headline-scale type only — the eyebrow sits on
+   an olive tab rather than directly on the mist, which would be 4.35:1. */
+.alp-nr--panel {
+  display: block;
+  text-decoration: none;
+  color: var(--alp-ink);
+  padding: 20px;
+  background: var(--alp-mist);
+}
+.alp-nr__tab {
+  display: inline-block;
+  margin-bottom: 10px;
+  padding: 6px 9px;
+  background: var(--alp-ink);
+  color: var(--alp-bg);
+  font-family: var(--alp-font-ui);
+  font-size: 0.594rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.alp-nr--panel .alp-nr__date {
+  display: block;
+  font-family: var(--alp-font-display);
+  font-weight: 600;
+  font-size: 1.5rem;
+  line-height: 1.2;
+}
+
+/* In the menu sheet the ride is a signpost, not the headline. At 24px a real
+   event name — "Sunday 11th October, 7am / Glass House Mountains Station
+   Carpark" rather than the wireframe's "Sat 8 Nov / Gap Creek" — ran to four
+   lines and pushed the navigation off the screen. */
+.alp-sheet .alp-nr--panel { margin: 0 20px 4px; padding: 16px; }
+.alp-sheet .alp-nr--panel .alp-nr__date { font-size: 1.0625rem; }
+.alp-sheet .alp-nr--panel .alp-nr__cta { margin-top: 10px; }
+
+/* ── Search ──────────────────────────────────────────────────────────────────
+   Predictive search was enabled in this store's settings and reachable from
+   nowhere: the rail, the menu sheet and the Explore overlay before them all
+   dropped it. A shop you cannot search is a shop you browse until you give up. */
+.alp-search {
+  display: flex;
+  gap: 6px;
+  align-items: stretch;
+}
+.alp-search__field {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+  background: var(--alp-bg);
+  border: 1px solid var(--alp-line);
+  border-radius: 3px;
+  padding: 0 12px;
+  font-family: var(--alp-font-ui);
+  font-size: 0.875rem;
+  color: var(--alp-ink);
+}
+.alp-search__field::placeholder { color: rgba(76, 75, 59, 0.55); }
+.alp-search__field:focus-visible { outline: 2px solid var(--alp-ink); outline-offset: 1px; }
+
+.alp-search__go {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--alp-ink);
+  color: var(--alp-bg);
+  border: 1px solid var(--alp-ink);
+  border-radius: 3px;
+  cursor: pointer;
+}
+.alp-search__go svg { width: 17px; height: 17px; }
+.alp-search__go:hover { background: var(--alp-accent); border-color: var(--alp-accent); }
+
+/* The rail gives about 152px of usable width, so this runs small and tight. */
+.alp-search--rail { margin-top: -8px; }
+.alp-search--rail .alp-search__field { height: 36px; font-size: 0.8125rem; padding: 0 9px; }
+.alp-search--rail .alp-search__go { width: 36px; }
+
+/* In the sheet it is a primary control and gets a full touch target. */
+.alp-search--sheet { padding: 16px 20px 4px; }
+.alp-search--sheet .alp-search__field { height: 46px; }
+.alp-search--sheet .alp-search__go { width: 46px; }
+
+/* ── Product identity (phones) ───────────────────────────────────────────────
+   Name and price under the lead image. The rail carries these on desktop, and
+   there is no rail on a phone. */
+.alp-phero__id {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px var(--alp-pad-page) 16px;
+  background: var(--alp-bg);
+}
+.alp-phero__name {
+  margin: 0;
+  font-family: var(--alp-font-display);
+  font-weight: 600;
+  font-size: 1.375rem;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--alp-ink);
+}
+.alp-phero__price { margin: 0; flex: none; font-size: 0.9375rem; color: var(--alp-ink); }
+
+@media (min-width: 990px) {
+  /* Desktop: the rail has them, so this block steps aside entirely. */
+  .alp-phero__id { display: none; }
+}
+@media (max-width: 989px) {
+  /* ...and where it IS shown, Dawn's own title and price stand down, so only
+     one heading is ever exposed. */
+  body.template-product .product__info-container .product__title,
+  body.template-product .product__info-container .price { display: none; }
+}
+
+/* ── Mobile: the floating chips ──────────────────────────────────────────────
+   Menu and Cart, centred at the foot of the screen. Nothing is pinned to the
+   top on a phone, so the full height goes to the photography. */
+.alp-fab {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(20px + env(safe-area-inset-bottom));
+  display: flex;
+  gap: 8px;
+  z-index: 55;
+}
+.alp-fab__btn {
+  box-shadow: 0 4px 16px rgba(76, 75, 59, 0.28);
+  min-height: 46px;
+  box-sizing: border-box;
+  padding: 0 18px;
+  font-size: 0.8125rem;
+}
+
+/* ── The pinned buy bar (phone, product) ─────────────────────────────────────
+   9d makes this the only add to cart on a phone. It replaces the floating
+   chips rather than stacking above them — two bars at the foot of a phone is
+   one too many — so it carries its own Menu chip. */
+.alp-buybar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 56;
+  display: flex;
+  gap: 8px;
+  padding: 14px var(--alp-pad-page) calc(20px + env(safe-area-inset-bottom));
+  background: var(--alp-bg);
+  border-top: 1px solid var(--alp-line);
+}
+.alp-buybar[hidden] { display: none; }
+
+.alp-buybar__go {
+  flex: 1;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px;
+  min-height: 46px;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+.alp-buybar__go:disabled { opacity: 0.5; cursor: default; }
+.alp-buybar__price::before { content: "— "; }
+.alp-buybar__price[hidden] { display: none; }
+
+.alp-buybar__menu { padding: 14px 16px; min-height: 46px; box-sizing: border-box; cursor: pointer; }
+
+/* The floating chips stand down while the buy bar is up. */
+body.alp-buybar-up .alp-fab { display: none; }
+body.alp-buybar-up #MainContent { padding-bottom: calc(110px + env(safe-area-inset-bottom)); }
+
+/* Phone: the pinned bar IS the add to cart, so the in-page form steps aside.
+
+   Gated on alp-buybar-up, NOT on alp-rail-buy: that class is set by the bar's
+   own script only after it has found Dawn's form and button. Keyed to the
+   rail's class instead, a failure in the bar alone would hide the in-page form
+   with nothing pinned to replace it, and the product would be unbuyable on a
+   phone. The gate has to be the thing doing the replacing.
+
+   Price and the size picker stay — 9d shows both in the copy block. */
+@media (max-width: 989px) {
+  body.alp-buybar-up .product__info-container .product-form { display: none; }
+}
+
+/* ── Back to the top (phones) ────────────────────────────────────────────────
+   Sits to the RIGHT, because the Menu/Cart chips are centred — the two never
+   meet. Raised above the buy bar on a product page, which owns the whole foot
+   of the screen there. */
+.alp-top {
+  position: fixed;
+  right: var(--alp-pad-page);
+  bottom: calc(20px + env(safe-area-inset-bottom));
+  z-index: 54;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--alp-bg);
+  color: var(--alp-ink);
+  border: 1px solid var(--alp-line);
+  border-radius: 3px;
+  box-shadow: 0 4px 16px rgba(76, 75, 59, 0.28);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(6px);
+  transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+}
+.alp-top.is-in { opacity: 1; pointer-events: auto; transform: none; }
+.alp-top svg { width: 18px; height: 18px; }
+.alp-top:hover { background: var(--alp-mist); }
+
+body.alp-buybar-up .alp-top { bottom: calc(82px + env(safe-area-inset-bottom)); }
+
+/* Desktop keeps the rail on screen with every link in it, so there is nothing
+   to come back up for. */
+@media (min-width: 990px) { .alp-top { display: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .alp-top { transition: none; }
+}
+
+/* ── Mobile: the menu sheet ──────────────────────────────────────────────────
+   A bottom sheet over a dimmed page, rather than the old full-screen wipe. It
+   rises from the bottom because that is where the chip that opens it lives. */
+.alp-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  visibility: hidden;
+  pointer-events: none;
+}
+.alp-sheet.is-open { visibility: visible; pointer-events: auto; }
+
+.alp-sheet__scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(76, 75, 59, 0.6);
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+}
+.alp-sheet.is-open .alp-sheet__scrim { opacity: 1; }
+
+.alp-sheet__panel {
+  position: absolute;
+  inset: 56px 0 0;
+  background: var(--alp-bg);
+  border-radius: 18px 18px 0 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform: translateY(100%);
+  transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.alp-sheet.is-open .alp-sheet__panel { transform: none; }
+
+.alp-sheet__bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--alp-line);
+}
+.alp-sheet__bar .alp-sheet__mark { display: block; height: 18px; width: auto; max-width: none; }
+
+.alp-sheet__close {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: var(--alp-ink);
+  width: 44px;
+  height: 44px;
+  margin: -10px -10px -10px 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+.alp-sheet__close svg { width: 20px; height: 20px; }
+
+.alp-sheet__scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+/* Pinned, not just overflow:hidden — see lockScroll() in alpine.js. The inline
+   `top` alpine.js sets is what holds the reading position. */
+body.alp-menu-open {
+  overflow: hidden;
+  position: fixed;
+  left: 0;
+  right: 0;
+  width: 100%;
+}
+
+/* Nav rows inside the sheet: display scale, 44px tall, tight stack. */
+.alp-sheet__nav {
+  padding: 14px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-bottom: 1px solid var(--alp-line);
+}
+.alp-sheet__nav .alp-rail__link,
+.alp-sheet__nav .alp-rail__cart {
+  font-family: var(--alp-font-display);
+  font-size: 1.3125rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  border-top: 0;
+  padding: 0;
+}
+/* The mist bar is a desktop-rail device; in the sheet the row you are on is
+   simply where you already are. */
+.alp-sheet__nav .alp-rail__link.is-on { border-left: 0; padding-left: 0; margin-left: 0; }
+
+.alp-sheet__cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 20px; }
+.alp-sheet__card { display: block; text-decoration: none; color: var(--alp-ink); }
+.alp-sheet__card .alp-sheet__media {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  background: var(--alp-haze);
+}
+.alp-sheet__cardlabel {
+  display: block;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--alp-mist);
+  font-size: 0.781rem;
+}
+
+.alp-sheet__columns { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; padding: 6px 20px 20px; }
+.alp-sheet__col ul { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.alp-sheet__col a { font-size: 0.8125rem; line-height: 1.35; color: var(--alp-ink); text-decoration: none; }
+.alp-sheet__col a:hover { text-decoration: underline; }
+
+.alp-sheet__account { margin: 0; padding: 0 20px 40px; }
+.alp-sheet__account a { font-size: 0.8125rem; color: var(--alp-ink); }
+
+/* ── Which system is on ──────────────────────────────────────────────────── */
+@media (max-width: 989px) {
+  .alp-rail { display: none; }
+}
+@media (min-width: 990px) {
+  .alp-fab,
+  .alp-sheet { display: none; }
+  /* The rail already carries the next ride down the side of every page. */
+  .alp-nr--card { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .alp-sheet__panel,
+  .alp-sheet__scrim { transition: none; }
+}
+
+/* ── Hero ────────────────────────────────────────────────────────────────────
+   Full-bleed media under an olive veil, wordmark and tagline centred, and a
+   caption row naming the country at the foot.
+
+   Desktop fills the viewport. Mobile deliberately does not: the hero stops
+   short of the fold so the next-ride card below it is already partly visible,
+   and so that card's CTA clears the floating chips. Sizing the mobile hero to
+   the full fold is exactly what pushed that CTA under the nav band before. */
 .alp-hero { position: relative; min-height: 100svh; overflow: hidden; }
 
 .alp-hero__media,
@@ -362,39 +781,204 @@ span.alp-menu__media--ph { background: linear-gradient(135deg, var(--alp-accent)
   object-fit: cover;
 }
 
-/* Centred wordmark over the hero photo — sized by height so it holds its
-   aspect ratio, drop-shadow matched to the nav type's text-shadow so it reads
-   over bright sky the same way the header does. */
-.alp-hero__wordmark {
+/* A ramp, not a flat fill: the photograph keeps some air at the top while the
+   caption row at the foot sits on the darkest ground it has. */
+.alp-hero__veil {
   position: absolute;
-  top: 44%;
-  left: 0;
-  right: 0;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    rgba(76, 75, 59, 0.7) 0%,
+    rgba(76, 75, 59, 0.76) 55%,
+    rgba(76, 75, 59, 0.92) 100%
+  );
+}
+
+.alp-hero__centre {
+  position: absolute;
+  inset: 0;
   z-index: 2;
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
+  gap: 26px;
+  padding: 0 var(--alp-pad-page);
   pointer-events: none;
 }
-.alp-hero__wordmark img {
-  height: clamp(2.6rem, 3.6vw + 1.6rem, 4.9rem);
-  width: auto;
-  filter: drop-shadow(0 2px 10px rgba(47, 47, 38, 0.5));
+
+/* Two classes deep so it beats the blanket `.alp img` max-width rule (0,1,1),
+   which would otherwise cap the mark at the container width. */
+.alp-hero__centre .alp-hero__mark {
+  display: block;
+  width: min(520px, 62vw);
+  height: auto;
+  max-width: none;
 }
 
-.alp-hero__cta {
+.alp-hero__tagline {
+  margin: 0;
+  font-family: var(--alp-font-ui);
+  font-size: 0.594rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--alp-bg);
+  text-align: center;
+}
+
+.alp-hero__caption {
   position: absolute;
-  bottom: clamp(20px, 4vh, 40px);
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
+  bottom: 34px;
   z-index: 2;
   display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 var(--alp-field-pad);
 }
 
-@media (max-width: 749px) {
-  .alp-hero__cta-map { display: none; }
+.alp-hero__place {
+  margin: 0;
+  font-family: var(--alp-font-ui);
+  font-size: 0.594rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--alp-bg);
+}
+
+@media (max-width: 989px) {
+  .alp-hero { min-height: 64svh; }
+  .alp-hero__centre { gap: 18px; }
+  .alp-hero__caption { bottom: 24px; padding: 0 20px; }
+}
+
+/* ── Passage (the caption-gutter primitive) ──────────────────────────────────
+   200px of gutter for the eyebrow, the rest for the field. Every text block in
+   the desktop system runs on this grid so the caption column stays on one line
+   the whole way down the site. The gutter collapses on a phone — 200px of a
+   390px screen is not a gutter, it is half the page. */
+.alp-passage {
+  display: grid;
+  grid-template-columns: var(--alp-gutter) 1fr;
+  gap: var(--alp-gutter-gap);
+  padding: var(--alp-band) var(--alp-field-pad);
+  background: var(--alp-bg);
+  color: var(--alp-ink);
+}
+
+.alp-passage__eyebrow {
+  margin: 0;
+  font-family: var(--alp-font-ui);
+  font-size: 0.594rem;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: inherit;
+}
+
+.alp-passage__field {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.alp-passage__heading {
+  margin: 0;
+  font-family: var(--alp-font-display);
+  font-weight: 600;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  text-wrap: pretty;
+  color: inherit;
+}
+.alp-passage--large .alp-passage__heading { font-size: clamp(1.75rem, 2.2vw + 1rem, 2.5rem); max-width: 26ch; }
+.alp-passage--medium .alp-passage__heading { font-size: clamp(1.5rem, 1.4vw + 1rem, 1.75rem); letter-spacing: -0.015em; }
+
+.alp-passage__body { max-width: 66ch; color: inherit; }
+.alp-passage__body > :first-child { margin-top: 0; }
+.alp-passage__body > :last-child { margin-bottom: 0; }
+.alp-passage__body p {
+  margin: 0 0 14px;
+  font-size: 1rem;
+  line-height: 1.65;
+  text-wrap: pretty;
+}
+/* The supporting paragraph steps down — the design runs the opening line at
+   16px and everything after it at 15px. */
+.alp-passage__body p + p { font-size: 0.9375rem; }
+
+.alp-passage__cta { margin-top: 2px; padding: 13px 20px; }
+
+/* The 3px mist divider. Thick enough to read as a deliberate rule rather than
+   a hairline that got away — it is the system's section break. */
+.alp-passage--ruled { border-bottom: 3px solid var(--alp-mist); }
+
+/* Two passages on the SAME ground, one after the other, stack both of their
+   bands where they meet — up to 160px of nothing on a bone-on-bone join, with
+   no change of colour to justify it. Where the ground changes the full band
+   earns its keep, because it is holding two slabs apart. Where it does not,
+   the join collapses.
+
+   Both selectors are needed: Shopify wraps every section in a .shopify-section
+   div on the storefront, so the passages are never truly adjacent siblings
+   there, but they are in any context that renders them directly. */
+.alp-passage--bone + .alp-passage--bone,
+.shopify-section:has(> .alp-passage--bone) + .shopify-section:has(> .alp-passage--bone) > .alp-passage,
+.alp-passage--olive + .alp-passage--olive,
+.shopify-section:has(> .alp-passage--olive) + .shopify-section:has(> .alp-passage--olive) > .alp-passage,
+.alp-passage--mist + .alp-passage--mist,
+.shopify-section:has(> .alp-passage--mist) + .shopify-section:has(> .alp-passage--mist) > .alp-passage {
+  padding-top: 0;
+}
+
+/* Olive — the slab that does the heavy work. Sage carries the eyebrow and the
+   supporting copy; bone carries the headline. */
+.alp-passage--olive { background: var(--alp-ink); color: var(--alp-bg); }
+.alp-passage--olive .alp-passage__eyebrow { color: var(--alp-haze); }
+.alp-passage--olive .alp-passage__body p + p { color: var(--alp-haze); }
+.alp-passage--olive .alp-passage__cta {
+  background: var(--alp-bg);
+  border-color: var(--alp-bg);
+  color: var(--alp-ink);
+}
+.alp-passage--olive a.alp-passage__cta:hover { background: var(--alp-haze); border-color: var(--alp-haze); }
+
+/* Mist — headline scale only. The eyebrow moves onto an olive tab rather than
+   sitting on the colour, because olive on mist is 4.35:1 and will not carry
+   9.5px of letterspaced caps. */
+.alp-passage--mist {
+  background: var(--alp-mist);
+  align-items: center;
+}
+.alp-passage--mist .alp-passage__eyebrow {
+  display: inline-block;
+  justify-self: start;
+  padding: 6px 9px;
+  background: var(--alp-ink);
+  color: var(--alp-bg);
+}
+.alp-passage--mist .alp-passage__cta {
+  background: var(--alp-ink);
+  border-color: var(--alp-ink);
+  color: var(--alp-bg);
+}
+
+@media (max-width: 989px) {
+  .alp-passage {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 30px var(--alp-pad-page);
+  }
+  .alp-passage__field { gap: 16px; }
+  .alp-passage--large .alp-passage__heading { max-width: none; }
+  .alp-passage--mist { align-items: stretch; }
 }
 
 /* ── Gate (option 2a) ─────────────────────────────────────────────────────────
@@ -593,36 +1177,31 @@ body.template-index .alp-card .alp-chip { background: var(--alp-mist); }
   margin: 0;
 }
 
-/* ── Product hero (option 1g — editorial) ────────────────────────────────── */
+/* ── Product hero ────────────────────────────────────────────────────────────
+   The lead photograph and the two-up under it. 8b gives the images the whole
+   field because the buy controls are in the rail; 9d does the same above a
+   pinned buy bar. Either way the picture never shares a screen with a form. */
 .alp-phero { position: relative; overflow: hidden; }
 .alp-phero__media img, .alp-phero__media svg {
   width: 100%;
-  height: clamp(340px, 66vh, 760px);
+  height: clamp(470px, 62vh, 820px);
   object-fit: cover;
   display: block;
 }
 
-.alp-phero__caption {
-  position: absolute;
-  left: 0; right: 0; bottom: 0;
-  z-index: 2;
-  padding: 0 var(--alp-pad-page) clamp(20px, 3.6vw, 32px);
-  color: var(--alp-bg);
+/* Split by the system's 3px mist rule, shown through as the flex gap. */
+.alp-phero__pair {
+  display: flex;
+  gap: 3px;
+  background: var(--alp-mist);
 }
-.alp-phero__title {
-  font-family: var(--alp-font-display);
-  font-weight: 600;
-  font-size: clamp(1.7rem, 3.4vw, 2.6rem);
-  line-height: 1.08;
-  margin: 0;
-  text-shadow: 0 1px 8px rgba(47, 47, 38, 0.35);
-}
-.alp-phero__tagline {
-  font-family: var(--alp-font-ui);
-  font-size: clamp(0.85rem, 0.6vw + 0.7rem, 1rem);
-  color: var(--alp-haze);
-  margin: 6px 0 0;
-  text-shadow: 0 1px 6px rgba(47, 47, 38, 0.35);
+.alp-phero__pair .alp-phero__pairshot {
+  flex: 1;
+  min-width: 0;
+  width: 50%;
+  height: clamp(150px, 30vw, 440px);
+  object-fit: cover;
+  display: block;
 }
 
 /* ── Story / Journal ─────────────────────────────────────────────────────── */
@@ -716,7 +1295,9 @@ body.template-index .alp-card .alp-chip { background: var(--alp-mist); }
   pointer-events: none;
 }
 .alp-foot__wordmark img {
-  width: clamp(320px, 84vw, 1600px);
+  /* Percent, not vw: vw still counts the rail's 196px, so the bleed wordmark
+     was running off the right edge of every page by exactly that much. */
+  width: min(84%, 1600px);
   height: auto;
 }
 
@@ -747,23 +1328,6 @@ body.template-index .alp-hero { height: 100svh; min-height: 100svh; }
 }
 
 @media (max-width: 860px) {
-  /* Mobile bar: Bush Riding™ + clock left, Shop + Explore right, one line.
-     Type steps down so everything fits across a phone. */
-  .alp-nav-link { font-size: 1rem; padding: 8px 6px; }
-  .alp-nav-link--wordmark { font-size: 1.1rem; }
-  /* Same 1/0.46 scaling as desktop, against the 1.1rem the type steps down to,
-     so the logo takes about the width the wordmark text used to on a phone. */
-  .alp-nav-link--wordmark .alp-wordmark__img { height: 2.4rem; }
-  .alp-nav-link--clock { font-size: 0.85rem; }
-  .alp-head { flex-wrap: nowrap; gap: 0 6px; }
-  .alp-head__group { gap: 2px; }
-
-  /* Mobile Explore menu: the Shop card hides — Shop lives in the bar. The
-     first section runs to the very top (no white gap); the fixed corner icons
-     float over it, kept legible by their drop-shadow. */
-  .alp-menu__q--shop { display: none; }
-
-
   .alp-collection__duo { grid-template-columns: 1fr; }
   .alp-collection__panel { height: 62vh; }
 
@@ -782,37 +1346,6 @@ body.template-index .alp-hero { height: 100svh; min-height: 100svh; }
   .alp-foot__columns { grid-template-columns: repeat(2, 1fr); gap: 32px 20px; }
 }
 
-/* ── Inner-page header: the same mist bar as the home page ───────────────────
-   Mist is chrome, everywhere. The bar used to fill olive off the home page,
-   which left the site with two different headers depending on where you were;
-   the catalogue design settles it — one mist bar, olive ink, on every
-   template. The mark goes with it: the olive wordmark artwork rather than the
-   cream one, because it now sits on a light field. The bar is also stepped
-   down in height here — the hero-sized wordmark (up to 6.2rem) is taller than
-   the 84px clearance #MainContent reserves. */
-body:not(.template-index) .alp-head {
-  background: var(--alp-mist);
-  padding-top: max(10px, env(safe-area-inset-top));
-  padding-bottom: 10px;
-}
-body:not(.template-index) .alp-nav-link {
-  color: var(--alp-ink);
-  font-size: clamp(1rem, 0.5vw + 0.85rem, 1.15rem);
-  text-shadow: none;
-}
-body:not(.template-index) .alp-nav-link:hover { color: var(--alp-accent); }
-body:not(.template-index) .alp-nav-link--wordmark { font-size: inherit; }
-body:not(.template-index) .alp-nav-link--wordmark .alp-wordmark__img {
-  height: clamp(2.2rem, 1.4vw + 1.6rem, 2.9rem);
-  filter: none;
-}
-body:not(.template-index) .alp-nav-link--clock { font-size: 0.8rem; color: var(--alp-accent); }
-
-/* (Option 1b's scroll-triggered header swap lived here. 2a's home bar is
-   olive-on-mist from the top of the page, so there is no photo-to-page
-   transition left to handle and the .alp-scrolled machinery is gone.) */
-/* Clearance to match the shorter solid bar. */
-body:not(.template-index) #MainContent { padding-top: 76px; }
 
 /* ── Catalogue / collection page (option 2c) ─────────────────────────────────
    The system the wireframe names, and the reason this page reads as one thing:
@@ -822,15 +1355,22 @@ body:not(.template-index) #MainContent { padding-top: 76px; }
      olive = ink, and every active state
      flare = the one thing to press (there is exactly one, in the closing band)
 
-   Nothing here introduces a colour outside those six. */
-.alp-cat { background: var(--alp-mist); }
+   (Turn 8a/9c retires the mist GROUND: the page is bone like every other
+   template, and mist is back to rules, active states and wayfinding. Olive on
+   mist is 4.35:1, which is why it could never carry the grid's small type.) */
+.alp-cat { background: var(--alp-bg); }
 
+/* Banner height is a choice, not a constant. Tall is the wireframe's
+   proportion; short exists because the all-products catalogue opening on a
+   full-height banner means the first thing a shopper does on the shop page is
+   scroll past it to find the shop. */
 .alp-cat__banner {
   position: relative;
-  height: clamp(180px, 26vw, 300px);
   overflow: hidden;
   background: var(--alp-olive);
 }
+.alp-cat__banner--tall { height: clamp(300px, 30vw, 440px); }
+.alp-cat__banner--short { height: clamp(200px, 20vw, 300px); }
 .alp-cat__banner img { width: 100%; height: 100%; object-fit: cover; }
 
 /* Type over photography always sits on a scrim. */
@@ -838,14 +1378,36 @@ body:not(.template-index) #MainContent { padding-top: 76px; }
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(47, 47, 38, 0.05) 40%, rgba(47, 47, 38, 0.62));
+  /* Measured, not guessed: sampling the rendered pixels behind this text put
+     the eyebrow at 2.66:1 on a bright banner, against the 4.5 it needs. The
+     tile passes the same test at 6.45 because its veil and its caption plate
+     compound; the banner has only ever had this one layer, so this one has to
+     do the whole job. */
+  background: linear-gradient(
+    rgba(76, 75, 59, 0) 22%,
+    rgba(76, 75, 59, 0.62) 58%,
+    rgba(76, 75, 59, 0.96) 100%
+  );
 }
 
+/* The 3px divider between the banner and the page — the system's section
+   break, same rule the passage draws. */
+.alp-cat__rule { height: 3px; background: var(--alp-mist); }
+
+/* The overlay carries its own scrim, the way the tile's caption plate does.
+   The banner's single ramp got the eyebrow to 4.25:1 — better than the 2.66 it
+   started at, still under 4.5, and the eyebrow sits higher in the frame than
+   the title so it is always in the lighter part of the gradient. Two layers is
+   what the tile already does, and the tile measures 6.45. */
 .alp-cat__banner-overlay {
   position: absolute;
-  left: var(--alp-pad-page);
-  bottom: clamp(14px, 2.4vw, 26px);
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: 2;
+  padding: clamp(56px, 9vw, 120px) var(--alp-pad-page) clamp(14px, 2.4vw, 26px);
+  background: linear-gradient(to top, rgba(76, 75, 59, 0.85), rgba(76, 75, 59, 0));
+  pointer-events: none;
 }
 
 .alp-cat__eyebrow {
@@ -854,15 +1416,15 @@ body:not(.template-index) #MainContent { padding-top: 76px; }
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--alp-mist);
+  color: var(--alp-bg);
 }
 
 .alp-cat__title {
   margin: 0;
   font-family: var(--alp-font-display);
   font-weight: 600;
-  font-size: clamp(1.7rem, 3.6vw, 3rem);
-  line-height: 1;
+  font-size: clamp(1.75rem, 2.2vw + 1rem, 2.5rem);
+  line-height: 1.12;
   letter-spacing: -0.01em;
   color: var(--alp-bg);
   text-wrap: pretty;
@@ -873,11 +1435,31 @@ body:not(.template-index) #MainContent { padding-top: 76px; }
   padding: clamp(20px, 4vw, 40px) var(--alp-pad-page) 0;
 }
 
+/* The intro runs on the same caption gutter as every passage on the site. */
 .alp-cat__intro {
-  max-width: 60ch;
-  padding: clamp(16px, 3vw, 28px) var(--alp-pad-page) 0;
-  color: rgba(76, 75, 59, 0.85);
+  display: grid;
+  grid-template-columns: var(--alp-gutter) 1fr;
+  gap: var(--alp-gutter-gap);
+  padding: var(--alp-band) var(--alp-field-pad) calc(var(--alp-band) * 0.4);
 }
+.alp-cat__intro-eyebrow {
+  margin: 0;
+  font-family: var(--alp-font-ui);
+  font-size: 0.594rem;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.alp-cat__intro-body { max-width: 70ch; }
+.alp-cat__intro-body > :first-child { margin-top: 0; }
+.alp-cat__intro-body > :last-child { margin-bottom: 0; }
+.alp-cat__intro-body p { margin: 0 0 12px; font-size: 1rem; line-height: 1.65; }
+
+/* The chip row IS the filter UI on a phone. Hidden on desktop, where the same
+   facets are a list in the nav rail. */
+.alp-cat__chiprow { display: flex; flex-wrap: wrap; gap: 8px; }
+.alp-cat__chiprow .alp-chip { min-height: 44px; box-sizing: border-box; }
 
 /* ── Facet rail ─────────────────────────────────────────────────────────────
    Desktop: a mist column beside the grid. Phone: a panel the Filter button
@@ -926,12 +1508,26 @@ body:not(.template-index) #MainContent { padding-top: 76px; }
 
 .alp-cat__body {
   display: grid;
-  grid-template-columns: clamp(200px, 20vw, 260px) 1fr;
+  /* Single column: the facets live in the nav rail on desktop now. The aside
+     below is only ever the phone's toggled panel. */
+  grid-template-columns: 1fr;
   align-items: start;
 }
 /* No filters merchandised and no other collections to point at: the grid takes
    the full width rather than leaving an empty mist column beside it. */
 .alp-cat__body--full { grid-template-columns: 1fr; }
+
+/* Desktop hides the aside outright — its markup is rendered again in the nav
+   rail, and on a phone this is the toggled panel.
+
+   Child selector, not the bare class: the base `.alp-cat__side` rule below
+   sets display:flex at the same specificity and comes later in the file, so a
+   plain `.alp-cat__side { display: none }` inside a media query LOSES to it —
+   which is how the catalogue ended up drawing its filters twice, once in the
+   rail and once as a mist slab across the page. */
+@media (min-width: 990px) {
+  .alp-cat__body > .alp-cat__side { display: none; }
+}
 
 .alp-cat__side {
   align-self: stretch;
@@ -948,7 +1544,7 @@ body:not(.template-index) #MainContent { padding-top: 76px; }
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(76, 75, 59, 0.75);
+  color: var(--alp-ink);
 }
 
 .alp-cat__facet-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
@@ -1020,7 +1616,7 @@ body:not(.template-index) #MainContent { padding-top: 76px; }
 /* ── Grid side ───────────────────────────────────────────────────────────── */
 .alp-cat__main {
   background: var(--alp-bg);
-  padding: clamp(16px, 2.4vw, 26px) var(--alp-pad-page) clamp(30px, 5vw, 64px);
+  padding: clamp(10px, 1.2vw, 16px) var(--alp-pad-page) clamp(30px, 5vw, 64px);
   min-height: 40vh;
 }
 
@@ -1032,10 +1628,11 @@ body:not(.template-index) #MainContent { padding-top: 76px; }
   margin-bottom: clamp(12px, 2vw, 20px);
 }
 
+/* Full olive: at 70% this measured 3.56:1 on bone, against the 4.5 it needs. */
 .alp-cat__count {
   margin: 0;
   font-size: 0.82rem;
-  color: rgba(76, 75, 59, 0.7);
+  color: var(--alp-ink);
 }
 
 .alp-cat__sort {
@@ -1044,8 +1641,8 @@ body:not(.template-index) #MainContent { padding-top: 76px; }
   align-items: center;
   gap: 4px;
   font-size: 0.82rem;
-  color: rgba(76, 75, 59, 0.7);
-  background: var(--alp-mist);
+  color: var(--alp-ink);
+  background: var(--alp-bg);
   border: 1px solid var(--alp-line);
   border-radius: 3px;
   padding: 5px 10px;
@@ -1064,10 +1661,14 @@ body:not(.template-index) #MainContent { padding-top: 76px; }
 .alp-cat__grid {
   display: grid;
   grid-template-columns: repeat(var(--alp-cat-cols, 3), 1fr);
-  gap: clamp(10px, 1.4vw, 18px);
+  gap: clamp(14px, 1.9vw, 28px);
 }
 
 .alp-cat__card-media { position: relative; display: block; }
+.alp-cat__card-media img { width: 100%; object-fit: contain; }
+.alp-cat--portrait .alp-cat__card-media img { aspect-ratio: 3 / 4; }
+.alp-cat--square .alp-cat__card-media img { aspect-ratio: 1 / 1; }
+.alp-cat--adapt .alp-cat__card-media img { aspect-ratio: auto; height: auto; }
 /* The waitlist flag rides the image, top-left, in mist — chrome, not content. */
 .alp-cat__flag {
   position: absolute;
@@ -1077,7 +1678,20 @@ body:not(.template-index) #MainContent { padding-top: 76px; }
   border-color: var(--alp-ink);
 }
 
-.alp-cat__card-row { display: flex; gap: 6px; flex-wrap: wrap; padding-top: 8px; }
+/* Name and price on a mist rule, not two floating chips — the same meta line
+   the shelf uses, so a product reads the same wherever you meet it. */
+.alp-cat__card-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--alp-mist);
+}
+.alp-cat__card-name { font-size: clamp(0.781rem, 0.3vw + 0.72rem, 0.9375rem); line-height: 1.3; }
+.alp-cat__card-price { flex: none; font-size: clamp(0.781rem, 0.3vw + 0.72rem, 0.9375rem); }
+a:hover .alp-cat__card-name { color: var(--alp-accent); }
 
 .alp-cat__pager {
   display: flex;
@@ -1090,14 +1704,19 @@ body:not(.template-index) #MainContent { padding-top: 76px; }
 .alp-cat__empty {
   padding: clamp(40px, 8vw, 90px) 0;
   text-align: center;
-  color: rgba(76, 75, 59, 0.7);
+  color: var(--alp-ink);
 }
 
 /* ── Closing band ───────────────────────────────────────────────────────────
-   Mist, so it reads as chrome closing the page, and the single flare button —
-   the one thing to press on the whole catalogue. */
+   Olive, with the single flare button — the one thing to press on the whole
+   catalogue.
+
+   It used to be mist, "so it reads as chrome closing the page". That was
+   before the supporting paragraph: olive on mist is 4.35:1 and this band
+   carries 0.9rem of it. Olive is the system's slab colour and inverts the type
+   properly, so the band keeps its job and passes. */
 .alp-cat__cta {
-  background: var(--alp-mist);
+  background: var(--alp-ink);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1110,17 +1729,18 @@ body:not(.template-index) #MainContent { padding-top: 76px; }
   font-family: var(--alp-font-display);
   font-weight: 600;
   font-size: clamp(1.15rem, 2vw, 1.6rem);
-  color: var(--alp-ink);
+  color: var(--alp-bg);
 }
-.alp-cat__cta-text p { margin: 4px 0 0; font-size: 0.9rem; color: rgba(76, 75, 59, 0.75); }
+.alp-cat__cta-text p { margin: 4px 0 0; font-size: 0.9rem; color: var(--alp-haze); }
 
 @media (max-width: 989px) {
   .alp-cat__grid { grid-template-columns: repeat(2, 1fr); }
-}
 
-@media (max-width: 860px) {
-  /* Phone: the rail becomes a panel under the Filter button. */
-  .alp-cat__controls { display: flex; }
+  /* No nav rail below this width, so the catalogue's own controls take over:
+     the chip row plus the Filter panel. This has to be the SAME breakpoint the
+     rail switches at, or a tablet gets neither. */
+  .alp-cat__controls { display: flex; flex-wrap: wrap; gap: 8px; }
+  .alp-cat__intro { grid-template-columns: 1fr; gap: 8px; padding: 22px var(--alp-pad-page) 16px; }
   .alp-cat__controls .alp-cat__sort { margin-left: 0; flex: 1; justify-content: center; background: transparent; border-style: dashed; }
   .alp-cat__body { grid-template-columns: 1fr; }
   .alp-cat__side { display: none; padding: 0 var(--alp-pad-page) clamp(20px, 5vw, 32px); }
@@ -1553,8 +2173,17 @@ body.waitlist #MainContent { padding-top: 0; }
   right: 0;
   bottom: 0;
   padding: clamp(34px, 7vw, 64px) var(--alp-pad-page) clamp(14px, 2.4vw, 24px);
-  background: linear-gradient(to top, rgba(47, 47, 38, 0.55), rgba(47, 47, 38, 0));
+  /* Olive, not the retired #2f2f26 ink, and strong enough to carry bone type
+     over a blown-out sky. */
+  background: linear-gradient(to top, rgba(76, 75, 59, 0.92), rgba(76, 75, 59, 0));
   pointer-events: none;
+}
+
+/* A headline is three lines, not a one-line caption, so it needs ground under
+   all of it rather than just the last line. */
+.alp-tile__plate:has(.alp-tile__label--headline) {
+  padding-top: clamp(120px, 22vw, 260px);
+  background: linear-gradient(to top, rgba(76, 75, 59, 0.94) 35%, rgba(76, 75, 59, 0));
 }
 
 .alp-tile__eyebrow {
@@ -1587,63 +2216,142 @@ body.waitlist #MainContent { padding-top: 0; }
   max-width: 46ch;
 }
 
-/* ── Shelf ───────────────────────────────────────────────────────────────────
-   Products edge to edge on bone, separated by a single olive hairline rather
-   than by space. Two across on a phone, up to four on desktop.
+/* Veil + corner caption (turn 7b/9a).
 
-   The hairlines are drawn as insets on each cell rather than as a grid gap:
-   a gap would show the mist ground through the grid and break the field. */
+   The veil is a ramp rather than the plate's short scrim, so a caption at the
+   foot of a tall picture has real ground under it. Where it is on, the plate's
+   own gradient would only double it up. */
+.alp-tile__veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    rgba(76, 75, 59, 0) 30%,
+    rgba(76, 75, 59, 0.55) 62%,
+    rgba(76, 75, 59, 0.94) 100%
+  );
+  pointer-events: none;
+}
+
+/* The plate keeps its OWN scrim rather than deferring to the veil.
+
+   These used to be exclusive — the veil turned the plate's gradient off — and
+   the About hero came back with a bone headline sitting on a bright sunset,
+   barely readable. Whatever the cause there, one mechanism silently switching
+   the other off is the wrong shape for a legibility guarantee: a caption over
+   a photograph has to stay readable if EITHER is missing. They compound now,
+   and the cost of both is a slightly deeper foot on an already-dark picture. */
+
+/* The caption runs corner to corner — place on the left, frame number on the
+   right — so a stack of tiles reads as a contact sheet. */
+.alp-tile__plate {
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+}
+.alp-tile__plate-main { min-width: 0; }
+
+/* A statement over the photograph, rather than a name in the corner — the
+   About hero and the journal lead both open this way. */
+.alp-tile__label--headline {
+  font-family: var(--alp-font-display);
+  font-size: clamp(1.4rem, 2.2vw + 0.9rem, 2.5rem);
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  max-width: 22ch;
+  text-wrap: pretty;
+}
+.alp-tile__frame { flex: none; margin: 0; }
+
+/* Full bone, not 78% of it: a letterspaced 9.5px cap line at 0.78 opacity over
+   photography is the exact case that failed contrast in review. */
+.alp-tile__eyebrow { color: var(--alp-bg); }
+
+/* ── Shelf ───────────────────────────────────────────────────────────────────
+   Products on bone, a mist rule under each picture, gaps between cells rather
+   than hairlines around them.
+
+   The grid used to draw hairline insets on every cell precisely because a gap
+   would have shown the mist home-page ground through the field. The ground is
+   bone now, so a gap shows bone — and the rule that carries meaning has moved
+   to the meta line under each picture, where it is mist like every other
+   dividing rule in the system. */
 .alp-shelf { background: var(--alp-bg); }
 
+/* The head runs on the same caption gutter as every passage. */
 .alp-shelf__head {
+  display: grid;
+  grid-template-columns: var(--alp-gutter) 1fr;
+  gap: var(--alp-gutter-gap);
+  align-items: baseline;
+  padding: var(--alp-band) var(--alp-field-pad) calc(var(--alp-band) * 0.5);
+}
+
+.alp-shelf__eyebrow {
+  margin: 0;
+  font-family: var(--alp-font-ui);
+  font-size: 0.594rem;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.alp-shelf__headfield {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
-  padding: clamp(18px, 2.6vw, 30px) var(--alp-pad-page) clamp(12px, 1.8vw, 18px);
 }
+
 .alp-shelf__heading {
   margin: 0;
   font-family: var(--alp-font-display);
   font-weight: 600;
-  font-size: clamp(1.05rem, 1.1vw + 0.8rem, 1.6rem);
-  line-height: 1.15;
+  font-size: clamp(1.3rem, 1.4vw + 0.95rem, 1.75rem);
+  line-height: 1.2;
+  letter-spacing: -0.015em;
 }
+
+/* An olive chip, not an underlined link: this is the one call to action in the
+   block and it should read as a thing you press. */
 .alp-shelf__more {
-  font-family: var(--alp-font-ui);
-  font-weight: 600;
-  font-size: 0.8rem;
-  color: var(--alp-accent);
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
+  background: var(--alp-ink);
+  border-color: var(--alp-ink);
+  color: var(--alp-bg);
   white-space: nowrap;
 }
-.alp-shelf__more:hover { color: var(--alp-ink); }
+a.alp-shelf__more:hover { background: var(--alp-accent); border-color: var(--alp-accent); color: var(--alp-bg); }
 
 .alp-shelf__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  border-top: 1px solid var(--alp-line);
+  gap: 14px;
+  padding: 0 var(--alp-pad-page) 30px;
 }
 
-.alp-shelf__cell {
-  display: block;
-  padding: 10px 12px 16px;
-  color: inherit;
-  text-decoration: none;
-  border-bottom: 1px solid var(--alp-line);
-  border-right: 1px solid var(--alp-line);
-}
-/* The right-hand column would otherwise draw a rule down the page edge. */
-.alp-shelf__grid > .alp-shelf__cell:nth-child(2n) { border-right: 0; }
+.alp-shelf__cell { display: block; color: inherit; text-decoration: none; }
 
 .alp-shelf__pic { position: relative; }
+/* Contain, not cover. The catalogue's photography is cut-out packshots rather
+   than product-in-the-country, and cover crops a garment already floating in
+   its own white field — the launch shorts lost their waistband to it.
+
+   The RATIO is a setting rather than a constant: contain inside a ratio the
+   photographs do not share is what produces letterboxing, and the right ratio
+   is a fact about the catalogue, not about the theme. */
 .alp-shelf__pic img {
   width: 100%;
-  aspect-ratio: 4 / 5;
   object-fit: contain;
 }
+.alp-shelf--portrait .alp-shelf__pic img { aspect-ratio: 3 / 4; }
+.alp-shelf--square .alp-shelf__pic img { aspect-ratio: 1 / 1; }
+/* Adapt: the photograph's own shape, so nothing is cropped and nothing is
+   padded. Rows can end up uneven, which is the honest trade. */
+.alp-shelf--adapt .alp-shelf__pic img { aspect-ratio: auto; height: auto; }
 
 .alp-shelf__flag {
   position: absolute;
@@ -1659,19 +2367,29 @@ body.waitlist #MainContent { padding-top: 0; }
   letter-spacing: 0.04em;
 }
 
+.alp-shelf__meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--alp-mist);
+}
+
 .alp-shelf__name {
-  margin: 9px 0 0;
+  margin: 0;
   font-family: var(--alp-font-ui);
-  font-weight: 600;
-  font-size: clamp(0.8rem, 0.3vw + 0.74rem, 0.92rem);
+  font-weight: 400;
+  font-size: clamp(0.781rem, 0.3vw + 0.72rem, 0.9375rem);
   line-height: 1.3;
 }
 a.alp-shelf__cell:hover .alp-shelf__name { color: var(--alp-accent); }
 
 .alp-shelf__price {
-  margin: 3px 0 0;
-  font-size: clamp(0.78rem, 0.25vw + 0.73rem, 0.88rem);
-  color: rgba(76, 75, 59, 0.72);
+  margin: 0;
+  flex: none;
+  font-size: clamp(0.781rem, 0.3vw + 0.72rem, 0.9375rem);
 }
 .alp-shelf__price s { margin-right: 5px; color: rgba(76, 75, 59, 0.45); }
 
@@ -1682,40 +2400,322 @@ a.alp-shelf__cell:hover .alp-shelf__name { color: var(--alp-accent); }
   margin: 0;
   padding: clamp(20px, 3vw, 36px) var(--alp-pad-page);
   font-size: 0.85rem;
-  color: rgba(76, 75, 59, 0.7);
+  color: var(--alp-ink);
 }
 
 @media (min-width: 750px) {
   .alp-shelf--3up .alp-shelf__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .alp-shelf--4up .alp-shelf__grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-
-  /* Re-hang the "no rule on the last column" rule at each column count. */
-  .alp-shelf--3up .alp-shelf__grid > .alp-shelf__cell:nth-child(2n) { border-right: 1px solid var(--alp-line); }
-  .alp-shelf--3up .alp-shelf__grid > .alp-shelf__cell:nth-child(3n) { border-right: 0; }
-  .alp-shelf--4up .alp-shelf__grid > .alp-shelf__cell:nth-child(2n) { border-right: 1px solid var(--alp-line); }
-  .alp-shelf--4up .alp-shelf__grid > .alp-shelf__cell:nth-child(4n) { border-right: 0; }
-
-  .alp-shelf__cell { padding: 14px 16px 20px; }
 }
 
-/* Scroll cue under the hero wordmark. */
-.alp-hero__cue {
+@media (min-width: 990px) {
+  .alp-shelf__grid { gap: 24px; padding: 0 var(--alp-field-pad) var(--alp-band); }
+}
+
+@media (max-width: 989px) {
+  .alp-shelf__head {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 30px var(--alp-pad-page) 14px;
+  }
+}
+
+/* ── Touch targets ───────────────────────────────────────────────────────────
+   Measured at 390px: the base chip came out 35px tall, and the menu sheet's
+   fine-print and Follow links were 15px. Both are well under the 44px that
+   Apple's HIG and WCAG 2.5.8 ask for, and both are things people tap with a
+   thumb, outdoors, one-handed.
+
+   Interactive chips only — a.alp-chip and button.alp-chip. The same class is
+   used for static flags like "Waitlist", which should not grow. */
+@media (max-width: 989px) {
+  a.alp-chip,
+  button.alp-chip {
+    min-height: 44px;
+    box-sizing: border-box;
+  }
+
+  .alp-sheet__col a,
+  .alp-sheet__account a {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+  .alp-sheet__col ul { gap: 0; }
+}
+
+/* ── Stock Dawn surfaces ─────────────────────────────────────────────────────
+   Policy pages, the contact page, search, 404 and the cart's empty state are
+   still Dawn's own sections, and Dawn paints them white with a black button.
+   Next to the bone rail that reads as a different website — which is exactly
+   what a customer meets when they tap "Privacy policy" in the footer.
+
+   This does not restyle Dawn; it puts its surfaces on the palette. */
+body.template-page,
+body.template-search,
+body.template-404,
+body.template-list-collections,
+body.template-customers-login,
+body.template-customers-register,
+body.template-customers-account,
+body.template-customers-order,
+body.template-customers-addresses { background: var(--alp-bg); }
+
+/* Dawn's colour schemes paint an opaque ground on every section wrapper. */
+body.template-page .color-scheme-1,
+body.template-page .shopify-policy__container,
+body.template-search .color-scheme-1,
+body.template-404 .color-scheme-1,
+body.template-cart .cart__warnings,
+body.template-cart .color-scheme-1 {
+  background: transparent;
+  color: var(--alp-ink);
+}
+
+/* Policy and page headings onto the brand face. */
+.shopify-policy__title h1,
+body.template-page .main-page-title,
+body.template-search .title,
+body.template-404 .title {
+  font-family: var(--alp-font-display);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--alp-ink);
+}
+
+.shopify-policy__container { max-width: 68ch; padding: clamp(40px, 6vw, 80px) var(--alp-pad-page); }
+.shopify-policy__title { text-align: left; }
+.shopify-policy__body { font-family: var(--alp-font-ui); line-height: 1.65; color: var(--alp-ink); }
+.shopify-policy__body h2 { font-family: var(--alp-font-display); font-weight: 600; letter-spacing: -0.01em; }
+
+/* Dawn's black buttons become the brand's olive chip. */
+body.template-page .button,
+body.template-search .button,
+body.template-404 .button,
+body.template-cart .cart__warnings .button,
+body.template-customers-login .button,
+body.template-customers-register .button {
+  background: var(--alp-ink);
+  color: var(--alp-bg);
+  border: 1px solid var(--alp-ink);
+  border-radius: 3px;
+  box-shadow: none;
+  font-family: var(--alp-font-ui);
+  font-weight: 600;
+}
+body.template-page .button:hover,
+body.template-cart .cart__warnings .button:hover {
+  background: var(--alp-accent);
+  border-color: var(--alp-accent);
+}
+
+/* The contact form's fields, onto the palette. */
+body.template-page .field__input,
+body.template-page .select__select,
+body.template-page textarea {
+  background: var(--alp-bg);
+  border-radius: 3px;
+  color: var(--alp-ink);
+}
+
+/* ── Cart ────────────────────────────────────────────────────────────────────
+   8c makes the cart a page with the summary as the one olive slab, mist rules
+   between the lines, and the checkout button the only flare on it.
+
+   Dawn renders the items and the footer as two SEPARATE sections, siblings
+   inside #MainContent, so the two-column layout is built on the section
+   wrappers rather than inside either one. That is also why the summary can be
+   sticky: it is a real grid column, not a box floated inside the list. */
+body.template-cart { background: var(--alp-bg); }
+
+body.template-cart .cart,
+body.template-cart .cart__footer {
+  background: transparent;
+  padding: 0;
+}
+
+body.template-cart .title-wrapper-with-link,
+body.template-cart .cart__empty-text,
+body.template-cart .cart__warnings {
+  padding: 0 var(--alp-pad-page);
+}
+
+body.template-cart .title,
+body.template-cart .cart__empty-text {
+  font-family: var(--alp-font-display);
+  font-weight: 600;
+  font-size: clamp(1.75rem, 2.2vw + 1rem, 2.5rem);
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  color: var(--alp-ink);
+}
+
+/* The rows. A 3px mist rule opens the list — the system's section break — and
+   hairlines separate the lines inside it. */
+body.template-cart .cart-items,
+body.template-cart .cart-item {
+  border: 0;
+  background: transparent;
+}
+body.template-cart .cart-items { width: 100%; }
+body.template-cart .cart-items__heading { display: none; }
+
+body.template-cart .cart-item {
+  border-top: 1px solid var(--alp-line);
+  padding: 26px 0;
+}
+body.template-cart .cart-item:first-child { border-top: 3px solid var(--alp-mist); }
+body.template-cart .cart-item:last-child { border-bottom: 1px solid var(--alp-line); }
+
+body.template-cart .cart-item__image {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+}
+body.template-cart .cart-item__name {
+  font-family: var(--alp-font-ui);
+  font-weight: 400;
+  font-size: 1rem;
+  color: var(--alp-ink);
+  text-decoration: none;
+}
+body.template-cart .cart-item__name:hover { color: var(--alp-accent); }
+
+/* The summary — the one olive block on the page. */
+body.template-cart .cart__blocks,
+body.template-cart .totals,
+body.template-cart .cart__ctas,
+body.template-cart .tax-note {
+  background: var(--alp-ink);
+  color: var(--alp-bg);
+}
+body.template-cart .cart__blocks {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+body.template-cart .totals__total,
+body.template-cart .totals__subtotal,
+body.template-cart .totals__subtotal-value { color: var(--alp-bg); }
+body.template-cart .tax-note { color: var(--alp-haze); font-size: 0.8125rem; }
+
+body.template-cart .cart__ctas button,
+body.template-cart .cart__ctas .button {
+  width: 100%;
+  background: var(--alp-citrus);
+  color: var(--alp-ink);
+  border: 1px solid var(--alp-citrus);
+  border-radius: 3px;
+  padding: 16px;
+  font-family: var(--alp-font-ui);
+  font-weight: 600;
+  box-shadow: none;
+}
+
+@media (min-width: 990px) {
+  /* Items left, summary right and sticky, per 8c. The children here are
+     Shopify's own section wrappers. */
+  body.template-cart #MainContent {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    gap: var(--alp-gutter-gap);
+    align-items: start;
+    padding: var(--alp-band) var(--alp-field-pad);
+  }
+  body.template-cart .title-wrapper-with-link,
+  body.template-cart .cart__empty-text,
+  body.template-cart .cart__warnings { padding: 0; }
+  body.template-cart #MainContent > * { min-width: 0; }
+  body.template-cart #MainContent > :last-child { position: sticky; top: 28px; }
+}
+
+@media (max-width: 989px) {
+  body.template-cart #MainContent { padding: 24px 0 0; }
+  body.template-cart .cart-item { padding: 18px var(--alp-pad-page); }
+  body.template-cart .cart__blocks { padding: 20px var(--alp-pad-page); }
+}
+
+/* ── Journal ─────────────────────────────────────────────────────────────────
+   Blog index and single dispatch are the same page with a different middle:
+   full-bleed lead, mist rule, then either the body on the caption gutter or the
+   dated index. */
+.alp-journal { background: var(--alp-bg); }
+
+.alp-journal__lead { position: relative; overflow: hidden; }
+.alp-journal__lead img {
+  display: block;
+  width: 100%;
+  height: clamp(420px, 44vw, 620px);
+  object-fit: cover;
+}
+.alp-journal__veil {
   position: absolute;
-  left: 50%;
-  bottom: clamp(64px, 11vh, 104px);
-  transform: translateX(-50%);
-  z-index: 2;
-  width: 12px;
-  height: clamp(40px, 7vh, 64px);
-  fill: none;
-  stroke: var(--alp-bg);
-  stroke-width: 1.2;
-  stroke-dasharray: 3 5;
-  opacity: 0.85;
-  filter: drop-shadow(0 1px 4px rgba(47, 47, 38, 0.45));
-  pointer-events: none;
+  inset: 0;
+  background: linear-gradient(rgba(76, 75, 59, 0) 40%, rgba(76, 75, 59, 0.88));
 }
-.alp-hero__cue path:last-child { stroke-dasharray: none; }
+.alp-journal__leadtext {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: clamp(22px, 3vw, 44px);
+  z-index: 2;
+  padding: 0 var(--alp-pad-page);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.alp-journal__eyebrow {
+  margin: 0;
+  font-family: var(--alp-font-ui);
+  font-size: 0.594rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--alp-bg);
+}
+.alp-journal__title {
+  margin: 0;
+  max-width: 760px;
+  font-family: var(--alp-font-display);
+  font-weight: 600;
+  font-size: clamp(1.4rem, 2.2vw + 0.9rem, 2.5rem);
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  color: var(--alp-bg);
+  text-wrap: pretty;
+}
+.alp-journal__title a { color: inherit; text-decoration: none; }
+
+.alp-journal__rule { height: 3px; background: var(--alp-mist); }
+
+.alp-journal__index { padding: 22px var(--alp-pad-page) 8px; }
+.alp-journal__rows { display: flex; flex-direction: column; }
+.alp-journal__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--alp-line);
+  color: var(--alp-ink);
+  text-decoration: none;
+}
+.alp-journal__row:hover .alp-journal__rowtitle { color: var(--alp-accent); }
+.alp-journal__rowtitle { flex: 1; font-size: 0.875rem; line-height: 1.35; }
+.alp-journal__rowdate { flex: none; font-size: 0.719rem; }
+
+.alp-journal__ride { padding: 26px var(--alp-pad-page); }
+
+@media (min-width: 990px) {
+  .alp-journal__leadtext { padding: 0 var(--alp-field-pad); }
+  .alp-journal__index { padding: 0 var(--alp-field-pad) var(--alp-band); }
+  .alp-journal__ride { padding: 0 var(--alp-field-pad) var(--alp-band); }
+  /* On an article the rail already carries the dispatch index; repeating it in
+     the field would say the same thing twice on one screen. */
+  .alp-journal__index--phone { display: none; }
+}
 
 /* ── Home page density ───────────────────────────────────────────────────────
    The home page runs compact: tiles and shelves butt straight against each
@@ -1726,6 +2726,21 @@ a.alp-shelf__cell:hover .alp-shelf__name { color: var(--alp-accent); }
 
    All of it is scoped to the home template. Collection, product and policy
    pages keep the editorial spacing the design system asks for. */
+/* Re-pointed. This block still named alp-collection, alp-gate, alp-trio,
+   alp-manifesto and alp-ethos — the sections the home page used BEFORE it was
+   rebuilt on 7b. None of them are on it any more, so the compactness the
+   comment above describes had quietly stopped applying to anything, and the
+   page went back to full editorial bands at both ends of every section. */
+body.template-index .alp-passage { padding-block: clamp(28px, 3.4vw, 52px); }
+body.template-index .alp-shelf__head { padding-block: clamp(28px, 3.4vw, 52px) clamp(14px, 1.8vw, 24px); }
+body.template-index .alp-shelf__grid { padding-bottom: clamp(28px, 3.4vw, 52px); }
+
+/* The page ends on an olive slab and the footer is olive too, so their two
+   bands meet and read as one dead field. Halve the join. */
+body.template-index #MainContent > .shopify-section:last-child .alp-passage--olive {
+  padding-bottom: clamp(20px, 2.4vw, 36px);
+}
+
 body.template-index .alp-collection { padding: clamp(28px, 4vw, 56px) var(--alp-pad-page); }
 body.template-index .alp-collection__head { margin-bottom: clamp(14px, 2vw, 24px); }
 body.template-index .alp-gate { padding: clamp(28px, 4.5vw, 56px) var(--alp-pad-page) clamp(22px, 3vw, 40px); }
@@ -1734,20 +2749,3 @@ body.template-index .alp-trio__grid { gap: 1px; }
 body.template-index .alp-manifesto--page { padding: clamp(20px, 3vw, 40px) var(--alp-pad-page); }
 body.template-index .alp-ethos { padding-block: clamp(26px, 4vw, 56px); }
 
-/* The hero sits below the bar rather than under it, as on every other
-   template, so its full-screen height has to come off the same clearance. */
-body.template-index .alp-hero { min-height: calc(100svh - 76px); }
-
-/* One bar on every template. The home page used to hide the wordmark here
-   because the mist gate carried it directly underneath; the gate is no longer
-   what opens the page, so the mark belongs back in the bar where it stays
-   visible the whole way down. */
-body.template-index .alp-head {
-  padding-top: max(10px, env(safe-area-inset-top));
-  padding-bottom: 10px;
-}
-body.template-index .alp-nav-link--wordmark { display: flex; font-size: inherit; }
-body.template-index .alp-nav-link--wordmark .alp-wordmark__img {
-  height: clamp(2.2rem, 1.4vw + 1.6rem, 2.9rem);
-}
-body.template-index #MainContent { padding-top: 76px; }

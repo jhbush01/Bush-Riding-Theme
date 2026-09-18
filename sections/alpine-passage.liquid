@@ -1,0 +1,103 @@
+{%- comment -%}
+  Bush Riding passage — an eyebrow in the left gutter, a headline and copy in
+  the field, optionally on a coloured slab.
+
+  This is the layout primitive the desktop system is made of: the same
+  200px / 1fr grid carries the country block on the home page, the intro on
+  the catalogue, the copy on a product, the body of a dispatch and every
+  section of the About page. Building it once is what keeps the caption gutter
+  on the same line down the whole site — the thing a reader notices only when
+  it is wrong.
+
+  On a phone the gutter collapses and the eyebrow sits above the headline,
+  because 200px of a 390px screen is not a gutter, it is half the page.
+
+  Grounds. Bone is the page. Olive is the slab that does the heavy work and
+  inverts the type. Mist carries headline-scale type ONLY — olive on mist is
+  4.35:1, so the eyebrow moves onto an olive tab there rather than sitting
+  directly on the colour, and body copy is not offered at all.
+{%- endcomment -%}
+
+{%- liquid
+  assign ground = section.settings.ground | default: 'bone'
+  assign size = section.settings.size | default: 'large'
+  assign cta_label = section.settings.cta_label
+  assign cta_url = section.settings.cta_url
+-%}
+
+{%- comment -%}
+  data-alp-index lets the rail build a section index for the page without the
+  header having to know what the template contains: the header renders first,
+  so it cannot read these in Liquid, and alpine.js collects them afterwards.
+  Purely navigational — no script, no index, and the page is unharmed.
+{%- endcomment -%}
+<section
+  id="alp-passage-{{ section.id }}"
+  class="alp alp-passage alp-passage--{{ ground }} alp-passage--{{ size }}{% if section.settings.rule_below %} alp-passage--ruled{% endif %}"
+  {% if section.settings.eyebrow != blank %}
+    aria-label="{{ section.settings.eyebrow | escape }}"
+    data-alp-index="{{ section.settings.eyebrow | strip_html | escape }}"
+  {% endif %}
+>
+  {%- if section.settings.eyebrow != blank -%}
+    <p class="alp-passage__eyebrow">{{ section.settings.eyebrow | escape | replace: '&lt;br&gt;', '<br>' }}</p>
+  {%- endif -%}
+
+  <div class="alp-passage__field">
+    {%- if section.settings.heading != blank -%}
+      <h2 class="alp-passage__heading">{{ section.settings.heading | escape }}</h2>
+    {%- endif -%}
+
+    {%- if section.settings.body != blank and ground != 'mist' -%}
+      <div class="alp-passage__body rte">{{ section.settings.body }}</div>
+    {%- endif -%}
+
+    {%- if cta_label != blank and cta_url != blank -%}
+      <a class="alp-chip alp-passage__cta" href="{{ cta_url }}">{{ cta_label | escape }}</a>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Bush Riding passage",
+  "tag": "div",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "An eyebrow in the left gutter, a headline and copy in the field. The gutter collapses on a phone."
+    },
+    {
+      "type": "select",
+      "id": "ground",
+      "label": "Ground",
+      "options": [
+        { "value": "bone", "label": "Bone — the page" },
+        { "value": "olive", "label": "Olive — inverted slab" },
+        { "value": "mist", "label": "Mist — headline only, no body copy" }
+      ],
+      "default": "bone"
+    },
+    {
+      "type": "select",
+      "id": "size",
+      "label": "Headline size",
+      "options": [
+        { "value": "large", "label": "Large" },
+        { "value": "medium", "label": "Medium" }
+      ],
+      "default": "large"
+    },
+    { "type": "checkbox", "id": "rule_below", "label": "Mist rule underneath", "default": false, "info": "The 3px divider the system uses between a block of copy and the photograph after it." },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "info": "Sits in the left gutter. Use <br> for a second line." },
+    { "type": "text", "id": "heading", "label": "Headline" },
+    { "type": "richtext", "id": "body", "label": "Copy", "info": "Not shown on a mist ground — mist cannot carry small type at 4.5:1." },
+    { "type": "header", "content": "Button" },
+    { "type": "text", "id": "cta_label", "label": "Button label" },
+    { "type": "url", "id": "cta_url", "label": "Button link" }
+  ],
+  "presets": [
+    { "name": "Bush Riding passage" }
+  ]
+}
+{% endschema %}
