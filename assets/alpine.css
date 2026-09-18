@@ -22,6 +22,16 @@
 
   --alp-space-section: clamp(72px, 12vw, 160px);
   --alp-pad-page: clamp(16px, 4vw, 48px);
+
+  /* The caption-gutter measures. These were hardcoded as 200px / 56px in five
+     places — the wireframe's 1440 artboard, pinned. They never scaled, so
+     between 990 and 1400 the gutter ate a fixed 200px of a shrinking field
+     while the bands above and below stayed at their full height: cramped
+     columns inside airy slabs, which is the worst of both. */
+  --alp-gutter: clamp(104px, 13vw, 200px);
+  --alp-gutter-gap: clamp(20px, 2.6vw, 56px);
+  --alp-field-pad: clamp(20px, 4vw, 56px);
+  --alp-band: clamp(40px, 5.5vw, 80px);
 }
 
 body {
@@ -677,7 +687,7 @@ body.alp-menu-open { overflow: hidden; }
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  padding: 0 56px;
+  padding: 0 var(--alp-field-pad);
 }
 
 .alp-hero__place {
@@ -704,9 +714,9 @@ body.alp-menu-open { overflow: hidden; }
    390px screen is not a gutter, it is half the page. */
 .alp-passage {
   display: grid;
-  grid-template-columns: 200px 1fr;
-  gap: 56px;
-  padding: 80px 56px;
+  grid-template-columns: var(--alp-gutter) 1fr;
+  gap: var(--alp-gutter-gap);
+  padding: var(--alp-band) var(--alp-field-pad);
   background: var(--alp-bg);
   color: var(--alp-ink);
 }
@@ -738,10 +748,10 @@ body.alp-menu-open { overflow: hidden; }
   text-wrap: pretty;
   color: inherit;
 }
-.alp-passage--large .alp-passage__heading { font-size: clamp(1.75rem, 2.2vw + 1rem, 2.5rem); max-width: 22ch; }
+.alp-passage--large .alp-passage__heading { font-size: clamp(1.75rem, 2.2vw + 1rem, 2.5rem); max-width: 26ch; }
 .alp-passage--medium .alp-passage__heading { font-size: clamp(1.5rem, 1.4vw + 1rem, 1.75rem); letter-spacing: -0.015em; }
 
-.alp-passage__body { max-width: 640px; color: inherit; }
+.alp-passage__body { max-width: 70ch; color: inherit; }
 .alp-passage__body > :first-child { margin-top: 0; }
 .alp-passage__body > :last-child { margin-bottom: 0; }
 .alp-passage__body p {
@@ -1242,9 +1252,9 @@ body.template-index .alp-hero { height: 100svh; min-height: 100svh; }
 /* The intro runs on the same caption gutter as every passage on the site. */
 .alp-cat__intro {
   display: grid;
-  grid-template-columns: 200px 1fr;
-  gap: 56px;
-  padding: 40px 56px 24px;
+  grid-template-columns: var(--alp-gutter) 1fr;
+  gap: var(--alp-gutter-gap);
+  padding: var(--alp-band) var(--alp-field-pad) calc(var(--alp-band) * 0.4);
 }
 .alp-cat__intro-eyebrow {
   margin: 0;
@@ -1255,7 +1265,7 @@ body.template-index .alp-hero { height: 100svh; min-height: 100svh; }
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
-.alp-cat__intro-body { max-width: 640px; }
+.alp-cat__intro-body { max-width: 70ch; }
 .alp-cat__intro-body > :first-child { margin-top: 0; }
 .alp-cat__intro-body > :last-child { margin-bottom: 0; }
 .alp-cat__intro-body p { margin: 0 0 12px; font-size: 1rem; line-height: 1.65; }
@@ -2083,10 +2093,10 @@ body.waitlist #MainContent { padding-top: 0; }
 /* The head runs on the same caption gutter as every passage. */
 .alp-shelf__head {
   display: grid;
-  grid-template-columns: 200px 1fr;
-  gap: 56px;
+  grid-template-columns: var(--alp-gutter) 1fr;
+  gap: var(--alp-gutter-gap);
   align-items: baseline;
-  padding: 90px 56px 40px;
+  padding: var(--alp-band) var(--alp-field-pad) calc(var(--alp-band) * 0.5);
 }
 
 .alp-shelf__eyebrow {
@@ -2202,7 +2212,7 @@ a.alp-shelf__cell:hover .alp-shelf__name { color: var(--alp-accent); }
 }
 
 @media (min-width: 990px) {
-  .alp-shelf__grid { gap: 24px; padding: 0 56px 90px; }
+  .alp-shelf__grid { gap: 24px; padding: 0 var(--alp-field-pad) var(--alp-band); }
 }
 
 @media (max-width: 989px) {
@@ -2388,9 +2398,9 @@ body.template-cart .cart__ctas .button {
   body.template-cart #MainContent {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 380px;
-    gap: 56px;
+    gap: var(--alp-gutter-gap);
     align-items: start;
-    padding: 72px 56px;
+    padding: var(--alp-band) var(--alp-field-pad);
   }
   body.template-cart .title-wrapper-with-link,
   body.template-cart .cart__empty-text,
@@ -2478,9 +2488,9 @@ body.template-cart .cart__ctas .button {
 .alp-journal__ride { padding: 26px var(--alp-pad-page); }
 
 @media (min-width: 990px) {
-  .alp-journal__leadtext { padding: 0 56px; }
-  .alp-journal__index { padding: 0 56px 72px; }
-  .alp-journal__ride { padding: 0 56px 72px; }
+  .alp-journal__leadtext { padding: 0 var(--alp-field-pad); }
+  .alp-journal__index { padding: 0 var(--alp-field-pad) var(--alp-band); }
+  .alp-journal__ride { padding: 0 var(--alp-field-pad) var(--alp-band); }
   /* On an article the rail already carries the dispatch index; repeating it in
      the field would say the same thing twice on one screen. */
   .alp-journal__index--phone { display: none; }
@@ -2495,6 +2505,21 @@ body.template-cart .cart__ctas .button {
 
    All of it is scoped to the home template. Collection, product and policy
    pages keep the editorial spacing the design system asks for. */
+/* Re-pointed. This block still named alp-collection, alp-gate, alp-trio,
+   alp-manifesto and alp-ethos — the sections the home page used BEFORE it was
+   rebuilt on 7b. None of them are on it any more, so the compactness the
+   comment above describes had quietly stopped applying to anything, and the
+   page went back to full editorial bands at both ends of every section. */
+body.template-index .alp-passage { padding-block: clamp(28px, 3.4vw, 52px); }
+body.template-index .alp-shelf__head { padding-block: clamp(28px, 3.4vw, 52px) clamp(14px, 1.8vw, 24px); }
+body.template-index .alp-shelf__grid { padding-bottom: clamp(28px, 3.4vw, 52px); }
+
+/* The page ends on an olive slab and the footer is olive too, so their two
+   bands meet and read as one dead field. Halve the join. */
+body.template-index #MainContent > .shopify-section:last-child .alp-passage--olive {
+  padding-bottom: clamp(20px, 2.4vw, 36px);
+}
+
 body.template-index .alp-collection { padding: clamp(28px, 4vw, 56px) var(--alp-pad-page); }
 body.template-index .alp-collection__head { margin-bottom: clamp(14px, 2vw, 24px); }
 body.template-index .alp-gate { padding: clamp(28px, 4.5vw, 56px) var(--alp-pad-page) clamp(22px, 3vw, 40px); }
