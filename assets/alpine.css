@@ -131,12 +131,26 @@ a.alp-chip--active:hover { background: var(--alp-accent); border-color: var(--al
   flex-direction: column;
   justify-content: space-between;
   gap: 24px;
-  overflow-y: auto;
+  /* The rail itself does not scroll — its TOP does. On a 700px laptop the
+     About page's rail wanted 776px, and when the whole column scrolled that
+     pushed the next ride and the cart off the bottom, where nobody would think
+     to look for them. Now the nav and the per-page block take the scroll and
+     the foot stays put. */
+  overflow: hidden;
   scrollbar-width: none;
 }
 .alp-rail::-webkit-scrollbar { display: none; }
 
-.alp-rail__top { display: flex; flex-direction: column; gap: 34px; }
+.alp-rail__top {
+  display: flex;
+  flex-direction: column;
+  gap: 34px;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.alp-rail__top::-webkit-scrollbar { display: none; }
+.alp-rail__foot { flex: none; }
 
 .alp-rail__wordmark { display: block; }
 /* Two classes deep on purpose: the blanket `.alp img` rule is (0,1,1), so a
@@ -887,7 +901,7 @@ body.alp-menu-open {
 .alp-passage--large .alp-passage__heading { font-size: clamp(1.75rem, 2.2vw + 1rem, 2.5rem); max-width: 26ch; }
 .alp-passage--medium .alp-passage__heading { font-size: clamp(1.5rem, 1.4vw + 1rem, 1.75rem); letter-spacing: -0.015em; }
 
-.alp-passage__body { max-width: 70ch; color: inherit; }
+.alp-passage__body { max-width: 66ch; color: inherit; }
 .alp-passage__body > :first-child { margin-top: 0; }
 .alp-passage__body > :last-child { margin-bottom: 0; }
 .alp-passage__body p {
@@ -1364,18 +1378,36 @@ body.template-index .alp-hero { height: 100svh; min-height: 100svh; }
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(rgba(76, 75, 59, 0) 40%, rgba(76, 75, 59, 0.88));
+  /* Measured, not guessed: sampling the rendered pixels behind this text put
+     the eyebrow at 2.66:1 on a bright banner, against the 4.5 it needs. The
+     tile passes the same test at 6.45 because its veil and its caption plate
+     compound; the banner has only ever had this one layer, so this one has to
+     do the whole job. */
+  background: linear-gradient(
+    rgba(76, 75, 59, 0) 22%,
+    rgba(76, 75, 59, 0.62) 58%,
+    rgba(76, 75, 59, 0.96) 100%
+  );
 }
 
 /* The 3px divider between the banner and the page — the system's section
    break, same rule the passage draws. */
 .alp-cat__rule { height: 3px; background: var(--alp-mist); }
 
+/* The overlay carries its own scrim, the way the tile's caption plate does.
+   The banner's single ramp got the eyebrow to 4.25:1 — better than the 2.66 it
+   started at, still under 4.5, and the eyebrow sits higher in the frame than
+   the title so it is always in the lighter part of the gradient. Two layers is
+   what the tile already does, and the tile measures 6.45. */
 .alp-cat__banner-overlay {
   position: absolute;
-  left: var(--alp-pad-page);
-  bottom: clamp(14px, 2.4vw, 26px);
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: 2;
+  padding: clamp(56px, 9vw, 120px) var(--alp-pad-page) clamp(14px, 2.4vw, 26px);
+  background: linear-gradient(to top, rgba(76, 75, 59, 0.85), rgba(76, 75, 59, 0));
+  pointer-events: none;
 }
 
 .alp-cat__eyebrow {
@@ -1512,7 +1544,7 @@ body.template-index .alp-hero { height: 100svh; min-height: 100svh; }
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(76, 75, 59, 0.75);
+  color: var(--alp-ink);
 }
 
 .alp-cat__facet-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
@@ -1596,10 +1628,11 @@ body.template-index .alp-hero { height: 100svh; min-height: 100svh; }
   margin-bottom: clamp(12px, 2vw, 20px);
 }
 
+/* Full olive: at 70% this measured 3.56:1 on bone, against the 4.5 it needs. */
 .alp-cat__count {
   margin: 0;
   font-size: 0.82rem;
-  color: rgba(76, 75, 59, 0.7);
+  color: var(--alp-ink);
 }
 
 .alp-cat__sort {
@@ -1671,7 +1704,7 @@ a:hover .alp-cat__card-name { color: var(--alp-accent); }
 .alp-cat__empty {
   padding: clamp(40px, 8vw, 90px) 0;
   text-align: center;
-  color: rgba(76, 75, 59, 0.7);
+  color: var(--alp-ink);
 }
 
 /* ── Closing band ───────────────────────────────────────────────────────────
@@ -2367,7 +2400,7 @@ a.alp-shelf__cell:hover .alp-shelf__name { color: var(--alp-accent); }
   margin: 0;
   padding: clamp(20px, 3vw, 36px) var(--alp-pad-page);
   font-size: 0.85rem;
-  color: rgba(76, 75, 59, 0.7);
+  color: var(--alp-ink);
 }
 
 @media (min-width: 750px) {

@@ -2,9 +2,15 @@
   "name": "bush-riding-map",
   "version": "1.0.0",
   "private": true,
-  "description": "Bush Riding Map — static site tooling (SEO route page generator).",
+  "description": "Bush Riding Map \u2014 static site tooling (SEO route page generator).",
   "scripts": {
     "build:seo": "node scripts/generate-route-pages.js",
-    "build": "npm run build:seo"
+    "build": "npm run build:seo",
+    "preview": "python3 scripts/render-preview.py /tmp/shots",
+    "audit": "python3 scripts/render-preview.py /tmp/shots && node scripts/audit-mobile.js /tmp/shots && node scripts/audit-desktop.js /tmp/shots"
+  },
+  "devDependencies": {
+    "playwright": "^1.49.0",
+    "pngjs": "^7.0.0"
   }
 }
