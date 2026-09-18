@@ -770,6 +770,24 @@ body.alp-menu-open { overflow: hidden; }
    a hairline that got away — it is the system's section break. */
 .alp-passage--ruled { border-bottom: 3px solid var(--alp-mist); }
 
+/* Two passages on the SAME ground, one after the other, stack both of their
+   bands where they meet — up to 160px of nothing on a bone-on-bone join, with
+   no change of colour to justify it. Where the ground changes the full band
+   earns its keep, because it is holding two slabs apart. Where it does not,
+   the join collapses.
+
+   Both selectors are needed: Shopify wraps every section in a .shopify-section
+   div on the storefront, so the passages are never truly adjacent siblings
+   there, but they are in any context that renders them directly. */
+.alp-passage--bone + .alp-passage--bone,
+.shopify-section:has(> .alp-passage--bone) + .shopify-section:has(> .alp-passage--bone) > .alp-passage,
+.alp-passage--olive + .alp-passage--olive,
+.shopify-section:has(> .alp-passage--olive) + .shopify-section:has(> .alp-passage--olive) > .alp-passage,
+.alp-passage--mist + .alp-passage--mist,
+.shopify-section:has(> .alp-passage--mist) + .shopify-section:has(> .alp-passage--mist) > .alp-passage {
+  padding-top: 0;
+}
+
 /* Olive — the slab that does the heavy work. Sage carries the eyebrow and the
    supporting copy; bone carries the headline. */
 .alp-passage--olive { background: var(--alp-ink); color: var(--alp-bg); }
