@@ -1322,8 +1322,16 @@ body.template-index .alp-hero { height: 100svh; min-height: 100svh; }
 .alp-cat__body--full { grid-template-columns: 1fr; }
 
 /* Desktop hides the aside outright — its markup is rendered again in the nav
-   rail, and on a phone this is the toggled panel. */
-@media (min-width: 990px) { .alp-cat__side { display: none; } }
+   rail, and on a phone this is the toggled panel.
+
+   Child selector, not the bare class: the base `.alp-cat__side` rule below
+   sets display:flex at the same specificity and comes later in the file, so a
+   plain `.alp-cat__side { display: none }` inside a media query LOSES to it —
+   which is how the catalogue ended up drawing its filters twice, once in the
+   rail and once as a mist slab across the page. */
+@media (min-width: 990px) {
+  .alp-cat__body > .alp-cat__side { display: none; }
+}
 
 .alp-cat__side {
   align-self: stretch;
@@ -1460,7 +1468,7 @@ body.template-index .alp-hero { height: 100svh; min-height: 100svh; }
 }
 
 .alp-cat__card-media { position: relative; display: block; }
-.alp-cat__card-media img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; }
+.alp-cat__card-media img { width: 100%; aspect-ratio: 3 / 4; object-fit: contain; }
 /* The waitlist flag rides the image, top-left, in mist — chrome, not content. */
 .alp-cat__flag {
   position: absolute;
@@ -2128,13 +2136,14 @@ a.alp-shelf__more:hover { background: var(--alp-accent); border-color: var(--alp
 .alp-shelf__cell { display: block; color: inherit; text-decoration: none; }
 
 .alp-shelf__pic { position: relative; }
-/* Cover, not contain: the brand shoots product in the country rather than
-   cut out on white, and a 3:4 documentary frame wants filling. Switch to
-   `contain` if the catalogue ever moves to packshots. */
+/* Contain, not cover. The catalogue's photography turns out to be cut-out
+   packshots rather than product-in-the-country, and cover crops a garment
+   that is already floating in its own white field — the launch shorts lost
+   their waistband to it. */
 .alp-shelf__pic img {
   width: 100%;
   aspect-ratio: 3 / 4;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .alp-shelf__flag {
