@@ -15,13 +15,13 @@
         "collection": "",
         "image": "shopify://shop_images/IMG_8186.jpg",
         "video_url": "",
-        "eyebrow": "Made for the detour",
-        "label": "Bush Riding designs are made for riding a bike through the Australian Bush.",
+        "eyebrow": "",
+        "label": "",
         "blurb": "",
-        "label_size": "headline",
+        "label_size": "label",
         "frame": "",
         "link": "",
-        "veil": true,
+        "veil": false,
         "height": "tall",
         "full_width": true
       }
@@ -94,10 +94,24 @@
         "cta_label": "Ride with us ✦",
         "cta_url": "/collections/all"
       }
+    },
+    "about_statement": {
+      "type": "alpine-passage",
+      "settings": {
+        "ground": "bone",
+        "size": "large",
+        "rule_below": false,
+        "eyebrow": "Made for the detour",
+        "heading": "Bush Riding designs are made for riding a bike through the Australian Bush.",
+        "body": "",
+        "cta_label": "",
+        "cta_url": ""
+      }
     }
   },
   "order": [
     "about_hero",
+    "about_statement",
     "about_gear",
     "about_country",
     "about_plate",
