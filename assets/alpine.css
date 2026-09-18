@@ -223,6 +223,88 @@ a.alp-chip--active:hover { background: var(--alp-accent); border-color: var(--al
 }
 .alp-rail__cart:hover { color: var(--alp-accent); }
 
+/* ── The rail's buy block (product page) ──────────────────────────────────── */
+.alp-rail__back {
+  font-family: var(--alp-font-ui);
+  font-size: 0.75rem;
+  color: var(--alp-ink);
+  text-decoration: none;
+}
+.alp-rail__back:hover { color: var(--alp-accent); }
+
+.alp-rail__product {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-top: 1px solid var(--alp-line);
+  padding-top: 18px;
+}
+.alp-rail__ptitle {
+  margin: 0;
+  font-family: var(--alp-font-display);
+  font-weight: 600;
+  font-size: 1.25rem;
+  line-height: 1.18;
+  letter-spacing: -0.01em;
+}
+.alp-rail__pprice { margin: 0; font-size: 0.875rem; }
+
+.alp-rail__sizes { display: flex; flex-direction: column; gap: 10px; }
+.alp-rail__sizerow { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.alp-rail__size {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  padding: 8px 9px;
+  border: 1px solid rgba(76, 75, 59, 0.35);
+  border-radius: 3px;
+  background: transparent;
+  font-family: var(--alp-font-ui);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--alp-ink);
+  cursor: pointer;
+}
+.alp-rail__size:hover { border-color: var(--alp-ink); }
+.alp-rail__size.is-on { background: var(--alp-ink); border-color: var(--alp-ink); color: var(--alp-bg); }
+
+.alp-rail__atc {
+  justify-content: center;
+  padding: 15px;
+  background: var(--alp-ink);
+  border-color: var(--alp-ink);
+  color: var(--alp-bg);
+}
+.alp-rail__atc:hover:not(:disabled) { background: var(--alp-accent); border-color: var(--alp-accent); }
+.alp-rail__atc:disabled { opacity: 0.5; cursor: default; }
+
+.alp-rail__detail {
+  font-family: var(--alp-font-ui);
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  color: var(--alp-ink);
+  text-decoration: none;
+}
+.alp-rail__detail:hover { color: var(--alp-accent); }
+
+/* 8b gives the images the whole field by moving the buy controls into the
+   rail. The page's own block only steps aside once alpine.js has CONFIRMED it
+   can reach Dawn's form and button — the class is added by script, never by
+   Liquid. Without JS, or with a form we cannot reach, the page keeps the
+   controls it has always had. A product must never become unbuyable because a
+   rail failed to load.
+
+   Hidden, not removed: the rail drives those very radios by clicking them, so
+   they have to stay in the DOM. */
+@media (min-width: 990px) {
+  body.alp-rail-buy .product__info-container .product-form,
+  body.alp-rail-buy .product__info-container .price,
+  body.alp-rail-buy .product__info-container .product-form__input { display: none; }
+}
+
 /* ── Next ride ───────────────────────────────────────────────────────────────
    One block, three shapes: the rail foot, the home page card, and the mist
    panel used at the top of the menu sheet and the foot of the journal.
@@ -339,6 +421,56 @@ a.alp-chip--active:hover { background: var(--alp-accent); border-color: var(--al
   box-sizing: border-box;
   padding: 0 18px;
   font-size: 0.8125rem;
+}
+
+/* ── The pinned buy bar (phone, product) ─────────────────────────────────────
+   9d makes this the only add to cart on a phone. It replaces the floating
+   chips rather than stacking above them — two bars at the foot of a phone is
+   one too many — so it carries its own Menu chip. */
+.alp-buybar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 56;
+  display: flex;
+  gap: 8px;
+  padding: 14px var(--alp-pad-page) calc(20px + env(safe-area-inset-bottom));
+  background: var(--alp-bg);
+  border-top: 1px solid var(--alp-line);
+}
+.alp-buybar[hidden] { display: none; }
+
+.alp-buybar__go {
+  flex: 1;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px;
+  min-height: 46px;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+.alp-buybar__go:disabled { opacity: 0.5; cursor: default; }
+.alp-buybar__price::before { content: "— "; }
+.alp-buybar__price[hidden] { display: none; }
+
+.alp-buybar__menu { padding: 14px 16px; min-height: 46px; box-sizing: border-box; cursor: pointer; }
+
+/* The floating chips stand down while the buy bar is up. */
+body.alp-buybar-up .alp-fab { display: none; }
+body.alp-buybar-up #MainContent { padding-bottom: calc(110px + env(safe-area-inset-bottom)); }
+
+/* Phone: the pinned bar IS the add to cart, so the in-page form steps aside.
+
+   Gated on alp-buybar-up, NOT on alp-rail-buy: that class is set by the bar's
+   own script only after it has found Dawn's form and button. Keyed to the
+   rail's class instead, a failure in the bar alone would hide the in-page form
+   with nothing pinned to replace it, and the product would be unbuyable on a
+   phone. The gate has to be the thing doing the replacing.
+
+   Price and the size picker stay — 9d shows both in the copy block. */
+@media (max-width: 989px) {
+  body.alp-buybar-up .product__info-container .product-form { display: none; }
 }
 
 /* ── Mobile: the menu sheet ──────────────────────────────────────────────────
@@ -865,36 +997,31 @@ body.template-index .alp-card .alp-chip { background: var(--alp-mist); }
   margin: 0;
 }
 
-/* ── Product hero (option 1g — editorial) ────────────────────────────────── */
+/* ── Product hero ────────────────────────────────────────────────────────────
+   The lead photograph and the two-up under it. 8b gives the images the whole
+   field because the buy controls are in the rail; 9d does the same above a
+   pinned buy bar. Either way the picture never shares a screen with a form. */
 .alp-phero { position: relative; overflow: hidden; }
 .alp-phero__media img, .alp-phero__media svg {
   width: 100%;
-  height: clamp(340px, 66vh, 760px);
+  height: clamp(470px, 62vh, 820px);
   object-fit: cover;
   display: block;
 }
 
-.alp-phero__caption {
-  position: absolute;
-  left: 0; right: 0; bottom: 0;
-  z-index: 2;
-  padding: 0 var(--alp-pad-page) clamp(20px, 3.6vw, 32px);
-  color: var(--alp-bg);
+/* Split by the system's 3px mist rule, shown through as the flex gap. */
+.alp-phero__pair {
+  display: flex;
+  gap: 3px;
+  background: var(--alp-mist);
 }
-.alp-phero__title {
-  font-family: var(--alp-font-display);
-  font-weight: 600;
-  font-size: clamp(1.7rem, 3.4vw, 2.6rem);
-  line-height: 1.08;
-  margin: 0;
-  text-shadow: 0 1px 8px rgba(47, 47, 38, 0.35);
-}
-.alp-phero__tagline {
-  font-family: var(--alp-font-ui);
-  font-size: clamp(0.85rem, 0.6vw + 0.7rem, 1rem);
-  color: var(--alp-haze);
-  margin: 6px 0 0;
-  text-shadow: 0 1px 6px rgba(47, 47, 38, 0.35);
+.alp-phero__pair .alp-phero__pairshot {
+  flex: 1;
+  min-width: 0;
+  width: 50%;
+  height: clamp(150px, 30vw, 440px);
+  object-fit: cover;
+  display: block;
 }
 
 /* ── Story / Journal ─────────────────────────────────────────────────────── */

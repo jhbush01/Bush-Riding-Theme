@@ -186,6 +186,107 @@
       .catch(function () { /* no ride shown; the block stays hidden */ });
   }
 
+  /* ── The rail's buy block (desktop product page) ──
+     It owns no state. The size buttons click the REAL radio inside
+     <variant-selects> — exactly what a visitor clicking the on-page picker
+     does — and Add to cart submits Dawn's own form, so the drawer and
+     notification behave like a native add. Everything the rail shows is then
+     re-read from the page.
+
+     This is deliberately the same mechanism sticky-atc already uses. A second
+     form, or a second copy of the variant state, is how a buy button ends up
+     adding the wrong variant. */
+  function rpPicker() { return document.querySelector('variant-selects'); }
+  function rpNative() { return document.querySelector('.product-form__submit'); }
+  function rpForm() {
+    return document.querySelector('product-form form[data-type="add-to-cart-form"], form[action*="/cart/add"]');
+  }
+
+  function rpFieldset(row) {
+    var picker = rpPicker();
+    if (!row || !picker) return null;
+    var pos = parseInt(row.getAttribute('data-alp-rp-position'), 10) || 1;
+    return picker.querySelectorAll('fieldset')[pos - 1] || null;
+  }
+
+  /* The page's own buy block only steps aside once we have actually found
+     Dawn's form AND its button. Adding this class from script rather than
+     Liquid is the whole safety property: no JS, or a form we cannot reach, and
+     the page keeps the controls it has always had. */
+  function claimBuyBlock(ok) {
+    document.body.classList.toggle('alp-rail-buy', !!ok);
+  }
+
+  function syncRailProduct() {
+    var btn = document.querySelector('[data-alp-rp-submit]');
+    if (!btn) return;
+    claimBuyBlock(rpForm() && rpNative());
+
+    var priceEl = document.querySelector('[data-alp-rp-price]');
+    if (priceEl) {
+      var src = document.querySelector(
+        '.product__info-container .price__container .price-item--sale, ' +
+        '.product__info-container .price__container .price-item--regular, ' +
+        '.price .price-item--regular'
+      );
+      if (src) priceEl.textContent = src.textContent.trim();
+    }
+
+    var native = rpNative();
+    if (native) {
+      var soldOut = native.disabled || native.getAttribute('aria-disabled') === 'true';
+      btn.disabled = soldOut;
+      /* Take the wording from the native button so this follows the store's
+         own locale rather than hard-coding English here. */
+      var label = native.querySelector('span');
+      btn.textContent = label ? label.textContent.trim() : (soldOut ? 'Sold out' : 'Add to cart');
+    }
+
+    /* Mark whichever size the PAGE has selected, not the one last clicked. */
+    var row = document.querySelector('[data-alp-rp-options]');
+    var fieldset = rpFieldset(row);
+    var checked = fieldset && fieldset.querySelector('input[type="radio"]:checked');
+    if (row) {
+      row.querySelectorAll('[data-alp-rp-value]').forEach(function (b) {
+        var on = !!checked && b.getAttribute('data-alp-rp-value') === checked.value;
+        b.classList.toggle('is-on', on);
+        if (on) b.setAttribute('aria-current', 'true');
+        else b.removeAttribute('aria-current');
+      });
+    }
+  }
+
+  document.addEventListener('click', function (e) {
+    var size = e.target.closest('[data-alp-rp-value]');
+    if (size) {
+      var fieldset = rpFieldset(size.closest('[data-alp-rp-options]'));
+      if (fieldset) {
+        var want = size.getAttribute('data-alp-rp-value');
+        var hit = null;
+        fieldset.querySelectorAll('input[type="radio"]').forEach(function (r) {
+          if (r.value === want) hit = r;
+        });
+        if (hit && !hit.disabled) hit.click();
+      }
+      /* Dawn swaps price and button state asynchronously after the change. */
+      setTimeout(syncRailProduct, 400);
+      return;
+    }
+
+    if (e.target.closest('[data-alp-rp-submit]')) {
+      var form = rpForm();
+      if (!form) return;
+      if (form.requestSubmit) form.requestSubmit();
+      else form.submit();
+    }
+  });
+
+  document.addEventListener('change', function (e) {
+    if (e.target.closest('variant-selects, variant-radios, .product-form__input, [name="id"]')) {
+      setTimeout(syncRailProduct, 400);
+    }
+  });
+
   /* ── Scroll reveal ──
      Skipped entirely in the theme editor (sections are re-rendered on every
      tweak and would come back opacity-0); alpine.css also forces visibility
@@ -215,11 +316,13 @@
   initReveals();
   initVideos();
   initNextRide();
+  syncRailProduct();
 
   /* Editor hooks: re-run setup whenever a section is (re)loaded. */
   document.addEventListener('shopify:section:load', function () {
     initReveals();
     initVideos();
     initNextRide();
+    syncRailProduct();
   });
 })();

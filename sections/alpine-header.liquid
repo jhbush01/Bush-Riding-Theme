@@ -55,11 +55,6 @@
   assign about_label = section.settings.about_label | default: 'About'
 
   comment
-    Which nav row wears the mist bar. Product counts as Shop: a product is
-    somewhere inside the catalogue, and leaving the rail unmarked there reads
-    as a page that belongs to nothing.
-  endcomment
-  comment
     Drives the "Clear filters" row in the rail's facet block.
   endcomment
   assign rail_active_filters = 0
@@ -74,6 +69,11 @@
     endfor
   endif
 
+  comment
+    Which nav row wears the mist bar. Product counts as Shop: a product is
+    somewhere inside the catalogue, and leaving the rail unmarked there reads
+    as a page that belongs to nothing.
+  endcomment
   assign nav_here = ''
   case template.name
     when 'index'
@@ -136,6 +136,14 @@
       {%- endif -%}
     </a>
 
+    {%- if template.name == 'product' and product != blank -%}
+      {%- comment -%}
+        8b replaces the primary nav with the buy block on a product page: the
+        rail becomes the funnel and the images take the whole field. The
+        wordmark above is still the way home.
+      {%- endcomment -%}
+      {%- render 'alp-rail-product', product: product, collection: collection -%}
+    {%- else -%}
     <nav class="alp-rail__nav" aria-label="Primary">{{ nav_rows }}</nav>
 
     {%- comment -%}
@@ -156,6 +164,7 @@
         -%}
       {%- endif -%}
     </div>
+    {%- endif -%}
   </div>
 
   <div class="alp-rail__foot">
@@ -166,6 +175,24 @@
         {{ cart.item_count }} {% if cart.item_count == 1 %}item{% else %}items{% endif %}
         {%- if cart.item_count > 0 %} · {{ cart.total_price | money_without_trailing_zeros }}{% endif -%}
       </p>
+    {%- elsif template.name == 'product' and product != blank -%}
+      {%- comment -%}
+        Only the rows that resolve. The policy links are real pages; the two
+        spec rows anchor to the specs section, and are drawn only when the
+        product actually carries that metafield — otherwise they would scroll
+        to an empty block.
+      {%- endcomment -%}
+      <span class="alp-nr__rule" aria-hidden="true"></span>
+      {%- if product.metafields.specs.fabric_tech != blank -%}
+        <a class="alp-rail__detail" href="#shopify-section-specs">Fabric and fit</a>
+      {%- endif -%}
+      {%- if shop.shipping_policy != blank -%}
+        <a class="alp-rail__detail" href="{{ shop.shipping_policy.url }}">Shipping and returns</a>
+      {%- endif -%}
+      {%- if product.metafields.specs.care_guide != blank -%}
+        <a class="alp-rail__detail" href="#shopify-section-specs">Care</a>
+      {%- endif -%}
+      {{ cart_row }}
     {%- else -%}
       {%- if show_next_ride -%}{%- render 'alp-next-ride', variant: 'rail' -%}{%- endif -%}
       {{ cart_row }}
