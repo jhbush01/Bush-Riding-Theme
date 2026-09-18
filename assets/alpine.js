@@ -296,6 +296,12 @@
      Only ever an index of what is already on screen, so if this never runs the
      page is exactly as complete as it was. */
   function initRailIndex() {
+    /* Pages only. The home page is built out of passages too, so without this
+       it grew a "Sections / The country / Bush Map" index nobody asked for —
+       an index is for a long single-subject page like About, not for the front
+       door, where the nav above it is already the index. */
+    if (!document.body.classList.contains('template-page')) return;
+
     var slot = document.querySelector('[data-alp-rail-slot]');
     if (!slot || slot.children.length) return; /* a template filled it already */
 

@@ -1117,7 +1117,9 @@ body.template-index .alp-card .alp-chip { background: var(--alp-mist); }
   pointer-events: none;
 }
 .alp-foot__wordmark img {
-  width: clamp(320px, 84vw, 1600px);
+  /* Percent, not vw: vw still counts the rail's 196px, so the bleed wordmark
+     was running off the right edge of every page by exactly that much. */
+  width: min(84%, 1600px);
   height: auto;
 }
 
@@ -1963,8 +1965,17 @@ body.waitlist #MainContent { padding-top: 0; }
   right: 0;
   bottom: 0;
   padding: clamp(34px, 7vw, 64px) var(--alp-pad-page) clamp(14px, 2.4vw, 24px);
-  background: linear-gradient(to top, rgba(47, 47, 38, 0.55), rgba(47, 47, 38, 0));
+  /* Olive, not the retired #2f2f26 ink, and strong enough to carry bone type
+     over a blown-out sky. */
+  background: linear-gradient(to top, rgba(76, 75, 59, 0.92), rgba(76, 75, 59, 0));
   pointer-events: none;
+}
+
+/* A headline is three lines, not a one-line caption, so it needs ground under
+   all of it rather than just the last line. */
+.alp-tile__plate:has(.alp-tile__label--headline) {
+  padding-top: clamp(120px, 22vw, 260px);
+  background: linear-gradient(to top, rgba(76, 75, 59, 0.94) 35%, rgba(76, 75, 59, 0));
 }
 
 .alp-tile__eyebrow {
@@ -2006,10 +2017,22 @@ body.waitlist #MainContent { padding-top: 0; }
   position: absolute;
   inset: 0;
   z-index: 1;
-  background: linear-gradient(rgba(76, 75, 59, 0) 40%, rgba(76, 75, 59, 0.88));
+  background: linear-gradient(
+    rgba(76, 75, 59, 0) 30%,
+    rgba(76, 75, 59, 0.55) 62%,
+    rgba(76, 75, 59, 0.94) 100%
+  );
   pointer-events: none;
 }
-.alp-tile__veil ~ .alp-tile__plate { background: none; }
+
+/* The plate keeps its OWN scrim rather than deferring to the veil.
+
+   These used to be exclusive — the veil turned the plate's gradient off — and
+   the About hero came back with a bone headline sitting on a bright sunset,
+   barely readable. Whatever the cause there, one mechanism silently switching
+   the other off is the wrong shape for a legibility guarantee: a caption over
+   a photograph has to stay readable if EITHER is missing. They compound now,
+   and the cost of both is a slightly deeper foot on an already-dark picture. */
 
 /* The caption runs corner to corner — place on the left, frame number on the
    right — so a stack of tiles reads as a contact sheet. */
@@ -2179,6 +2202,80 @@ a.alp-shelf__cell:hover .alp-shelf__name { color: var(--alp-accent); }
     gap: 8px;
     padding: 30px var(--alp-pad-page) 14px;
   }
+}
+
+/* ── Stock Dawn surfaces ─────────────────────────────────────────────────────
+   Policy pages, the contact page, search, 404 and the cart's empty state are
+   still Dawn's own sections, and Dawn paints them white with a black button.
+   Next to the bone rail that reads as a different website — which is exactly
+   what a customer meets when they tap "Privacy policy" in the footer.
+
+   This does not restyle Dawn; it puts its surfaces on the palette. */
+body.template-page,
+body.template-search,
+body.template-404,
+body.template-list-collections,
+body.template-customers-login,
+body.template-customers-register,
+body.template-customers-account,
+body.template-customers-order,
+body.template-customers-addresses { background: var(--alp-bg); }
+
+/* Dawn's colour schemes paint an opaque ground on every section wrapper. */
+body.template-page .color-scheme-1,
+body.template-page .shopify-policy__container,
+body.template-search .color-scheme-1,
+body.template-404 .color-scheme-1,
+body.template-cart .cart__warnings,
+body.template-cart .color-scheme-1 {
+  background: transparent;
+  color: var(--alp-ink);
+}
+
+/* Policy and page headings onto the brand face. */
+.shopify-policy__title h1,
+body.template-page .main-page-title,
+body.template-search .title,
+body.template-404 .title {
+  font-family: var(--alp-font-display);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--alp-ink);
+}
+
+.shopify-policy__container { max-width: 68ch; padding: clamp(40px, 6vw, 80px) var(--alp-pad-page); }
+.shopify-policy__title { text-align: left; }
+.shopify-policy__body { font-family: var(--alp-font-ui); line-height: 1.65; color: var(--alp-ink); }
+.shopify-policy__body h2 { font-family: var(--alp-font-display); font-weight: 600; letter-spacing: -0.01em; }
+
+/* Dawn's black buttons become the brand's olive chip. */
+body.template-page .button,
+body.template-search .button,
+body.template-404 .button,
+body.template-cart .cart__warnings .button,
+body.template-customers-login .button,
+body.template-customers-register .button {
+  background: var(--alp-ink);
+  color: var(--alp-bg);
+  border: 1px solid var(--alp-ink);
+  border-radius: 3px;
+  box-shadow: none;
+  font-family: var(--alp-font-ui);
+  font-weight: 600;
+}
+body.template-page .button:hover,
+body.template-cart .cart__warnings .button:hover {
+  background: var(--alp-accent);
+  border-color: var(--alp-accent);
+}
+
+/* The contact form's fields, onto the palette. */
+body.template-page .field__input,
+body.template-page .select__select,
+body.template-page textarea {
+  background: var(--alp-bg);
+  border-radius: 3px;
+  color: var(--alp-ink);
 }
 
 /* ── Cart ────────────────────────────────────────────────────────────────────
