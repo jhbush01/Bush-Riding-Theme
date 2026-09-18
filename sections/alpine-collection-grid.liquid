@@ -28,6 +28,18 @@
     Active facet count drives both the count line ("44 products · 1 filter")
     and the number on the mobile Filter button.
   endcomment
+  comment
+    The first non-price facet is the catalogue's primary axis — category on
+    this shop. It becomes the chip row on a phone, which is all the wireframe
+    puts there; everything else stays behind the Filter toggle.
+  endcomment
+  assign primary_facet = blank
+  for filter in collection.filters
+    if filter.type != 'price_range' and primary_facet == blank
+      assign primary_facet = filter
+    endif
+  endfor
+
   assign active_filters = 0
   for filter in collection.filters
     assign active_filters = active_filters | plus: filter.active_values.size
@@ -71,12 +83,19 @@
         </h1>
       </div>
     </div>
+    <div class="alp-cat__rule" aria-hidden="true"></div>
   {%- else -%}
     <h1 class="alp-cat__title alp-cat__title--plain">{{ collection.title | escape }}</h1>
   {%- endif -%}
 
   {%- if collection.description != blank and section.settings.show_description -%}
-    <div class="alp-cat__intro">{{ collection.description }}</div>
+    {%- comment -%} Same 200px gutter as every passage on the site. {%- endcomment -%}
+    <div class="alp-cat__intro">
+      {%- if section.settings.intro_eyebrow != blank -%}
+        <p class="alp-cat__intro-eyebrow">{{ section.settings.intro_eyebrow | escape }}</p>
+      {%- endif -%}
+      <div class="alp-cat__intro-body rte">{{ collection.description }}</div>
+    </div>
   {%- endif -%}
 
   {%- paginate collection.products by section.settings.products_per_page -%}
@@ -86,183 +105,47 @@
       keyboard focus.
     {%- endcomment -%}
     {%- capture facet_rail -%}
-        {%- assign rendered_facets = 0 -%}
-
-        {%- for filter in collection.filters -%}
-          {%- liquid
-            assign label_down = filter.label | downcase
-            assign facet_style = 'list'
-            if filter.type == 'price_range'
-              assign facet_style = 'price'
-            elsif label_down contains 'size'
-              assign facet_style = 'chips'
-            elsif label_down contains 'colour' or label_down contains 'color'
-              assign facet_style = 'swatch'
-            endif
-            assign rendered_facets = rendered_facets | plus: 1
-          -%}
-
-          <div class="alp-cat__facet">
-            <h2 class="alp-cat__facet-head">{{ filter.label | escape }}</h2>
-
-            {%- case facet_style -%}
-              {%- when 'price' -%}
-                <form class="alp-cat__price" method="get" action="{{ collection.url }}">
-                  {%- render 'alp-facet-state', collection: collection, skip_price: true -%}
-                  {%- if collection.sort_by != blank -%}
-                    <input type="hidden" name="sort_by" value="{{ collection.sort_by | escape }}">
-                  {%- endif -%}
-                  <div class="alp-cat__price-row">
-                    <label class="visually-hidden" for="alp-price-min-{{ section.id }}">Minimum price</label>
-                    <span class="alp-cat__price-field">
-                      <span aria-hidden="true">{{ cart.currency.symbol }}</span>
-                      <input
-                        id="alp-price-min-{{ section.id }}"
-                        type="number"
-                        inputmode="numeric"
-                        name="{{ filter.min_value.param_name }}"
-                        value="{{ filter.min_value.value | money_without_currency | replace: ',', '' }}"
-                        placeholder="0"
-                        min="0"
-                        max="{{ filter.range_max | money_without_currency | replace: ',', '' }}"
-                      >
-                    </span>
-                    <span class="alp-cat__price-dash" aria-hidden="true">–</span>
-                    <label class="visually-hidden" for="alp-price-max-{{ section.id }}">Maximum price</label>
-                    <span class="alp-cat__price-field">
-                      <span aria-hidden="true">{{ cart.currency.symbol }}</span>
-                      <input
-                        id="alp-price-max-{{ section.id }}"
-                        type="number"
-                        inputmode="numeric"
-                        name="{{ filter.max_value.param_name }}"
-                        value="{{ filter.max_value.value | money_without_currency | replace: ',', '' }}"
-                        placeholder="{{ filter.range_max | money_without_currency | replace: ',', '' }}"
-                        min="0"
-                        max="{{ filter.range_max | money_without_currency | replace: ',', '' }}"
-                      >
-                    </span>
-                  </div>
-                  <button class="alp-chip alp-cat__price-go" type="submit">Set price</button>
-                </form>
-
-              {%- when 'chips' -%}
-                <div class="alp-cat__chips">
-                  {%- for value in filter.values -%}
-                    {%- if value.count > 0 or value.active -%}
-                      <a
-                        class="alp-chip alp-chip--sm{% if value.active %} alp-chip--active{% endif %}"
-                        href="{% if value.active %}{{ value.url_to_remove }}{% else %}{{ value.url_to_add }}{% endif %}"
-                        {% if value.active %}aria-current="true"{% endif %}
-                      >{{ value.label | escape }}</a>
-                    {%- endif -%}
-                  {%- endfor -%}
-                </div>
-
-              {%- when 'swatch' -%}
-                <div class="alp-cat__swatches">
-                  {%- for value in filter.values -%}
-                    {%- if value.count > 0 or value.active -%}
-                      {%- liquid
-                        assign swatch_down = value.label | downcase
-                        assign swatch_hex = ''
-                        if value.swatch.color != blank
-                          assign swatch_hex = value.swatch.color
-                        elsif swatch_down contains 'olive'
-                          assign swatch_hex = '#4c4b3b'
-                        elsif swatch_down contains 'khaki'
-                          assign swatch_hex = '#828059'
-                        elsif swatch_down contains 'sage'
-                          assign swatch_hex = '#b9bea3'
-                        elsif swatch_down contains 'mist'
-                          assign swatch_hex = '#a7b8b4'
-                        elsif swatch_down contains 'flare' or swatch_down contains 'lemon'
-                          assign swatch_hex = '#ede270'
-                        elsif swatch_down contains 'bone' or swatch_down contains 'cream'
-                          assign swatch_hex = '#edecc5'
-                        else
-                          assign swatch_hex = '#b9bea3'
-                        endif
-                      -%}
-                      <a
-                        class="alp-cat__swatch{% if value.active %} is-active{% endif %}"
-                        style="--alp-swatch: {{ swatch_hex }}"
-                        href="{% if value.active %}{{ value.url_to_remove }}{% else %}{{ value.url_to_add }}{% endif %}"
-                        {% if value.active %}aria-current="true"{% endif %}
-                      >
-                        <span class="visually-hidden">{{ value.label | escape }}</span>
-                      </a>
-                    {%- endif -%}
-                  {%- endfor -%}
-                </div>
-
-              {%- else -%}
-                <ul class="alp-cat__facet-list" role="list">
-                  {%- for value in filter.values -%}
-                    {%- if value.count > 0 or value.active -%}
-                      <li>
-                        <a
-                          class="alp-cat__facet-link{% if value.active %} is-active{% endif %}"
-                          href="{% if value.active %}{{ value.url_to_remove }}{% else %}{{ value.url_to_add }}{% endif %}"
-                          {% if value.active %}aria-current="true"{% endif %}
-                        >{{ value.label | escape }} <span class="alp-cat__facet-count">{{ value.count }}</span></a>
-                      </li>
-                    {%- endif -%}
-                  {%- endfor -%}
-                </ul>
-            {%- endcase -%}
-          </div>
-        {%- endfor -%}
-
-        {%- comment -%}
-          No merchandised filters (or filtering isn't switched on): the rail
-          still needs a way around the shop, so it lists the collections that
-          actually exist and actually have stock in them. Nothing here can
-          404.
-        {%- endcomment -%}
-        {%- if rendered_facets == 0 and section.settings.show_category_nav -%}
-          {%- assign real_collections = 0 -%}
-          {%- for c in collections -%}
-            {%- if c.handle != 'all' and c.products_count > 0 -%}
-              {%- assign real_collections = real_collections | plus: 1 -%}
-            {%- endif -%}
-          {%- endfor -%}
-
-          {%- if real_collections > 0 -%}
-            <div class="alp-cat__facet">
-              <h2 class="alp-cat__facet-head">Category</h2>
-              <ul class="alp-cat__facet-list" role="list">
-                <li>
-                  <a
-                    class="alp-cat__facet-link{% if collection.handle == 'all' %} is-active{% endif %}"
-                    href="{{ routes.all_products_collection_url }}"
-                  >Everything</a>
-                </li>
-                {%- for c in collections -%}
-                  {%- if c.handle != 'all' and c.products_count > 0 -%}
-                    <li>
-                      <a
-                        class="alp-cat__facet-link{% if c.handle == collection.handle %} is-active{% endif %}"
-                        href="{{ c.url }}"
-                        {% if c.handle == collection.handle %}aria-current="page"{% endif %}
-                      >{{ c.title | escape }} <span class="alp-cat__facet-count">{{ c.products_count }}</span></a>
-                    </li>
-                  {%- endif -%}
-                {%- endfor -%}
-              </ul>
-            </div>
-          {%- endif -%}
-        {%- endif -%}
-
-        {%- if active_filters > 0 -%}
-          <a class="alp-cat__clear" href="{{ collection.url }}">Clear filters</a>
-        {%- endif -%}
+      {%- render 'alp-facets',
+        collection: collection,
+        section_id: section.id,
+        active_filters: active_filters,
+        show_category_nav: section.settings.show_category_nav
+      -%}
     {%- endcapture -%}
 
     <input class="alp-cat__toggle" type="checkbox" id="alp-facets-{{ section.id }}">
 
     <div class="alp-cat__controls">
-      {%- if facet_rail != blank -%}
+      {%- comment -%}
+        The chip row is the whole filter UI on a phone in the wireframe. The
+        Filter toggle stays for anything the row cannot hold (price, size,
+        colour) and disappears when there is nothing else to show.
+      {%- endcomment -%}
+      {%- if primary_facet != blank -%}
+        <div class="alp-cat__chiprow">
+          <a class="alp-chip{% if active_filters == 0 %} alp-chip--active{% endif %}" href="{{ collection.url }}">All</a>
+          {%- for value in primary_facet.values -%}
+            {%- if value.count > 0 or value.active -%}
+              <a
+                class="alp-chip{% if value.active %} alp-chip--active{% endif %}"
+                href="{% if value.active %}{{ value.url_to_remove }}{% else %}{{ value.url_to_add }}{% endif %}"
+                {% if value.active %}aria-current="true"{% endif %}
+              >{{ value.label | escape }}</a>
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+
+      {%- comment -%}
+        The toggle appears only when there is something the chip row above
+        cannot show: more than one facet, or no facets at all — in which case
+        the panel is the category fallback and the only way to reach it.
+      {%- endcomment -%}
+      {%- assign needs_panel = false -%}
+      {%- if primary_facet == blank or collection.filters.size > 1 -%}
+        {%- assign needs_panel = true -%}
+      {%- endif -%}
+      {%- if facet_rail != blank and needs_panel -%}
         <label class="alp-cat__filter-btn" for="alp-facets-{{ section.id }}">
           Filter{% if active_filters > 0 %} ({{ active_filters }}){% endif %}
         </label>
@@ -326,8 +209,8 @@
                   </span>
 
                   <span class="alp-cat__card-row">
-                    <span class="alp-chip alp-chip--sm">{{ product.title | escape }} <span class="alp-glyph">✦</span></span>
-                    <span class="alp-chip alp-chip--sm alp-chip--price">
+                    <span class="alp-cat__card-name">{{ product.title | escape }}</span>
+                    <span class="alp-cat__card-price">
                       {%- if product.price_varies -%}From {% endif -%}{{ product.price | money }}
                     </span>
                   </span>
@@ -403,7 +286,8 @@
       "default": true
     },
     { "type": "header", "content": "Grid" },
-    { "type": "checkbox", "id": "show_description", "label": "Show collection description", "default": false },
+    { "type": "checkbox", "id": "show_description", "label": "Show collection description", "default": true },
+    { "type": "text", "id": "intro_eyebrow", "label": "Intro eyebrow", "default": "Eight pieces", "info": "Sits in the left gutter beside the collection description." },
     { "type": "checkbox", "id": "show_sorting", "label": "Show sort", "default": true },
     { "type": "checkbox", "id": "show_count", "label": "Show product count", "default": true },
     {

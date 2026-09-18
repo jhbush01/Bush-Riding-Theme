@@ -59,6 +59,21 @@
     somewhere inside the catalogue, and leaving the rail unmarked there reads
     as a page that belongs to nothing.
   endcomment
+  comment
+    Drives the "Clear filters" row in the rail's facet block.
+  endcomment
+  assign rail_active_filters = 0
+  if template.name == 'collection'
+    for filter in collection.filters
+      assign rail_active_filters = rail_active_filters | plus: filter.active_values.size
+      if filter.type == 'price_range'
+        if filter.min_value.value != blank or filter.max_value.value != blank
+          assign rail_active_filters = rail_active_filters | plus: 1
+        endif
+      endif
+    endfor
+  endif
+
   assign nav_here = ''
   case template.name
     when 'index'
@@ -124,12 +139,23 @@
     <nav class="alp-rail__nav" aria-label="Primary">{{ nav_rows }}</nav>
 
     {%- comment -%}
-      The rail's changing lower half. Each template's own section renders into
-      this slot — see the per-page work in alpine-collection-grid, main-product,
-      main-blog and the About page. Empty is a valid state (the home page has
-      nothing to put here).
+      The rail's changing lower half — the thing that earns a rail over a top
+      bar. Liquid's global objects (collection, product, blog, page) are
+      available to any section whatever template is rendering, so the rail can
+      read the page's own data directly rather than waiting for the template's
+      section to hand it over. Empty is a valid state: the home page has
+      nothing to put here.
     {%- endcomment -%}
-    <div class="alp-rail__slot" data-alp-rail-slot></div>
+    <div class="alp-rail__slot" data-alp-rail-slot>
+      {%- if template.name == 'collection' -%}
+        {%- render 'alp-facets',
+          collection: collection,
+          section_id: section.id,
+          active_filters: rail_active_filters,
+          show_category_nav: true
+        -%}
+      {%- endif -%}
+    </div>
   </div>
 
   <div class="alp-rail__foot">

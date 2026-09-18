@@ -1,0 +1,192 @@
+{%- comment -%}
+  The collection's facets, as markup that can be rendered in two places.
+
+  On desktop these live in the NAV RAIL — the rail's lower half is what earns
+  it over a top bar, and filters are the catalogue's answer to that slot. On a
+  phone there is no rail, so the same markup is revealed by the Filter toggle
+  under the banner.
+
+  Facets are Shopify's own (`collection.filters`, from Search & Discovery) and
+  every control is a plain link or a GET form, so the page filters, sorts and
+  pages with JavaScript off. When no filters are configured this falls back to
+  the store's real collections, so the column is never empty and never points
+  at a collection that doesn't exist.
+
+  Accepts:
+    collection        - the collection to read filters from
+    section_id        - unique suffix for input ids
+    active_filters    - count of applied facet values
+    show_category_nav - fall back to a collection list when no filters exist
+{%- endcomment -%}
+
+    {%- assign rendered_facets = 0 -%}
+
+    {%- for filter in collection.filters -%}
+      {%- liquid
+        assign label_down = filter.label | downcase
+        assign facet_style = 'list'
+        if filter.type == 'price_range'
+          assign facet_style = 'price'
+        elsif label_down contains 'size'
+          assign facet_style = 'chips'
+        elsif label_down contains 'colour' or label_down contains 'color'
+          assign facet_style = 'swatch'
+        endif
+        assign rendered_facets = rendered_facets | plus: 1
+      -%}
+
+      <div class="alp-cat__facet">
+        <h2 class="alp-cat__facet-head">{{ filter.label | escape }}</h2>
+
+        {%- case facet_style -%}
+          {%- when 'price' -%}
+            <form class="alp-cat__price" method="get" action="{{ collection.url }}">
+              {%- render 'alp-facet-state', collection: collection, skip_price: true -%}
+              {%- if collection.sort_by != blank -%}
+                <input type="hidden" name="sort_by" value="{{ collection.sort_by | escape }}">
+              {%- endif -%}
+              <div class="alp-cat__price-row">
+                <label class="visually-hidden" for="alp-price-min-{{ section_id }}">Minimum price</label>
+                <span class="alp-cat__price-field">
+                  <span aria-hidden="true">{{ cart.currency.symbol }}</span>
+                  <input
+                    id="alp-price-min-{{ section_id }}"
+                    type="number"
+                    inputmode="numeric"
+                    name="{{ filter.min_value.param_name }}"
+                    value="{{ filter.min_value.value | money_without_currency | replace: ',', '' }}"
+                    placeholder="0"
+                    min="0"
+                    max="{{ filter.range_max | money_without_currency | replace: ',', '' }}"
+                  >
+                </span>
+                <span class="alp-cat__price-dash" aria-hidden="true">–</span>
+                <label class="visually-hidden" for="alp-price-max-{{ section_id }}">Maximum price</label>
+                <span class="alp-cat__price-field">
+                  <span aria-hidden="true">{{ cart.currency.symbol }}</span>
+                  <input
+                    id="alp-price-max-{{ section_id }}"
+                    type="number"
+                    inputmode="numeric"
+                    name="{{ filter.max_value.param_name }}"
+                    value="{{ filter.max_value.value | money_without_currency | replace: ',', '' }}"
+                    placeholder="{{ filter.range_max | money_without_currency | replace: ',', '' }}"
+                    min="0"
+                    max="{{ filter.range_max | money_without_currency | replace: ',', '' }}"
+                  >
+                </span>
+              </div>
+              <button class="alp-chip alp-cat__price-go" type="submit">Set price</button>
+            </form>
+
+          {%- when 'chips' -%}
+            <div class="alp-cat__chips">
+              {%- for value in filter.values -%}
+                {%- if value.count > 0 or value.active -%}
+                  <a
+                    class="alp-chip alp-chip--sm{% if value.active %} alp-chip--active{% endif %}"
+                    href="{% if value.active %}{{ value.url_to_remove }}{% else %}{{ value.url_to_add }}{% endif %}"
+                    {% if value.active %}aria-current="true"{% endif %}
+                  >{{ value.label | escape }}</a>
+                {%- endif -%}
+              {%- endfor -%}
+            </div>
+
+          {%- when 'swatch' -%}
+            <div class="alp-cat__swatches">
+              {%- for value in filter.values -%}
+                {%- if value.count > 0 or value.active -%}
+                  {%- liquid
+                    assign swatch_down = value.label | downcase
+                    assign swatch_hex = ''
+                    if value.swatch.color != blank
+                      assign swatch_hex = value.swatch.color
+                    elsif swatch_down contains 'olive'
+                      assign swatch_hex = '#4c4b3b'
+                    elsif swatch_down contains 'khaki'
+                      assign swatch_hex = '#828059'
+                    elsif swatch_down contains 'sage'
+                      assign swatch_hex = '#b9bea3'
+                    elsif swatch_down contains 'mist'
+                      assign swatch_hex = '#a7b8b4'
+                    elsif swatch_down contains 'flare' or swatch_down contains 'lemon'
+                      assign swatch_hex = '#ede270'
+                    elsif swatch_down contains 'bone' or swatch_down contains 'cream'
+                      assign swatch_hex = '#edecc5'
+                    else
+                      assign swatch_hex = '#b9bea3'
+                    endif
+                  -%}
+                  <a
+                    class="alp-cat__swatch{% if value.active %} is-active{% endif %}"
+                    style="--alp-swatch: {{ swatch_hex }}"
+                    href="{% if value.active %}{{ value.url_to_remove }}{% else %}{{ value.url_to_add }}{% endif %}"
+                    {% if value.active %}aria-current="true"{% endif %}
+                  >
+                    <span class="visually-hidden">{{ value.label | escape }}</span>
+                  </a>
+                {%- endif -%}
+              {%- endfor -%}
+            </div>
+
+          {%- else -%}
+            <ul class="alp-cat__facet-list" role="list">
+              {%- for value in filter.values -%}
+                {%- if value.count > 0 or value.active -%}
+                  <li>
+                    <a
+                      class="alp-cat__facet-link{% if value.active %} is-active{% endif %}"
+                      href="{% if value.active %}{{ value.url_to_remove }}{% else %}{{ value.url_to_add }}{% endif %}"
+                      {% if value.active %}aria-current="true"{% endif %}
+                    >{{ value.label | escape }} <span class="alp-cat__facet-count">{{ value.count }}</span></a>
+                  </li>
+                {%- endif -%}
+              {%- endfor -%}
+            </ul>
+        {%- endcase -%}
+      </div>
+    {%- endfor -%}
+
+    {%- comment -%}
+      No merchandised filters (or filtering isn't switched on): the rail
+      still needs a way around the shop, so it lists the collections that
+      actually exist and actually have stock in them. Nothing here can
+      404.
+    {%- endcomment -%}
+    {%- if rendered_facets == 0 and show_category_nav -%}
+      {%- assign real_collections = 0 -%}
+      {%- for c in collections -%}
+        {%- if c.handle != 'all' and c.products_count > 0 -%}
+          {%- assign real_collections = real_collections | plus: 1 -%}
+        {%- endif -%}
+      {%- endfor -%}
+
+      {%- if real_collections > 0 -%}
+        <div class="alp-cat__facet">
+          <h2 class="alp-cat__facet-head">Category</h2>
+          <ul class="alp-cat__facet-list" role="list">
+            <li>
+              <a
+                class="alp-cat__facet-link{% if collection.handle == 'all' %} is-active{% endif %}"
+                href="{{ routes.all_products_collection_url }}"
+              >Everything</a>
+            </li>
+            {%- for c in collections -%}
+              {%- if c.handle != 'all' and c.products_count > 0 -%}
+                <li>
+                  <a
+                    class="alp-cat__facet-link{% if c.handle == collection.handle %} is-active{% endif %}"
+                    href="{{ c.url }}"
+                    {% if c.handle == collection.handle %}aria-current="page"{% endif %}
+                  >{{ c.title | escape }} <span class="alp-cat__facet-count">{{ c.products_count }}</span></a>
+                </li>
+              {%- endif -%}
+            {%- endfor -%}
+          </ul>
+        </div>
+      {%- endif -%}
+    {%- endif -%}
+
+    {%- if active_filters > 0 -%}
+      <a class="alp-cat__clear" href="{{ collection.url }}">Clear filters</a>
+    {%- endif -%}
