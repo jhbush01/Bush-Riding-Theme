@@ -162,6 +162,22 @@
           active_filters: rail_active_filters,
           show_category_nav: true
         -%}
+      {%- elsif template.name == 'blog' or template.name == 'article' -%}
+        {%- comment -%}
+          The dispatch index, per 8d. Same trick as the facets: `blog` is a
+          global, so the rail reads it directly instead of waiting for the
+          template's section.
+        {%- endcomment -%}
+        {%- if blog.articles.size > 0 -%}
+          <p class="alp-rail__eyebrow">Dispatches</p>
+          {%- for a in blog.articles limit: 6 -%}
+            <a
+              class="alp-rail__detail{% if article != blank and a.id == article.id %} is-on{% endif %}"
+              href="{{ a.url }}"
+              {% if article != blank and a.id == article.id %}aria-current="page"{% endif %}
+            >{{ a.title | escape }}</a>
+          {%- endfor -%}
+        {%- endif -%}
       {%- endif -%}
     </div>
     {%- endif -%}

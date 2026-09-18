@@ -23,6 +23,7 @@
   assign map_url = section.settings.cta_url | default: 'https://map.bushriding.cc'
 
   assign banner_image = section.settings.banner_image | default: collection.image
+  assign banner_height = section.settings.banner_height | default: 'short'
 
   comment
     Active facet count drives both the count line ("44 products · 1 filter")
@@ -53,7 +54,7 @@
 
 <section class="alp alp-cat" id="collection-{{ section.id }}">
   {%- if section.settings.show_banner -%}
-    <div class="alp-cat__banner">
+    <div class="alp-cat__banner alp-cat__banner--{{ banner_height }}">
       {%- if banner_image != blank -%}
         {{
           banner_image
@@ -265,6 +266,17 @@
   "settings": [
     { "type": "header", "content": "Banner" },
     { "type": "checkbox", "id": "show_banner", "label": "Show banner", "default": true },
+    {
+      "type": "select",
+      "id": "banner_height",
+      "label": "Banner height",
+      "options": [
+        { "value": "short", "label": "Short \u2014 products start above the fold" },
+        { "value": "tall", "label": "Tall \u2014 full editorial banner" }
+      ],
+      "default": "short",
+      "info": "Tall is the wireframe's proportion. Short keeps the first row of products on screen when the page opens, which matters most on the all-products catalogue. Switch the banner off entirely above for the shortest lead-in."
+    },
     { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Shop" },
     {
       "type": "text",

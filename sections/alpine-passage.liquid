@@ -25,9 +25,19 @@
   assign cta_url = section.settings.cta_url
 -%}
 
+{%- comment -%}
+  data-alp-index lets the rail build a section index for the page without the
+  header having to know what the template contains: the header renders first,
+  so it cannot read these in Liquid, and alpine.js collects them afterwards.
+  Purely navigational — no script, no index, and the page is unharmed.
+{%- endcomment -%}
 <section
+  id="alp-passage-{{ section.id }}"
   class="alp alp-passage alp-passage--{{ ground }} alp-passage--{{ size }}{% if section.settings.rule_below %} alp-passage--ruled{% endif %}"
-  {% if section.settings.eyebrow != blank %}aria-label="{{ section.settings.eyebrow | escape }}"{% endif %}
+  {% if section.settings.eyebrow != blank %}
+    aria-label="{{ section.settings.eyebrow | escape }}"
+    data-alp-index="{{ section.settings.eyebrow | strip_html | escape }}"
+  {% endif %}
 >
   {%- if section.settings.eyebrow != blank -%}
     <p class="alp-passage__eyebrow">{{ section.settings.eyebrow | escape | replace: '&lt;br&gt;', '<br>' }}</p>

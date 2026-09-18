@@ -287,6 +287,36 @@
     }
   });
 
+  /* ── Section index in the rail ──
+     The rail renders before the template's own sections, so Liquid cannot tell
+     it what is on the page. This collects the passages afterwards and fills the
+     rail's empty slot with links to them — the About page's section index in
+     8e, and anything else built out of passages.
+
+     Only ever an index of what is already on screen, so if this never runs the
+     page is exactly as complete as it was. */
+  function initRailIndex() {
+    var slot = document.querySelector('[data-alp-rail-slot]');
+    if (!slot || slot.children.length) return; /* a template filled it already */
+
+    var marks = document.querySelectorAll('[data-alp-index]');
+    if (marks.length < 2) return; /* one section is not an index */
+
+    var head = document.createElement('p');
+    head.className = 'alp-rail__eyebrow';
+    head.textContent = slot.getAttribute('data-alp-index-label') || 'Sections';
+    slot.appendChild(head);
+
+    marks.forEach(function (el) {
+      if (!el.id) return;
+      var a = document.createElement('a');
+      a.className = 'alp-rail__detail';
+      a.href = '#' + el.id;
+      a.textContent = el.getAttribute('data-alp-index');
+      slot.appendChild(a);
+    });
+  }
+
   /* ── Scroll reveal ──
      Skipped entirely in the theme editor (sections are re-rendered on every
      tweak and would come back opacity-0); alpine.css also forces visibility
@@ -317,6 +347,7 @@
   initVideos();
   initNextRide();
   syncRailProduct();
+  initRailIndex();
 
   /* Editor hooks: re-run setup whenever a section is (re)loaded. */
   document.addEventListener('shopify:section:load', function () {

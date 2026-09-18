@@ -1,19 +1,13 @@
 {
   "sections": {
-    "main": {
-      "type": "main-blog",
+    "journal": {
+      "type": "alpine-journal",
       "settings": {
-        "layout": "collage",
-        "show_image": true,
-        "image_height": "medium",
-        "show_date": true,
-        "show_author": false,
-        "padding_top": 36,
-        "padding_bottom": 36
+        "show_next_ride": true
       }
     }
   },
   "order": [
-    "main"
+    "journal"
   ]
 }
