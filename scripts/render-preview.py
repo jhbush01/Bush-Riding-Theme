@@ -107,6 +107,11 @@ def tile(height='medium', veil=False, eyebrow='', label='', frame='', headline=F
     return (f'<div class="shopify-section"><section class="alp alp-tile alp-tile--{height}">'
             f'<div class="alp-tile__media"><img src="{SUNSET}" alt=""></div>{v}{plate}</section></div>')
 
+def top():
+    return ('<button class="alp alp-top is-in" data-alp-top aria-label="Back to top">'
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">'
+            '<path d="M12 19V6"/><path d="M6 12l6-6 6 6"/></svg></button>')
+
 def fab():
     return ('<div class="alp alp-fab" data-alp-fab>'
             '<button class="alp-chip alp-chip--flare alp-fab__btn">Menu <span class="alp-glyph">\u2726</span></button>'
@@ -226,7 +231,7 @@ PAGES['home'] = (rail('Home'),
         '<p class="alp-shelf__price">$180</p></div></a>' for _ in range(3)) + '</div></section>'
     + passage('olive', 'Bush Map™',
               "Gravel routes, ride diaries, and the tracks that didn't make the map.", '', 'Open the map')
-    + fab(),
+    + fab() + top(),
     'template-index')
 
 PAGES['home-card'] = (rail('Home'),
@@ -237,7 +242,7 @@ PAGES['home-card'] = (rail('Home'),
     + nextride_card()
     + passage('bone', 'The country', 'Our country is vast, breath-taking and at times, unforgiving.',
               '<p>Sweltering summer storms electrocute the sky.</p>')
-    + fab(), 'template-index')
+    + fab() + top(), 'template-index')
 
 PAGES['menu-sheet'] = (rail('Home'),
     f'<section class="alp alp-hero"><div class="alp-hero__media"><img src="{SUNSET}" alt=""></div>'
@@ -251,7 +256,7 @@ PAGES['product'] = (rail('Shop'),
     f'<img class="alp-phero__pairshot" src="{SUNSET}" alt=""></div>'
     + passage('bone', 'The piece', '',
               '<p>Designed for those long days when the road turns to dirt and you are not sure where you will end up.</p>')
-    + buybar(), 'template-product')
+    + buybar() + top(), 'template-product')
 
 TPL = '''<!doctype html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">

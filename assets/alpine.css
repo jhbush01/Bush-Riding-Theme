@@ -574,6 +574,45 @@ body.alp-buybar-up #MainContent { padding-bottom: calc(110px + env(safe-area-ins
   body.alp-buybar-up .product__info-container .product-form { display: none; }
 }
 
+/* ── Back to the top (phones) ────────────────────────────────────────────────
+   Sits to the RIGHT, because the Menu/Cart chips are centred — the two never
+   meet. Raised above the buy bar on a product page, which owns the whole foot
+   of the screen there. */
+.alp-top {
+  position: fixed;
+  right: var(--alp-pad-page);
+  bottom: calc(20px + env(safe-area-inset-bottom));
+  z-index: 54;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--alp-bg);
+  color: var(--alp-ink);
+  border: 1px solid var(--alp-line);
+  border-radius: 3px;
+  box-shadow: 0 4px 16px rgba(76, 75, 59, 0.28);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(6px);
+  transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+}
+.alp-top.is-in { opacity: 1; pointer-events: auto; transform: none; }
+.alp-top svg { width: 18px; height: 18px; }
+.alp-top:hover { background: var(--alp-mist); }
+
+body.alp-buybar-up .alp-top { bottom: calc(82px + env(safe-area-inset-bottom)); }
+
+/* Desktop keeps the rail on screen with every link in it, so there is nothing
+   to come back up for. */
+@media (min-width: 990px) { .alp-top { display: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .alp-top { transition: none; }
+}
+
 /* ── Mobile: the menu sheet ──────────────────────────────────────────────────
    A bottom sheet over a dimmed page, rather than the old full-screen wipe. It
    rises from the bottom because that is where the chip that opens it lives. */
@@ -1593,7 +1632,10 @@ body.template-index .alp-hero { height: 100svh; min-height: 100svh; }
 }
 
 .alp-cat__card-media { position: relative; display: block; }
-.alp-cat__card-media img { width: 100%; aspect-ratio: 3 / 4; object-fit: contain; }
+.alp-cat__card-media img { width: 100%; object-fit: contain; }
+.alp-cat--portrait .alp-cat__card-media img { aspect-ratio: 3 / 4; }
+.alp-cat--square .alp-cat__card-media img { aspect-ratio: 1 / 1; }
+.alp-cat--adapt .alp-cat__card-media img { aspect-ratio: auto; height: auto; }
 /* The waitlist flag rides the image, top-left, in mist — chrome, not content. */
 .alp-cat__flag {
   position: absolute;
@@ -2261,15 +2303,22 @@ a.alp-shelf__more:hover { background: var(--alp-accent); border-color: var(--alp
 .alp-shelf__cell { display: block; color: inherit; text-decoration: none; }
 
 .alp-shelf__pic { position: relative; }
-/* Contain, not cover. The catalogue's photography turns out to be cut-out
-   packshots rather than product-in-the-country, and cover crops a garment
-   that is already floating in its own white field — the launch shorts lost
-   their waistband to it. */
+/* Contain, not cover. The catalogue's photography is cut-out packshots rather
+   than product-in-the-country, and cover crops a garment already floating in
+   its own white field — the launch shorts lost their waistband to it.
+
+   The RATIO is a setting rather than a constant: contain inside a ratio the
+   photographs do not share is what produces letterboxing, and the right ratio
+   is a fact about the catalogue, not about the theme. */
 .alp-shelf__pic img {
   width: 100%;
-  aspect-ratio: 3 / 4;
   object-fit: contain;
 }
+.alp-shelf--portrait .alp-shelf__pic img { aspect-ratio: 3 / 4; }
+.alp-shelf--square .alp-shelf__pic img { aspect-ratio: 1 / 1; }
+/* Adapt: the photograph's own shape, so nothing is cropped and nothing is
+   padded. Rows can end up uneven, which is the honest trade. */
+.alp-shelf--adapt .alp-shelf__pic img { aspect-ratio: auto; height: auto; }
 
 .alp-shelf__flag {
   position: absolute;

@@ -337,6 +337,29 @@
     }
   });
 
+  /* ── Back to the top (phones) ──
+     The nav is at the bottom of the screen on a phone, so a long page has no
+     way home except a long drag. Shown only once there is a real distance to
+     come back from — appearing immediately would just be another thing in the
+     way of the hero. */
+  function initBackToTop() {
+    var btn = document.querySelector('[data-alp-top]');
+    if (!btn || btn.dataset.alpTopBound) return;
+    btn.dataset.alpTopBound = '1';
+
+    function render() {
+      var past = (window.scrollY || window.pageYOffset || 0) > window.innerHeight * 2;
+      btn.classList.toggle('is-in', past);
+    }
+    render();
+    window.addEventListener('scroll', render, { passive: true });
+
+    btn.addEventListener('click', function () {
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+    });
+  }
+
   /* ── Section index in the rail ──
      The rail renders before the template's own sections, so Liquid cannot tell
      it what is on the page. This collects the passages afterwards and fills the
@@ -404,6 +427,7 @@
   initNextRide();
   syncRailProduct();
   initRailIndex();
+  initBackToTop();
 
   /* Editor hooks: re-run setup whenever a section is (re)loaded. */
   document.addEventListener('shopify:section:load', function () {

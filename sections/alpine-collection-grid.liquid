@@ -52,7 +52,7 @@
   endfor
 -%}
 
-<section class="alp alp-cat" id="collection-{{ section.id }}">
+<section class="alp alp-cat alp-cat--{{ section.settings.image_ratio | default: 'square' }}" id="collection-{{ section.id }}">
   {%- if section.settings.show_banner -%}
     <div class="alp-cat__banner alp-cat__banner--{{ banner_height }}">
       {%- if banner_image != blank -%}
@@ -298,6 +298,18 @@
       "default": true
     },
     { "type": "header", "content": "Grid" },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "label": "Product image shape",
+      "options": [
+        { "value": "square", "label": "Square \u2014 safest for packshots" },
+        { "value": "portrait", "label": "Portrait 3:4" },
+        { "value": "adapt", "label": "Adapt \u2014 each photograph's own shape" }
+      ],
+      "default": "square",
+      "info": "Images are never cropped, so a shape the photographs do not share shows as bands above and below them. Adapt removes the bands entirely at the cost of uneven rows."
+    },
     { "type": "checkbox", "id": "show_description", "label": "Show collection description", "default": true },
     { "type": "text", "id": "intro_eyebrow", "label": "Intro eyebrow", "default": "Eight pieces", "info": "Sits in the left gutter beside the collection description." },
     { "type": "checkbox", "id": "show_sorting", "label": "Show sort", "default": true },

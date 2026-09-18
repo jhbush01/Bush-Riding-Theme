@@ -245,6 +245,21 @@
   </a>
 </div>
 
+{%- comment -%}
+  ── Mobile: back to the top ──────────────────────────────────────────────
+  Phones only, and only once you are two screens down. On desktop the rail is
+  always on screen with every link in it, so there is nothing to come back up
+  for; on a phone the nav lives at the BOTTOM, which means a long page like
+  About or a dispatch has no way home but a long thumb-drag.
+{%- endcomment -%}
+{%- if section.settings.show_back_to_top -%}
+  <button class="alp alp-top" type="button" data-alp-top aria-label="Back to top">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M12 19V6"/><path d="M6 12l6-6 6 6"/>
+    </svg>
+  </button>
+{%- endif -%}
+
 {%- comment -%} ── Mobile: the menu sheet ─────────────────────────────────── {%- endcomment -%}
 <div class="alp alp-sheet" id="alp-menu-overlay" data-alp-menu aria-hidden="true">
   <div class="alp-sheet__scrim" data-alp-menu-close></div>
@@ -376,6 +391,7 @@
     { "type": "text", "id": "map_label", "label": "Map label", "default": "BUSH MAP™" },
     { "type": "url", "id": "map_url", "label": "Map URL", "info": "Defaults to https://map.bushriding.cc." },
     { "type": "checkbox", "id": "show_search", "label": "Show search", "default": true, "info": "A search field in the rail and at the top of the menu sheet." },
+    { "type": "checkbox", "id": "show_back_to_top", "label": "Show back-to-top on phones", "default": true, "info": "Appears after two screens of scrolling. Desktop has the rail on screen, so it is not shown there." },
     { "type": "header", "content": "Next ride" },
     { "type": "checkbox", "id": "next_ride_enabled", "label": "Show the next ride", "default": true, "info": "Pulled live from the Bush Map events feed. The block hides itself when there is no upcoming ride, so it can never show a stale date." },
     { "type": "text", "id": "events_api", "label": "Events API base", "default": "https://map-api.bushriding.cc", "info": "The routes worker that serves /events. Clear this to switch the next-ride block off entirely." },

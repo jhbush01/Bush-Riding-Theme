@@ -33,7 +33,7 @@
 -%}
 
 {%- if has_products or request.design_mode -%}
-<section class="alp alp-shelf alp-shelf--{{ cols }}up" {% if section.settings.heading != blank %}aria-label="{{ section.settings.heading | escape }}"{% endif %}>
+<section class="alp alp-shelf alp-shelf--{{ cols }}up alp-shelf--{{ section.settings.image_ratio | default: 'square' }}" {% if section.settings.heading != blank %}aria-label="{{ section.settings.heading | escape }}"{% endif %}>
   {%- if section.settings.heading != blank or section.settings.link_label != blank or section.settings.eyebrow != blank -%}
     {%- comment -%}
       The head runs on the same caption gutter as every passage on the site, so
@@ -124,6 +124,18 @@
       ],
       "default": "4",
       "info": "Always two across on a phone."
+    },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "label": "Product image shape",
+      "options": [
+        { "value": "square", "label": "Square \u2014 safest for packshots" },
+        { "value": "portrait", "label": "Portrait 3:4" },
+        { "value": "adapt", "label": "Adapt \u2014 each photograph's own shape" }
+      ],
+      "default": "square",
+      "info": "Images are never cropped, so a shape the photographs do not share shows as bands above and below them. Adapt removes the bands entirely at the cost of uneven rows."
     },
     { "type": "header", "content": "Header" },
     { "type": "text", "id": "eyebrow", "label": "Eyebrow", "info": "Sits in the left gutter, on the same line as every other eyebrow on the page. Use <br> for a second line." },
