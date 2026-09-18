@@ -51,13 +51,41 @@
   /* ── Menu sheet (mobile) ──
      Rises from the bottom, because the chip that opens it is at the bottom.
      Delegated so a re-rendered header keeps working. */
+
+  /* overflow:hidden alone does not hold on iOS Safari — the page behind a sheet
+     still scrolls under your thumb, and worse, it has silently scrolled to the
+     top by the time you close it. Pinning the body and restoring the offset is
+     the only thing that reliably works there. */
+  var sheetScrollY = 0;
+
+  function lockScroll() {
+    sheetScrollY = window.scrollY || window.pageYOffset || 0;
+    document.body.style.top = -sheetScrollY + 'px';
+    document.body.classList.add('alp-menu-open');
+  }
+
+  function unlockScroll() {
+    document.body.classList.remove('alp-menu-open');
+    document.body.style.top = '';
+    window.scrollTo(0, sheetScrollY);
+  }
+
+  /* Everything focusable and actually visible inside the sheet. */
+  function sheetFocusables(sheet) {
+    var sel = 'a[href], button:not([disabled]), input:not([disabled]), ' +
+              'select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    return [].slice.call(sheet.querySelectorAll(sel)).filter(function (el) {
+      return el.getClientRects().length > 0;
+    });
+  }
+
   function closeMenu(focusBtn) {
     var sheet = document.querySelector('[data-alp-menu]');
     var openBtn = document.querySelector('[data-alp-menu-open]');
     if (!sheet) return;
     sheet.classList.remove('is-open');
     sheet.setAttribute('aria-hidden', 'true');
-    document.body.classList.remove('alp-menu-open');
+    unlockScroll();
     if (openBtn) {
       openBtn.setAttribute('aria-expanded', 'false');
       if (focusBtn) openBtn.focus();
@@ -72,7 +100,7 @@
       var openBtn = document.querySelector('[data-alp-menu-open]');
       sheet.classList.add('is-open');
       sheet.setAttribute('aria-hidden', 'false');
-      document.body.classList.add('alp-menu-open');
+      lockScroll();
       if (openBtn) openBtn.setAttribute('aria-expanded', 'true');
       var closeBtn = sheet.querySelector('[data-alp-menu-close]');
       if (closeBtn) closeBtn.focus();
@@ -85,7 +113,29 @@
 
   document.addEventListener('keydown', function (e) {
     var sheet = document.querySelector('[data-alp-menu]');
-    if (e.key === 'Escape' && sheet && sheet.classList.contains('is-open')) closeMenu(true);
+    if (!sheet || !sheet.classList.contains('is-open')) return;
+
+    if (e.key === 'Escape') { closeMenu(true); return; }
+
+    /* Keep focus inside the sheet. Without this, tabbing walks straight out of
+       an open dialog and into the page behind it, which for anyone not using a
+       mouse means the sheet is open and they are somewhere else. */
+    if (e.key !== 'Tab') return;
+    var list = sheetFocusables(sheet);
+    if (!list.length) return;
+    var first = list[0];
+    var last = list[list.length - 1];
+
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    } else if (!sheet.contains(document.activeElement)) {
+      e.preventDefault();
+      first.focus();
+    }
   });
 
   /* ── Next ride ──

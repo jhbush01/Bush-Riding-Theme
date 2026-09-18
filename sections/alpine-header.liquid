@@ -161,6 +161,10 @@
     {%- else -%}
     <nav class="alp-rail__nav" aria-label="Primary">{{ nav_rows }}</nav>
 
+    {%- if section.settings.show_search -%}
+      {%- render 'alp-search', variant: 'rail', id: 'rail' -%}
+    {%- endif -%}
+
     {%- comment -%}
       The rail's changing lower half — the thing that earns a rail over a top
       bar. Liquid's global objects (collection, product, blog, page) are
@@ -261,12 +265,23 @@
     </div>
 
     <div class="alp-sheet__scroll">
-      {%- if show_next_ride -%}{%- render 'alp-next-ride', variant: 'panel' -%}{%- endif -%}
+      {%- if section.settings.show_search -%}
+        {%- render 'alp-search', variant: 'sheet', id: 'sheet' -%}
+      {%- endif -%}
 
+      {%- comment -%}
+        Navigation first. The ride panel used to open the sheet and, with real
+        event names rather than the wireframe's short ones, it took more than
+        half the screen before a single nav row — which is the one thing
+        somebody tapping "Menu" is definitely looking for. The ride keeps its
+        place in the sheet, just underneath.
+      {%- endcomment -%}
       <nav class="alp-sheet__nav" aria-label="Primary">
         {{ nav_rows }}
         {{ cart_row }}
       </nav>
+
+      {%- if show_next_ride -%}{%- render 'alp-next-ride', variant: 'panel' -%}{%- endif -%}
 
       <div class="alp-sheet__cards">
         <a class="alp-sheet__card" href="{{ discover_url }}" data-alp-menu-link>
@@ -360,6 +375,7 @@
     { "type": "url", "id": "about_url", "label": "About URL override" },
     { "type": "text", "id": "map_label", "label": "Map label", "default": "BUSH MAP™" },
     { "type": "url", "id": "map_url", "label": "Map URL", "info": "Defaults to https://map.bushriding.cc." },
+    { "type": "checkbox", "id": "show_search", "label": "Show search", "default": true, "info": "A search field in the rail and at the top of the menu sheet." },
     { "type": "header", "content": "Next ride" },
     { "type": "checkbox", "id": "next_ride_enabled", "label": "Show the next ride", "default": true, "info": "Pulled live from the Bush Map events feed. The block hides itself when there is no upcoming ride, so it can never show a stale date." },
     { "type": "text", "id": "events_api", "label": "Events API base", "default": "https://map-api.bushriding.cc", "info": "The routes worker that serves /events. Clear this to switch the next-ride block off entirely." },

@@ -33,6 +33,28 @@
 </section>
 
 {%- comment -%}
+  Name and price, directly under the lead image — PHONES ONLY.
+
+  On desktop the rail carries these and the field stays photography. There is
+  no rail on a phone, so without this you landed on a product, scrolled past a
+  lead image and a two-up, and still did not know what the thing was called or
+  what it cost: the only price on the first screen was inside the buy bar.
+  Turn 9d puts them here for exactly that reason.
+
+  This is the h1 at phone widths and Dawn's own title block is hidden there
+  (alpine.css), so precisely one heading is ever exposed.
+{%- endcomment -%}
+{%- if product != blank -%}
+  <div class="alp alp-phero__id">
+    <h1 class="alp-phero__name">{{ product.title | escape }}</h1>
+    <p class="alp-phero__price">
+      {%- if product.price_varies -%}From {% endif -%}
+      {{ product.selected_or_first_available_variant.price | money }}
+    </p>
+  </div>
+{%- endif -%}
+
+{%- comment -%}
   The two-up under the lead image, split by a 3px mist gap — the same rule that
   divides every other section. Only drawn when the product actually has more
   photographs; one image is a lead, not a gallery.

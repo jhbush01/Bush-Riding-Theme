@@ -73,6 +73,10 @@ def rail(active, slot='', foot_variant='ride'):
       <div class="alp-rail__top">
         <a class="alp-rail__wordmark" href="#"><img class="alp-rail__mark" src="{WORDMARK}" alt="Bush Riding"></a>
         <nav class="alp-rail__nav">{links}</nav>
+        <form class="alp-search alp-search--rail" action="/search"><input class="alp-search__field"
+          type="search" placeholder="Search the shop"><button class="alp-search__go" type="submit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button></form>
         <div class="alp-rail__slot" data-alp-rail-slot>{slot}</div>
       </div>
       <div class="alp-rail__foot">{foot}</div>
@@ -102,6 +106,56 @@ def tile(height='medium', veil=False, eyebrow='', label='', frame='', headline=F
         plate = f'<div class="alp-tile__plate"><div class="alp-tile__plate-main">{eb}{lab}</div>{fr}</div>'
     return (f'<div class="shopify-section"><section class="alp alp-tile alp-tile--{height}">'
             f'<div class="alp-tile__media"><img src="{SUNSET}" alt=""></div>{v}{plate}</section></div>')
+
+def fab():
+    return ('<div class="alp alp-fab" data-alp-fab>'
+            '<button class="alp-chip alp-chip--flare alp-fab__btn">Menu <span class="alp-glyph">\u2726</span></button>'
+            '<a class="alp-chip alp-fab__btn" href="#">Cart</a></div>')
+
+def sheet(open_=True):
+    rows = ''.join(f'<a class="alp-rail__link" href="#">{n}</a>'
+                   for n in ['Home', 'Shop', 'Journal', 'About', 'BUSH MAP\u2122'])
+    cards = ''.join(
+        f'<a class="alp-sheet__card" href="#"><img class="alp-sheet__media" src="{SUNSET}" alt="">'
+        f'<span class="alp-sheet__cardlabel">{lbl}</span></a>'
+        for lbl in ['The launch', 'Latest dispatch'])
+    cols = ('<div class="alp-sheet__col"><p class="alp-rail__eyebrow">The fine print</p>'
+            '<ul><li><a href="#">Privacy policy</a></li><li><a href="#">Contact</a></li></ul></div>'
+            '<div class="alp-sheet__col"><p class="alp-rail__eyebrow">Follow</p>'
+            '<ul><li><a href="#">Instagram</a></li><li><a href="#">Strava</a></li></ul></div>')
+    return (f'<div class="alp alp-sheet{" is-open" if open_ else ""}">'
+            '<div class="alp-sheet__scrim"></div>'
+            '<div class="alp-sheet__panel">'
+            f'<div class="alp-sheet__bar"><img class="alp-sheet__mark" src="{WORDMARK}" alt="">'
+            '<button class="alp-sheet__close">'
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">'
+            '<path d="M6 6l12 12M18 6L6 18"/></svg></button></div>'
+            '<div class="alp-sheet__scroll">'
+            '<form class="alp-search alp-search--sheet" action="/search"><input class="alp-search__field" '
+            'type="search" placeholder="Search the shop"><button class="alp-search__go" type="submit">'
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">'
+            '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button></form>'
+            f'<nav class="alp-sheet__nav">{rows}<a class="alp-rail__cart" href="#">Cart (0)</a></nav>'
+            '<a class="alp-nr alp-nr--panel" href="#"><span class="alp-nr__tab">Next ride</span>'
+            '<span class="alp-nr__date">Sunday 11th October, 7am<br>Glass House Mountains Station Carpark</span>'
+            '<span class="alp-chip alp-nr__cta">View on BUSH MAP\u2122 \u2192</span></a>'
+            f'<div class="alp-sheet__cards">{cards}</div>'
+            f'<div class="alp-sheet__columns">{cols}</div>'
+            '</div></div></div>')
+
+def buybar():
+    return ('<div class="alp alp-buybar">'
+            '<button class="alp-chip alp-chip--flare alp-buybar__go">'
+            '<span>Add to cart</span><span class="alp-buybar__price">$180</span></button>'
+            '<button class="alp-chip alp-buybar__menu">Menu <span class="alp-glyph">\u2726</span></button></div>')
+
+def nextride_card():
+    return ('<a class="alp-nr alp-nr--card" href="#">'
+            '<span class="alp-nr__head"><span class="alp-nr__eyebrow">Next ride</span>'
+            '<span class="alp-nr__eyebrow">Free \u00b7 all welcome</span></span>'
+            '<span class="alp-nr__date">Sunday 11th October, 7am \u2014 Glass House Mountains Station Carpark</span>'
+            '<span class="alp-nr__note">62 km gravel, caf\u00e9 stop at nine.</span>'
+            '<span class="alp-chip alp-nr__cta">View on BUSH MAP\u2122 \u2192</span></a>')
 
 PAGES = {}
 
@@ -171,10 +225,36 @@ PAGES['home'] = (rail('Home'),
         '<div class="alp-shelf__meta"><p class="alp-shelf__name">Bush Riding Shorts</p>'
         '<p class="alp-shelf__price">$180</p></div></a>' for _ in range(3)) + '</div></section>'
     + passage('olive', 'Bush Map™',
-              "Gravel routes, ride diaries, and the tracks that didn't make the map.", '', 'Open the map'),
+              "Gravel routes, ride diaries, and the tracks that didn't make the map.", '', 'Open the map')
+    + fab(),
     'template-index')
 
+PAGES['home-card'] = (rail('Home'),
+    f'<section class="alp alp-hero"><div class="alp-hero__media"><img src="{SUNSET}" alt=""></div>'
+    '<div class="alp-hero__veil"></div>'
+    f'<div class="alp-hero__centre"><img class="alp-hero__mark" src="{MIST_MARK}" alt="">'
+    '<p class="alp-hero__tagline">Made for the detour</p></div></section>'
+    + nextride_card()
+    + passage('bone', 'The country', 'Our country is vast, breath-taking and at times, unforgiving.',
+              '<p>Sweltering summer storms electrocute the sky.</p>')
+    + fab(), 'template-index')
+
+PAGES['menu-sheet'] = (rail('Home'),
+    f'<section class="alp alp-hero"><div class="alp-hero__media"><img src="{SUNSET}" alt=""></div>'
+    '<div class="alp-hero__veil"></div></section>' + fab() + sheet(True), 'template-index')
+
+PAGES['product'] = (rail('Shop'),
+    f'<section class="alp alp-phero"><div class="alp-phero__media"><img src="{SUNSET}" alt=""></div></section>'
+    '<div class="alp alp-phero__id"><h1 class="alp-phero__name">Bush Riding Shorts</h1>'
+    '<p class="alp-phero__price">$180</p></div>'
+    f'<div class="alp-phero__pair"><img class="alp-phero__pairshot" src="{SUNSET}" alt="">'
+    f'<img class="alp-phero__pairshot" src="{SUNSET}" alt=""></div>'
+    + passage('bone', 'The piece', '',
+              '<p>Designed for those long days when the road turns to dirt and you are not sure where you will end up.</p>')
+    + buybar(), 'template-product')
+
 TPL = '''<!doctype html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <style>{css}</style>
 <style>
   /* Harness only: stand in for the Shopify-loaded brand faces so the metrics
