@@ -13,12 +13,12 @@
       "type": "alpine-tile",
       "settings": {
         "collection": "",
-        "image": "shopify://shop_images/IMG_0891.jpg",
+        "image": "shopify://shop_images/IMG_8186.jpg",
         "video_url": "",
         "eyebrow": "Made for the detour",
         "label": "Bush Riding designs are made for riding a bike through the Australian Bush.",
-        "label_size": "headline",
         "blurb": "",
+        "label_size": "headline",
         "frame": "",
         "link": "",
         "veil": true,
@@ -34,7 +34,9 @@
         "rule_below": false,
         "eyebrow": "The gear",
         "heading": "",
-        "body": "<p>We make gear for those who feel drawn to adventure and the unknown. Allowing for comfortable exploration in one of our planet's most unforgiving climates.</p><p>For those who embark on a journey through the Aussie bush, better come prepared.</p>"
+        "body": "<p>We make gear for those who feel drawn to adventure and the unknown. Allowing for comfortable exploration in one of our planet's most unforgiving climates.</p><p>For those who embark on a journey through the Aussie bush, better come prepared.</p>",
+        "cta_label": "",
+        "cta_url": ""
       }
     },
     "about_country": {
@@ -45,7 +47,9 @@
         "rule_below": false,
         "eyebrow": "The country",
         "heading": "Our country is vast, breath-taking and at times, unforgiving.",
-        "body": "<p>For centuries, people traversed this land atop a saddle. Trusting their steed to confidently navigate the unforgiving terrain and arid climate.</p><p>Years spent droving, leaving behind the trails we still ride today.</p>"
+        "body": "<p>For centuries, people traversed this land atop a saddle. Trusting their steed to confidently navigate the unforgiving terrain and arid climate.</p><p>Years spent droving, leaving behind the trails we still ride today.</p>",
+        "cta_label": "",
+        "cta_url": ""
       }
     },
     "about_plate": {
@@ -57,6 +61,7 @@
         "eyebrow": "",
         "label": "",
         "blurb": "",
+        "label_size": "label",
         "frame": "",
         "link": "",
         "veil": false,
@@ -72,7 +77,9 @@
         "rule_below": false,
         "eyebrow": "The drovers",
         "heading": "",
-        "body": "<p>We've swapped the steed for a steel frame and the drover's swag for a bar bag. We ride the same dirt, chase the same horizons, seek the same shelter.</p><p>Because somewhere beyond the city limits, the noise falls away. The road narrows. The surface softens and the country opens up.</p>"
+        "body": "<p>We've swapped the steed for a steel frame and the drover's swag for a bar bag. We ride the same dirt, chase the same horizons, seek the same shelter.</p><p>Because somewhere beyond the city limits, the noise falls away. The road narrows. The surface softens and the country opens up.</p>",
+        "cta_label": "",
+        "cta_url": ""
       }
     },
     "about_detour": {
