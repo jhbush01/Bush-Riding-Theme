@@ -35,14 +35,29 @@
   assign show_next_ride = section.settings.next_ride_enabled
 
   comment
-    Journal and About are only drawn when they resolve. A blog that has not been
-    created, or an About page that has not been written, would otherwise put a
-    404 in the primary navigation of every page on the site — the same rule
-    alp-legal-links already applies to the fine print.
+    Journal and About are only drawn when they resolve. A link to a blog or a
+    page that does not exist would put a 404 in the primary navigation of every
+    page on the site — the same rule alp-legal-links applies to the fine print.
+
+    The Journal resolves the named blog if there is one, and otherwise the
+    store's first blog. Every Shopify store ships with one, so the link works
+    out of the box instead of waiting on somebody to create a blog whose handle
+    happens to match a theme setting.
+
+    About cannot be rescued the same way: a page has to exist to have a URL, and
+    guessing at some other page would be worse than showing nothing.
   endcomment
   assign journal_blog = blogs[section.settings.journal_handle]
+  if journal_blog == blank or journal_blog.handle == blank
+    for b in blogs
+      if journal_blog == blank or journal_blog.handle == blank
+        assign journal_blog = b
+      endif
+    endfor
+  endif
+
   assign journal_url = section.settings.journal_url
-  if journal_url == blank and journal_blog != blank
+  if journal_url == blank and journal_blog.handle != blank
     assign journal_url = journal_blog.url
   endif
   assign journal_label = section.settings.journal_label | default: 'Journal'
@@ -338,7 +353,7 @@
     { "type": "text", "id": "shop_label", "label": "Shop label", "default": "Shop" },
     { "type": "url", "id": "shop_url", "label": "Shop URL", "info": "Defaults to the all-products catalog." },
     { "type": "text", "id": "journal_label", "label": "Journal label", "default": "Journal" },
-    { "type": "text", "id": "journal_handle", "label": "Journal blog handle", "default": "journal", "info": "Which blog the Journal link points at. The link is hidden entirely if no blog with this handle exists." },
+    { "type": "text", "id": "journal_handle", "label": "Journal blog handle", "default": "journal", "info": "Which blog the Journal link points at. Falls back to the store\u2019s first blog if no blog has this handle, so the link works without any setup." },
     { "type": "url", "id": "journal_url", "label": "Journal URL override" },
     { "type": "text", "id": "about_label", "label": "About label", "default": "About" },
     { "type": "text", "id": "about_handle", "label": "About page handle", "default": "about", "info": "Hidden entirely if no page with this handle exists." },
