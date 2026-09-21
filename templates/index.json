@@ -55,6 +55,7 @@
       "type": "alpine-shelf",
       "settings": {
         "collection": "bush-riding-launch",
+        "layout": "solo",
         "products_to_show": 2,
         "columns": "2",
         "image_ratio": "adapt",

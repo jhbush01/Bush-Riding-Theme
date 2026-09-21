@@ -2453,6 +2453,75 @@ a.alp-shelf__cell:hover .alp-shelf__name { color: var(--alp-accent); }
   }
 }
 
+/* ── Shelf: solo ─────────────────────────────────────────────────────────────
+   One product, centred, while the shop is one product deep.
+
+   The whole composition centres or none of it does. The grid head runs on the
+   caption gutter — eyebrow hard left, heading beside it — and that layout is
+   built around a field of many things all starting at the same left edge. Put
+   one centred photograph under it and the eyebrow points at nothing. So solo
+   restacks the head centred and drops the gutter.
+
+   Every selector here is two classes deep (0,2,0) so it beats the grid rules
+   it replaces (0,1,0) wherever they sit in the file, including inside the
+   media queries above. Do not flatten them.
+
+   Solo never carries --2up/--3up/--4up: the section emits one or the other and
+   never both, so the column counts cannot fight the cap. */
+.alp-shelf--solo .alp-shelf__head {
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  text-align: center;
+  gap: 12px;
+}
+.alp-shelf--solo .alp-shelf__headfield {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+/* Measured at 1440: the heading ran 821px over a 700px photograph, so the
+   words were wider than the thing they name and the centred block had two
+   different centres' worth of edges. The same cap as the grid track below
+   puts both on one column. */
+@media (min-width: 990px) {
+  .alp-shelf--solo .alp-shelf__headfield { max-width: min(62%, 760px); }
+}
+
+/* Phones get the full field — 62% of a 390px screen is a thumbnail. */
+.alp-shelf--solo .alp-shelf__grid { grid-template-columns: minmax(0, 1fr); }
+
+/* Name and price stay on one line over the same mist rule the grid uses: the
+   rule is the shelf's signature and one product should still be on a shelf.
+   Centred, because everything above it is. */
+.alp-shelf--solo .alp-shelf__meta {
+  justify-content: center;
+  gap: 18px;
+}
+
+/* The catalogue link, under the product rather than level with the heading. */
+.alp-shelf__tail {
+  display: flex;
+  justify-content: center;
+  padding: 0 var(--alp-pad-page) 36px;
+}
+
+@media (min-width: 990px) {
+  /* Capped AND proportional. A percentage alone becomes a billboard on a wide
+     monitor; a fixed width alone shrinks to a stamp on one. 62% of the field
+     up to 760px puts the product at roughly the scale it has on its own
+     product page, which is the scale it should arrive at.
+
+     The cap is a percentage of the GRID, not of the viewport — vw counts the
+     196px rail, which is how the hero wordmark once overflowed the column. */
+  .alp-shelf--solo .alp-shelf__grid {
+    grid-template-columns: minmax(0, min(62%, 760px));
+    justify-content: center;
+    padding: 0 var(--alp-field-pad) 40px;
+  }
+
+  .alp-shelf__tail { padding: 0 var(--alp-field-pad) var(--alp-band); }
+}
+
 /* ── Touch targets ───────────────────────────────────────────────────────────
    Measured at 390px: the base chip came out 35px tall, and the menu sheet's
    fine-print and Follow links were 15px. Both are well under the 44px that
