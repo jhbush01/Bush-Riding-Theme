@@ -12,15 +12,15 @@
     "alpine_hero": {
       "type": "alpine-hero",
       "settings": {
-        "video_url": "https://cdn.shopify.com/videos/c/o/v/e3a3e900b3154a1baf53e0a1cb5a2c2e.mov",
-        "image": "shopify://shop_images/IMG_4812.jpg",
-        "tagline": "Made for the detour",
-        "place": "Mount Beerwah, Glass House Mountains",
-        "frame": "01",
+        "video_url": "",
+        "image": "shopify://shop_images/Bush_Background.jpg",
+        "tagline": "",
+        "place": "Koreelah National Park, Queensland",
+        "frame": "",
         "show_next_ride": true,
         "next_ride_note": "Free · all welcome",
         "show_wordmark": true,
-        "wordmark_tone": "mist"
+        "wordmark_tone": "khaki"
       }
     },
     "alpine_country": {
@@ -31,19 +31,22 @@
         "rule_below": true,
         "eyebrow": "The country",
         "heading": "Our country is vast, breath-taking and at times, unforgiving.",
-        "body": "<p>Sweltering summer storms electrocute the sky and clap our ears with thunder.</p><p>Star-choked outback skies swallow the darkness whole.</p>"
+        "body": "<p>Sweltering summer storms electrocute the sky and clap our ears with thunder.</p><p>Star-choked outback skies swallow the darkness whole.</p>",
+        "cta_label": "",
+        "cta_url": ""
       }
     },
     "alpine_tile_story": {
       "type": "alpine-tile",
       "settings": {
         "collection": "",
-        "image": "shopify://shop_images/autumn-trees-hillside.jpg",
+        "image": "shopify://shop_images/IMG_2124.jpg",
         "video_url": "",
-        "eyebrow": "Gap Creek Reserve, Bellbowrie",
+        "eyebrow": "Mount Nebo, Queensland",
         "label": "",
         "blurb": "",
-        "frame": "02",
+        "label_size": "label",
+        "frame": "",
         "link": "",
         "veil": true,
         "height": "medium",
@@ -53,12 +56,13 @@
     "alpine_shelf": {
       "type": "alpine-shelf",
       "settings": {
-        "collection": "",
-        "products_to_show": 3,
-        "columns": "3",
-        "eyebrow": "The launch<br>November",
-        "heading": "Eight pieces, cut for long days.",
-        "link_label": "Shop the launch ✦",
+        "collection": "bush-riding-launch",
+        "products_to_show": 2,
+        "columns": "2",
+        "image_ratio": "adapt",
+        "eyebrow": "",
+        "heading": "The Tailwind shorts. Your adventure starts here.",
+        "link_label": "Explore ✦",
         "link_url": "/collections/all"
       }
     },
@@ -67,9 +71,10 @@
       "settings": {
         "ground": "olive",
         "size": "large",
-        "rule_below": false,
+        "rule_below": true,
         "eyebrow": "Bush Map™",
-        "heading": "Gravel routes, ride diaries, and the tracks that didn't make the map.",
+        "heading": "Finding gravel routes can be painful, so we made our own map. It is our gift to you, check it out!",
+        "body": "",
         "cta_label": "Open the map",
         "cta_url": "https://map.bushriding.cc"
       }
