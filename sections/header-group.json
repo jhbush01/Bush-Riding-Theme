@@ -13,7 +13,6 @@
   "sections": {
     "header": {
       "type": "alpine-header",
-      "disabled": true,
       "settings": {
         "wordmark": "Bush Riding™",
         "shop_label": "Shop",
