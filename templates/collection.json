@@ -14,9 +14,11 @@
       "settings": {
         "show_banner": true,
         "banner_height": "short",
-        "banner_image": "shopify://shop_images/IMG_2124.jpg",
         "eyebrow": "November launch",
+        "overlay_heading": "",
+        "banner_image": "shopify://shop_images/IMG_2124.jpg",
         "show_category_nav": true,
+        "image_ratio": "square",
         "show_description": true,
         "intro_eyebrow": "The launch",
         "show_sorting": true,
@@ -24,9 +26,10 @@
         "columns_desktop": 3,
         "products_per_page": 12,
         "show_cta": true,
-        "cta_heading": "Get the route. Join the bush.",
+        "cta_heading": "We made finding your next ride easy.",
         "cta_text": "Curated gravel routes and events.",
-        "cta_label": "Open the map ↗"
+        "cta_label": "Open the map ↗",
+        "cta_url": ""
       }
     }
   },
