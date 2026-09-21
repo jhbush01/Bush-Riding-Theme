@@ -154,13 +154,14 @@ def buybar():
             '<span>Add to cart</span><span class="alp-buybar__price">$180</span></button>'
             '<button class="alp-chip alp-buybar__menu">Menu <span class="alp-glyph">\u2726</span></button></div>')
 
-def nextride_card():
-    return ('<a class="alp-nr alp-nr--card" href="#">'
+def nextride_card(ground='mist'):
+    return (f'<div class="shopify-section"><section class="alp alp-nrs alp-nrs--{ground} alp-nrs--phone">'
+            '<a class="alp-nr alp-nr--card" href="#">'
             '<span class="alp-nr__head"><span class="alp-nr__eyebrow">Next ride</span>'
             '<span class="alp-nr__eyebrow">Free \u00b7 all welcome</span></span>'
             '<span class="alp-nr__date">Sunday 11th October, 7am \u2014 Glass House Mountains Station Carpark</span>'
             '<span class="alp-nr__note">62 km gravel, caf\u00e9 stop at nine.</span>'
-            '<span class="alp-chip alp-nr__cta">View on BUSH MAP\u2122 \u2192</span></a>')
+            '<span class="alp-chip alp-nr__cta">View on BUSH MAP\u2122 \u2192</span></a></section></div>')
 
 PAGES = {}
 
@@ -257,6 +258,47 @@ PAGES['product'] = (rail('Shop'),
     + passage('bone', 'The piece', '',
               '<p>Designed for those long days when the road turns to dirt and you are not sure where you will end up.</p>')
     + buybar() + top(), 'template-product')
+
+# A portrait packshot stand-in. The launch is one product and the solo layout
+# caps its width, so the thing worth measuring is how tall that gets.
+PACKSHOT = ("data:image/svg+xml;base64," + base64.b64encode(b'''<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1500">
+<rect width="1200" height="1500" fill="#f4f3ea"/>
+<rect x="330" y="300" width="540" height="820" rx="40" fill="#4c4b3b"/>
+<rect x="330" y="300" width="540" height="90" fill="#828059"/>
+</svg>''').decode())
+
+def solo_shelf(shot=PACKSHOT):
+    return ('<section class="alp alp-shelf alp-shelf--solo alp-shelf--adapt">'
+            '<header class="alp-shelf__head">'
+            '<p class="alp-shelf__eyebrow">New</p><div class="alp-shelf__headfield">'
+            '<h2 class="alp-shelf__heading">The Tailwind shorts. '
+            'Your next adventure starts here.</h2></div></header>'
+            '<div class="alp-shelf__grid">'
+            f'<a class="alp-shelf__cell" href="#"><div class="alp-shelf__pic"><img src="{shot}" alt=""></div>'
+            '<div class="alp-shelf__meta"><p class="alp-shelf__name">The Tailwind Shorts</p>'
+            '<p class="alp-shelf__price">$180</p></div></a></div>'
+            '<div class="alp-shelf__tail"><a class="alp-chip alp-shelf__more" href="#">Explore ✦</a></div>'
+            '</section>')
+
+# The solo shelf among its real neighbours: hero above, passage below, so the
+# centred composition is judged against the left-aligned ones it sits between.
+PAGES['home-solo'] = (rail('Home'),
+    f'<section class="alp alp-hero"><div class="alp-hero__media"><img src="{SUNSET}" alt=""></div>'
+    '<div class="alp-hero__veil"></div>'
+    f'<div class="alp-hero__centre"><img class="alp-hero__mark" src="{MIST_MARK}" alt=""></div>'
+    '<div class="alp-hero__caption"><p class="alp-hero__place">Wooyung Beach, New South Wales</p></div>'
+    '</section>'
+    + solo_shelf()
+    + passage('bone', 'The country', 'Our country is vast, breath-taking and at times, unforgiving.',
+              '<p>Sweltering summer storms electrocute the sky and clap our ears with thunder.</p>')
+    + fab() + top(), 'template-index')
+
+# The same layout with a landscape photograph, which is the shape that runs
+# widest and shortest — the other end of what "adapt" can hand it.
+PAGES['home-solo-wide'] = (rail('Home'), solo_shelf(SUNSET)
+    + passage('olive', 'Bush Map™', 'Finding gravel routes can be painful, so we made our own map.',
+              '', 'Explore the map')
+    + fab() + top(), 'template-index')
 
 TPL = '''<!doctype html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">

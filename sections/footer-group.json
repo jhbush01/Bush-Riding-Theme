@@ -13,15 +13,14 @@
   "sections": {
     "footer": {
       "type": "alpine-footer",
-      "blocks": {},
-      "block_order": [],
       "settings": {
         "newsletter_heading": "Ride with us.",
-        "newsletter_text": "One email a month from the bush — stories, routes and first looks. No noise.",
+        "newsletter_text": "One email a month from the bush - stories, routes and first looks. No noise.",
         "newsletter_button": "Go",
         "wordmark": "Bush Riding™",
         "small_print": "Designed in Australia. Made for the detour.",
         "map_label": "BUSH MAP™",
+        "map_url": "",
         "wordmark_tone": "mist"
       }
     }

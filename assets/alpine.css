@@ -34,8 +34,17 @@
   --alp-band: clamp(40px, 5.5vw, 80px);
 }
 
-body {
-  background-color: var(--alp-bg);
+/* `.gradient` is Dawn's, it is on <body>, and at (0,1,0) it beats a bare
+   `body` selector at (0,0,1) — so the page's real ground was Dawn's colour
+   scheme, which is white. Every section here paints its own bone over the top,
+   which is why the page looked right and only the one element WITHOUT a
+   background of its own gave it away: the next-ride card.
+
+   Matching the class settles it. The earlier home page hid this by accident —
+   `body.template-index { background: mist }` was (0,1,1) and did win. */
+body,
+body.gradient {
+  background: var(--alp-bg);
   color: var(--alp-ink);
 }
 
@@ -518,6 +527,31 @@ a.alp-chip--active:hover { background: var(--alp-accent); border-color: var(--al
   body.template-product .product__info-container .price { display: none; }
 }
 
+/* ── Next ride, as its own section ───────────────────────────────────────────
+   The card carries no background of its own — it is a link, and a link that
+   paints a colour cannot sit on a photograph. The SECTION owns the ground, so
+   it can be set per placement in the editor. */
+.alp-nrs { display: block; }
+.alp-nrs--bone { background: var(--alp-bg); }
+.alp-nrs--mist { background: var(--alp-mist); }
+.alp-nrs--sage { background: var(--alp-haze); }
+.alp-nrs--paper { background: var(--alp-surface); }
+
+/* Olive inverts the type with it. */
+.alp-nrs--olive { background: var(--alp-ink); }
+.alp-nrs--olive .alp-nr--card { color: var(--alp-bg); border-bottom-color: rgba(237, 236, 197, 0.3); }
+.alp-nrs--olive .alp-nr__cta {
+  background: var(--alp-bg);
+  border-color: var(--alp-bg);
+  color: var(--alp-ink);
+}
+.alp-nrs--olive .alp-nr--card:hover .alp-nr__cta { background: var(--alp-haze); border-color: var(--alp-haze); }
+
+/* Phones only unless asked otherwise — the rail carries it on desktop. */
+@media (min-width: 990px) {
+  .alp-nrs--phone { display: none; }
+}
+
 /* ── Mobile: the floating chips ──────────────────────────────────────────────
    Menu and Cart, centred at the foot of the screen. Nothing is pinned to the
    top on a phone, so the full height goes to the photography. */
@@ -753,8 +787,7 @@ body.alp-menu-open {
 @media (min-width: 990px) {
   .alp-fab,
   .alp-sheet { display: none; }
-  /* The rail already carries the next ride down the side of every page. */
-  .alp-nr--card { display: none; }
+
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2418,6 +2451,75 @@ a.alp-shelf__cell:hover .alp-shelf__name { color: var(--alp-accent); }
     gap: 8px;
     padding: 30px var(--alp-pad-page) 14px;
   }
+}
+
+/* ── Shelf: solo ─────────────────────────────────────────────────────────────
+   One product, centred, while the shop is one product deep.
+
+   The whole composition centres or none of it does. The grid head runs on the
+   caption gutter — eyebrow hard left, heading beside it — and that layout is
+   built around a field of many things all starting at the same left edge. Put
+   one centred photograph under it and the eyebrow points at nothing. So solo
+   restacks the head centred and drops the gutter.
+
+   Every selector here is two classes deep (0,2,0) so it beats the grid rules
+   it replaces (0,1,0) wherever they sit in the file, including inside the
+   media queries above. Do not flatten them.
+
+   Solo never carries --2up/--3up/--4up: the section emits one or the other and
+   never both, so the column counts cannot fight the cap. */
+.alp-shelf--solo .alp-shelf__head {
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  text-align: center;
+  gap: 12px;
+}
+.alp-shelf--solo .alp-shelf__headfield {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+/* Measured at 1440: the heading ran 821px over a 700px photograph, so the
+   words were wider than the thing they name and the centred block had two
+   different centres' worth of edges. The same cap as the grid track below
+   puts both on one column. */
+@media (min-width: 990px) {
+  .alp-shelf--solo .alp-shelf__headfield { max-width: min(62%, 760px); }
+}
+
+/* Phones get the full field — 62% of a 390px screen is a thumbnail. */
+.alp-shelf--solo .alp-shelf__grid { grid-template-columns: minmax(0, 1fr); }
+
+/* Name and price stay on one line over the same mist rule the grid uses: the
+   rule is the shelf's signature and one product should still be on a shelf.
+   Centred, because everything above it is. */
+.alp-shelf--solo .alp-shelf__meta {
+  justify-content: center;
+  gap: 18px;
+}
+
+/* The catalogue link, under the product rather than level with the heading. */
+.alp-shelf__tail {
+  display: flex;
+  justify-content: center;
+  padding: 0 var(--alp-pad-page) 36px;
+}
+
+@media (min-width: 990px) {
+  /* Capped AND proportional. A percentage alone becomes a billboard on a wide
+     monitor; a fixed width alone shrinks to a stamp on one. 62% of the field
+     up to 760px puts the product at roughly the scale it has on its own
+     product page, which is the scale it should arrive at.
+
+     The cap is a percentage of the GRID, not of the viewport — vw counts the
+     196px rail, which is how the hero wordmark once overflowed the column. */
+  .alp-shelf--solo .alp-shelf__grid {
+    grid-template-columns: minmax(0, min(62%, 760px));
+    justify-content: center;
+    padding: 0 var(--alp-field-pad) 40px;
+  }
+
+  .alp-shelf__tail { padding: 0 var(--alp-field-pad) var(--alp-band); }
 }
 
 /* ── Touch targets ───────────────────────────────────────────────────────────
