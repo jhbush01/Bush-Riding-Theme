@@ -154,13 +154,14 @@ def buybar():
             '<span>Add to cart</span><span class="alp-buybar__price">$180</span></button>'
             '<button class="alp-chip alp-buybar__menu">Menu <span class="alp-glyph">\u2726</span></button></div>')
 
-def nextride_card():
-    return ('<a class="alp-nr alp-nr--card" href="#">'
+def nextride_card(ground='mist'):
+    return (f'<div class="shopify-section"><section class="alp alp-nrs alp-nrs--{ground} alp-nrs--phone">'
+            '<a class="alp-nr alp-nr--card" href="#">'
             '<span class="alp-nr__head"><span class="alp-nr__eyebrow">Next ride</span>'
             '<span class="alp-nr__eyebrow">Free \u00b7 all welcome</span></span>'
             '<span class="alp-nr__date">Sunday 11th October, 7am \u2014 Glass House Mountains Station Carpark</span>'
             '<span class="alp-nr__note">62 km gravel, caf\u00e9 stop at nine.</span>'
-            '<span class="alp-chip alp-nr__cta">View on BUSH MAP\u2122 \u2192</span></a>')
+            '<span class="alp-chip alp-nr__cta">View on BUSH MAP\u2122 \u2192</span></a></section></div>')
 
 PAGES = {}
 

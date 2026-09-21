@@ -1,0 +1,68 @@
+{%- comment -%}
+  The next ride, as a section you can move and colour.
+
+  It used to be rendered from inside alpine-hero, which meant it could only
+  ever sit directly under the hero and had no ground of its own — it inherited
+  whatever was behind it. That is how it ended up reading white.
+
+  It is still phones-only by default, because the rail carries the next ride
+  down the side of every page on desktop and showing both would say it twice.
+  The checkbox is there for when you want it on the wide screen too.
+
+  The date, place and link come from the Bush Map events feed at runtime
+  (alpine.js). The block ships hidden and only appears once an upcoming ride
+  resolves, so an empty feed leaves no gap.
+{%- endcomment -%}
+
+{%- assign ground = section.settings.ground | default: 'bone' -%}
+
+<section
+  class="alp alp-nrs alp-nrs--{{ ground }}{% unless section.settings.show_on_desktop %} alp-nrs--phone{% endunless %}"
+  aria-label="{{ section.settings.heading | default: 'Next ride' | escape }}"
+>
+  {%- render 'alp-next-ride',
+    variant: 'card',
+    heading: section.settings.heading,
+    note: section.settings.note,
+    cta: section.settings.cta_label
+  -%}
+</section>
+
+{% schema %}
+{
+  "name": "Bush Riding next ride",
+  "tag": "div",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Date, place and link come from the Bush Map events feed automatically. The block hides itself when there is no upcoming ride, so it can never show a stale date."
+    },
+    {
+      "type": "select",
+      "id": "ground",
+      "label": "Background",
+      "options": [
+        { "value": "bone", "label": "Bone — the page" },
+        { "value": "mist", "label": "Mist" },
+        { "value": "sage", "label": "Sage" },
+        { "value": "olive", "label": "Olive — inverted" },
+        { "value": "paper", "label": "Paper (white)" }
+      ],
+      "default": "bone"
+    },
+    { "type": "text", "id": "heading", "label": "Eyebrow", "default": "Next ride" },
+    { "type": "text", "id": "note", "label": "Side note", "default": "Free · all welcome" },
+    { "type": "text", "id": "cta_label", "label": "Button label", "default": "View on BUSH MAP™ →" },
+    {
+      "type": "checkbox",
+      "id": "show_on_desktop",
+      "label": "Also show on desktop",
+      "default": false,
+      "info": "Off by default: the rail already carries the next ride down the side of every page on a wide screen."
+    }
+  ],
+  "presets": [
+    { "name": "Bush Riding next ride" }
+  ]
+}
+{% endschema %}

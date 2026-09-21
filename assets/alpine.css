@@ -34,8 +34,17 @@
   --alp-band: clamp(40px, 5.5vw, 80px);
 }
 
-body {
-  background-color: var(--alp-bg);
+/* `.gradient` is Dawn's, it is on <body>, and at (0,1,0) it beats a bare
+   `body` selector at (0,0,1) — so the page's real ground was Dawn's colour
+   scheme, which is white. Every section here paints its own bone over the top,
+   which is why the page looked right and only the one element WITHOUT a
+   background of its own gave it away: the next-ride card.
+
+   Matching the class settles it. The earlier home page hid this by accident —
+   `body.template-index { background: mist }` was (0,1,1) and did win. */
+body,
+body.gradient {
+  background: var(--alp-bg);
   color: var(--alp-ink);
 }
 
@@ -518,6 +527,31 @@ a.alp-chip--active:hover { background: var(--alp-accent); border-color: var(--al
   body.template-product .product__info-container .price { display: none; }
 }
 
+/* ── Next ride, as its own section ───────────────────────────────────────────
+   The card carries no background of its own — it is a link, and a link that
+   paints a colour cannot sit on a photograph. The SECTION owns the ground, so
+   it can be set per placement in the editor. */
+.alp-nrs { display: block; }
+.alp-nrs--bone { background: var(--alp-bg); }
+.alp-nrs--mist { background: var(--alp-mist); }
+.alp-nrs--sage { background: var(--alp-haze); }
+.alp-nrs--paper { background: var(--alp-surface); }
+
+/* Olive inverts the type with it. */
+.alp-nrs--olive { background: var(--alp-ink); }
+.alp-nrs--olive .alp-nr--card { color: var(--alp-bg); border-bottom-color: rgba(237, 236, 197, 0.3); }
+.alp-nrs--olive .alp-nr__cta {
+  background: var(--alp-bg);
+  border-color: var(--alp-bg);
+  color: var(--alp-ink);
+}
+.alp-nrs--olive .alp-nr--card:hover .alp-nr__cta { background: var(--alp-haze); border-color: var(--alp-haze); }
+
+/* Phones only unless asked otherwise — the rail carries it on desktop. */
+@media (min-width: 990px) {
+  .alp-nrs--phone { display: none; }
+}
+
 /* ── Mobile: the floating chips ──────────────────────────────────────────────
    Menu and Cart, centred at the foot of the screen. Nothing is pinned to the
    top on a phone, so the full height goes to the photography. */
@@ -753,8 +787,7 @@ body.alp-menu-open {
 @media (min-width: 990px) {
   .alp-fab,
   .alp-sheet { display: none; }
-  /* The rail already carries the next ride down the side of every page. */
-  .alp-nr--card { display: none; }
+
 }
 
 @media (prefers-reduced-motion: reduce) {

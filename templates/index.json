@@ -17,8 +17,6 @@
         "tagline": "",
         "place": "Wooyung Beach, New South Wales",
         "frame": "",
-        "show_next_ride": true,
-        "next_ride_note": "Free · all welcome",
         "show_wordmark": true,
         "wordmark_tone": "bone"
       }
@@ -78,10 +76,21 @@
         "cta_label": "Explore the map",
         "cta_url": "https://map.bushriding.cc"
       }
+    },
+    "alpine_next_ride": {
+      "type": "alpine-next-ride",
+      "settings": {
+        "ground": "mist",
+        "heading": "Next ride",
+        "note": "Free · all welcome",
+        "cta_label": "View on BUSH MAP™ →",
+        "show_on_desktop": false
+      }
     }
   },
   "order": [
     "alpine_hero",
+    "alpine_next_ride",
     "alpine_shelf",
     "alpine_country",
     "alpine_tile_story",

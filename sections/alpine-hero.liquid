@@ -1,8 +1,11 @@
 {%- comment -%}
-  Bush Riding hero — full-bleed photograph/video filling the viewport under
-  the floating nav. Two chip buttons sit centred just below the nav: one
-  linking to the featured product (Bush Riding Shorts), one to the map
-  (BUSH MAP™ → map.bushriding.cc).
+  Bush Riding hero — full-bleed photograph or clip under an olive veil, with
+  the wordmark and tagline centred and a caption row naming the country.
+
+  Nothing else lives here. The chips went when the rail replaced the top bar,
+  and the next ride moved to its own section (alpine-next-ride) so it could
+  be placed and coloured rather than being stuck under the hero with no
+  background of its own.
 {%- endcomment -%}
 
 <section class="alp alp-hero">
@@ -78,15 +81,7 @@
   {%- endif -%}
 </section>
 
-{%- comment -%}
-  The next ride sits directly under the hero on a phone, above the story — the
-  one thing a returning rider is most likely to have come for. On desktop the
-  rail already carries it down the side of every page, so this is mobile-only;
-  showing both on a wide screen would just say it twice.
-{%- endcomment -%}
-{%- if section.settings.show_next_ride -%}
-  {%- render 'alp-next-ride', variant: 'card', note: section.settings.next_ride_note -%}
-{%- endif -%}
+
 
 {% schema %}
 {
@@ -135,23 +130,6 @@
       "label": "Caption — frame number",
       "default": "01",
       "info": "Bottom right."
-    },
-    {
-      "type": "header",
-      "content": "Next ride (mobile only)"
-    },
-    {
-      "type": "checkbox",
-      "id": "show_next_ride",
-      "label": "Show the next ride under the hero",
-      "default": true,
-      "info": "Phones only — the rail carries it on desktop. Pulled live from the Bush Map events feed, and hidden entirely when there is no upcoming ride."
-    },
-    {
-      "type": "text",
-      "id": "next_ride_note",
-      "label": "Next ride — side note",
-      "default": "Free · all welcome"
     },
     {
       "type": "header",
