@@ -11,9 +11,7 @@
   "sections": {
     "main": {
       "type": "alpine-product",
-      "settings": {
-        "show_next_drop": true
-      },
+      "settings": {},
       "blocks": {
         "fabric": {
           "type": "accordion",

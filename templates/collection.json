@@ -12,8 +12,7 @@
     "main": {
       "type": "alpine-catalogue",
       "settings": {
-        "lifestyle": "shopify://shop_images/IMG_2124.jpg",
-        "notify_heading": "Hear about the next drop first."
+        "lifestyle": "shopify://shop_images/IMG_2124.jpg"
       }
     }
   },

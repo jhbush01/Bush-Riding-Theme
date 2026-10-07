@@ -74,12 +74,16 @@ most of the work — text and icon as support. Show, don't tell.
   Hifi `.dc.html` files are the visual reference). Every storefront page is
   an `sections/alpine-*.liquid` section with `snippets/alp-*.liquid`, styled
   by `assets/alpine.css` and driven by `assets/alpine.js` on `--alp-*`
-  tokens (the prefix is historical). Shared config — next-drop types, Rides /
+  tokens (the prefix is historical). Shared config — Rides /
   About / Bush Map pages, map API, time zone, weather, Strava — is in
   Theme settings → Bush Riding, read through `snippets/alp-link.liquid`.
   The shop menu is built from Shopify itself (`snippets/alp-shop-links`):
   product Types first (Shorts → its url_for_type page), then collections;
-  products on collection pages are grouped by Type. There is no shop landing
+  products on collection pages are grouped by Type. A coming-soon category
+  is an EMPTY collection (Shopify has no Type without a product): it shows
+  as "soon" in the menu and its page is a Notify me signup, tagged
+  next-drop + the collection handle. Never show placeholders beside real
+  products. There is no shop landing
   page — the header's Shop dropdown is it.
   Pages need no template choice: the default `page.json` carries the About,
   Rides and Bush Map layouts, each shown only for its page handle (`about`,

@@ -1,40 +1,21 @@
 {%- comment -%}
   The shop's categories, straight from Shopify — nothing to keep in sync.
 
-  Two ways in, as the store groups things:
-  • By type — every product Type in the store (Shorts, …), each linking to
-    Shopify's built-in type page (url_for_type). Types listed in Theme
-    settings → Bush Riding → "Coming in the next drop" that have no products
-    yet show muted with "next drop"; the moment a product with that type is
-    published, it becomes a real link on its own.
+  • Product types — every Type on a published product (Shorts, …), each
+    linking to Shopify's built-in type page (url_for_type).
+  • Coming soon — every collection with no products yet. Shopify has no
+    Type without a product, so an empty collection is the placeholder: make
+    a "T-Shirts" collection and it shows here as "soon"; its page is a
+    Notify me signup (alpine-catalogue). Add a product to it and it becomes
+    an ordinary collection by itself.
   • Collections — every collection with products (Launch Collection, …).
 
   variant:
-    list – the shop panel and the phone menu: Shop (types) then Collections
+    list – the Shop dropdown and the phone menu
     bar  – the collection page's category bar; marks where you are
-    soon – just the next-drop names, pipe-separated
 {%- endcomment -%}
 {%- liquid
   assign all_url = routes.all_products_collection_url
-
-  comment
-    Next-drop names that aren't real types yet.
-  endcomment
-  assign live_types = shop.types | join: '|' | downcase | split: '|'
-  assign soon = ''
-  assign wanted = settings.alp_next_drop | default: '' | split: ','
-  for w in wanted
-    assign name = w | strip
-    if name == blank
-      continue
-    endif
-    assign key = name | downcase
-    unless live_types contains key
-      assign soon = soon | append: name | append: '|'
-    endunless
-  endfor
-  assign soon = soon | remove_last: '|' | split: '|'
-
   assign here_type = ''
   assign here_handle = ''
   if collection != blank
@@ -43,46 +24,47 @@
   endif
 -%}
 
-{%- case variant -%}
-  {%- when 'soon' -%}
-    {{- soon | join: '|' -}}
+{%- capture soon_links -%}
+  {%- for c in collections -%}
+    {%- if c.handle == 'all' or c.handle == 'frontpage' or c.products_count > 0 -%}{%- continue -%}{%- endif -%}
+    {%- assign on = false -%}
+    {%- if variant == 'bar' and here_handle == c.handle -%}{%- assign on = true -%}{%- endif -%}
+    <a class="alp-cats__item is-soon{% if on %} is-on{% endif %}" href="{{ c.url }}"{% if on %} aria-current="page"{% endif %}{% if menu_link %} data-alp-close{% endif %}>{{ c.title | escape }} <small>{% if variant == 'bar' %}soon{% else %}· next drop{% endif %}</small></a>
+  {%- endfor -%}
+{%- endcapture -%}
 
-  {%- when 'bar' -%}
-    <a class="alp-cats__item{% if here_handle == 'all' and here_type == blank %} is-on{% endif %}" href="{{ all_url }}">View all</a>
-    {%- for t in shop.types -%}
-      {%- if t != blank -%}
-        <a class="alp-cats__item{% if here_type == t %} is-on{% endif %}" href="{{ t | url_for_type }}"{% if here_type == t %} aria-current="page"{% endif %}>{{ t | escape }}</a>
-      {%- endif -%}
-    {%- endfor -%}
-    {%- for name in soon -%}
-      <span class="alp-cats__item is-soon">{{ name | escape }} <small>soon</small></span>
-    {%- endfor -%}
-    {%- assign ruled = false -%}
-    {%- for c in collections -%}
-      {%- if c.handle == 'all' or c.handle == 'frontpage' or c.products_count == 0 -%}{%- continue -%}{%- endif -%}
-      {%- unless ruled -%}<span class="alp-cats__rule" aria-hidden="true"></span>{%- assign ruled = true -%}{%- endunless -%}
-      <a class="alp-cats__item{% if here_handle == c.handle and here_type == blank %} is-on{% endif %}" href="{{ c.url }}">{{ c.title | escape }}</a>
-    {%- endfor -%}
+{%- capture collection_links -%}
+  {%- for c in collections -%}
+    {%- if c.handle == 'all' or c.handle == 'frontpage' or c.products_count == 0 -%}{%- continue -%}{%- endif -%}
+    {%- assign on = false -%}
+    {%- if variant == 'bar' and here_handle == c.handle and here_type == blank -%}{%- assign on = true -%}{%- endif -%}
+    <a class="alp-cats__item{% if on %} is-on{% endif %}" href="{{ c.url }}"{% if on %} aria-current="page"{% endif %}{% if menu_link %} data-alp-close{% endif %}>{{ c.title | escape }}</a>
+  {%- endfor -%}
+{%- endcapture -%}
 
-  {%- else -%}
-    <p class="alp-cats__head">Shop</p>
-    <a class="alp-cats__item" href="{{ all_url }}"{% if menu_link %} data-alp-close{% endif %}>View all</a>
-    {%- for t in shop.types -%}
-      {%- if t != blank -%}
-        <a class="alp-cats__item" href="{{ t | url_for_type }}"{% if menu_link %} data-alp-close{% endif %}>{{ t | escape }}</a>
-      {%- endif -%}
-    {%- endfor -%}
-    {%- for name in soon -%}
-      <span class="alp-cats__item is-soon">{{ name | escape }} <small>· next drop</small></span>
-    {%- endfor -%}
-    {%- capture cols -%}
-      {%- for c in collections -%}
-        {%- if c.handle == 'all' or c.handle == 'frontpage' or c.products_count == 0 -%}{%- continue -%}{%- endif -%}
-        <a class="alp-cats__item" href="{{ c.url }}"{% if menu_link %} data-alp-close{% endif %}>{{ c.title | escape }}</a>
-      {%- endfor -%}
-    {%- endcapture -%}
-    {%- if cols != blank -%}
-      <p class="alp-cats__head">Collections</p>
-      {{ cols }}
+{%- if variant == 'bar' -%}
+  <a class="alp-cats__item{% if here_handle == 'all' and here_type == blank %} is-on{% endif %}" href="{{ all_url }}">View all</a>
+  {%- for t in shop.types -%}
+    {%- if t != blank -%}
+      <a class="alp-cats__item{% if here_type == t %} is-on{% endif %}" href="{{ t | url_for_type }}"{% if here_type == t %} aria-current="page"{% endif %}>{{ t | escape }}</a>
     {%- endif -%}
-{%- endcase -%}
+  {%- endfor -%}
+  {{ soon_links }}
+  {%- if collection_links != blank -%}
+    <span class="alp-cats__rule" aria-hidden="true"></span>
+    {{ collection_links }}
+  {%- endif -%}
+{%- else -%}
+  <p class="alp-cats__head">Shop</p>
+  <a class="alp-cats__item" href="{{ all_url }}"{% if menu_link %} data-alp-close{% endif %}>View all</a>
+  {%- for t in shop.types -%}
+    {%- if t != blank -%}
+      <a class="alp-cats__item" href="{{ t | url_for_type }}"{% if menu_link %} data-alp-close{% endif %}>{{ t | escape }}</a>
+    {%- endif -%}
+  {%- endfor -%}
+  {{ soon_links }}
+  {%- if collection_links != blank -%}
+    <p class="alp-cats__head">Collections</p>
+    {{ collection_links }}
+  {%- endif -%}
+{%- endif -%}

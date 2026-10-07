@@ -162,25 +162,13 @@
       </div>
     </div>
   </div>
-
-  {%- if section.settings.show_next_drop -%}
-    <div class="alp-pdp__next alp-d">
-      {%- capture drops -%}{%- render 'alp-next-drop', variant: 'row', key: 'pdp' -%}{%- endcapture -%}
-      {%- if drops != blank -%}
-        <h2 class="alp-pdp__nexthead">Coming in the next drop</h2>
-        {{ drops }}
-      {%- endif -%}
-    </div>
-  {%- endif -%}
 </section>
 
 {% schema %}
 {
   "name": "Product",
   "tag": "div",
-  "settings": [
-    { "type": "checkbox", "id": "show_next_drop", "label": "Show the next drop under the product (desktop)", "default": true }
-  ],
+  "settings": [],
   "blocks": [
     {
       "type": "accordion",

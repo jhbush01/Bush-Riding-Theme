@@ -4,11 +4,12 @@
 
   Desktop (D01): a 640px 2-up — lifestyle photo with a caption | the product
   on its plain ground with name and price chips — then a 4-up 3:4 row: the
-  product with Quick add, a second angle, and a Next drop tile per category
-  that hasn't landed.
+  featured product with Quick add, the store's other products, and — while
+  there are fewer than four — more angles of the featured product. Only real
+  products; coming-soon categories live on their own collection pages.
 
   Phone (M02): "The shorts" with a Shop link, one 500px product card with
-  Quick add +, the lifestyle photo at 480px, then the Next drop band.
+  Quick add +, then the lifestyle photo at 480px.
 {%- endcomment -%}
 {%- liquid
   assign p = section.settings.product
@@ -49,13 +50,42 @@
     </div>
 
     <div class="alp-grid4">
-      {%- if p != blank -%}
-        {%- render 'alp-card', product: p -%}
-        {%- if second != blank -%}
-          {%- render 'alp-card', product: p, image: second, caption: second_caption, quick: false -%}
-        {%- endif -%}
-      {%- endif -%}
-      {%- render 'alp-next-drop', variant: 'tiles', key: 'home' -%}
+      {%- liquid
+        assign shown = 0
+        if p != blank
+          render 'alp-card', product: p
+          assign shown = 1
+        endif
+        for other in collections.all.products limit: 8
+          if shown >= 4
+            break
+          endif
+          if other.id == p.id
+            continue
+          endif
+          render 'alp-card', product: other
+          assign shown = shown | plus: 1
+        endfor
+        comment
+          Fewer than four products: fill with the featured product's other
+          photos — the second one is the chosen "second angle" if set.
+        endcomment
+        for m in p.media offset: 1
+          if shown >= 4
+            break
+          endif
+          assign angle = m.preview_image
+          assign cap = p.title
+          if forloop.first
+            if second != blank
+              assign angle = second
+            endif
+            assign cap = second_caption
+          endif
+          render 'alp-card', product: p, image: angle, caption: cap, quick: false
+          assign shown = shown | plus: 1
+        endfor
+      -%}
     </div>
   </div>
 
@@ -76,7 +106,6 @@
         {%- endif -%}
       </div>
     {%- endif -%}
-    {%- render 'alp-next-drop', variant: 'band', key: 'home' -%}
   </div>
 </section>
 

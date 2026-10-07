@@ -15,17 +15,6 @@
         "content": "Shared by the header, menus, footer and pages. Set once here instead of in every section."
       },
       {
-        "type": "header",
-        "content": "Shop"
-      },
-      {
-        "type": "text",
-        "id": "alp_next_drop",
-        "label": "Coming in the next drop",
-        "default": "T-Shirts, Caps",
-        "info": "Product types that aren't in the store yet, comma-separated. They show as \"next drop\" with Notify me, and drop off by themselves once a product with that Type is published. The shop menu is built from your products' Types and your collections."
-      },
-      {
         "type": "range",
         "id": "alp_filter_threshold",
         "label": "Show Filters and Sort from",
