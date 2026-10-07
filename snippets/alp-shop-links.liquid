@@ -11,7 +11,8 @@
   • Collections — every collection with products (Launch Collection, …).
 
   variant:
-    list – the Shop dropdown and the phone menu
+    list – the phone menu: Types, then Collections
+    drop – the desktop Shop dropdown: Collections, then Types
     bar  – the collection page's category bar; marks where you are
 {%- endcomment -%}
 {%- liquid
@@ -54,6 +55,18 @@
     <span class="alp-cats__rule" aria-hidden="true"></span>
     {{ collection_links }}
   {%- endif -%}
+{%- elsif variant == 'drop' -%}
+  {%- if collection_links != blank -%}
+    <p class="alp-cats__head">Collections</p>
+    {{ collection_links }}
+  {%- endif -%}
+  <p class="alp-cats__head">Types</p>
+  {%- for t in shop.types -%}
+    {%- if t != blank -%}
+      <a class="alp-cats__item" href="{{ t | url_for_type }}">{{ t | escape }}</a>
+    {%- endif -%}
+  {%- endfor -%}
+  {{ soon_links }}
 {%- else -%}
   <p class="alp-cats__head">Shop</p>
   <a class="alp-cats__item" href="{{ all_url }}"{% if menu_link %} data-alp-close{% endif %}>View all</a>

@@ -413,6 +413,16 @@
     try { return JSON.parse(s.textContent); } catch (err) { return null; }
   }
 
+  /* Quick add: pick a colour, see that colour's sizes. */
+  document.addEventListener('click', function (e) {
+    var c = e.target.closest('[data-alp-qcolour]');
+    if (!c) return;
+    e.preventDefault();
+    var strip = c.closest('.alp-card__quick'), name = c.getAttribute('data-alp-qcolour');
+    $$('[data-alp-qcolour]', strip).forEach(function (b) { b.setAttribute('aria-pressed', b === c ? 'true' : 'false'); });
+    $$('[data-alp-qgroup]', strip).forEach(function (g) { g.hidden = g.getAttribute('data-alp-qgroup') !== name; });
+  });
+
   document.addEventListener('click', function (e) {
     var btn = e.target.closest('[data-alp-add]');
     if (!btn || btn.disabled) return;

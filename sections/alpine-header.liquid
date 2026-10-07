@@ -87,6 +87,7 @@
         href="{{ shop_url }}"
         data-alp-toggle="alp-shopmenu"
         data-alp-hover
+        data-alp-follow
         aria-expanded="false"
         aria-controls="alp-shopmenu"
       >Shop</a>
@@ -126,42 +127,24 @@
 
   {%- comment -%}
     ── Shop panel (desktop) ──────────────────────────────────────────────
-    The shop landing (D02), as the dropdown — there is no separate landing
-    page to click through. Left: the categories (product types, then
-    collections), with local time, weather and the newsletter at the foot.
-    Middle: the product on its plain ground. Right: a lifestyle photo.
+    A small dropdown, not a page: the collections, then the product types
+    (each a page of its own), and one photo. Clicking Shop itself opens the
+    whole shop. Phones get the same links in the menu sheet.
   {%- endcomment -%}
   {%- liquid
     assign sp = section.settings.shop_product
     if sp == blank
       assign sp = collections['bush-riding-launch'].products.first | default: collections.all.products.first
     endif
-    assign sp_img = section.settings.shop_product_image | default: sp.featured_media.preview_image
     assign life_url = section.settings.shop_image_link.url | default: shop_url
   -%}
   <div class="alp-shopmenu alp-d" id="alp-shopmenu" data-alp-panel hidden>
-    <div class="alp-shop__side">
-      <nav class="alp-cats alp-cats--big" aria-label="Categories">
-        {%- render 'alp-shop-links', variant: 'list' -%}
-      </nav>
-      <span class="alp-shop__fill"></span>
-      <p class="alp-shop__now">
-        Local time <span data-alp-clock>{{ 'now' | date: '%H:%M' }}</span><br>
-        {{ settings.alp_place | escape }}
-        <span data-alp-wx-wrap hidden><br><span data-alp-wx-text data-alp-wx-format="dot"></span></span>
-      </p>
-      {%- render 'alp-signup', id: 'ShopNewsletter', tags: 'newsletter', label: 'Subscribe', size: 'sm' -%}
-      <p class="alp-shop__fine">We send the occasional route, nothing else.</p>
-    </div>
-    <a class="alp-shop__panel alp-shop__panel--ground" href="{{ sp.url | default: shop_url }}">
-      {%- if sp_img != blank -%}
-        {{ sp_img | image_url: width: 1400 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '600, 900, 1400', sizes: '40vw', alt: '' }}
-      {%- endif -%}
-      {%- if sp != blank -%}<span class="alp-shop__label">{{ sp.title | escape }}</span>{%- endif -%}
-    </a>
-    <a class="alp-shop__panel" href="{{ life_url }}">
+    <nav class="alp-shopmenu__links" aria-label="Shop">
+      {%- render 'alp-shop-links', variant: 'drop' -%}
+    </nav>
+    <a class="alp-shopmenu__photo" href="{{ life_url }}">
       {%- if section.settings.shop_image != blank -%}
-        {{ section.settings.shop_image | image_url: width: 1400 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '600, 900, 1400', sizes: '40vw', alt: '' }}
+        {{ section.settings.shop_image | image_url: width: 800 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '400, 600, 800', sizes: '240px', alt: '' }}
       {%- endif -%}
       {%- if section.settings.shop_image_label != blank -%}
         <span class="alp-shop__label alp-shop__label--bone">{{ section.settings.shop_image_label | escape }}</span>
@@ -273,8 +256,7 @@
     { "type": "image_picker", "id": "logo", "label": "Logo", "info": "Leave empty to use the olive wordmark that ships with the theme." },
     { "type": "text", "id": "wordmark", "label": "Logo alt text", "default": "Bush Riding™" },
     { "type": "header", "content": "Shop panel (desktop)" },
-    { "type": "product", "id": "shop_product", "label": "Product", "info": "Also leads Most popular in the search panel. Leave empty to use the first product in the store." },
-    { "type": "image_picker", "id": "shop_product_image", "label": "Product image", "info": "The product on a plain ground. Defaults to its first photo." },
+    { "type": "product", "id": "shop_product", "label": "Product", "info": "Leads Most popular in the search panel. Leave empty to use the first product in the store." },
     { "type": "image_picker", "id": "shop_image", "label": "Lifestyle photo" },
     { "type": "text", "id": "shop_image_label", "label": "Lifestyle caption", "default": "Shorts" },
     { "type": "collection", "id": "shop_image_link", "label": "Lifestyle photo links to", "info": "Leave empty to go to all products." },
