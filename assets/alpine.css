@@ -592,6 +592,10 @@ div.alp-scrim[hidden] { display: none; }
 .alp-sheet__thumb { position: relative; width: 72px; height: 96px; flex: none; background: var(--alp-card); overflow: hidden; }
 .alp-sheet__thumb img { width: 100%; height: 100%; object-fit: cover; }
 .alp-sheet__name { font: 600 16px/1.3 var(--alp-font-display); }
+.alp-sheet__colours { display: flex; flex-wrap: wrap; gap: 8px; }
+.alp-sheet__colours[hidden] { display: none; }
+.alp-sheet__colour { padding: 9px 16px; background: #fff; border: 1px solid var(--alp-line); border-radius: 999px; font: 500 14px/1.2 var(--alp-font-ui); cursor: pointer; }
+.alp-sheet__colour[aria-pressed='true'] { background: var(--alp-ink); border-color: var(--alp-ink); color: #fff; }
 .alp-sheet__sizes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .alp-sheet__size {
   padding: 15px 0; background: #fff; border: 1px solid var(--alp-ink); border-radius: 3px;

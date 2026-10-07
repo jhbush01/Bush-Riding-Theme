@@ -452,19 +452,43 @@
     if (data.image) { img.src = data.image; img.hidden = false; } else { img.hidden = true; }
     $('[data-alp-q-title]', sheet).textContent = data.title;
     $('[data-alp-q-price]', sheet).textContent = data.price;
-    var sizes = $('[data-alp-q-sizes]', sheet);
-    sizes.innerHTML = '';
-    data.variants.forEach(function (v) {
+    var sizes = $('[data-alp-q-sizes]', sheet), colours = $('[data-alp-q-colours]', sheet);
+    function sizeButton(v, label) {
       var b = document.createElement('button');
       b.type = 'button';
       b.className = 'alp-sheet__size';
-      b.textContent = v.title;
+      b.textContent = label;
       b.setAttribute('data-alp-add', v.id);
       b.setAttribute('data-alp-size', v.title === 'Add' ? '' : v.title);
-      b.setAttribute('aria-label', 'Add ' + data.title + (v.title === 'Add' ? '' : ', size ' + v.title));
+      b.setAttribute('aria-label', 'Add ' + data.title + (v.title === 'Add' ? '' : ', ' + v.title));
       if (!v.available) { b.disabled = true; b.setAttribute('aria-label', v.title + ', sold out'); }
-      sizes.appendChild(b);
-    });
+      return b;
+    }
+    sizes.innerHTML = '';
+    colours.innerHTML = '';
+    if (data.colour >= 0) {
+      /* Colour x Size: pick a colour, then that colour's sizes. */
+      var names = [];
+      data.variants.forEach(function (v) { if (names.indexOf(v.o[data.colour]) < 0) names.push(v.o[data.colour]); });
+      var showSizes = function (name) {
+        sizes.innerHTML = '';
+        $$('.alp-sheet__colour', colours).forEach(function (c) { c.setAttribute('aria-pressed', c.textContent === name ? 'true' : 'false'); });
+        data.variants.forEach(function (v) { if (v.o[data.colour] === name) sizes.appendChild(sizeButton(v, v.o[1 - data.colour])); });
+      };
+      names.forEach(function (name) {
+        var c = document.createElement('button');
+        c.type = 'button';
+        c.className = 'alp-sheet__colour';
+        c.textContent = name;
+        c.addEventListener('click', function () { showSizes(name); });
+        colours.appendChild(c);
+      });
+      colours.hidden = false;
+      showSizes(data.active || names[0]);
+    } else {
+      colours.hidden = true;
+      data.variants.forEach(function (v) { sizes.appendChild(sizeButton(v, v.title)); });
+    }
     /* The sheet's buttons live outside the card, so give it the card's data. */
     sheet.setAttribute('data-alp-card', '');
     var holder = $('[data-alp-card-data]', sheet);
@@ -1101,11 +1125,25 @@
     $$('[data-alp-ridetile]').forEach(function (tile) {
       if (tile._alp) return;
       tile._alp = true;
-      var id = routeIdFrom(tile.getAttribute('data-alp-ridetile'));
+      var ref = tile.getAttribute('data-alp-ridetile');
+      var id = routeIdFrom(ref);
       if (!id) return;
       feed('routes').then(function (list) {
-        var p = (list || []).filter(function (x) { return x.id === id; })[0];
-        if (!p) return; // unknown or unpublished route: keep the tile hidden
+        /* The id first, then — so a typed route name works too — a name match. */
+        var want = id.toLowerCase(), wantSlug = slugify(ref);
+        var p = (list || []).filter(function (x) { return String(x.id || '').toLowerCase() === want; })[0] ||
+                (list || []).filter(function (x) { return slugify(x.name) === wantSlug || slugify(x.name) === slugify(id); })[0];
+        if (p) id = p.id;
+        if (!p) {
+          /* Unknown or unpublished route: hidden for shoppers. In the theme
+             editor the tile says why, so a typo isn't a silent failure. */
+          if (window.console) console.warn('[alp] Ride-tested tile: no published Bush Map route matches "' + ref + '" (' + (list || []).length + ' routes loaded).');
+          if (window.Shopify && Shopify.designMode) {
+            tile.innerHTML = '<p class="alp-ridetile__eyebrow">Ride-tested on</p><p class="alp-ridetile__meta">No published Bush Map route matches \u201c' + String(ref).replace(/[<&]/g, '') + '\u201d' + ((list || []).length ? '' : ' (the routes feed returned nothing)') + '. Use the id at the end of the route page link. Shoppers see nothing here until it matches.</p>';
+            tile.hidden = false;
+          }
+          return;
+        }
         var state = String(p.state || '').trim().toUpperCase(), region = String(p.region || '').trim();
         var sm = !state && region.match(/,\s*([A-Za-z]{2,3})\s*$/);
         if (sm) { state = sm[1].toUpperCase(); region = region.replace(/,\s*[A-Za-z]{2,3}\s*$/, ''); }
@@ -1172,18 +1210,11 @@
 
   /* ── Boot ── */
   function init() {
-    initSignups();
-    initScrollers();
-    initRecs();
-    tickClock();
-    initWeather();
-    initVideos();
-    initPdp();
-    initRideTiles();
-    openFilterGroups();
-    initRides();
-    initRoutesPage();
-    initSearch();
+    /* One failing block mustn't stop the rest of the page's script. */
+    [initSignups, initScrollers, initRecs, tickClock, initWeather, initVideos, initPdp, initRideTiles,
+     openFilterGroups, initRides, initRoutesPage, initSearch].forEach(function (fn) {
+      try { fn(); } catch (err) { if (window.console) console.error('[alp] ' + (fn.name || 'init') + ' failed:', err); }
+    });
   }
 
   init();
