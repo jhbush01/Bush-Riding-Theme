@@ -252,6 +252,15 @@ a:hover > .alp-duo__stack .alp-chip, summary:hover > .alp-chip {
 }
 .alp-searchmenu__col .alp-over { padding: 0 0 4px; color: var(--alp-ink); }
 .alp-searchmenu__col .alp-hit--none { border-bottom: 0; }
+@media (max-width: 749px) {
+  /* Phone: the same overlay, filling the screen under the 56px bar. */
+  .alp-searchmenu { max-height: calc(100svh - 56px); overscroll-behavior: contain; }
+  .alp-searchmenu__form { padding: 14px 18px; }
+  .alp-searchmenu__head { padding: 8px 18px 14px; font-size: 17px; }
+  .alp-searchmenu__grid { padding: 0 18px 24px; }
+  .alp-searchmenu__results { grid-template-columns: 1fr; gap: 8px; padding: 0 18px 28px; }
+  .alp-searchmenu__col .alp-over { padding: 12px 0 4px; }
+}
 
 /* D08 · Bush Map panel */
 .alp-mapmenu { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); height: 460px; }
