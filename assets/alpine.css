@@ -238,12 +238,16 @@ a:hover > .alp-duo__stack .alp-chip, summary:hover > .alp-chip {
 }
 .alp-mapmenu.is-open, .alp-shopmenu.is-open, .alp-searchmenu.is-open, .alp-menu.is-open { transform: none; opacity: 1; }
 
-/* Shop panel — the shop landing (D02), as the dropdown */
+/* Shop panel — a small dropdown under the bar: links left, one photo right. */
 .alp-shopmenu {
-  display: grid; grid-template-columns: 320px minmax(0, 1fr) minmax(0, 1fr);
-  height: min(800px, calc(100vh - var(--alp-hd)));
+  right: auto; width: min(560px, 100%);
+  display: grid; grid-template-columns: minmax(0, 1fr) 220px;
+  border-right: 1px solid var(--alp-ink);
 }
-.alp-shopmenu .alp-shop__side { overflow-y: auto; }
+.alp-shopmenu__links { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 28px 32px 32px; font: 600 17px/1.25 var(--alp-font-display); max-height: calc(100vh - var(--alp-hd)); overflow-y: auto; }
+.alp-shopmenu__links .alp-cats__head { margin-top: 0; }
+.alp-shopmenu__links .alp-cats__head ~ .alp-cats__head { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--alp-line); align-self: stretch; }
+.alp-shopmenu__photo { position: relative; display: block; min-height: 260px; overflow: hidden; background: var(--alp-haze); }
 
 /* Search panel — D06 as an overlay */
 .alp-searchmenu { max-height: calc(100vh - var(--alp-hd)); overflow-y: auto; }
@@ -414,6 +418,11 @@ div.alp-scrim[hidden] { display: none; }
 .alp-card:hover .alp-card__quick, .alp-card__quick:focus-within { opacity: 1; transform: none; }
 @media (hover: none) { .alp-card__quick { opacity: 1; transform: none; } }
 .alp-card__quick-label { font-weight: 600; }
+.alp-card__qbody { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.alp-card__colours { display: flex; gap: 14px; font-size: 13px; }
+.alp-card__colour { padding: 2px 0; background: none; border: 0; cursor: pointer; font: inherit; color: var(--alp-accent); }
+.alp-card__colour[aria-pressed='true'] { color: var(--alp-ink); font-weight: 600; text-decoration: underline; text-underline-offset: 4px; }
+.alp-card__sizes[hidden] { display: none; }
 .alp-card__sizes { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px 14px; }
 .alp-card__size { padding: 2px 0; background: none; border: 0; cursor: pointer; font: inherit; }
 .alp-card__size:hover { text-decoration: underline; text-underline-offset: 3px; }
@@ -447,17 +456,9 @@ div.alp-scrim[hidden] { display: none; }
   .alp-soon__body { font-size: 16px; }
 }
 
-/* ── Shop landing (D02 · M03) ────────────────────────────────────────────── */
-.alp-shop__side { display: flex; flex-direction: column; gap: 16px; padding: 40px; }
-.alp-cats--big { flex-direction: column; gap: 16px; font: 600 20px/1.2 var(--alp-font-display); }
-.alp-shop__fill { flex: 1; }
-.alp-shop__now { font: 15px/1.5 var(--alp-font-ui); font-variant-numeric: tabular-nums; }
-.alp-shop__fine { font-size: 12px; }
-.alp-shop__panel { position: relative; display: block; overflow: hidden; background: var(--alp-haze); }
-.alp-shop__panel--ground { background: var(--alp-card); }
+/* ── Shop dropdown photo label ───────────────────────────────────────────── */
 .alp-shop__label { position: absolute; left: 24px; bottom: 24px; font: 600 18px/1.2 var(--alp-font-display); color: var(--alp-ink); }
 .alp-shop__label--bone { color: var(--alp-bg); }
-.alp a.alp-shop__panel:hover { color: inherit; }
 
 /* ── Collection (D03 · D04 · M04 · M05) ──────────────────────────────────── */
 .alp-cat__bar {

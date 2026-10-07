@@ -5,8 +5,8 @@
   with the sizes; clicking one adds it and opens the cart drawer.
   Phone: a "Quick add +" chip opens the size sheet; tapping a size adds it.
 
-  Variant titles are the size buttons, so the strip works for any product, not
-  only single-option ones. The card carries its own variant data for the
+  A Colour x Size product shows the colours, then the active colour's sizes;
+  any other product lists its variant titles, so the strip works for all. The card carries its own variant data for the
   sheet, read by alpine.js — no product fetch between tap one and tap two.
 
   product  – required
@@ -23,6 +23,35 @@
     assign show_quick = false
   endif
   assign price = product.price | money_without_trailing_zeros
+
+  comment
+    Two options with a colour among them: the strip shows the colours once and
+    only the active colour's sizes — not every colour x size as its own button.
+  endcomment
+  assign q_colour = -1
+  if show_quick and product.options.size == 2
+    for o in product.options_with_values
+      assign oname = o.name | downcase
+      if oname contains 'colour' or oname contains 'color'
+        assign q_colour = forloop.index0
+        assign q_colours = o.values
+      endif
+    endfor
+  endif
+  assign q_size = 1 | minus: q_colour
+  assign q_active = ''
+  if q_colour >= 0
+    for colour in q_colours
+      for v in product.variants
+        if q_active == '' and v.available and v.options[q_colour] == colour
+          assign q_active = colour
+        endif
+      endfor
+    endfor
+    if q_active == ''
+      assign q_active = q_colours.first
+    endif
+  endif
 -%}
 <div class="alp-card" data-alp-card>
   <div class="alp-card__media">
@@ -33,15 +62,33 @@
     </a>
 
     {%- if show_quick -%}
-      <div class="alp-card__quick alp-d" role="group" aria-label="Quick add {{ product.title | escape }}">
+      <div class="alp-card__quick alp-d{% if q_colour >= 0 %} alp-card__quick--split{% endif %}" role="group" aria-label="Quick add {{ product.title | escape }}">
         <span class="alp-card__quick-label">Quick add</span>
-        <span class="alp-card__sizes">
-          {%- for v in product.variants -%}
-            {%- assign v_label = v.title -%}
-            {%- if product.has_only_default_variant -%}{%- assign v_label = 'Add +' -%}{%- endif -%}
-            <button type="button" class="alp-card__size" data-alp-add="{{ v.id }}"{% unless v.available %} disabled{% endunless %} aria-label="Add {{ product.title | escape }}{% unless product.has_only_default_variant %}, {{ v.title | escape }}{% endunless %}">{{ v_label | escape }}</button>
-          {%- endfor -%}
-        </span>
+        {%- if q_colour >= 0 -%}
+          <span class="alp-card__qbody">
+            <span class="alp-card__colours" role="group" aria-label="Colour">
+              {%- for colour in q_colours -%}
+                <button type="button" class="alp-card__colour" data-alp-qcolour="{{ colour | escape }}" aria-pressed="{% if colour == q_active %}true{% else %}false{% endif %}">{{ colour | escape }}</button>
+              {%- endfor -%}
+            </span>
+            {%- for colour in q_colours -%}
+              <span class="alp-card__sizes" data-alp-qgroup="{{ colour | escape }}"{% unless colour == q_active %} hidden{% endunless %}>
+                {%- for v in product.variants -%}
+                  {%- if v.options[q_colour] != colour -%}{%- continue -%}{%- endif -%}
+                  <button type="button" class="alp-card__size" data-alp-add="{{ v.id }}" data-alp-size="{{ v.title | escape }}"{% unless v.available %} disabled{% endunless %} aria-label="Add {{ product.title | escape }}, {{ v.title | escape }}{% unless v.available %}, sold out{% endunless %}">{{ v.options[q_size] | escape }}</button>
+                {%- endfor -%}
+              </span>
+            {%- endfor -%}
+          </span>
+        {%- else -%}
+          <span class="alp-card__sizes">
+            {%- for v in product.variants -%}
+              {%- assign v_label = v.title -%}
+              {%- if product.has_only_default_variant -%}{%- assign v_label = 'Add +' -%}{%- endif -%}
+              <button type="button" class="alp-card__size" data-alp-add="{{ v.id }}"{% unless v.available %} disabled{% endunless %} aria-label="Add {{ product.title | escape }}{% unless product.has_only_default_variant %}, {{ v.title | escape }}{% endunless %}">{{ v_label | escape }}</button>
+            {%- endfor -%}
+          </span>
+        {%- endif -%}
       </div>
       <button type="button" class="alp-chip alp-card__qa alp-m" data-alp-quick aria-haspopup="dialog">Quick add +</button>
       <script type="application/json" data-alp-card-data>
