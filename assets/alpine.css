@@ -717,6 +717,28 @@ div.alp-scrim[hidden] { display: none; }
 @media (min-width: 750px) { .alp-buy__actions { grid-template-columns: 1fr; } }
 
 /* Temperature range and weather conditions */
+/* Ride-tested on — a Bush Map route card in the buy column. */
+.alp-ridetile { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; padding: 18px 18px 14px; background: var(--alp-surface); border-radius: 16px; box-shadow: 0 1px 0 var(--alp-line), 0 6px 18px rgba(76, 75, 59, .08); }
+.alp-ridetile[hidden] { display: none; }
+.alp-ridetile__top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.alp-ridetile__eyebrow { font: 600 10px/1.2 var(--alp-font-ui); letter-spacing: .14em; text-transform: uppercase; color: var(--alp-accent); }
+.alp-ridetile__brand { font: 600 10px/1.2 var(--alp-font-ui); letter-spacing: .04em; text-transform: uppercase; }
+.alp-ridetile__name { margin-top: 6px; font: 600 19px/1.2 var(--alp-font-display); }
+.alp-ridetile__meta { font-size: 12px; line-height: 1.5; color: var(--alp-accent); }
+.alp-ridetile__elev { height: 64px; margin-top: 8px; }
+.alp-ridetile__elev:empty { display: none; }
+.alp-ridetile__elev svg { display: block; width: 100%; height: 100%; }
+.alp-ridetile__area { fill: var(--alp-bg); opacity: .7; }
+.alp-ridetile__line { fill: none; stroke: var(--alp-ink); stroke-width: 1.6; stroke-linejoin: round; }
+.alp-ridetile__stats { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; margin: 0; background: color-mix(in srgb, var(--alp-bg) 55%, var(--alp-surface)); border-radius: 10px; }
+.alp-ridetile__stats > div { display: flex; flex-direction: column-reverse; gap: 4px; padding: 10px 12px; }
+.alp-ridetile__stats > div + div { border-left: 1px solid var(--alp-line); }
+.alp-ridetile__stats dd { margin: 0; font: 600 14px/1.2 var(--alp-font-display); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.alp-ridetile__stats dt { font-size: 11px; color: var(--alp-accent); }
+.alp-ridetile__foot { display: flex; justify-content: space-between; margin-top: 6px; padding-top: 10px; border-top: 1px solid var(--alp-line); font-size: 12px; font-weight: 600; }
+.alp-ridetile__foot a { color: var(--alp-ink); text-decoration: none; }
+.alp-ridetile__foot a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
 .alp-temp, .alp-wxc { display: flex; flex-direction: column; gap: 9px; padding-top: 6px; }
 .alp-temp__head { display: flex; justify-content: space-between; align-items: baseline; }
 .alp-temp__title { font: 600 14px/1.2 var(--alp-font-display); }
