@@ -42,13 +42,13 @@
         "type": "page",
         "id": "alp_rides_page",
         "label": "Rides page",
-        "info": "Uses the page.rides template. Leave empty to use the page with the handle rides."
+        "info": "Leave empty to use the page with the handle rides, or — if there is none — the journal, which shows the Rides layout. A page with the handle rides gets the Rides layout by itself, no template to pick."
       },
       {
         "type": "page",
         "id": "alp_bush_map_page",
         "label": "Bush Map page (phones)",
-        "info": "Uses the page.bush-map template. Leave empty to use the page with the handle bush-map. On desktop, Bush Map opens the menu panel instead."
+        "info": "Leave empty to use the page with the handle bush-map (it gets the Bush Map layout by itself). With no such page, Bush Map on phones goes straight to the map. On desktop, Bush Map opens the menu panel instead."
       },
       {
         "type": "page",

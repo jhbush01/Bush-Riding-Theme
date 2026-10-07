@@ -11,7 +11,17 @@
   Recaps are the journal's articles.
 {%- endcomment -%}
 {%- liquid
+  assign show = true
+  if section.settings.only_handle != blank and template.name == 'page' and page.handle != section.settings.only_handle
+    assign show = false
+  endif
+-%}
+{%- if show -%}
+{%- liquid
   assign rblog = section.settings.blog
+  if template.name == 'blog'
+    assign rblog = blog
+  endif
   if rblog == blank or rblog.handle == blank
     assign rblog = blogs['journal']
   endif
@@ -66,17 +76,20 @@
   {%- if rblog != blank and rblog.articles_count > 0 -%}
     <h2 class="alp-pagehead__title alp-rides__recaps">Recaps</h2>
     {%- render 'alp-recaps', articles: rblog.articles, limit: section.settings.recaps -%}
-    {%- if rblog.articles_count > section.settings.recaps -%}
+    {%- if template.name != 'blog' and rblog.articles_count > section.settings.recaps -%}
       <p class="alp-more"><a href="{{ rblog.url }}">All recaps</a></p>
     {%- endif -%}
   {%- endif -%}
 </section>
+
+{%- endif -%}
 
 {% schema %}
 {
   "name": "Rides",
   "tag": "div",
   "settings": [
+    { "type": "text", "id": "only_handle", "label": "Only on the page with handle", "info": "Used on the default page template, where every page shares one layout list. Leave empty to always show." },
     { "type": "text", "id": "heading", "label": "Heading", "default": "Upcoming rides" },
     { "type": "text", "id": "subheading", "label": "Line (desktop)", "default": "Ride with us. Share your stories. Let's explore together." },
     { "type": "text", "id": "subheading_mobile", "label": "Line (phones)", "default": "Ride with us. Share your stories." },

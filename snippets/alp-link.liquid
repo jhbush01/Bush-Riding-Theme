@@ -4,7 +4,8 @@
 
   to: rides | about | bush_map | map | submit | size_guide | shop | strava | instagram
   Pages fall back to their conventional handle, then to something that still
-  works (the map site for Bush Map, the events index for Rides) — a nav link
+  works (the journal for Rides — the blog template is the Rides layout — and
+  the map site for Bush Map) — a nav link
   to a 404 is worse than a link one step further away.
 {%- endcomment -%}
 {%- liquid
@@ -12,8 +13,17 @@
   case to
     when 'rides'
       assign p = settings.alp_rides_page | default: pages['rides']
+      assign b = blogs['journal']
+      if b == blank or b.handle == blank
+        for x in blogs
+          assign b = x
+          break
+        endfor
+      endif
       if p != blank and p.url != blank
         echo p.url
+      elsif b != blank and b.url != blank
+        echo b.url
       else
         echo map_url | append: '/events/'
       endif

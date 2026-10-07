@@ -5,6 +5,13 @@
   The story is the page's own content when it has any, so it's edited in
   Online Store → Pages like any other page; the text here is the fallback.
 {%- endcomment -%}
+{%- liquid
+  assign show = true
+  if section.settings.only_handle != blank and template.name == 'page' and page.handle != section.settings.only_handle
+    assign show = false
+  endif
+-%}
+{%- if show -%}
 <section class="alp alp-about">
   <div class="alp-about__split">
     <div class="alp-about__photo">
@@ -44,11 +51,14 @@
   </div>
 </section>
 
+{%- endif -%}
+
 {% schema %}
 {
   "name": "About",
   "tag": "div",
   "settings": [
+    { "type": "text", "id": "only_handle", "label": "Only on the page with handle", "info": "Used on the default page template, where every page shares one layout list. Leave empty to always show." },
     { "type": "image_picker", "id": "image", "label": "Photo" },
     { "type": "text", "id": "heading", "label": "Heading", "default": "About Bush Riding" },
     {

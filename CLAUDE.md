@@ -77,6 +77,10 @@ most of the work — text and icon as support. Show, don't tell.
   tokens (the prefix is historical). Shared config — shop menu, Rides /
   About / Bush Map pages, map API, time zone, weather, Strava — is in
   Theme settings → Bush Riding, read through `snippets/alp-link.liquid`.
+  Pages need no template choice: the default `page.json` carries the About,
+  Rides and Bush Map layouts, each shown only for its page handle (`about`,
+  `rides`, `bush-map`). The blog template is the Rides layout too, so Rides
+  works before a rides page exists.
   The three-tap checkout (card → size → Checkout; product → size → Buy now)
   is a hard requirement: don't add a step to it. Dawn's own sections remain
   only for accounts, policies, contact and the password page (`main-waitlist`

@@ -7,6 +7,13 @@
   there, but the page has to stand up if someone lands on it).
 {%- endcomment -%}
 {%- liquid
+  assign show = true
+  if section.settings.only_handle != blank and template.name == 'page' and page.handle != section.settings.only_handle
+    assign show = false
+  endif
+-%}
+{%- if show -%}
+{%- liquid
   capture map_url
     render 'alp-link', to: 'map'
   endcapture
@@ -45,11 +52,14 @@
   </div>
 </section>
 
+{%- endif -%}
+
 {% schema %}
 {
   "name": "Bush Map",
   "tag": "div",
   "settings": [
+    { "type": "text", "id": "only_handle", "label": "Only on the page with handle", "info": "Used on the default page template, where every page shares one layout list. Leave empty to always show." },
     { "type": "text", "id": "tagline", "label": "Tagline", "default": "Explore more with our curated gravel routes and events" },
     { "type": "range", "id": "limit", "label": "Routes shown", "min": 2, "max": 12, "step": 1, "default": 6 }
   ],
