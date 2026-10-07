@@ -1,7 +1,8 @@
 {%- comment -%}
   Collection (D03 / D04 desktop, M04 / M05 phone).
 
-  Category bar: View all · New in · Bottoms · T-Shirts soon · Caps soon, and
+  Category bar: View all · each product Type · next-drop types · then the
+  collections (alp-shop-links). Products are grouped under their Type. At the right either
   at the right either "1 product" or — from the Theme settings threshold
   (6) up — Filters and Sort by. Filters and Sort do nothing for a handful of
   products, so they aren't drawn until they would.
@@ -35,6 +36,10 @@
   endfor
 
   assign count = collection.products_count
+  assign coming_soon = false
+  if collection.all_products_count == 0 and collection.handle != 'all' and collection.current_type == blank
+    assign coming_soon = true
+  endif
   assign sort_by = collection.sort_by | default: collection.default_sort_by
 
   assign codes = section.settings.codes | newline_to_br | split: '<br />'
@@ -67,10 +72,11 @@
         </select>
       </label>
     {%- else -%}
-      <span class="alp-cat__count alp-d">{{ count }} {% if count == 1 %}product{% else %}products{% endif %}</span>
+      {%- unless coming_soon -%}<span class="alp-cat__count alp-d">{{ count }} {% if count == 1 %}product{% else %}products{% endif %}</span>{%- endunless -%}
     {%- endif -%}
   </div>
 
+  {%- unless coming_soon -%}
   <div class="alp-cat__countrow alp-m">
     <span>{{ count }} {% if count == 1 %}product{% else %}products{% endif %}</span>
     {%- if show_tools -%}
@@ -79,6 +85,7 @@
       </button>
     {%- endif -%}
   </div>
+  {%- endunless -%}
 
   {%- if show_tools -%}
     <div class="alp-filters" id="alp-filters" data-alp-panel data-alp-sheet hidden>
@@ -160,40 +167,82 @@
     </div>
   {%- endif -%}
 
+  {%- if coming_soon -%}
+    {%- comment -%}
+      An empty collection is a category that hasn't landed: its page is the
+      Notify me. Signups are tagged next-drop plus the collection's handle,
+      so Admin → Customers can find everyone waiting for it.
+    {%- endcomment -%}
+    {%- assign soon_tags = 'next-drop, ' | append: collection.handle -%}
+    {%- assign soon_img = collection.featured_image | default: section.settings.lifestyle -%}
+    <div class="alp-soon">
+      <div class="alp-soon__text">
+        <span class="alp-badge alp-badge--flare">Next drop</span>
+        <h2 class="alp-soon__title">{{ collection.title | escape }}</h2>
+        <div class="alp-soon__body">
+          {%- if collection.description != blank -%}{{ collection.description }}{%- else -%}<p>{{ section.settings.soon_line | escape }}</p>{%- endif -%}
+        </div>
+        {%- render 'alp-signup', id: 'ComingSoon', tags: soon_tags, label: 'Notify me', thanks: "Noted. You'll hear when they land." -%}
+        <a class="alp-soon__back" href="{{ routes.all_products_collection_url }}">Shop what's here now</a>
+      </div>
+      <div class="alp-soon__photo">
+        {%- if soon_img != blank -%}
+          {{ soon_img | image_url: width: 1600 | image_tag: class: 'alp-fill', loading: 'eager', widths: '800, 1200, 1600', sizes: '(min-width: 750px) 50vw, 100vw', alt: '' }}
+        {%- endif -%}
+      </div>
+    </div>
+  {%- else -%}
   <div class="alp-cat__layout">
     <div class="alp-cat__tiles">
-      {%- assign n = collection.products.size -%}
-      {%- for product in collection.products -%}
-        {%- if forloop.index <= 2 -%}{%- assign eager = 'eager' -%}{%- else -%}{%- assign eager = 'lazy' -%}{%- endif -%}
-        {%- render 'alp-card', product: product, loading: eager -%}
-        {%- liquid
-          assign put_life = false
-          assign every = forloop.index | modulo: 2
-          if every == 0 and forloop.last == false
-            assign put_life = true
-          endif
-          if forloop.last and n < 3
-            assign put_life = true
-          endif
-        -%}
-        {%- if put_life and section.settings.lifestyle != blank -%}
-          <div class="alp-photo alp-photo--520 alp-m">
-            {{ section.settings.lifestyle | image_url: width: 1200 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '600, 900, 1200', sizes: '100vw', alt: '' }}
-          </div>
+      {%- liquid
+        assign n = collection.products.size
+        assign life = section.settings.lifestyle
+        comment
+          Grouped by product Type (Shorts, …) — the store's own categories —
+          unless someone has filtered, sorted, or is already on one type's
+          page, where headings would only repeat what they chose.
+        endcomment
+        assign grouped = false
+        if section.settings.group_by_type and active == 0 and collection.current_type == blank and collection.sort_by == blank and n > 0
+          assign grouped = true
+        endif
+        assign i = 0
+      -%}
+      {%- if grouped -%}
+        {%- for t in collection.all_types -%}
+          {%- if t == blank -%}{%- continue -%}{%- endif -%}
+          {%- assign in_type = collection.products | where: 'type', t -%}
+          {%- if in_type.size == 0 -%}{%- continue -%}{%- endif -%}
+          <h2 class="alp-cat__group">
+            <span>{{ t | escape }}</span>
+            <a href="{{ t | url_for_type }}">See all</a>
+          </h2>
+          {%- for product in in_type -%}
+            {%- assign i = i | plus: 1 -%}
+            {%- render 'alp-cat-tile', product: product, i: i, n: n, lifestyle: life -%}
+          {%- endfor -%}
+        {%- endfor -%}
+        {%- capture untyped -%}
+          {%- for product in collection.products -%}
+            {%- if product.type == blank -%}x{%- endif -%}
+          {%- endfor -%}
+        {%- endcapture -%}
+        {%- if untyped != blank -%}
+          <h2 class="alp-cat__group"><span>More</span></h2>
+          {%- for product in collection.products -%}
+            {%- if product.type != blank -%}{%- continue -%}{%- endif -%}
+            {%- assign i = i | plus: 1 -%}
+            {%- render 'alp-cat-tile', product: product, i: i, n: n, lifestyle: life -%}
+          {%- endfor -%}
         {%- endif -%}
       {%- else -%}
-        <p class="alp-cat__empty">Nothing here yet. {% if active > 0 %}<a href="{{ collection.url }}">Clear the filters</a>{% else %}<a href="{{ routes.all_products_collection_url }}">See everything</a>{% endif %}</p>
-      {%- endfor -%}
-
-      {%- if paginate.current_page == 1 and active == 0 -%}
-        <div class="alp-d alp-contents">
-          {%- render 'alp-next-drop', variant: 'tiles', key: 'cat' -%}
-          <div class="alp-olive-tile">
-            <p class="alp-olive-tile__head">{{ section.settings.notify_heading | escape }}</p>
-            {%- render 'alp-signup', id: 'CatNextDrop', tags: 'next-drop', label: 'Notify me', tone: 'olive', size: 'sm', thanks: "Noted. You'll hear first." -%}
-          </div>
-        </div>
+        {%- for product in collection.products -%}
+          {%- render 'alp-cat-tile', product: product, i: forloop.index, n: n, lifestyle: life -%}
+        {%- else -%}
+          <p class="alp-cat__empty">Nothing here yet. {% if active > 0 %}<a href="{{ collection.url }}">Clear the filters</a>{% else %}<a href="{{ routes.all_products_collection_url }}">See everything</a>{% endif %}</p>
+        {%- endfor -%}
       {%- endif -%}
+
     </div>
 
     <div class="alp-cat__feature alp-d">
@@ -203,8 +252,6 @@
     </div>
   </div>
 
-  {%- if paginate.current_page == 1 and active == 0 -%}
-    <div class="alp-m">{%- render 'alp-next-drop', variant: 'band', key: 'cat' -%}</div>
   {%- endif -%}
 
   {%- if paginate.pages > 1 -%}
@@ -223,7 +270,8 @@
   "tag": "div",
   "settings": [
     { "type": "image_picker", "id": "lifestyle", "label": "Lifestyle photo", "info": "Holds the right half on desktop; repeats after every two products on phones." },
-    { "type": "text", "id": "notify_heading", "label": "Next-drop tile heading", "default": "Hear about the next drop first." },
+    { "type": "checkbox", "id": "group_by_type", "label": "Group products by Type", "default": true, "info": "Headings per product Type (Shorts, …) on all products and on collections. Off while a filter or sort is applied." },
+    { "type": "text", "id": "soon_line", "label": "Coming-soon line", "default": "Coming in the next drop. Leave your email and we'll let you know the day they land.", "info": "Shown on an empty collection's page, above Notify me. A collection's own description replaces it." },
     {
       "type": "textarea", "id": "codes", "label": "Filter codes",
       "default": "Ultra-lightweight nylon shell: LW\nMoisture-wicking lining: MW\nRear zip pocket: ZP",

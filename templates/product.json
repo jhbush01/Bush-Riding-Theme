@@ -12,33 +12,77 @@
     "main": {
       "type": "alpine-product",
       "settings": {
-        "show_next_drop": true
+        "carousel_count": 2,
+        "description_as_statement": false,
+        "conditions_list": "Hot, Cold, Rain, Low light",
+        "more_heading": "More colours and styles",
+        "outfit_heading": "Create your outfit",
+        "alt_captions": true
       },
       "blocks": {
-        "fabric": {
+        "usage": {
           "type": "accordion",
           "settings": {
-            "title": "Fabric & features",
-            "source": "custom",
-            "content": "<ul><li>Ultra-lightweight, durable nylon outer shell</li><li>Moisture-wicking nylon inner lining</li><li>Rear zipper pocket</li></ul>",
-            "open": true
-          }
-        },
-        "fit": {
-          "type": "accordion",
-          "settings": {
-            "title": "Fit",
-            "source": "custom",
+            "title": "Usage",
+            "place": "details",
+            "source": "metafield",
+            "metafield_key": "usage",
             "content": "",
             "open": false
           }
         },
-        "care": {
+        "technology": {
           "type": "accordion",
           "settings": {
-            "title": "Care",
-            "source": "care",
+            "title": "Technology",
+            "place": "details",
+            "source": "metafield",
+            "metafield_key": "technology",
             "content": "",
+            "open": false
+          }
+        },
+        "features": {
+          "type": "accordion",
+          "settings": {
+            "title": "Features",
+            "place": "details",
+            "source": "metafield",
+            "metafield_key": "features",
+            "content": "<ul><li>Ultra-lightweight, durable nylon outer shell</li><li>Moisture-wicking nylon inner lining</li><li>Rear zipper pocket</li></ul>",
+            "open": false
+          }
+        },
+        "composition_care": {
+          "type": "accordion",
+          "settings": {
+            "title": "Composition & care",
+            "place": "details",
+            "source": "metafield",
+            "metafield_key": "composition_care",
+            "content": "",
+            "open": false
+          }
+        },
+        "warranty": {
+          "type": "accordion",
+          "settings": {
+            "title": "Warranty",
+            "place": "details",
+            "source": "metafield",
+            "metafield_key": "warranty",
+            "content": "",
+            "open": false
+          }
+        },
+        "help": {
+          "type": "accordion",
+          "settings": {
+            "title": "Need help?",
+            "place": "side",
+            "source": "custom",
+            "metafield_key": "",
+            "content": "<p>Questions about fit or fabric? Drop us a line and we'll sort it out.</p>",
             "open": false
           }
         },
@@ -46,16 +90,21 @@
           "type": "accordion",
           "settings": {
             "title": "Shipping & returns",
+            "place": "side",
             "source": "shipping",
+            "metafield_key": "",
             "content": "",
             "open": false
           }
         }
       },
       "block_order": [
-        "fabric",
-        "fit",
-        "care",
+        "usage",
+        "technology",
+        "features",
+        "composition_care",
+        "warranty",
+        "help",
         "shipping"
       ]
     }

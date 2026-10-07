@@ -74,13 +74,27 @@ most of the work — text and icon as support. Show, don't tell.
   Hifi `.dc.html` files are the visual reference). Every storefront page is
   an `sections/alpine-*.liquid` section with `snippets/alp-*.liquid`, styled
   by `assets/alpine.css` and driven by `assets/alpine.js` on `--alp-*`
-  tokens (the prefix is historical). Shared config — shop menu, Rides /
+  tokens (the prefix is historical). Shared config — Rides /
   About / Bush Map pages, map API, time zone, weather, Strava — is in
   Theme settings → Bush Riding, read through `snippets/alp-link.liquid`.
+  The shop menu is built from Shopify itself (`snippets/alp-shop-links`):
+  product Types first (Shorts → its url_for_type page), then collections;
+  products on collection pages are grouped by Type. A coming-soon category
+  is an EMPTY collection (Shopify has no Type without a product): it shows
+  as "soon" in the menu and its page is a Notify me signup, tagged
+  next-drop + the collection handle. Never show placeholders beside real
+  products. There is no shop landing
+  page — the header's Shop dropdown is it.
   Pages need no template choice: the default `page.json` carries the About,
   Rides and Bush Map layouts, each shown only for its page handle (`about`,
   `rides`, `bush-map`). The blog template is the Rides layout too, so Rides
   works before a rides page exists.
+  The product page (`sections/alpine-product.liquid`, Satisfy reference
+  layout) reads product metafields in the `custom` namespace — statement,
+  spec_pills, temp_min/temp_max, conditions, model_note, silhouette, and the
+  accordion fields usage/technology/features/composition_care/warranty —
+  and hides each block while its field is empty. The list is in the
+  section's header comment.
   The three-tap checkout (card → size → Checkout; product → size → Buy now)
   is a hard requirement: don't add a step to it. Dawn's own sections remain
   only for accounts, policies, contact and the password page (`main-waitlist`

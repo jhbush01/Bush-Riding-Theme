@@ -463,6 +463,95 @@
     openPanel('alp-quick', { focusFrom: chip });
   });
 
+  /* ── Email signups (newsletter, Notify me) ───────────────────────────────
+     Every signup form posts into one hidden iframe, so the page itself never
+     reloads or moves. That matters because Shopify injects its own bot-
+     protection script that listens for these submits, adds a captcha token
+     and re-submits the form natively — a fetch() of our own would race it
+     (ours fails without the token, then Shopify's reload throws the visitor
+     to the footer). Targeting an iframe works WITH that script: however the
+     form is submitted, the response lands in the frame, and we read the
+     result from there and answer in the form that was used.
+     A real captcha challenge can't be solved in a hidden frame, so that one
+     case falls back to an ordinary submit. */
+  var sinkName = 'alp-signup-sink';
+  var pendingSignup = null;
+
+  function signupSink() {
+    var f = document.querySelector('iframe[name="' + sinkName + '"]');
+    if (f) return f;
+    f = document.createElement('iframe');
+    f.name = sinkName;
+    f.title = 'Signup';
+    f.tabIndex = -1;
+    f.setAttribute('aria-hidden', 'true');
+    /* Fixed in the corner, not at the foot of the page: Shopify redirects back
+       to "#<form id>", and Chrome scrolls the parent page to reveal a fragment
+       inside a same-origin frame. A frame that's always on screen gives it
+       nothing to scroll to. */
+    f.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;border:0;opacity:0;pointer-events:none';
+    f.addEventListener('load', onSignupLoad);
+    document.body.appendChild(f);
+    return f;
+  }
+
+  function initSignups() {
+    var forms = $$('[data-alp-signup]');
+    if (!forms.length) return;
+    signupSink();
+    forms.forEach(function (form) { form.setAttribute('target', sinkName); });
+  }
+
+  function signupResult(form, ok) {
+    var btn = $('button[type="submit"]', form);
+    if (btn) btn.classList.remove('is-busy');
+    if (ok) {
+      $$('input:not([type="hidden"]), button, label', form).forEach(function (n) { n.hidden = true; });
+      var msg = $('[data-alp-ok]', form);
+      if (msg) msg.hidden = false;
+    } else {
+      var err = $('[data-alp-err]', form);
+      if (err) err.hidden = false;
+    }
+  }
+
+  function onSignupLoad() {
+    var form = pendingSignup;
+    if (!form) return;
+    var frame = signupSink();
+    var href = '', doc = null;
+    try { href = frame.contentWindow.location.href; doc = frame.contentDocument; }
+    catch (err) { pendingSignup = null; signupResult(form, true); return; } /* landed on another origin: Shopify accepted it and redirected */
+    if (!href || href === 'about:blank') return;
+    pendingSignup = null;
+
+    if (/\/challenge/.test(href)) {
+      form.removeAttribute('target');
+      HTMLFormElement.prototype.submit.call(form);
+      return;
+    }
+    var back = doc && form.id ? doc.getElementById(form.id) : null;
+    var okBack = back && back.querySelector('[data-alp-ok]');
+    var errBack = back && back.querySelector('[data-alp-err]');
+    if (errBack && !errBack.hasAttribute('hidden')) { signupResult(form, false); return; }
+    if ((okBack && !okBack.hasAttribute('hidden')) || /customer_posted=true/.test(href)) { signupResult(form, true); return; }
+    signupResult(form, false);
+  }
+
+  /* Capture phase, and no preventDefault: the submit must go ahead (into the
+     iframe) whichever script ends up sending it. */
+  document.addEventListener('submit', function (e) {
+    var form = e.target.closest && e.target.closest('[data-alp-signup]');
+    if (!form) return;
+    form.setAttribute('target', sinkName);
+    signupSink();
+    pendingSignup = form;
+    var err = $('[data-alp-err]', form);
+    if (err) err.hidden = true;
+    var btn = $('button[type="submit"]', form);
+    if (btn) btn.classList.add('is-busy');
+  }, true);
+
   /* ── Product page buy block ──────────────────────────────────────────────
      Size tiles are radios; the variant id is resolved from all chosen
      options. Nothing is pre-chosen (size is a real decision) unless the URL
@@ -893,8 +982,96 @@
     });
   });
 
+  /* ── Product page: carousels, units, complementary row ── */
+  function scrollerState(sc) {
+    var track = $('[data-alp-track]', sc);
+    if (!track) return;
+    var max = track.scrollWidth - track.clientWidth - 2;
+    var prev = $('[data-alp-scroll="-1"]', sc), next = $('[data-alp-scroll="1"]', sc);
+    if (prev) prev.disabled = track.scrollLeft <= 2;
+    if (next) next.disabled = track.scrollLeft >= max;
+    var n = $('[data-alp-slide-n]', sc);
+    if (n && track.clientWidth) n.textContent = Math.round(track.scrollLeft / track.clientWidth) + 1;
+  }
+  function initScrollers() {
+    $$('[data-alp-scroller]').forEach(function (sc) {
+      var track = $('[data-alp-track]', sc);
+      if (!track || track._alp) return;
+      track._alp = true;
+      track.addEventListener('scroll', function () { scrollerState(sc); }, { passive: true });
+      scrollerState(sc);
+    });
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-alp-scroll]');
+    if (!b) return;
+    var sc = b.closest('[data-alp-scroller]');
+    var track = sc && $('[data-alp-track]', sc);
+    if (!track) return;
+    /* A gallery moves one photo; a product row moves a screenful less one card. */
+    var step = sc.classList.contains('alp-row') ? track.clientWidth * 0.75 : track.clientWidth;
+    track.scrollBy({ left: Number(b.getAttribute('data-alp-scroll')) * step, behavior: REDUCE ? 'auto' : 'smooth' });
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    var track = e.target.closest && e.target.closest('.alp-gal [data-alp-track]');
+    if (!track) return;
+    track.scrollBy({ left: (e.key === 'ArrowRight' ? 1 : -1) * track.clientWidth, behavior: REDUCE ? 'auto' : 'smooth' });
+  });
+
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-alp-unit]');
+    if (!b) return;
+    var box = b.closest('[data-alp-temp]');
+    var f = b.getAttribute('data-alp-unit') === 'f';
+    $$('[data-alp-unit]', box).forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+    $$('[data-c]', box).forEach(function (t) {
+      var c = Number(t.getAttribute('data-c'));
+      t.textContent = f ? Math.round(c * 9 / 5 + 32) + '°F' : c + '°C';
+    });
+  });
+
+  function initRecs() {
+    $$('[data-alp-recs]').forEach(function (row) {
+      if (row._alp) return;
+      row._alp = true;
+      fetch(row.getAttribute('data-alp-recs'))
+        .then(function (r) { return r.ok ? r.text() : ''; })
+        .then(function (html) {
+          var doc = new DOMParser().parseFromString(html, 'text/html');
+          var box = $('[data-alp-recs-cards]', doc);
+          if (!box || !box.children.length) return;
+          var track = $('[data-alp-track]', row);
+          track.innerHTML = box.innerHTML;
+          row.hidden = false;
+          scrollerState(row);
+        })
+        .catch(function () {});
+    });
+  }
+
+  /* ── Product page (desktop): the header slides away on the way down and
+     comes back the moment you scroll up. Never while one of its panels is
+     open, and never in the theme editor. */
+  var lastY = window.scrollY || 0;
+  function headerScroll() {
+    if (DESIGN_MODE || !document.body.classList.contains('template-product')) return;
+    var y = window.scrollY || 0;
+    var dy = y - lastY;
+    lastY = y;
+    var hidden = document.body.classList.contains('alp-hd-away');
+    var panelOpen = openId && document.getElementById(openId) && document.getElementById(openId).closest('[data-alp-header]');
+    if (!DESKTOP.matches || panelOpen || y < 120) { if (hidden) document.body.classList.remove('alp-hd-away'); return; }
+    if (dy > 6 && !hidden) document.body.classList.add('alp-hd-away');
+    else if (dy < -6 && hidden) document.body.classList.remove('alp-hd-away');
+  }
+  window.addEventListener('scroll', headerScroll, { passive: true });
+
   /* ── Boot ── */
   function init() {
+    initSignups();
+    initScrollers();
+    initRecs();
     tickClock();
     initWeather();
     initVideos();

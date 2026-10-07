@@ -10,10 +10,9 @@
 {
   "sections": {
     "main": {
-      "type": "alpine-shop",
+      "type": "alpine-collections",
       "settings": {
-        "lifestyle": "shopify://shop_images/IMG_2419.jpg",
-        "lifestyle_label": "Bottoms"
+        "heading": "Collections"
       }
     }
   },

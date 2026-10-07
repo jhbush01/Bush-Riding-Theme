@@ -1,22 +1,32 @@
 {%- comment -%}
-  Product page (D05 desktop, M06 phone).
+  Product page — rebuilt on the Satisfy reference layout, in Bush Riding's
+  own palette and type.
 
-  Desktop: photos 2×2 at 3:4 in the left two-thirds; the right third sticks —
-  overline (product type), name, price, size tiles, Add to cart · {size} and
-  Buy now side by side, description, accordions. Below, the next drop.
-  Phone: photos stacked full width, then the details; size and the two
-  buttons live in a bar fixed to the bottom of the screen.
+  Desktop: two columns. Left (two-thirds): a large single-image carousel
+  (front, rear… — the first N photos, arrows either side), then the story —
+  a big statement line, the remaining photos two-up, the model caption with
+  "Shop the silhouette" — then the detail accordions (Usage, Technology,
+  Features, Composition & Care, Warranty). Right (one-third, sticky): name,
+  price, spec pills, colour swatches, size, Add to cart, temperature range,
+  weather conditions, and the side accordions (Need help?, Shipping &
+  returns). Below both: More colours and styles; Create your outfit.
+  Phone: the same content stacked — carousel, details, story, accordions,
+  rows — with size and the buttons in the fixed bottom bar.
 
-  One form serves both: on a phone CSS lifts the buy block into the bottom
-  bar, so there is one set of size inputs and one variant id — never two
-  pickers that can disagree.
+  Everything product-specific comes from the product: its media, options,
+  description, and product metafields in the "custom" namespace (Settings →
+  Custom data → Products). Each block hides itself while its field is empty:
+    custom.statement        multi-line text   — the big line under the carousel
+    custom.spec_pills       list of single-line text — 124g · FLATLOCK SEAMS…
+    custom.temp_min / _max  integer (°C)      — temperature range
+    custom.conditions       list of single-line text — hot, cold, rain, low light
+    custom.model_note       single-line text  — "Jarrod is 180cm and wears M."
+    custom.silhouette       collection        — what "Shop the silhouette" opens
+    custom.usage, custom.technology, custom.features,
+    custom.composition_care, custom.warranty  rich text — accordions
 
-  Size is required. With nothing picked, Add to cart / Buy now point at the
-  size row instead of submitting. Sold-out sizes are struck through.
-
-  Buy now adds the size and goes straight to checkout (alpine.js). Without
-  JS the same button posts to /cart/add with return_to=/checkout, so it still
-  lands in checkout.
+  One form serves both platforms: on a phone CSS lifts the buy block into
+  the bottom bar, so there's one set of size inputs and one variant id.
 {%- endcomment -%}
 {%- liquid
   assign current = product.selected_or_first_available_variant
@@ -28,31 +38,102 @@
   capture size_url
     render 'alp-link', to: 'size_guide'
   endcapture
+  assign mf = product.metafields.custom
+  assign hero_n = section.settings.carousel_count
+  assign statement = mf.statement.value
+  if statement == blank and section.settings.description_as_statement
+    assign statement = product.description | strip_html | strip
+  endif
+  assign cond_names = section.settings.conditions_list | split: ','
 -%}
 <section class="alp alp-pdp" data-alp-pdp>
   <div class="alp-pdp__grid">
-    <div class="alp-pdp__media">
-      {%- for m in product.media -%}
-        {%- if forloop.index <= 2 -%}{%- assign eager = 'eager' -%}{%- else -%}{%- assign eager = 'lazy' -%}{%- endif -%}
-        <div class="alp-pdp__img">
-          {{ m.preview_image | image_url: width: 1600 | image_tag: class: 'alp-fill', loading: eager, widths: '600, 900, 1200, 1600', sizes: '(min-width: 750px) 33vw, 100vw', alt: m.alt | default: product.title }}
+    <div class="alp-pdp__left">
+
+      {%- comment -%} ── Carousel: front, rear… ── {%- endcomment -%}
+      <div class="alp-gal" data-alp-scroller>
+        <div class="alp-gal__track" data-alp-track>
+          {%- for m in product.media limit: hero_n -%}
+            {%- if forloop.first -%}{%- assign eager = 'eager' -%}{%- else -%}{%- assign eager = 'lazy' -%}{%- endif -%}
+            <div class="alp-gal__slide alp-pdp__img">
+              {{ m.preview_image | image_url: width: 2000 | image_tag: class: 'alp-gal__img', loading: eager, widths: '700, 1000, 1400, 2000', sizes: '(min-width: 750px) 66vw, 100vw', alt: m.alt | default: product.title }}
+            </div>
+          {%- else -%}
+            <div class="alp-gal__slide alp-pdp__img"></div>
+          {%- endfor -%}
         </div>
-      {%- else -%}
-        <div class="alp-pdp__img"></div>
-        <div class="alp-pdp__img"></div>
-      {%- endfor -%}
+        {%- assign shown = product.media.size | at_most: hero_n -%}
+        {%- if shown > 1 -%}
+          <button class="alp-gal__arrow alp-gal__arrow--prev" type="button" data-alp-scroll="-1" aria-label="Previous photo">
+            <svg width="18" height="64" viewBox="0 0 18 64" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M16 2L2 32l14 30"/></svg>
+          </button>
+          <button class="alp-gal__arrow alp-gal__arrow--next" type="button" data-alp-scroll="1" aria-label="Next photo">
+            <svg width="18" height="64" viewBox="0 0 18 64" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M2 2l14 30L2 62"/></svg>
+          </button>
+          <p class="alp-gal__count" aria-live="polite"><span data-alp-slide-n>1</span> / {{ shown }}</p>
+        {%- endif -%}
+      </div>
+
+      {%- comment -%} ── The story ── {%- endcomment -%}
+      <div class="alp-pdp__story">
+        {%- if statement != blank -%}
+          <p class="alp-pdp__statement">{{ statement | escape | newline_to_br }}</p>
+        {%- endif -%}
+
+        {%- if product.media.size > hero_n -%}
+          <div class="alp-pdp__more">
+            {%- comment -%}
+              Each photo's alt text (set on the photo in admin) is printed under
+              it — the caption and the screen-reader description are the same
+              words, so write it to describe the shot.
+            {%- endcomment -%}
+            {%- for m in product.media offset: hero_n -%}
+              <figure class="alp-pdp__fig">
+                <div class="alp-pdp__img">
+                  {{ m.preview_image | image_url: width: 1400 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '500, 800, 1100, 1400', sizes: '(min-width: 750px) 33vw, 100vw', alt: m.alt | default: product.title }}
+                </div>
+                {%- if section.settings.alt_captions and m.alt != blank -%}
+                  <figcaption class="alp-pdp__cap">{{ m.alt | escape }}</figcaption>
+                {%- endif -%}
+              </figure>
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+
+        {%- if mf.model_note != blank or mf.silhouette != blank -%}
+          <div class="alp-pdp__model">
+            {%- if mf.model_note != blank -%}<p>{{ mf.model_note.value | escape }}</p>{%- endif -%}
+            {%- if mf.silhouette.value.url != blank -%}
+              <a class="alp-btn" href="{{ mf.silhouette.value.url }}">Shop the silhouette</a>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+      </div>
+
+      {%- comment -%} ── Detail accordions (left) ── {%- endcomment -%}
+      {%- capture detail_acc -%}{%- render 'alp-pdp-acc', blocks: section.blocks, place: 'details', product: product -%}{%- endcapture -%}
+      {%- if detail_acc != blank -%}
+        <div class="alp-acc alp-acc--big alp-pdp__details">{{ detail_acc }}</div>
+      {%- endif -%}
     </div>
 
+    {%- comment -%} ── The buy column (right, sticky) ── {%- endcomment -%}
     <div class="alp-pdp__info">
-      {%- if product.type != blank -%}<p class="alp-over">{{ product.type | escape }}</p>{%- endif -%}
       <h1 class="alp-pdp__title">{{ product.title | escape }}</h1>
-      <p class="alp-pdp__price"><span data-alp-price>{{ current.price | money_without_trailing_zeros }}</span> <small>{{ cart.currency.iso_code }}</small></p>
+      <p class="alp-pdp__price"><span data-alp-price>{{ current.price | money_without_trailing_zeros }}</span> {{ cart.currency.iso_code }}</p>
+
+      {%- assign pills = mf.spec_pills.value -%}
+      {%- if pills != blank -%}
+        <ul class="alp-pills" role="list">
+          {%- for pill in pills -%}<li>{{ pill | escape }}</li>{%- endfor -%}
+        </ul>
+      {%- endif -%}
 
       {%- form 'product', product, class: 'alp-buy', data-alp-buy: '', novalidate: 'novalidate' -%}
         {%- comment -%}
           The variant id. With script, alpine.js names this input and fills it
-          from the size tiles. Without script it stays unnamed and the select
-          in <noscript> carries the id instead, so the form still adds to cart.
+          from the tiles. Without script it stays unnamed and the select in
+          <noscript> carries the id instead, so the form still adds to cart.
         {%- endcomment -%}
         <input type="hidden" {% if preset %}name="id" {% endif %}value="{% if preset %}{{ current.id }}{% endif %}" data-alp-variant>
         {%- unless preset -%}
@@ -75,13 +156,20 @@
 
         {%- unless preset -%}
           {%- for option in product.options_with_values -%}
-            {%- assign opt_index = forloop.index0 -%}
-            <fieldset class="alp-buy__opt" data-alp-option="{{ opt_index }}">
+            {%- liquid
+              assign opt_index = forloop.index0
+              assign opt_name = option.name | downcase
+              assign is_colour = false
+              if opt_name contains 'colour' or opt_name contains 'color'
+                assign is_colour = true
+              endif
+            -%}
+            <fieldset class="alp-buy__opt{% if is_colour %} alp-buy__opt--colour{% endif %}" data-alp-option="{{ opt_index }}">
               <legend class="alp-buy__opthead">
-                <span>{{ option.name | escape }}<span class="alp-buy__chosen" data-alp-chosen-wrap hidden> · <b data-alp-chosen></b></span></span>
-                {%- if forloop.first and size_url != blank -%}<a href="{{ size_url }}">Size guide</a>{%- endif -%}
+                <span><b class="alp-buy__optname">{{ option.name | escape }}</b><span class="alp-buy__chosen" data-alp-chosen-wrap hidden> <span data-alp-chosen></span></span></span>
+                {%- if is_colour == false and size_url != blank -%}<a href="{{ size_url }}">Size guide</a>{%- endif -%}
               </legend>
-              <div class="alp-buy__tiles" style="--n: {{ option.values.size | at_most: 6 }}">
+              <div class="{% if is_colour %}alp-swatches{% else %}alp-buy__tiles{% endif %}" style="--n: {{ option.values.size | at_most: 6 }}">
                 {%- for value in option.values -%}
                   {%- liquid
                     comment
@@ -97,10 +185,18 @@
                       endif
                     endfor
                   -%}
-                  <label class="alp-tile{% unless can %} is-out{% endunless %}">
-                    <input type="radio" name="alp-opt-{{ opt_index }}" value="{{ value | escape }}"{% unless can %} disabled{% endunless %}>
-                    <span>{{ value | escape }}</span>
-                  </label>
+                  {%- if is_colour -%}
+                    <label class="alp-swatch{% unless can %} is-out{% endunless %}" title="{{ value | escape }}">
+                      <input type="radio" name="alp-opt-{{ opt_index }}" value="{{ value | escape }}"{% unless can %} disabled{% endunless %}>
+                      <span class="alp-swatch__dot"{% if value.swatch.color != blank %} style="--sw: {{ value.swatch.color }}"{% elsif value.swatch.image != blank %} style="--sw-img: url({{ value.swatch.image | image_url: width: 80 }})"{% endif %}></span>
+                      <span class="alp-vh">{{ value | escape }}</span>
+                    </label>
+                  {%- else -%}
+                    <label class="alp-tile{% unless can %} is-out{% endunless %}">
+                      <input type="radio" name="alp-opt-{{ opt_index }}" value="{{ value | escape }}"{% unless can %} disabled{% endunless %}>
+                      <span>{{ value | escape }}</span>
+                    </label>
+                  {%- endif -%}
                 {%- endfor -%}
               </div>
             </fieldset>
@@ -113,8 +209,9 @@
             <button class="alp-btn alp-buy__add" type="submit" data-alp-add-btn>
               Add to cart<span class="alp-d" data-alp-add-size></span>
             </button>
-            <button class="alp-btn alp-btn--flare alp-buy__now" type="submit" name="return_to" value="/checkout" data-alp-buy-now>
-              Buy now<span class="alp-m"> · {{ price }}</span>
+            {%- comment -%} Phones only — on desktop Add to cart opens the drawer with Checkout. {%- endcomment -%}
+            <button class="alp-btn alp-btn--flare alp-buy__now alp-m" type="submit" name="return_to" value="/checkout" data-alp-buy-now>
+              Buy now · {{ price }}
             </button>
           {%- else -%}
             <button class="alp-btn alp-buy__add" type="button" disabled>Sold out</button>
@@ -122,56 +219,89 @@
         </div>
       {%- endform -%}
 
-      {%- if product.description != blank -%}
+      {%- if mf.statement == blank and section.settings.description_as_statement == false and product.description != blank -%}
         <div class="alp-pdp__desc">{{ product.description }}</div>
       {%- endif -%}
 
-      <div class="alp-acc">
-        {%- for block in section.blocks -%}
-          {%- liquid
-            assign body = ''
-            case block.settings.source
-              when 'custom'
-                assign body = block.settings.content
-              when 'care'
-                assign body = product.metafields.specs.care_guide.value
-              when 'fabric'
-                assign body = product.metafields.specs.fabric_tech.value
-              when 'shipping'
-                if shop.shipping_policy != blank
-                  assign ship_text = shop.shipping_policy.body | strip_html | truncatewords: 40
-                  capture body
-                    echo '<p>' | append: ship_text | append: '</p>'
-                    if shop.refund_policy != blank
-                      echo '<p><a href="' | append: shop.refund_policy.url | append: '">Returns and exchanges</a> · <a href="' | append: shop.shipping_policy.url | append: '">Shipping</a></p>'
-                    endif
-                  endcapture
-                endif
-            endcase
-            if block.settings.source != 'custom' and body == blank
-              assign body = block.settings.content
-            endif
-          -%}
-          {%- if body != blank -%}
-            <details class="alp-acc__item"{% if block.settings.open %} open{% endif %} {{ block.shopify_attributes }}>
-              <summary class="alp-acc__head">{{ block.settings.title | escape }}<span class="alp-menu__pm" aria-hidden="true"></span></summary>
-              <div class="alp-acc__body">{{ body }}</div>
-            </details>
-          {%- endif -%}
-        {%- endfor -%}
-      </div>
+      {%- comment -%} Temperature range: a dark band from min to max on a −10…30 °C scale. {%- endcomment -%}
+      {%- if mf.temp_min != blank and mf.temp_max != blank -%}
+        {%- liquid
+          assign tmin = mf.temp_min.value | at_least: -10 | at_most: 30
+          assign tmax = mf.temp_max.value | at_least: -10 | at_most: 30
+          assign band_left = tmin | plus: 10 | times: 100.0 | divided_by: 40
+          assign band_width = tmax | minus: tmin | times: 100.0 | divided_by: 40
+        -%}
+        <div class="alp-temp" data-alp-temp>
+          <div class="alp-temp__head">
+            <p class="alp-temp__title">Temperature range</p>
+            <p class="alp-temp__units">
+              <button type="button" data-alp-unit="c" aria-pressed="true">°C</button>
+              <button type="button" data-alp-unit="f" aria-pressed="false">°F</button>
+            </p>
+          </div>
+          <div class="alp-temp__bar" role="img" aria-label="Made for {{ tmin }} to {{ tmax }} °C">
+            <span class="alp-temp__band" style="left: {{ band_left }}%; width: {{ band_width }}%"></span>
+          </div>
+          <div class="alp-temp__ticks" aria-hidden="true">
+            {%- for c in (0..4) -%}
+              {%- assign deg = c | times: 10 | minus: 10 -%}
+              <span data-c="{{ deg }}">{{ deg }}°C</span>
+            {%- endfor -%}
+          </div>
+        </div>
+      {%- endif -%}
+
+      {%- comment -%} Weather conditions: the four, filled where the product is made for them. {%- endcomment -%}
+      {%- assign conds = mf.conditions.value -%}
+      {%- if conds != blank -%}
+        {%- assign have = conds | join: '|' | downcase | split: '|' -%}
+        <div class="alp-wxc">
+          <p class="alp-temp__title">Weather conditions</p>
+          <ul class="alp-wxc__row" role="list">
+            {%- for name in cond_names -%}
+              {%- assign n = name | strip -%}
+              {%- assign key = n | downcase -%}
+              <li class="alp-wxc__item{% if have contains key %} is-on{% endif %}"><span class="alp-wxc__bar" aria-hidden="true"></span>{{ n }}<span class="alp-vh">{% if have contains key %}: yes{% else %}: no{% endif %}</span></li>
+            {%- endfor -%}
+          </ul>
+        </div>
+      {%- endif -%}
+
+      {%- capture side_acc -%}{%- render 'alp-pdp-acc', blocks: section.blocks, place: 'side', product: product -%}{%- endcapture -%}
+      {%- if side_acc != blank -%}
+        <div class="alp-acc">{{ side_acc }}</div>
+      {%- endif -%}
     </div>
   </div>
 
-  {%- if section.settings.show_next_drop -%}
-    <div class="alp-pdp__next alp-d">
-      {%- capture drops -%}{%- render 'alp-next-drop', variant: 'row', key: 'pdp' -%}{%- endcapture -%}
-      {%- if drops != blank -%}
-        <h2 class="alp-pdp__nexthead">Coming in the next drop</h2>
-        {{ drops }}
-      {%- endif -%}
-    </div>
+  {%- comment -%} ── More colours and styles: other products of the same Type ── {%- endcomment -%}
+  {%- if product.type != blank -%}
+    {%- assign same = collections.all.products | where: 'type', product.type -%}
+    {%- capture same_cards -%}
+      {%- for p in same -%}
+        {%- if p.id != product.id -%}{%- render 'alp-card', product: p, quick: false -%}{%- endif -%}
+      {%- endfor -%}
+    {%- endcapture -%}
+    {%- if same_cards != blank -%}
+      <div class="alp-row" data-alp-scroller>
+        <h2 class="alp-row__title">{{ section.settings.more_heading | escape }}</h2>
+        <div class="alp-row__track" data-alp-track>{{ same_cards }}</div>
+        <button class="alp-row__arrow alp-row__arrow--prev" type="button" data-alp-scroll="-1" aria-label="Previous">‹</button>
+        <button class="alp-row__arrow alp-row__arrow--next" type="button" data-alp-scroll="1" aria-label="Next">›</button>
+      </div>
+    {%- endif -%}
   {%- endif -%}
+
+  {%- comment -%}
+    ── Create your outfit: Shopify's complementary products (Search &
+    Discovery app). Fetched after load; stays hidden when there are none.
+  {%- endcomment -%}
+  <div class="alp-row" data-alp-scroller data-alp-recs="{{ routes.product_recommendations_url }}?product_id={{ product.id }}&intent=complementary&limit=8&section_id=alpine-product-recs" hidden>
+    <h2 class="alp-row__title">{{ section.settings.outfit_heading | escape }}</h2>
+    <div class="alp-row__track" data-alp-track></div>
+    <button class="alp-row__arrow alp-row__arrow--prev" type="button" data-alp-scroll="-1" aria-label="Previous">‹</button>
+    <button class="alp-row__arrow alp-row__arrow--next" type="button" data-alp-scroll="1" aria-label="Next">›</button>
+  </div>
 </section>
 
 {% schema %}
@@ -179,24 +309,36 @@
   "name": "Product",
   "tag": "div",
   "settings": [
-    { "type": "checkbox", "id": "show_next_drop", "label": "Show the next drop under the product (desktop)", "default": true }
+    { "type": "range", "id": "carousel_count", "label": "Photos in the carousel", "min": 1, "max": 6, "step": 1, "default": 2, "info": "The first photos (front, rear…) go in the big carousel; the rest sit two-up further down." },
+    { "type": "checkbox", "id": "alt_captions", "label": "Show each photo's alt text under it", "default": true, "info": "Applies to the photos after the carousel. Edit the text on the photo in the product's admin page (Add alt text)." },
+    { "type": "checkbox", "id": "description_as_statement", "label": "Use the description as the statement", "default": false, "info": "When the product has no custom.statement metafield. Off: the description sits under Add to cart instead." },
+    { "type": "text", "id": "conditions_list", "label": "Weather conditions shown", "default": "Hot, Cold, Rain, Low light" },
+    { "type": "text", "id": "more_heading", "label": "Same-type row heading", "default": "More colours and styles" },
+    { "type": "text", "id": "outfit_heading", "label": "Complementary row heading", "default": "Create your outfit" }
   ],
   "blocks": [
     {
       "type": "accordion",
       "name": "Accordion",
       "settings": [
-        { "type": "text", "id": "title", "label": "Title", "default": "Fabric & features" },
+        { "type": "text", "id": "title", "label": "Title", "default": "Features" },
         {
-          "type": "select", "id": "source", "label": "Content", "default": "custom",
+          "type": "select", "id": "place", "label": "Where", "default": "details",
           "options": [
+            { "value": "details", "label": "Under the photos (large)" },
+            { "value": "side", "label": "Buy column" }
+          ]
+        },
+        {
+          "type": "select", "id": "source", "label": "Content", "default": "metafield",
+          "options": [
+            { "value": "metafield", "label": "Product metafield (custom namespace)" },
             { "value": "custom", "label": "Text below" },
-            { "value": "fabric", "label": "Product metafield specs.fabric_tech" },
-            { "value": "care", "label": "Product metafield specs.care_guide" },
             { "value": "shipping", "label": "Shipping and returns policies" }
           ],
-          "info": "A metafield or policy that's empty falls back to the text below. With no text either, the accordion isn't shown."
+          "info": "An empty metafield or policy falls back to the text below. With nothing at all, the accordion isn't shown."
         },
+        { "type": "text", "id": "metafield_key", "label": "Metafield key", "info": "e.g. usage → product.metafields.custom.usage" },
         { "type": "richtext", "id": "content", "label": "Text" },
         { "type": "checkbox", "id": "open", "label": "Open by default", "default": false }
       ]

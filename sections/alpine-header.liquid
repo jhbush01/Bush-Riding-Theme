@@ -37,7 +37,7 @@
   capture api_url
     render 'alp-link', to: 'api'
   endcapture
-  assign shop_url = routes.collections_url
+  assign shop_url = routes.all_products_collection_url
 
   assign here = ''
   case template.name
@@ -126,42 +126,45 @@
 
   {%- comment -%}
     ── Shop panel (desktop) ──────────────────────────────────────────────
-    Opens on hover like Bush Map, with the shop landing's three columns in
-    small: the categories, the product on its plain ground, a lifestyle
-    photo. "Shop all" goes to the full landing page.
+    The shop landing (D02), as the dropdown — there is no separate landing
+    page to click through. Left: the categories (product types, then
+    collections), with local time, weather and the newsletter at the foot.
+    Middle: the product on its plain ground. Right: a lifestyle photo.
   {%- endcomment -%}
   {%- liquid
     assign sp = section.settings.shop_product
     if sp == blank
       assign sp = collections['bush-riding-launch'].products.first | default: collections.all.products.first
     endif
+    assign sp_img = section.settings.shop_product_image | default: sp.featured_media.preview_image
+    assign life_url = section.settings.shop_image_link.url | default: shop_url
   -%}
   <div class="alp-shopmenu alp-d" id="alp-shopmenu" data-alp-panel hidden>
-    <div class="alp-shopmenu__side">
+    <div class="alp-shop__side">
       <nav class="alp-cats alp-cats--big" aria-label="Categories">
         {%- render 'alp-shop-links', variant: 'list' -%}
       </nav>
-      <span class="alp-mapmenu__fill"></span>
-      <a class="alp-btn alp-btn--line" href="{{ shop_url }}">Shop all</a>
+      <span class="alp-shop__fill"></span>
+      <p class="alp-shop__now">
+        Local time <span data-alp-clock>{{ 'now' | date: '%H:%M' }}</span><br>
+        {{ settings.alp_place | escape }}
+        <span data-alp-wx-wrap hidden><br><span data-alp-wx-text data-alp-wx-format="dot"></span></span>
+      </p>
+      {%- render 'alp-signup', id: 'ShopNewsletter', tags: 'newsletter', label: 'Subscribe', size: 'sm' -%}
+      <p class="alp-shop__fine">We send the occasional route, nothing else.</p>
     </div>
-    <a class="alp-shopmenu__panel alp-shopmenu__panel--ground" href="{{ sp.url | default: shop_url }}">
-      {%- assign sp_img = section.settings.shop_product_image | default: sp.featured_media.preview_image -%}
+    <a class="alp-shop__panel alp-shop__panel--ground" href="{{ sp.url | default: shop_url }}">
       {%- if sp_img != blank -%}
-        {{ sp_img | image_url: width: 1000 | image_tag: class: 'alp-fill', loading: 'lazy', sizes: '33vw', alt: '' }}
+        {{ sp_img | image_url: width: 1400 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '600, 900, 1400', sizes: '40vw', alt: '' }}
       {%- endif -%}
-      {%- if sp != blank -%}
-        <span class="alp-duo__chips">
-          <span class="alp-chip alp-chip--strong">{{ sp.title | escape }}</span>
-          <span class="alp-chip">{{ sp.price | money_without_trailing_zeros }}</span>
-        </span>
-      {%- endif -%}
+      {%- if sp != blank -%}<span class="alp-shop__label">{{ sp.title | escape }}</span>{%- endif -%}
     </a>
-    <a class="alp-shopmenu__panel" href="{{ shop_url }}">
+    <a class="alp-shop__panel" href="{{ life_url }}">
       {%- if section.settings.shop_image != blank -%}
-        {{ section.settings.shop_image | image_url: width: 1000 | image_tag: class: 'alp-fill', loading: 'lazy', sizes: '33vw', alt: '' }}
+        {{ section.settings.shop_image | image_url: width: 1400 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '600, 900, 1400', sizes: '40vw', alt: '' }}
       {%- endif -%}
       {%- if section.settings.shop_image_label != blank -%}
-        <span class="alp-duo__caption">{{ section.settings.shop_image_label | escape }}</span>
+        <span class="alp-shop__label alp-shop__label--bone">{{ section.settings.shop_image_label | escape }}</span>
       {%- endif -%}
     </a>
   </div>
@@ -273,7 +276,8 @@
     { "type": "product", "id": "shop_product", "label": "Product", "info": "Also leads Most popular in the search panel. Leave empty to use the first product in the store." },
     { "type": "image_picker", "id": "shop_product_image", "label": "Product image", "info": "The product on a plain ground. Defaults to its first photo." },
     { "type": "image_picker", "id": "shop_image", "label": "Lifestyle photo" },
-    { "type": "text", "id": "shop_image_label", "label": "Lifestyle caption", "default": "Bottoms" },
+    { "type": "text", "id": "shop_image_label", "label": "Lifestyle caption", "default": "Shorts" },
+    { "type": "collection", "id": "shop_image_link", "label": "Lifestyle photo links to", "info": "Leave empty to go to all products." },
     { "type": "header", "content": "Bush Map panel (desktop)" },
     { "type": "image_picker", "id": "map_image", "label": "Mini-map image", "info": "A still of the map around the near-you region." },
     { "type": "text", "id": "map_tagline", "label": "Tagline", "default": "Explore more with our curated gravel routes and events" },

@@ -1,0 +1,44 @@
+{%- comment -%}
+  The product page's accordions for one place — 'details' (large, under the
+  photos) or 'side' (the buy column). Each draws from a product metafield in
+  the custom namespace, the shop's policies, or its own text, and is left
+  out entirely when there's nothing to say.
+  blocks, place, product
+{%- endcomment -%}
+{%- for block in blocks -%}
+  {%- if block.settings.place != place -%}{%- continue -%}{%- endif -%}
+  {%- liquid
+    assign body = ''
+    case block.settings.source
+      when 'metafield'
+        assign key = block.settings.metafield_key | strip
+        if key != blank
+          assign field = product.metafields.custom[key]
+          if field != blank
+            assign body = field | metafield_tag
+          endif
+        endif
+      when 'shipping'
+        if shop.shipping_policy != blank
+          assign ship_text = shop.shipping_policy.body | strip_html | truncatewords: 40
+          capture body
+            echo '<p>' | append: ship_text | append: '</p>'
+            if shop.refund_policy != blank
+              echo '<p><a href="' | append: shop.refund_policy.url | append: '">Returns and exchanges</a> · <a href="' | append: shop.shipping_policy.url | append: '">Shipping</a></p>'
+            endif
+          endcapture
+        endif
+      when 'custom'
+        assign body = block.settings.content
+    endcase
+    if body == blank
+      assign body = block.settings.content
+    endif
+  -%}
+  {%- if body != blank -%}
+    <details class="alp-acc__item"{% if block.settings.open %} open{% endif %} {{ block.shopify_attributes }}>
+      <summary class="alp-acc__head">{{ block.settings.title | escape }}<span class="alp-menu__pm" aria-hidden="true"></span></summary>
+      <div class="alp-acc__body">{{ body }}</div>
+    </details>
+  {%- endif -%}
+{%- endfor -%}

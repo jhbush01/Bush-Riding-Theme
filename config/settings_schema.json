@@ -15,16 +15,6 @@
         "content": "Shared by the header, menus, footer and pages. Set once here instead of in every section."
       },
       {
-        "type": "header",
-        "content": "Shop categories"
-      },
-      {
-        "type": "link_list",
-        "id": "alp_shop_menu",
-        "label": "Shop menu",
-        "info": "The category list in the header menu, shop landing and collection bar. A link to a collection with no products shows as \"next drop\". Leave empty to use View all, Bottoms, T-Shirts and Caps."
-      },
-      {
         "type": "range",
         "id": "alp_filter_threshold",
         "label": "Show Filters and Sort from",
