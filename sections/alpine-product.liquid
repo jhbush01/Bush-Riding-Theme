@@ -23,6 +23,8 @@
     custom.story_lines      list of multi-line text — a line after each photo row
     custom.model_note       single-line text  — "Jarrod is 180cm and wears M."
     custom.silhouette       collection        — what "Shop the silhouette" opens
+    custom.route            single-line text  — Bush Map route id (or a link to
+                                                it) for the "Ride-tested on" tile
     custom.usage, custom.technology, custom.features,
     custom.composition_care, custom.warranty  rich text — accordions
 
@@ -276,6 +278,36 @@
               <li class="alp-wxc__item{% if have contains key %} is-on{% endif %}"><span class="alp-wxc__bar" aria-hidden="true"></span>{{ n }}<span class="alp-vh">{% if have contains key %}: yes{% else %}: no{% endif %}</span></li>
             {%- endfor -%}
           </ul>
+        </div>
+      {%- endif -%}
+
+      {%- comment -%}
+        Ride-tested on: one Bush Map route the product was ridden on. The
+        route comes from custom.route (its id, or any map / route-page link
+        to it); alpine.js fills the name, region, effort, profile and stats
+        from the map API, and the tile stays hidden until that answers.
+      {%- endcomment -%}
+      {%- assign route_ref = mf.route.value | strip -%}
+      {%- if route_ref != blank -%}
+        <div class="alp-ridetile" data-alp-ridetile="{{ route_ref | escape }}" hidden>
+          <div class="alp-ridetile__top">
+            <p class="alp-ridetile__eyebrow">Ride-tested on</p>
+            <p class="alp-ridetile__brand">Bush Map&trade;</p>
+          </div>
+          <p class="alp-ridetile__name" data-alp-rt-name></p>
+          <p class="alp-ridetile__meta" data-alp-rt-meta></p>
+          <div class="alp-ridetile__elev" data-alp-rt-elev aria-hidden="true"></div>
+          <dl class="alp-ridetile__stats">
+            <div data-alp-rt-dist-box><dt>distance</dt><dd data-alp-rt-dist></dd></div>
+            <div data-alp-rt-climb-box><dt>climb</dt><dd data-alp-rt-climb></dd></div>
+            {%- if mf.temp_min != blank and mf.temp_max != blank -%}
+              <div><dt>wear range</dt><dd>{{ mf.temp_min.value }}–{{ mf.temp_max.value }}&nbsp;°C</dd></div>
+            {%- endif -%}
+          </dl>
+          <p class="alp-ridetile__foot">
+            <a href="{% render 'alp-link', to: 'map' %}" data-alp-rt-link target="_blank" rel="noopener">Get the route</a>
+            <a href="{% render 'alp-link', to: 'map' %}" data-alp-rt-gpx target="_blank" rel="noopener">GPX&nbsp;↓</a>
+          </p>
         </div>
       {%- endif -%}
 
