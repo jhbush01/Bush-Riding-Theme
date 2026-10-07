@@ -89,6 +89,12 @@ most of the work — text and icon as support. Show, don't tell.
   Rides and Bush Map layouts, each shown only for its page handle (`about`,
   `rides`, `bush-map`). The blog template is the Rides layout too, so Rides
   works before a rides page exists.
+  The product page (`sections/alpine-product.liquid`, Satisfy reference
+  layout) reads product metafields in the `custom` namespace — statement,
+  spec_pills, temp_min/temp_max, conditions, model_note, silhouette, and the
+  accordion fields usage/technology/features/composition_care/warranty —
+  and hides each block while its field is empty. The list is in the
+  section's header comment.
   The three-tap checkout (card → size → Checkout; product → size → Buy now)
   is a hard requirement: don't add a step to it. Dawn's own sections remain
   only for accounts, policies, contact and the password page (`main-waitlist`

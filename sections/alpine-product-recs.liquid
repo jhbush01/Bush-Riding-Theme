@@ -1,0 +1,19 @@
+{%- comment -%}
+  "Create your outfit" cards for the product page. Never placed on a page:
+  alpine.js asks Shopify's product recommendations for it
+  (intent=complementary — set in the Search & Discovery app) and moves the
+  cards into the row, which stays hidden when there are none.
+{%- endcomment -%}
+<div class="alp" data-alp-recs-cards="{{ recommendations.products_count | default: 0 }}">
+  {%- for p in recommendations.products -%}
+    {%- render 'alp-card', product: p, quick: false -%}
+  {%- endfor -%}
+</div>
+
+{% schema %}
+{
+  "name": "Product recommendations",
+  "tag": "div",
+  "settings": []
+}
+{% endschema %}

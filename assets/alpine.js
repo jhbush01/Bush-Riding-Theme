@@ -982,9 +982,79 @@
     });
   });
 
+  /* ── Product page: carousels, units, complementary row ── */
+  function scrollerState(sc) {
+    var track = $('[data-alp-track]', sc);
+    if (!track) return;
+    var max = track.scrollWidth - track.clientWidth - 2;
+    var prev = $('[data-alp-scroll="-1"]', sc), next = $('[data-alp-scroll="1"]', sc);
+    if (prev) prev.disabled = track.scrollLeft <= 2;
+    if (next) next.disabled = track.scrollLeft >= max;
+    var n = $('[data-alp-slide-n]', sc);
+    if (n && track.clientWidth) n.textContent = Math.round(track.scrollLeft / track.clientWidth) + 1;
+  }
+  function initScrollers() {
+    $$('[data-alp-scroller]').forEach(function (sc) {
+      var track = $('[data-alp-track]', sc);
+      if (!track || track._alp) return;
+      track._alp = true;
+      track.addEventListener('scroll', function () { scrollerState(sc); }, { passive: true });
+      scrollerState(sc);
+    });
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-alp-scroll]');
+    if (!b) return;
+    var sc = b.closest('[data-alp-scroller]');
+    var track = sc && $('[data-alp-track]', sc);
+    if (!track) return;
+    /* A gallery moves one photo; a product row moves a screenful less one card. */
+    var step = sc.classList.contains('alp-row') ? track.clientWidth * 0.75 : track.clientWidth;
+    track.scrollBy({ left: Number(b.getAttribute('data-alp-scroll')) * step, behavior: REDUCE ? 'auto' : 'smooth' });
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    var track = e.target.closest && e.target.closest('.alp-gal [data-alp-track]');
+    if (!track) return;
+    track.scrollBy({ left: (e.key === 'ArrowRight' ? 1 : -1) * track.clientWidth, behavior: REDUCE ? 'auto' : 'smooth' });
+  });
+
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-alp-unit]');
+    if (!b) return;
+    var box = b.closest('[data-alp-temp]');
+    var f = b.getAttribute('data-alp-unit') === 'f';
+    $$('[data-alp-unit]', box).forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+    $$('[data-c]', box).forEach(function (t) {
+      var c = Number(t.getAttribute('data-c'));
+      t.textContent = f ? Math.round(c * 9 / 5 + 32) + '°F' : c + '°C';
+    });
+  });
+
+  function initRecs() {
+    $$('[data-alp-recs]').forEach(function (row) {
+      if (row._alp) return;
+      row._alp = true;
+      fetch(row.getAttribute('data-alp-recs'))
+        .then(function (r) { return r.ok ? r.text() : ''; })
+        .then(function (html) {
+          var doc = new DOMParser().parseFromString(html, 'text/html');
+          var box = $('[data-alp-recs-cards]', doc);
+          if (!box || !box.children.length) return;
+          var track = $('[data-alp-track]', row);
+          track.innerHTML = box.innerHTML;
+          row.hidden = false;
+          scrollerState(row);
+        })
+        .catch(function () {});
+    });
+  }
+
   /* ── Boot ── */
   function init() {
     initSignups();
+    initScrollers();
+    initRecs();
     tickClock();
     initWeather();
     initVideos();
