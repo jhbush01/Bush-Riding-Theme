@@ -1050,6 +1050,23 @@
     });
   }
 
+  /* ── Product page (desktop): the header slides away on the way down and
+     comes back the moment you scroll up. Never while one of its panels is
+     open, and never in the theme editor. */
+  var lastY = window.scrollY || 0;
+  function headerScroll() {
+    if (DESIGN_MODE || !document.body.classList.contains('template-product')) return;
+    var y = window.scrollY || 0;
+    var dy = y - lastY;
+    lastY = y;
+    var hidden = document.body.classList.contains('alp-hd-away');
+    var panelOpen = openId && document.getElementById(openId) && document.getElementById(openId).closest('[data-alp-header]');
+    if (!DESKTOP.matches || panelOpen || y < 120) { if (hidden) document.body.classList.remove('alp-hd-away'); return; }
+    if (dy > 6 && !hidden) document.body.classList.add('alp-hd-away');
+    else if (dy < -6 && hidden) document.body.classList.remove('alp-hd-away');
+  }
+  window.addEventListener('scroll', headerScroll, { passive: true });
+
   /* ── Boot ── */
   function init() {
     initSignups();

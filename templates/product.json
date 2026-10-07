@@ -16,7 +16,8 @@
         "description_as_statement": false,
         "conditions_list": "Hot, Cold, Rain, Low light",
         "more_heading": "More colours and styles",
-        "outfit_heading": "Create your outfit"
+        "outfit_heading": "Create your outfit",
+        "alt_captions": true
       },
       "blocks": {
         "usage": {

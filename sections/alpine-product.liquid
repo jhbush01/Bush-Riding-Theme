@@ -82,10 +82,20 @@
 
         {%- if product.media.size > hero_n -%}
           <div class="alp-pdp__more">
+            {%- comment -%}
+              Each photo's alt text (set on the photo in admin) is printed under
+              it — the caption and the screen-reader description are the same
+              words, so write it to describe the shot.
+            {%- endcomment -%}
             {%- for m in product.media offset: hero_n -%}
-              <div class="alp-pdp__img">
-                {{ m.preview_image | image_url: width: 1400 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '500, 800, 1100, 1400', sizes: '(min-width: 750px) 33vw, 100vw', alt: m.alt | default: product.title }}
-              </div>
+              <figure class="alp-pdp__fig">
+                <div class="alp-pdp__img">
+                  {{ m.preview_image | image_url: width: 1400 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '500, 800, 1100, 1400', sizes: '(min-width: 750px) 33vw, 100vw', alt: m.alt | default: product.title }}
+                </div>
+                {%- if section.settings.alt_captions and m.alt != blank -%}
+                  <figcaption class="alp-pdp__cap">{{ m.alt | escape }}</figcaption>
+                {%- endif -%}
+              </figure>
             {%- endfor -%}
           </div>
         {%- endif -%}
@@ -300,6 +310,7 @@
   "tag": "div",
   "settings": [
     { "type": "range", "id": "carousel_count", "label": "Photos in the carousel", "min": 1, "max": 6, "step": 1, "default": 2, "info": "The first photos (front, rear…) go in the big carousel; the rest sit two-up further down." },
+    { "type": "checkbox", "id": "alt_captions", "label": "Show each photo's alt text under it", "default": true, "info": "Applies to the photos after the carousel. Edit the text on the photo in the product's admin page (Add alt text)." },
     { "type": "checkbox", "id": "description_as_statement", "label": "Use the description as the statement", "default": false, "info": "When the product has no custom.statement metafield. Off: the description sits under Add to cart instead." },
     { "type": "text", "id": "conditions_list", "label": "Weather conditions shown", "default": "Hot, Cold, Rain, Low light" },
     { "type": "text", "id": "more_heading", "label": "Same-type row heading", "default": "More colours and styles" },
