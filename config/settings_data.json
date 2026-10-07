@@ -9,6 +9,7 @@
  */
 {
   "current": {
+    "alp_map_api": "https://map.bushriding.cc",
     "logo_width": 90,
     "favicon": "shopify://shop_images/icon-512.png",
     "type_header_font": "assistant_n4",
@@ -139,6 +140,10 @@
         "settings": {
           "color_scheme": "scheme-1"
         }
+      },
+      "alpine-cart": {
+        "type": "alpine-cart",
+        "settings": {}
       }
     },
     "content_for_index": [],
