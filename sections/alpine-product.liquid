@@ -113,7 +113,8 @@
             <button class="alp-btn alp-buy__add" type="submit" data-alp-add-btn>
               Add to cart<span class="alp-d" data-alp-add-size></span>
             </button>
-            <button class="alp-btn alp-btn--flare alp-buy__now" type="submit" name="return_to" value="/checkout" data-alp-buy-now>
+            {%- comment -%} Phones only — removed on desktop, where Add to cart opens the drawer with Checkout. {%- endcomment -%}
+            <button class="alp-btn alp-btn--flare alp-buy__now alp-m" type="submit" name="return_to" value="/checkout" data-alp-buy-now>
               Buy now<span class="alp-m"> · {{ price }}</span>
             </button>
           {%- else -%}

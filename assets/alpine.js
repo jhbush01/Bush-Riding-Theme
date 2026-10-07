@@ -464,45 +464,93 @@
   });
 
   /* ── Email signups (newsletter, Notify me) ───────────────────────────────
-     Posted in the background so the page stays exactly where it is. A normal
-     post reloads the page, and Shopify then marks EVERY signup form on it as
-     successful — the browser lands on the footer's "thanks", miles from the
-     tile that was used. If Shopify asks for a captcha, fall back to the
-     normal post so the visitor can complete it. */
-  document.addEventListener('submit', function (e) {
-    var form = e.target.closest('[data-alp-signup]');
-    if (!form || !window.fetch || !window.FormData) return;
-    e.preventDefault();
+     Every signup form posts into one hidden iframe, so the page itself never
+     reloads or moves. That matters because Shopify injects its own bot-
+     protection script that listens for these submits, adds a captcha token
+     and re-submits the form natively — a fetch() of our own would race it
+     (ours fails without the token, then Shopify's reload throws the visitor
+     to the footer). Targeting an iframe works WITH that script: however the
+     form is submitted, the response lands in the frame, and we read the
+     result from there and answer in the form that was used.
+     A real captcha challenge can't be solved in a hidden frame, so that one
+     case falls back to an ordinary submit. */
+  var sinkName = 'alp-signup-sink';
+  var pendingSignup = null;
+
+  function signupSink() {
+    var f = document.querySelector('iframe[name="' + sinkName + '"]');
+    if (f) return f;
+    f = document.createElement('iframe');
+    f.name = sinkName;
+    f.title = 'Signup';
+    f.tabIndex = -1;
+    f.setAttribute('aria-hidden', 'true');
+    /* Fixed in the corner, not at the foot of the page: Shopify redirects back
+       to "#<form id>", and Chrome scrolls the parent page to reveal a fragment
+       inside a same-origin frame. A frame that's always on screen gives it
+       nothing to scroll to. */
+    f.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;border:0;opacity:0;pointer-events:none';
+    f.addEventListener('load', onSignupLoad);
+    document.body.appendChild(f);
+    return f;
+  }
+
+  function initSignups() {
+    var forms = $$('[data-alp-signup]');
+    if (!forms.length) return;
+    signupSink();
+    forms.forEach(function (form) { form.setAttribute('target', sinkName); });
+  }
+
+  function signupResult(form, ok) {
     var btn = $('button[type="submit"]', form);
+    if (btn) btn.classList.remove('is-busy');
+    if (ok) {
+      $$('input:not([type="hidden"]), button, label', form).forEach(function (n) { n.hidden = true; });
+      var msg = $('[data-alp-ok]', form);
+      if (msg) msg.hidden = false;
+    } else {
+      var err = $('[data-alp-err]', form);
+      if (err) err.hidden = false;
+    }
+  }
+
+  function onSignupLoad() {
+    var form = pendingSignup;
+    if (!form) return;
+    var frame = signupSink();
+    var href = '', doc = null;
+    try { href = frame.contentWindow.location.href; doc = frame.contentDocument; }
+    catch (err) { pendingSignup = null; signupResult(form, true); return; } /* landed on another origin: Shopify accepted it and redirected */
+    if (!href || href === 'about:blank') return;
+    pendingSignup = null;
+
+    if (/\/challenge/.test(href)) {
+      form.removeAttribute('target');
+      HTMLFormElement.prototype.submit.call(form);
+      return;
+    }
+    var back = doc && form.id ? doc.getElementById(form.id) : null;
+    var okBack = back && back.querySelector('[data-alp-ok]');
+    var errBack = back && back.querySelector('[data-alp-err]');
+    if (errBack && !errBack.hasAttribute('hidden')) { signupResult(form, false); return; }
+    if ((okBack && !okBack.hasAttribute('hidden')) || /customer_posted=true/.test(href)) { signupResult(form, true); return; }
+    signupResult(form, false);
+  }
+
+  /* Capture phase, and no preventDefault: the submit must go ahead (into the
+     iframe) whichever script ends up sending it. */
+  document.addEventListener('submit', function (e) {
+    var form = e.target.closest && e.target.closest('[data-alp-signup]');
+    if (!form) return;
+    form.setAttribute('target', sinkName);
+    signupSink();
+    pendingSignup = form;
     var err = $('[data-alp-err]', form);
-    if (btn) btn.classList.add('is-busy');
     if (err) err.hidden = true;
-    fetch(form.action.split('#')[0], { method: 'POST', body: new FormData(form), headers: { Accept: 'text/html' }, credentials: 'same-origin' })
-      .then(function (r) {
-        if (/\/challenge/.test(r.url)) { form.submit(); return null; }
-        return r.text().then(function (html) {
-          var doc = new DOMParser().parseFromString(html, 'text/html');
-          var back = form.id ? doc.getElementById(form.id) : null;
-          var okBack = back && $('[data-alp-ok]', back);
-          var errBack = back && $('[data-alp-err]', back);
-          if (errBack && !errBack.hasAttribute('hidden')) return false;
-          if (okBack && !okBack.hasAttribute('hidden')) return true;
-          return /customer_posted=true/.test(r.url);
-        });
-      })
-      .then(function (ok) {
-        if (ok === null) return;
-        if (ok) {
-          $$('input:not([type="hidden"]), button, label', form).forEach(function (n) { n.hidden = true; });
-          var msg = $('[data-alp-ok]', form);
-          if (msg) msg.hidden = false;
-        } else if (err) {
-          err.hidden = false;
-        }
-      })
-      .catch(function () { if (err) err.hidden = false; })
-      .then(function () { if (btn) btn.classList.remove('is-busy'); });
-  });
+    var btn = $('button[type="submit"]', form);
+    if (btn) btn.classList.add('is-busy');
+  }, true);
 
   /* ── Product page buy block ──────────────────────────────────────────────
      Size tiles are radios; the variant id is resolved from all chosen
@@ -936,6 +984,7 @@
 
   /* ── Boot ── */
   function init() {
+    initSignups();
     tickClock();
     initWeather();
     initVideos();

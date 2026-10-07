@@ -641,6 +641,7 @@ div.alp-scrim[hidden] { display: none; }
 .alp-buy__actions { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
 .alp-buy__actions .alp-btn { padding: 18px; font-size: 16px; }
 .alp-buy__actions .alp-btn:only-child { grid-column: 1 / -1; }
+@media (min-width: 750px) { .alp-buy__actions { grid-template-columns: 1fr; } }
 
 .alp-acc { border-top: 1px solid var(--alp-line); }
 .alp-acc__item + .alp-acc__item { border-top: 1px solid var(--alp-line); }
