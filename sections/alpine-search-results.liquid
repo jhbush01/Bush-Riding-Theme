@@ -1,0 +1,28 @@
+{%- comment -%}
+  Product rows for the header's search panel. Never placed on a page: the
+  panel asks for it through Shopify's predictive search with
+  section_id=alpine-search-results, so names, prices and images come back
+  rendered by Liquid in the shop's own currency format.
+{%- endcomment -%}
+{%- assign hits = predictive_search.resources.products -%}
+<div class="alp" data-alp-ls-count="{{ hits.size }}">
+  {%- for r in hits -%}
+    <a class="alp-hit" href="{{ r.url }}">
+      <span class="alp-hit__thumb">
+        {%- if r.featured_media != blank -%}{{ r.featured_media.preview_image | image_url: width: 160 | image_tag: class: 'alp-fill', loading: 'lazy', alt: '' }}{%- endif -%}
+      </span>
+      <span class="alp-hit__name">{{ r.title | escape }}</span>
+      <span>{{ r.price | money_without_trailing_zeros }}</span>
+    </a>
+  {%- else -%}
+    <p class="alp-hit alp-hit--none">No products match.</p>
+  {%- endfor -%}
+</div>
+
+{% schema %}
+{
+  "name": "Search results (panel)",
+  "tag": "div",
+  "settings": []
+}
+{% endschema %}

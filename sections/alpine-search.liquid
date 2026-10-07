@@ -72,9 +72,19 @@
   {%- else -%}
     <h2 class="alp-search__popular">Most popular</h2>
     <div class="alp-grid4 alp-search__grid" data-alp-popular>
-      {%- for p in section.settings.products -%}
-        {%- render 'alp-card', product: p, quick: false -%}
-      {%- endfor -%}
+      {%- liquid
+        assign picks = section.settings.products
+        if picks == blank or picks.size == 0
+          assign first = collections['bush-riding-launch'].products.first | default: collections.all.products.first
+          if first != blank
+            render 'alp-card', product: first, quick: false
+          endif
+        else
+          for p in picks
+            render 'alp-card', product: p, quick: false
+          endfor
+        endif
+      -%}
     </div>
   {%- endif -%}
 </section>

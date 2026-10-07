@@ -1,10 +1,13 @@
 {%- comment -%}
   Bush Riding header — two deliberately different layouts (CLAUDE.md rule 6).
 
-  Desktop (D01–D10): an 84px bone bar. Wordmark · Shop · Bush Map ▾ · Rides,
-  then local time and weather, Search, Cart (n). Bush Map opens a 460px panel
-  under the bar (D08): mini-map, the routes near us from the routes worker,
-  the next ride, Open the map and Submit a route.
+  Desktop (D01–D10): an 84px bone bar. Wordmark · Shop · Bush Map · Rides,
+  then local time and weather, Search, Cart (n). Shop, Bush Map and Search
+  each open a panel under the bar on hover (or click), which stays while the
+  pointer is over the header or the panel. Bush Map (D08): mini-map, the
+  routes near us from the routes worker, the next ride, Open the map and
+  Submit a route. Without script they are plain links to /collections, the
+  map and /search.
 
   Phone (M01): a 56px bar. Wordmark, then Search · Cart (n) · menu. The menu
   drops as a sheet under the bar with the page dimmed: Shop expanded with its
@@ -75,14 +78,22 @@
     </a>
 
     <nav class="alp-hd__nav alp-d" aria-label="Primary">
-      <a class="alp-hd__link{% if here == 'shop' %} is-on{% endif %}" href="{{ shop_url }}"{% if here == 'shop' %} aria-current="page"{% endif %}>Shop</a>
-      <button
+      <a
+        class="alp-hd__link{% if here == 'shop' %} is-on{% endif %}"
+        href="{{ shop_url }}"
+        data-alp-toggle="alp-shopmenu"
+        data-alp-hover
+        aria-expanded="false"
+        aria-controls="alp-shopmenu"
+      >Shop</a>
+      <a
         class="alp-hd__link{% if here == 'map' %} is-on{% endif %}"
-        type="button"
+        href="{{ map_url }}"
         data-alp-toggle="alp-mapmenu"
+        data-alp-hover
         aria-expanded="false"
         aria-controls="alp-mapmenu"
-      >Bush Map <span class="alp-hd__caret" aria-hidden="true">▾</span></button>
+      >Bush Map</a>
       <a class="alp-hd__link{% if here == 'rides' %} is-on{% endif %}" href="{{ rides_url }}"{% if here == 'rides' %} aria-current="page"{% endif %}>Rides</a>
     </nav>
 
@@ -92,13 +103,108 @@
       <span data-alp-clock>{{ 'now' | date: '%H:%M' }}</span> {{ settings.alp_tz_label | escape }}<span data-alp-wx-wrap hidden> · <span data-alp-wx-text></span></span>
     </span>
 
-    <a class="alp-hd__link{% if here == 'search' %} is-on{% endif %}" href="{{ routes.search_url }}">Search</a>
+    <a
+      class="alp-hd__link alp-d{% if here == 'search' %} is-on{% endif %}"
+      href="{{ routes.search_url }}"
+      data-alp-toggle="alp-searchmenu"
+      data-alp-hover
+      aria-expanded="false"
+      aria-controls="alp-searchmenu"
+    >Search</a>
+    <a class="alp-hd__link alp-m{% if here == 'search' %} is-on{% endif %}" href="{{ routes.search_url }}">Search</a>
     <a class="alp-hd__link{% if here == 'cart' %} is-on{% endif %}" href="{{ routes.cart_url }}" data-alp-open-cart>Cart (<span data-alp-cart-count>{{ cart.item_count }}</span>)</a>
 
     <button class="alp-hd__burger alp-m" type="button" data-alp-toggle="alp-menu" aria-expanded="false" aria-controls="alp-menu" aria-label="Menu">
       <svg class="alp-hd__icon-open" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
       <svg class="alp-hd__icon-close" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
     </button>
+  </div>
+
+  {%- comment -%}
+    ── Shop panel (desktop) ──────────────────────────────────────────────
+    Opens on hover like Bush Map, with the shop landing's three columns in
+    small: the categories, the product on its plain ground, a lifestyle
+    photo. "Shop all" goes to the full landing page.
+  {%- endcomment -%}
+  {%- liquid
+    assign sp = section.settings.shop_product
+    if sp == blank
+      assign sp = collections['bush-riding-launch'].products.first | default: collections.all.products.first
+    endif
+  -%}
+  <div class="alp-shopmenu alp-d" id="alp-shopmenu" data-alp-panel hidden>
+    <div class="alp-shopmenu__side">
+      <nav class="alp-cats alp-cats--big" aria-label="Categories">
+        {%- render 'alp-shop-links', variant: 'list' -%}
+      </nav>
+      <span class="alp-mapmenu__fill"></span>
+      <a class="alp-btn alp-btn--line" href="{{ shop_url }}">Shop all</a>
+    </div>
+    <a class="alp-shopmenu__panel alp-shopmenu__panel--ground" href="{{ sp.url | default: shop_url }}">
+      {%- assign sp_img = section.settings.shop_product_image | default: sp.featured_media.preview_image -%}
+      {%- if sp_img != blank -%}
+        {{ sp_img | image_url: width: 1000 | image_tag: class: 'alp-fill', loading: 'lazy', sizes: '33vw', alt: '' }}
+      {%- endif -%}
+      {%- if sp != blank -%}
+        <span class="alp-duo__chips">
+          <span class="alp-chip alp-chip--strong">{{ sp.title | escape }}</span>
+          <span class="alp-chip">{{ sp.price | money_without_trailing_zeros }}</span>
+        </span>
+      {%- endif -%}
+    </a>
+    <a class="alp-shopmenu__panel" href="{{ shop_url }}">
+      {%- if section.settings.shop_image != blank -%}
+        {{ section.settings.shop_image | image_url: width: 1000 | image_tag: class: 'alp-fill', loading: 'lazy', sizes: '33vw', alt: '' }}
+      {%- endif -%}
+      {%- if section.settings.shop_image_label != blank -%}
+        <span class="alp-duo__caption">{{ section.settings.shop_image_label | escape }}</span>
+      {%- endif -%}
+    </a>
+  </div>
+
+  {%- comment -%}
+    ── Search panel (desktop) ────────────────────────────────────────────
+    An overlay under the bar, not a page. Before typing: Most popular — the
+    product, two routes and the next ride. As you type: products from
+    Shopify's predictive search (rendered by the alpine-search-results
+    section, so prices are Liquid's), routes and rides from the map feeds.
+    Enter goes to the full /search page.
+  {%- endcomment -%}
+  <div class="alp-searchmenu alp-d" id="alp-searchmenu" data-alp-panel hidden>
+    <form class="alp-search__form alp-searchmenu__form" action="{{ routes.search_url }}" method="get" role="search">
+      <label class="alp-vh" for="AlpSearchMenu">Search</label>
+      <input
+        class="alp-search__input"
+        id="AlpSearchMenu"
+        type="search"
+        name="q"
+        placeholder="Search shorts, routes and rides"
+        autocomplete="off"
+        data-alp-live-search
+      >
+      <input type="hidden" name="type" value="product">
+      <button class="alp-search__go" type="submit">Search</button>
+    </form>
+    <div class="alp-searchmenu__body" data-alp-ls-popular>
+      <p class="alp-searchmenu__head">Most popular</p>
+      <div class="alp-grid4 alp-searchmenu__grid" data-alp-popular>
+        {%- if sp != blank -%}{%- render 'alp-card', product: sp, quick: false -%}{%- endif -%}
+      </div>
+    </div>
+    <div class="alp-searchmenu__body alp-searchmenu__results" data-alp-ls-results hidden>
+      <div class="alp-searchmenu__col">
+        <p class="alp-over">Products</p>
+        <div data-alp-ls-products></div>
+      </div>
+      <div class="alp-searchmenu__col">
+        <p class="alp-over">Routes · Bush Map™</p>
+        <div data-alp-ls-routes></div>
+      </div>
+      <div class="alp-searchmenu__col">
+        <p class="alp-over">Rides</p>
+        <div data-alp-ls-rides></div>
+      </div>
+    </div>
   </div>
 
   {%- comment -%} ── D08 · Bush Map panel (desktop) ───────────────────────── {%- endcomment -%}
@@ -158,6 +264,11 @@
   "settings": [
     { "type": "image_picker", "id": "logo", "label": "Logo", "info": "Leave empty to use the olive wordmark that ships with the theme." },
     { "type": "text", "id": "wordmark", "label": "Logo alt text", "default": "Bush Riding™" },
+    { "type": "header", "content": "Shop panel (desktop)" },
+    { "type": "product", "id": "shop_product", "label": "Product", "info": "Also leads Most popular in the search panel. Leave empty to use the first product in the store." },
+    { "type": "image_picker", "id": "shop_product_image", "label": "Product image", "info": "The product on a plain ground. Defaults to its first photo." },
+    { "type": "image_picker", "id": "shop_image", "label": "Lifestyle photo" },
+    { "type": "text", "id": "shop_image_label", "label": "Lifestyle caption", "default": "Bottoms" },
     { "type": "header", "content": "Bush Map panel (desktop)" },
     { "type": "image_picker", "id": "map_image", "label": "Mini-map image", "info": "A still of the map around the near-you region." },
     { "type": "text", "id": "map_tagline", "label": "Tagline", "default": "Explore more with our curated gravel routes and events" },

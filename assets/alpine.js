@@ -104,6 +104,11 @@
       if (f) setTimeout(function () { f.focus({ preventScroll: true }); }, 30);
     }
     if (id === 'alp-mapmenu') fillNearList();
+    if (id === 'alp-searchmenu') {
+      fillPopular($('[data-alp-popular]', el));
+      var field = $('[data-alp-live-search]', el);
+      if (field) setTimeout(function () { field.focus({ preventScroll: true }); }, 30);
+    }
   }
 
   function closePanel(quiet) {
@@ -163,20 +168,46 @@
     else if (!el.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
   });
 
-  /* Bush Map ▾ also opens on hover, as the design has it; it closes when the
-     pointer leaves the header and its panel. */
+  /* Shop, Bush Map and Search open on hover (desktop) and stay open while the
+     pointer is anywhere over the header or the open panel; leaving both
+     closes it. Search is the exception once it's in use — with the field
+     focused or holding text it stays until Escape, the scrim, or a click
+     elsewhere, so a stray mouse doesn't throw away what was typed. */
   var hoverT = null;
   var hoverOpenedAt = 0;
+  function searchInUse() {
+    var f = $('#alp-searchmenu [data-alp-live-search]');
+    return !!f && (document.activeElement === f || f.value.trim() !== '');
+  }
   document.addEventListener('mouseover', function (e) {
     if (!DESKTOP.matches) return;
-    var btn = e.target.closest('[data-alp-toggle="alp-mapmenu"]');
-    if (btn) { clearTimeout(hoverT); hoverT = setTimeout(function () {
-      if (openId !== 'alp-mapmenu') { hoverOpenedAt = Date.now(); openPanel('alp-mapmenu', { focusFrom: btn }); }
-    }, 120); return; }
-    if (openId === 'alp-mapmenu') {
-      if (e.target.closest('[data-alp-header]')) { clearTimeout(hoverT); }
-      else { clearTimeout(hoverT); hoverT = setTimeout(function () { if (openId === 'alp-mapmenu') closePanel(true); }, 280); }
+    var btn = e.target.closest('[data-alp-hover]');
+    if (btn) {
+      var id = btn.getAttribute('data-alp-toggle');
+      clearTimeout(hoverT);
+      hoverT = setTimeout(function () {
+        if (openId !== id) { hoverOpenedAt = Date.now(); openPanel(id, { focusFrom: btn }); }
+      }, 120);
+      return;
     }
+    var open = openId && document.getElementById(openId);
+    if (!open || !open.closest('[data-alp-header]') || openId === 'alp-menu') return;
+    if (e.target.closest('[data-alp-header]')) { clearTimeout(hoverT); return; }
+    if (openId === 'alp-searchmenu' && searchInUse()) return;
+    clearTimeout(hoverT);
+    hoverT = setTimeout(function () {
+      if (openId === 'alp-searchmenu' && searchInUse()) return;
+      if (openId && document.getElementById(openId).closest('[data-alp-header]')) closePanel(true);
+    }, 280);
+  });
+  /* Pointer gone from the window altogether. */
+  document.documentElement.addEventListener('mouseleave', function () {
+    if (!DESKTOP.matches || !openId || openId === 'alp-menu') return;
+    var open = document.getElementById(openId);
+    if (!open || !open.closest('[data-alp-header]')) return;
+    if (openId === 'alp-searchmenu' && searchInUse()) return;
+    clearTimeout(hoverT);
+    hoverT = setTimeout(function () { closePanel(true); }, 280);
   });
 
   DESKTOP.addEventListener && DESKTOP.addEventListener('change', function () { closePanel(true); openFilterGroups(); });
@@ -753,31 +784,76 @@
     wrap.appendChild(media); wrap.appendChild(cap);
     return wrap;
   }
+  /* Most popular: after the product card(s), two routes and the next ride. */
+  function fillPopular(grid) {
+    if (!grid || grid.getAttribute('data-done')) return;
+    grid.setAttribute('data-done', '1');
+    Promise.all([feed('routes'), feed('events')]).then(function (res) {
+      regionFirst(res[0] || []).slice(0, 2).forEach(function (p) {
+        grid.appendChild(popularCard(routeHref(p.id), 'Route', false, p.name, routeStats(p), p.photo_url, true));
+      });
+      var r = upcoming(res[1] || [])[0];
+      if (r) grid.appendChild(popularCard(rideHref(r), 'Ride', true, r.name || r.subtitle, shortDate(r.date_iso) + ' · RSVP', r.hero_image, false));
+    });
+  }
+
+  function matchFeeds(q) {
+    q = q.toLowerCase();
+    function has(p, keys) {
+      return keys.some(function (k) { return String(p[k] || '').toLowerCase().indexOf(q) > -1; });
+    }
+    return Promise.all([feed('routes'), feed('events')]).then(function (res) {
+      return {
+        routes: (res[0] || []).filter(function (p) { return has(p, ['name', 'region', 'state', 'description', 'series']); }),
+        rides: upcoming(res[1] || []).filter(function (p) { return has(p, ['name', 'subtitle', 'route_name', 'meeting_point', 'description']); })
+      };
+    });
+  }
+
+  /* The header's search panel, as you type. */
+  var lsT = null;
+  var lsSeq = 0;
+  document.addEventListener('input', function (e) {
+    var field = e.target.closest('[data-alp-live-search]');
+    if (!field) return;
+    var panel = field.closest('[data-alp-panel]');
+    var popular = $('[data-alp-ls-popular]', panel);
+    var results = $('[data-alp-ls-results]', panel);
+    var q = field.value.trim();
+    clearTimeout(lsT);
+    if (q.length < 2) { popular.hidden = false; results.hidden = true; return; }
+    lsT = setTimeout(function () {
+      var seq = ++lsSeq;
+      var url = ROOT.replace(/\/$/, '') + '/search/suggest?q=' + encodeURIComponent(q) +
+        '&resources[type]=product&resources[limit]=4&section_id=alpine-search-results';
+      var products = fetch(url).then(function (r) { return r.ok ? r.text() : ''; }).catch(function () { return ''; });
+      Promise.all([products, matchFeeds(q)]).then(function (res) {
+        if (seq !== lsSeq) return; /* a newer search has started */
+        var doc = new DOMParser().parseFromString(res[0], 'text/html');
+        var rows = $('[data-alp-ls-count]', doc);
+        $('[data-alp-ls-products]', panel).innerHTML = rows ? rows.innerHTML : '<p class="alp-hit alp-hit--none">No products match.</p>';
+        var rh = $('[data-alp-ls-routes]', panel), dh = $('[data-alp-ls-rides]', panel);
+        rh.innerHTML = ''; dh.innerHTML = '';
+        res[1].routes.slice(0, 5).forEach(function (p) { rh.appendChild(hitRow(routeHref(p.id), p.name, routeStats(p))); });
+        res[1].rides.slice(0, 4).forEach(function (p) { dh.appendChild(hitRow(rideHref(p), shortDate(p.date_iso) + ' · ' + (p.subtitle || p.name), 'RSVP', true)); });
+        if (!res[1].routes.length) rh.appendChild(el('p', 'alp-hit alp-hit--none', 'No routes match.'));
+        if (!res[1].rides.length) dh.appendChild(el('p', 'alp-hit alp-hit--none', 'No rides match.'));
+        popular.hidden = true; results.hidden = false;
+      });
+    }, 200);
+  });
+
   function initSearch() {
     var sec = $('[data-alp-search]');
     if (!sec || sec.getAttribute('data-done')) return;
     sec.setAttribute('data-done', '1');
     var q = (sec.getAttribute('data-alp-q') || '').trim().toLowerCase();
 
-    if (!q) {
-      var grid = $('[data-alp-popular]', sec);
-      if (!grid) return;
-      Promise.all([feed('routes'), feed('events')]).then(function (res) {
-        regionFirst(res[0] || []).slice(0, 2).forEach(function (p) {
-          grid.appendChild(popularCard(routeHref(p.id), 'Route', false, p.name, routeStats(p), p.photo_url, true));
-        });
-        var r = upcoming(res[1] || [])[0];
-        if (r) grid.appendChild(popularCard(rideHref(r), 'Ride', true, r.name || r.subtitle, shortDate(r.date_iso) + ' · RSVP', r.hero_image, false));
-      });
-      return;
-    }
+    if (!q) { fillPopular($('[data-alp-popular]', sec)); return; }
 
-    function has(p, keys) {
-      return keys.some(function (k) { return String(p[k] || '').toLowerCase().indexOf(q) > -1; });
-    }
-    Promise.all([feed('routes'), feed('events')]).then(function (res) {
-      var routes = (res[0] || []).filter(function (p) { return has(p, ['name', 'region', 'state', 'description', 'series']); }).slice(0, 8);
-      var rides = upcoming(res[1] || []).filter(function (p) { return has(p, ['name', 'subtitle', 'route_name', 'meeting_point', 'description']); }).slice(0, 6);
+    matchFeeds(q).then(function (m) {
+      var routes = m.routes.slice(0, 8);
+      var rides = m.rides.slice(0, 6);
       var rh = $('[data-alp-route-hits]', sec), dh = $('[data-alp-ride-hits]', sec);
       routes.forEach(function (p) { rh.appendChild(hitRow(routeHref(p.id), p.name, routeStats(p))); });
       rides.forEach(function (p) { dh.appendChild(hitRow(rideHref(p), shortDate(p.date_iso) + ' · ' + (p.subtitle || p.name), 'RSVP', true)); });
