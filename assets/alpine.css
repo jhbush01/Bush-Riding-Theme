@@ -1,2853 +1,963 @@
-/* Bush Riding theme skin. The `alpine`/`alp-` naming is historical: the skin
-   was cut from the ALP1NE design study, which no longer lives here, and its
-   tokens were sampled from that study's reference frames.
-   Everything is prefixed `alp-` so it can't collide with Dawn's base.css. */
+/* Bush Riding storefront — the October 2026 redesign (Claude Design handoff,
+   docs/design_handoff_storefront_redesign). Photography and product first,
+   clean lines, hairline borders, symmetry, one accent per screen.
 
-:root {
-  /* Brand board palette. The --alp-* names are kept so existing markup keeps
-     working; every value is now the board's. The study's navy, lavender haze
-     and citrus are retired. */
-  --alp-bg: #edecc5;          /* bone — the page */
-  --alp-surface: #ffffff;     /* paper — chip + card surfaces only, never a field */
-  --alp-ink: #4c4b3b;         /* olive — the ink and the primary (7.3:1 on bone) */
-  --alp-olive: #4c4b3b;       /* olive — manifesto ground, inner-page header */
-  --alp-haze: #b9bea3;        /* sage — display type on olive (was lavender) */
-  --alp-accent: #828059;      /* khaki — hover + secondary accent (was navy) */
-  --alp-citrus: #ede270;      /* flare — the one accent (was the study's citrus) */
-  --alp-mist: #a7b8b4;        /* mist — the home page ground (option 2a) */
-  --alp-line: rgba(76, 75, 59, 0.24);
+   Desktop and phone are deliberately different layouts (CLAUDE.md rule 6):
+   desktop is written first, and each component carries its own phone block
+   at the theme's 749px breakpoint.
 
-  --alp-font-display: 'Archivo', 'Helvetica Neue', sans-serif;
-  --alp-font-ui: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+   Everything is prefixed alp- so nothing collides with Dawn's base.css, which
+   still serves the account, password and policy pages. Dawn sets the root to
+   62.5%, so sizes here are in px, not rem. */
 
-  --alp-space-section: clamp(72px, 12vw, 160px);
-  --alp-pad-page: clamp(16px, 4vw, 48px);
-
-  /* The caption-gutter measures. These were hardcoded as 200px / 56px in five
-     places — the wireframe's 1440 artboard, pinned. They never scaled, so
-     between 990 and 1400 the gutter ate a fixed 200px of a shrinking field
-     while the bands above and below stayed at their full height: cramped
-     columns inside airy slabs, which is the worst of both. */
-  --alp-gutter: clamp(104px, 13vw, 200px);
-  --alp-gutter-gap: clamp(20px, 2.6vw, 56px);
-  --alp-field-pad: clamp(20px, 4vw, 56px);
-  --alp-band: clamp(40px, 5.5vw, 80px);
+@font-face {
+  font-family: 'DX Burst Smooth';
+  src: url('dx-burst-smooth.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
 }
 
-/* `.gradient` is Dawn's, it is on <body>, and at (0,1,0) it beats a bare
-   `body` selector at (0,0,1) — so the page's real ground was Dawn's colour
-   scheme, which is white. Every section here paints its own bone over the top,
-   which is why the page looked right and only the one element WITHOUT a
-   background of its own gave it away: the next-ride card.
+:root {
+  /* Brand board — the handoff's token table. Names kept from the old skin. */
+  --alp-bg: #edecc5;        /* bone — page, header, sheets */
+  --alp-surface: #ffffff;   /* paper — fields, chips on photos, ride cards */
+  --alp-card: #eceada;      /* card ground — product photos, next-drop tiles */
+  --alp-haze: #b8bca1;      /* sage — muted text on olive */
+  --alp-mist: #a7b8b4;      /* mist — map and route image ground */
+  --alp-accent: #817f57;    /* khaki — muted text, "soon", stats */
+  --alp-ink: #4c4b3b;       /* olive — all text, primary buttons, selected size */
+  --alp-olive: #4c4b3b;
+  --alp-citrus: #ece26a;    /* flare — one per screen */
+  --alp-flare: var(--alp-citrus);
+  --alp-line: rgba(76, 75, 59, 0.24);
+  --alp-scrim: rgba(76, 75, 59, 0.5);
+  --alp-scrim-hero: rgba(76, 75, 59, 0.38);
 
-   Matching the class settles it. The earlier home page hid this by accident —
-   `body.template-index { background: mist }` was (0,1,1) and did win. */
+  --alp-font-display: 'Archivo', 'Helvetica Neue', Arial, sans-serif; /* stand-in for Aktiv Grotesk Semibold */
+  --alp-font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --alp-font-code: 'DX Burst Smooth', var(--alp-font-display);
+
+  --alp-hd: 84px;
+  --alp-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+@media (max-width: 749px) {
+  :root { --alp-hd: 56px; }
+}
+
+/* Dawn's .gradient on <body> beats a bare `body` selector, so match it. */
 body,
 body.gradient {
   background: var(--alp-bg);
   color: var(--alp-ink);
 }
+body.alp-locked { overflow: hidden; }
 
-/* ── The rail, and what it does to the page ──────────────────────────────────
-   Desktop navigation is a fixed column down the left rather than a bar across
-   the top, so the page is inset by its width instead of by its height. The
-   inset goes on <body> so the footer moves with the content — the rail runs
-   the full height of the viewport and nothing may pass under it.
+/* ── Platform switches ───────────────────────────────────────────────────── */
+@media (max-width: 749px) { .alp-d { display: none !important; } }
+@media (min-width: 750px) { .alp-m { display: none !important; } }
+.alp-contents { display: contents; }
 
-   Below 990px there is no rail: navigation is two floating chips at the bottom
-   of the screen, so the page needs bottom clearance instead, and the top of
-   the screen is free for photography. */
-:root { --alp-rail-w: 196px; }
-
-@media (min-width: 990px) {
-  body { padding-left: var(--alp-rail-w); }
-}
-
-/* Clearance for the floating chips at rest. Sections that end on their own
-   olive slab add their own. */
-@media (max-width: 989px) {
-  #MainContent { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
-}
-
-/* Bone is the ground on every template. (Option 2a made the home page mist;
-   the rail system puts mist back to rules, wayfinding and headline grounds
-   only — olive on mist is 4.35:1, which will not carry small copy.) */
-
+/* ── Base ────────────────────────────────────────────────────────────────── */
 .alp {
   font-family: var(--alp-font-ui);
-  font-size: 1rem;
+  font-size: 15px;
   line-height: 1.5;
+  letter-spacing: 0;
   color: var(--alp-ink);
   -webkit-font-smoothing: antialiased;
 }
-
-.alp img { display: block; max-width: 100%; height: auto; }
-
-.alp-glyph { font-style: normal; }
-
-/* ── Chips (header, product labels, buttons) ─────────────────────────────── */
-.alp-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4em;
-  background: var(--alp-surface);
-  color: var(--alp-ink);
-  border: 1px solid var(--alp-line);
-  border-radius: 3px;
-  padding: 8px 14px;
-  font-family: var(--alp-font-ui);
-  font-size: 0.875rem;
-  font-weight: 600;
-  line-height: 1.2;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-a.alp-chip:hover, button.alp-chip:hover { background: var(--alp-ink); color: var(--alp-surface); }
-button.alp-chip { cursor: pointer; }
-
-.alp-chip--price { font-weight: 500; }
-
-/* Compact chip — the catalogue's controls and card labels, where the full-size
-   chip would crowd a three-up grid. */
-.alp-chip--sm { padding: 6px 11px; font-size: 0.8rem; }
-
-/* Selected: the chip inverts to olive. One rule for facet values, the current
-   page in the pager, and any other "you are here" chip. */
-.alp-chip--active {
-  background: var(--alp-ink);
-  color: var(--alp-bg);
-  border-color: var(--alp-ink);
-}
-a.alp-chip--active:hover { background: var(--alp-accent); border-color: var(--alp-accent); color: var(--alp-bg); }
-
-/* ── The rail (desktop navigation) ───────────────────────────────────────────
-   A fixed bone column with a hairline edge, holding the wordmark and nav at the
-   top, a per-template block in the middle and the next ride plus the cart at
-   the foot. The middle block is the point of the thing: filters on the
-   catalogue, the dispatch index on the journal, the section index on a page.
-   A top bar cannot hold any of that without becoming a second page. */
-.alp-rail {
-  position: fixed;
-  inset: 0 auto 0 0;
-  width: var(--alp-rail-w);
-  z-index: 50;
-  box-sizing: border-box;
-  padding: 28px 22px;
-  background: var(--alp-bg);
-  border-right: 1px solid var(--alp-line);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 24px;
-  /* The rail itself does not scroll — its TOP does. On a 700px laptop the
-     About page's rail wanted 776px, and when the whole column scrolled that
-     pushed the next ride and the cart off the bottom, where nobody would think
-     to look for them. Now the nav and the per-page block take the scroll and
-     the foot stays put. */
-  overflow: hidden;
-  scrollbar-width: none;
-}
-.alp-rail::-webkit-scrollbar { display: none; }
-
-.alp-rail__top {
-  display: flex;
-  flex-direction: column;
-  gap: 34px;
-  min-height: 0;
-  overflow-y: auto;
-  scrollbar-width: none;
-}
-.alp-rail__top::-webkit-scrollbar { display: none; }
-.alp-rail__foot { flex: none; }
-
-.alp-rail__wordmark { display: block; }
-/* Two classes deep on purpose: the blanket `.alp img` rule is (0,1,1), so a
-   lone `.alp-rail__mark` (0,1,0) loses to it and the logo renders at its
-   intrinsic 1273px width. Do not flatten this selector. */
-.alp-rail__wordmark .alp-rail__mark {
-  display: block;
-  height: 30px;
-  width: auto;
-  max-width: none;
-}
-
-.alp-rail__nav { display: flex; flex-direction: column; gap: 12px; }
-
-.alp-rail__link {
-  font-family: var(--alp-font-ui);
-  font-size: 1.0625rem;
-  font-weight: 600;
-  line-height: 1;
-  color: var(--alp-ink);
-  text-decoration: none;
-}
-.alp-rail__link:hover { color: var(--alp-accent); }
-
-/* The mist bar marks where you are. Pulled left by its own width plus the
-   padding so the type stays on the same optical line as the rows above it. */
-.alp-rail__link.is-on {
-  border-left: 3px solid var(--alp-mist);
-  padding-left: 10px;
-  margin-left: -13px;
-}
-
-.alp-rail__slot { display: flex; flex-direction: column; gap: 11px; }
-/* The home page has nothing to put here; an empty slot must not add its gap. */
-.alp-rail__slot:empty { display: none; }
-
-/* What the slot holds — today the catalogue's facets, rendered from the same
-   snippet the phone's Filter panel uses. A hairline separates it from the nav
-   above so the rail reads as two stacked jobs rather than one long list. */
-.alp-rail__slot {
-  border-top: 1px solid var(--alp-line);
-  padding-top: 18px;
-}
-.alp-rail__slot .alp-cat__facet { display: flex; flex-direction: column; }
-.alp-rail__slot .alp-cat__facet + .alp-cat__facet { margin-top: 18px; }
-.alp-rail__slot .alp-cat__facet-head {
-  margin: 0 0 10px;
-  font-size: 0.594rem;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  color: var(--alp-ink);
-}
-.alp-rail__slot .alp-cat__facet-link { font-size: 0.8125rem; }
-/* The dispatch you are reading, marked the way the nav marks the page you are on. */
-.alp-rail__slot .alp-rail__detail.is-on { font-weight: 700; }
-/* The rail gives about 152px of usable width, so the price row stacks rather
-   than sitting side by side. It must not simply be hidden: the phone's Filter
-   panel is the only other place these controls exist, and that panel is gone
-   above 990px — hiding it here would put the price filter out of reach on
-   desktop entirely. */
-.alp-rail__slot .alp-cat__price-row { flex-direction: column; align-items: stretch; gap: 8px; }
-.alp-rail__slot .alp-cat__price-dash { display: none; }
-.alp-rail__slot .alp-cat__price-go { width: 100%; justify-content: center; }
-.alp-rail__slot .alp-cat__swatches { gap: 8px; }
-
-.alp-rail__foot { display: flex; flex-direction: column; gap: 14px; }
-
-.alp-rail__eyebrow {
-  margin: 0;
-  font-family: var(--alp-font-ui);
-  font-size: 0.594rem;
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--alp-ink);
-}
-
-.alp-rail__summary {
-  margin: 0;
-  font-family: var(--alp-font-display);
-  font-weight: 600;
-  font-size: 1.125rem;
-  line-height: 1.2;
-}
-
-.alp-rail__cart {
-  font-family: var(--alp-font-ui);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  line-height: 1;
-  color: var(--alp-ink);
-  text-decoration: none;
-  border-top: 1px solid var(--alp-line);
-  padding-top: 14px;
-}
-.alp-rail__cart:hover { color: var(--alp-accent); }
-
-/* ── The rail's buy block (product page) ──────────────────────────────────── */
-.alp-rail__back {
-  font-family: var(--alp-font-ui);
-  font-size: 0.75rem;
-  color: var(--alp-ink);
-  text-decoration: none;
-}
-.alp-rail__back:hover { color: var(--alp-accent); }
-
-.alp-rail__product {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  border-top: 1px solid var(--alp-line);
-  padding-top: 18px;
-}
-.alp-rail__ptitle {
-  margin: 0;
-  font-family: var(--alp-font-display);
-  font-weight: 600;
-  font-size: 1.25rem;
-  line-height: 1.18;
-  letter-spacing: -0.01em;
-}
-.alp-rail__pprice { margin: 0; font-size: 0.875rem; }
-
-.alp-rail__sizes { display: flex; flex-direction: column; gap: 10px; }
-.alp-rail__sizerow { display: flex; flex-wrap: wrap; gap: 6px; }
-
-.alp-rail__size {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 34px;
-  padding: 8px 9px;
-  border: 1px solid rgba(76, 75, 59, 0.35);
-  border-radius: 3px;
-  background: transparent;
-  font-family: var(--alp-font-ui);
-  font-size: 0.75rem;
-  font-weight: 600;
-  line-height: 1;
-  color: var(--alp-ink);
-  cursor: pointer;
-}
-.alp-rail__size:hover { border-color: var(--alp-ink); }
-.alp-rail__size.is-on { background: var(--alp-ink); border-color: var(--alp-ink); color: var(--alp-bg); }
-
-.alp-rail__atc {
-  justify-content: center;
-  padding: 15px;
-  background: var(--alp-ink);
-  border-color: var(--alp-ink);
-  color: var(--alp-bg);
-}
-.alp-rail__atc:hover:not(:disabled) { background: var(--alp-accent); border-color: var(--alp-accent); }
-.alp-rail__atc:disabled { opacity: 0.5; cursor: default; }
-
-.alp-rail__detail {
-  font-family: var(--alp-font-ui);
-  font-size: 0.8125rem;
-  line-height: 1.35;
-  color: var(--alp-ink);
-  text-decoration: none;
-}
-.alp-rail__detail:hover { color: var(--alp-accent); }
-
-/* 8b gives the images the whole field by moving the buy controls into the
-   rail. The page's own block only steps aside once alpine.js has CONFIRMED it
-   can reach Dawn's form and button — the class is added by script, never by
-   Liquid. Without JS, or with a form we cannot reach, the page keeps the
-   controls it has always had. A product must never become unbuyable because a
-   rail failed to load.
-
-   Hidden, not removed: the rail drives those very radios by clicking them, so
-   they have to stay in the DOM. */
-@media (min-width: 990px) {
-  body.alp-rail-buy .product__info-container .product-form,
-  body.alp-rail-buy .product__info-container .price,
-  body.alp-rail-buy .product__info-container .product-form__input { display: none; }
-}
-
-/* ── Next ride ───────────────────────────────────────────────────────────────
-   One block, three shapes: the rail foot, the home page card, and the mist
-   panel used at the top of the menu sheet and the foot of the journal.
-
-   It arrives empty and alpine.js fills it from the events feed, so `hidden`
-   has to beat the display values below — otherwise an unresolved block lays
-   out as an empty card. */
-.alp-nr[hidden] { display: none !important; }
-
-.alp-nr__rule { display: block; height: 3px; width: 44px; background: var(--alp-mist); }
-
-.alp-nr--rail { display: flex; flex-direction: column; gap: 10px; }
-.alp-nr--rail .alp-nr__date {
-  margin: 0;
-  font-family: var(--alp-font-display);
-  font-weight: 600;
-  font-size: 1.125rem;
-  line-height: 1.2;
-}
-.alp-nr--rail .alp-nr__place { margin: 0; font-size: 0.781rem; line-height: 1.45; }
-.alp-nr--rail .alp-nr__link {
-  font-family: var(--alp-font-ui);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--alp-ink);
-  text-decoration: none;
-}
-.alp-nr--rail .alp-nr__link:hover { color: var(--alp-accent); }
-
-/* The home page card — under the hero, above the story, with a mist rule under
-   it rather than a border box. */
-.alp-nr--card {
-  display: block;
-  text-decoration: none;
-  color: var(--alp-ink);
-  padding: 20px;
-  border-bottom: 3px solid var(--alp-mist);
-}
-.alp-nr__head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; gap: 12px; }
-.alp-nr__eyebrow {
-  font-family: var(--alp-font-ui);
-  font-size: 0.594rem;
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-.alp-nr--card .alp-nr__date {
-  display: block;
-  font-family: var(--alp-font-display);
-  font-weight: 600;
-  font-size: 1.1875rem;
-  line-height: 1.2;
-}
-.alp-nr__note { display: block; font-size: 0.8125rem; line-height: 1.65; margin-top: 6px; }
-
-/* Olive chip, bone label — the one place the next ride asks for a tap. */
-.alp-nr__cta {
-  margin-top: 14px;
-  background: var(--alp-ink);
-  color: var(--alp-bg);
-  border-color: var(--alp-ink);
-  min-height: 46px;
-  padding: 0 16px;
-}
-.alp-nr--card:hover .alp-nr__cta,
-.alp-nr--panel:hover .alp-nr__cta { background: var(--alp-accent); border-color: var(--alp-accent); }
-
-/* The mist panel. Mist carries headline-scale type only — the eyebrow sits on
-   an olive tab rather than directly on the mist, which would be 4.35:1. */
-.alp-nr--panel {
-  display: block;
-  text-decoration: none;
-  color: var(--alp-ink);
-  padding: 20px;
-  background: var(--alp-mist);
-}
-.alp-nr__tab {
-  display: inline-block;
-  margin-bottom: 10px;
-  padding: 6px 9px;
-  background: var(--alp-ink);
-  color: var(--alp-bg);
-  font-family: var(--alp-font-ui);
-  font-size: 0.594rem;
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-.alp-nr--panel .alp-nr__date {
-  display: block;
-  font-family: var(--alp-font-display);
-  font-weight: 600;
-  font-size: 1.5rem;
-  line-height: 1.2;
-}
-
-/* In the menu sheet the ride is a signpost, not the headline. At 24px a real
-   event name — "Sunday 11th October, 7am / Glass House Mountains Station
-   Carpark" rather than the wireframe's "Sat 8 Nov / Gap Creek" — ran to four
-   lines and pushed the navigation off the screen. */
-.alp-sheet .alp-nr--panel { margin: 0 20px 4px; padding: 16px; }
-.alp-sheet .alp-nr--panel .alp-nr__date { font-size: 1.0625rem; }
-.alp-sheet .alp-nr--panel .alp-nr__cta { margin-top: 10px; }
-
-/* ── Search ──────────────────────────────────────────────────────────────────
-   Predictive search was enabled in this store's settings and reachable from
-   nowhere: the rail, the menu sheet and the Explore overlay before them all
-   dropped it. A shop you cannot search is a shop you browse until you give up. */
-.alp-search {
-  display: flex;
-  gap: 6px;
-  align-items: stretch;
-}
-.alp-search__field {
-  flex: 1;
-  min-width: 0;
-  box-sizing: border-box;
-  background: var(--alp-bg);
-  border: 1px solid var(--alp-line);
-  border-radius: 3px;
-  padding: 0 12px;
-  font-family: var(--alp-font-ui);
-  font-size: 0.875rem;
-  color: var(--alp-ink);
-}
-.alp-search__field::placeholder { color: rgba(76, 75, 59, 0.55); }
-.alp-search__field:focus-visible { outline: 2px solid var(--alp-ink); outline-offset: 1px; }
-
-.alp-search__go {
-  flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--alp-ink);
-  color: var(--alp-bg);
-  border: 1px solid var(--alp-ink);
-  border-radius: 3px;
-  cursor: pointer;
-}
-.alp-search__go svg { width: 17px; height: 17px; }
-.alp-search__go:hover { background: var(--alp-accent); border-color: var(--alp-accent); }
-
-/* The rail gives about 152px of usable width, so this runs small and tight. */
-.alp-search--rail { margin-top: -8px; }
-.alp-search--rail .alp-search__field { height: 36px; font-size: 0.8125rem; padding: 0 9px; }
-.alp-search--rail .alp-search__go { width: 36px; }
-
-/* In the sheet it is a primary control and gets a full touch target. */
-.alp-search--sheet { padding: 16px 20px 4px; }
-.alp-search--sheet .alp-search__field { height: 46px; }
-.alp-search--sheet .alp-search__go { width: 46px; }
-
-/* ── Product identity (phones) ───────────────────────────────────────────────
-   Name and price under the lead image. The rail carries these on desktop, and
-   there is no rail on a phone. */
-.alp-phero__id {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 20px var(--alp-pad-page) 16px;
-  background: var(--alp-bg);
-}
-.alp-phero__name {
-  margin: 0;
-  font-family: var(--alp-font-display);
-  font-weight: 600;
-  font-size: 1.375rem;
-  line-height: 1.15;
-  letter-spacing: -0.01em;
-  color: var(--alp-ink);
-}
-.alp-phero__price { margin: 0; flex: none; font-size: 0.9375rem; color: var(--alp-ink); }
-
-@media (min-width: 990px) {
-  /* Desktop: the rail has them, so this block steps aside entirely. */
-  .alp-phero__id { display: none; }
-}
-@media (max-width: 989px) {
-  /* ...and where it IS shown, Dawn's own title and price stand down, so only
-     one heading is ever exposed. */
-  body.template-product .product__info-container .product__title,
-  body.template-product .product__info-container .price { display: none; }
-}
-
-/* ── Next ride, as its own section ───────────────────────────────────────────
-   The card carries no background of its own — it is a link, and a link that
-   paints a colour cannot sit on a photograph. The SECTION owns the ground, so
-   it can be set per placement in the editor. */
-.alp-nrs { display: block; }
-.alp-nrs--bone { background: var(--alp-bg); }
-.alp-nrs--mist { background: var(--alp-mist); }
-.alp-nrs--sage { background: var(--alp-haze); }
-.alp-nrs--paper { background: var(--alp-surface); }
-
-/* Olive inverts the type with it. */
-.alp-nrs--olive { background: var(--alp-ink); }
-.alp-nrs--olive .alp-nr--card { color: var(--alp-bg); border-bottom-color: rgba(237, 236, 197, 0.3); }
-.alp-nrs--olive .alp-nr__cta {
-  background: var(--alp-bg);
-  border-color: var(--alp-bg);
-  color: var(--alp-ink);
-}
-.alp-nrs--olive .alp-nr--card:hover .alp-nr__cta { background: var(--alp-haze); border-color: var(--alp-haze); }
-
-/* Phones only unless asked otherwise — the rail carries it on desktop. */
-@media (min-width: 990px) {
-  .alp-nrs--phone { display: none; }
-}
-
-/* ── Mobile: the floating chips ──────────────────────────────────────────────
-   Menu and Cart, centred at the foot of the screen. Nothing is pinned to the
-   top on a phone, so the full height goes to the photography. */
-.alp-fab {
-  position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: calc(20px + env(safe-area-inset-bottom));
-  display: flex;
-  gap: 8px;
-  z-index: 55;
-}
-.alp-fab__btn {
-  box-shadow: 0 4px 16px rgba(76, 75, 59, 0.28);
-  min-height: 46px;
-  box-sizing: border-box;
-  padding: 0 18px;
-  font-size: 0.8125rem;
-}
-
-/* ── The pinned buy bar (phone, product) ─────────────────────────────────────
-   9d makes this the only add to cart on a phone. It replaces the floating
-   chips rather than stacking above them — two bars at the foot of a phone is
-   one too many — so it carries its own Menu chip. */
-.alp-buybar {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 56;
-  display: flex;
-  gap: 8px;
-  padding: 14px var(--alp-pad-page) calc(20px + env(safe-area-inset-bottom));
-  background: var(--alp-bg);
-  border-top: 1px solid var(--alp-line);
-}
-.alp-buybar[hidden] { display: none; }
-
-.alp-buybar__go {
-  flex: 1;
-  justify-content: center;
-  gap: 8px;
-  padding: 14px;
-  min-height: 46px;
-  box-sizing: border-box;
-  cursor: pointer;
-}
-.alp-buybar__go:disabled { opacity: 0.5; cursor: default; }
-.alp-buybar__price::before { content: "— "; }
-.alp-buybar__price[hidden] { display: none; }
-
-.alp-buybar__menu { padding: 14px 16px; min-height: 46px; box-sizing: border-box; cursor: pointer; }
-
-/* The floating chips stand down while the buy bar is up. */
-body.alp-buybar-up .alp-fab { display: none; }
-body.alp-buybar-up #MainContent { padding-bottom: calc(110px + env(safe-area-inset-bottom)); }
-
-/* Phone: the pinned bar IS the add to cart, so the in-page form steps aside.
-
-   Gated on alp-buybar-up, NOT on alp-rail-buy: that class is set by the bar's
-   own script only after it has found Dawn's form and button. Keyed to the
-   rail's class instead, a failure in the bar alone would hide the in-page form
-   with nothing pinned to replace it, and the product would be unbuyable on a
-   phone. The gate has to be the thing doing the replacing.
-
-   Price and the size picker stay — 9d shows both in the copy block. */
-@media (max-width: 989px) {
-  body.alp-buybar-up .product__info-container .product-form { display: none; }
-}
-
-/* ── Back to the top (phones) ────────────────────────────────────────────────
-   Sits to the RIGHT, because the Menu/Cart chips are centred — the two never
-   meet. Raised above the buy bar on a product page, which owns the whole foot
-   of the screen there. */
-.alp-top {
-  position: fixed;
-  right: var(--alp-pad-page);
-  bottom: calc(20px + env(safe-area-inset-bottom));
-  z-index: 54;
-  width: 44px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--alp-bg);
-  color: var(--alp-ink);
-  border: 1px solid var(--alp-line);
-  border-radius: 3px;
-  box-shadow: 0 4px 16px rgba(76, 75, 59, 0.28);
-  cursor: pointer;
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(6px);
-  transition: opacity 0.2s ease-out, transform 0.2s ease-out;
-}
-.alp-top.is-in { opacity: 1; pointer-events: auto; transform: none; }
-.alp-top svg { width: 18px; height: 18px; }
-.alp-top:hover { background: var(--alp-mist); }
-
-body.alp-buybar-up .alp-top { bottom: calc(82px + env(safe-area-inset-bottom)); }
-
-/* Desktop keeps the rail on screen with every link in it, so there is nothing
-   to come back up for. */
-@media (min-width: 990px) { .alp-top { display: none; } }
-
-@media (prefers-reduced-motion: reduce) {
-  .alp-top { transition: none; }
-}
-
-/* ── Mobile: the menu sheet ──────────────────────────────────────────────────
-   A bottom sheet over a dimmed page, rather than the old full-screen wipe. It
-   rises from the bottom because that is where the chip that opens it lives. */
-.alp-sheet {
-  position: fixed;
-  inset: 0;
-  z-index: 60;
-  visibility: hidden;
-  pointer-events: none;
-}
-.alp-sheet.is-open { visibility: visible; pointer-events: auto; }
-
-.alp-sheet__scrim {
-  position: absolute;
-  inset: 0;
-  background: rgba(76, 75, 59, 0.6);
-  opacity: 0;
-  transition: opacity 0.3s ease-out;
-}
-.alp-sheet.is-open .alp-sheet__scrim { opacity: 1; }
-
-.alp-sheet__panel {
-  position: absolute;
-  inset: 56px 0 0;
-  background: var(--alp-bg);
-  border-radius: 18px 18px 0 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  transform: translateY(100%);
-  transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1);
-}
-.alp-sheet.is-open .alp-sheet__panel { transform: none; }
-
-.alp-sheet__bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--alp-line);
-}
-.alp-sheet__bar .alp-sheet__mark { display: block; height: 18px; width: auto; max-width: none; }
-
-.alp-sheet__close {
-  background: none;
-  border: 0;
-  cursor: pointer;
-  color: var(--alp-ink);
-  width: 44px;
-  height: 44px;
-  margin: -10px -10px -10px 0;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-}
-.alp-sheet__close svg { width: 20px; height: 20px; }
-
-.alp-sheet__scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-
-/* Pinned, not just overflow:hidden — see lockScroll() in alpine.js. The inline
-   `top` alpine.js sets is what holds the reading position. */
-body.alp-menu-open {
-  overflow: hidden;
-  position: fixed;
-  left: 0;
-  right: 0;
-  width: 100%;
-}
-
-/* Nav rows inside the sheet: display scale, 44px tall, tight stack. */
-.alp-sheet__nav {
-  padding: 14px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  border-bottom: 1px solid var(--alp-line);
-}
-.alp-sheet__nav .alp-rail__link,
-.alp-sheet__nav .alp-rail__cart {
-  font-family: var(--alp-font-display);
-  font-size: 1.3125rem;
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: -0.01em;
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-  border-top: 0;
-  padding: 0;
-}
-/* The mist bar is a desktop-rail device; in the sheet the row you are on is
-   simply where you already are. */
-.alp-sheet__nav .alp-rail__link.is-on { border-left: 0; padding-left: 0; margin-left: 0; }
-
-.alp-sheet__cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 20px; }
-.alp-sheet__card { display: block; text-decoration: none; color: var(--alp-ink); }
-.alp-sheet__card .alp-sheet__media {
-  display: block;
-  width: 100%;
-  aspect-ratio: 4 / 5;
-  object-fit: cover;
-  background: var(--alp-haze);
-}
-.alp-sheet__cardlabel {
-  display: block;
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid var(--alp-mist);
-  font-size: 0.781rem;
-}
-
-.alp-sheet__columns { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; padding: 6px 20px 20px; }
-.alp-sheet__col ul { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-.alp-sheet__col a { font-size: 0.8125rem; line-height: 1.35; color: var(--alp-ink); text-decoration: none; }
-.alp-sheet__col a:hover { text-decoration: underline; }
-
-.alp-sheet__account { margin: 0; padding: 0 20px 40px; }
-.alp-sheet__account a { font-size: 0.8125rem; color: var(--alp-ink); }
-
-/* ── Which system is on ──────────────────────────────────────────────────── */
-@media (max-width: 989px) {
-  .alp-rail { display: none; }
-}
-@media (min-width: 990px) {
-  .alp-fab,
-  .alp-sheet { display: none; }
-
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .alp-sheet__panel,
-  .alp-sheet__scrim { transition: none; }
-}
-
-/* ── Hero ────────────────────────────────────────────────────────────────────
-   Full-bleed media under an olive veil, wordmark and tagline centred, and a
-   caption row naming the country at the foot.
-
-   Desktop fills the viewport. Mobile deliberately does not: the hero stops
-   short of the fold so the next-ride card below it is already partly visible,
-   and so that card's CTA clears the floating chips. Sizing the mobile hero to
-   the full fold is exactly what pushed that CTA under the nav band before. */
-.alp-hero { position: relative; min-height: 100svh; overflow: hidden; }
-
-.alp-hero__media,
-.alp-hero__media img,
-.alp-hero__media video,
-.alp-hero__media svg {
-  position: absolute; inset: 0;
-  width: 100%; height: 100%;
-  object-fit: cover;
-}
-
-/* A ramp, not a flat fill: the photograph keeps some air at the top while the
-   caption row at the foot sits on the darkest ground it has. */
-.alp-hero__veil {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background: linear-gradient(
-    rgba(76, 75, 59, 0.7) 0%,
-    rgba(76, 75, 59, 0.76) 55%,
-    rgba(76, 75, 59, 0.92) 100%
-  );
-}
-
-.alp-hero__centre {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 26px;
-  padding: 0 var(--alp-pad-page);
-  pointer-events: none;
-}
-
-/* Two classes deep so it beats the blanket `.alp img` max-width rule (0,1,1),
-   which would otherwise cap the mark at the container width. */
-.alp-hero__centre .alp-hero__mark {
-  display: block;
-  width: min(520px, 62vw);
-  height: auto;
-  max-width: none;
-}
-
-.alp-hero__tagline {
-  margin: 0;
-  font-family: var(--alp-font-ui);
-  font-size: 0.594rem;
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: var(--alp-bg);
-  text-align: center;
-}
-
-.alp-hero__caption {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 34px;
-  z-index: 2;
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 0 var(--alp-field-pad);
-}
-
-.alp-hero__place {
-  margin: 0;
-  font-family: var(--alp-font-ui);
-  font-size: 0.594rem;
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--alp-bg);
-}
-
-@media (max-width: 989px) {
-  .alp-hero { min-height: 64svh; }
-  .alp-hero__centre { gap: 18px; }
-  .alp-hero__caption { bottom: 24px; padding: 0 20px; }
-}
-
-/* ── Passage (the caption-gutter primitive) ──────────────────────────────────
-   200px of gutter for the eyebrow, the rest for the field. Every text block in
-   the desktop system runs on this grid so the caption column stays on one line
-   the whole way down the site. The gutter collapses on a phone — 200px of a
-   390px screen is not a gutter, it is half the page. */
-.alp-passage {
-  display: grid;
-  grid-template-columns: var(--alp-gutter) 1fr;
-  gap: var(--alp-gutter-gap);
-  padding: var(--alp-band) var(--alp-field-pad);
-  background: var(--alp-bg);
-  color: var(--alp-ink);
-}
-
-.alp-passage__eyebrow {
-  margin: 0;
-  font-family: var(--alp-font-ui);
-  font-size: 0.594rem;
-  font-weight: 600;
-  line-height: 1.5;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: inherit;
-}
-
-.alp-passage__field {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 24px;
-}
-
-.alp-passage__heading {
-  margin: 0;
-  font-family: var(--alp-font-display);
-  font-weight: 600;
-  line-height: 1.12;
-  letter-spacing: -0.02em;
-  text-wrap: pretty;
-  color: inherit;
-}
-.alp-passage--large .alp-passage__heading { font-size: clamp(1.75rem, 2.2vw + 1rem, 2.5rem); max-width: 26ch; }
-.alp-passage--medium .alp-passage__heading { font-size: clamp(1.5rem, 1.4vw + 1rem, 1.75rem); letter-spacing: -0.015em; }
-
-.alp-passage__body { max-width: 66ch; color: inherit; }
-.alp-passage__body > :first-child { margin-top: 0; }
-.alp-passage__body > :last-child { margin-bottom: 0; }
-.alp-passage__body p {
-  margin: 0 0 14px;
-  font-size: 1rem;
-  line-height: 1.65;
-  text-wrap: pretty;
-}
-/* The supporting paragraph steps down — the design runs the opening line at
-   16px and everything after it at 15px. */
-.alp-passage__body p + p { font-size: 0.9375rem; }
-
-.alp-passage__cta { margin-top: 2px; padding: 13px 20px; }
-
-/* The 3px mist divider. Thick enough to read as a deliberate rule rather than
-   a hairline that got away — it is the system's section break. */
-.alp-passage--ruled { border-bottom: 3px solid var(--alp-mist); }
-
-/* Two passages on the SAME ground, one after the other, stack both of their
-   bands where they meet — up to 160px of nothing on a bone-on-bone join, with
-   no change of colour to justify it. Where the ground changes the full band
-   earns its keep, because it is holding two slabs apart. Where it does not,
-   the join collapses.
-
-   Both selectors are needed: Shopify wraps every section in a .shopify-section
-   div on the storefront, so the passages are never truly adjacent siblings
-   there, but they are in any context that renders them directly. */
-.alp-passage--bone + .alp-passage--bone,
-.shopify-section:has(> .alp-passage--bone) + .shopify-section:has(> .alp-passage--bone) > .alp-passage,
-.alp-passage--olive + .alp-passage--olive,
-.shopify-section:has(> .alp-passage--olive) + .shopify-section:has(> .alp-passage--olive) > .alp-passage,
-.alp-passage--mist + .alp-passage--mist,
-.shopify-section:has(> .alp-passage--mist) + .shopify-section:has(> .alp-passage--mist) > .alp-passage {
-  padding-top: 0;
-}
-
-/* Olive — the slab that does the heavy work. Sage carries the eyebrow and the
-   supporting copy; bone carries the headline. */
-.alp-passage--olive { background: var(--alp-ink); color: var(--alp-bg); }
-.alp-passage--olive .alp-passage__eyebrow { color: var(--alp-haze); }
-.alp-passage--olive .alp-passage__body p + p { color: var(--alp-haze); }
-.alp-passage--olive .alp-passage__cta {
-  background: var(--alp-bg);
-  border-color: var(--alp-bg);
-  color: var(--alp-ink);
-}
-.alp-passage--olive a.alp-passage__cta:hover { background: var(--alp-haze); border-color: var(--alp-haze); }
-
-/* Mist — headline scale only. The eyebrow moves onto an olive tab rather than
-   sitting on the colour, because olive on mist is 4.35:1 and will not carry
-   9.5px of letterspaced caps. */
-.alp-passage--mist {
-  background: var(--alp-mist);
-  align-items: center;
-}
-.alp-passage--mist .alp-passage__eyebrow {
-  display: inline-block;
-  justify-self: start;
-  padding: 6px 9px;
-  background: var(--alp-ink);
-  color: var(--alp-bg);
-}
-.alp-passage--mist .alp-passage__cta {
-  background: var(--alp-ink);
-  border-color: var(--alp-ink);
-  color: var(--alp-bg);
-}
-
-@media (max-width: 989px) {
-  .alp-passage {
-    grid-template-columns: 1fr;
-    gap: 14px;
-    padding: 30px var(--alp-pad-page);
-  }
-  .alp-passage__field { gap: 16px; }
-  .alp-passage--large .alp-passage__heading { max-width: none; }
-  .alp-passage--mist { align-items: stretch; }
-}
-
-/* ── Gate (option 2a) ─────────────────────────────────────────────────────────
-   The mist front door: wordmark centred, tagline, two chips. No photograph —
-   the field itself is the opening image. */
-.alp-gate {
-  padding: clamp(36px, 7vw, 84px) var(--alp-pad-page) clamp(30px, 5vw, 60px);
-  text-align: center;
-}
-
-.alp-gate__mark { display: block; }
-.alp-gate__mark img {
-  /* Sized by height so the artwork holds its aspect ratio. The cap "B" is only
-     ~46% of the image height (the script's ascenders/descenders take the rest),
-     so these numbers run large for the letters they render — same reasoning as
-     the header mark. */
-  height: clamp(3.4rem, 8vw + 1.4rem, 7.4rem);
-  width: auto;
-  max-width: none;
-  margin-inline: auto;
-}
-
-.alp-gate__tagline {
-  margin: clamp(12px, 2vw, 20px) 0 0;
-  font-family: var(--alp-font-ui);
-  font-weight: 600;
-  font-size: clamp(0.6rem, 0.3vw + 0.55rem, 0.75rem);
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: rgba(76, 75, 59, 0.62);
-}
-
-.alp-gate__cta {
-  display: flex;
-  gap: 8px;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin-top: clamp(14px, 2.4vw, 22px);
-}
-
-/* Flare chip — the one accent, spent once per screen (the shop chip). */
-.alp-chip--flare {
-  background: var(--alp-citrus);
-  border-color: var(--alp-ink);
-  color: var(--alp-ink);
-}
-a.alp-chip--flare:hover { background: var(--alp-ink); color: var(--alp-citrus); }
-
-/* ── Photo trio (option 2a) ──────────────────────────────────────────────── */
-.alp-trio { padding: 0 var(--alp-pad-page) clamp(30px, 5vw, 64px); }
-.alp-trio__grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 12px; }
-.alp-trio__cell { margin: 0; }
-.alp-trio__cell img, .alp-trio__cell video {
-  width: 100%;
-  height: clamp(200px, 30vw, 460px);
-  object-fit: cover;
-}
-.alp-trio__cell figcaption {
-  margin-top: 7px;
-  font-size: 0.78rem;
-  color: rgba(76, 75, 59, 0.62);
-}
-
-@media (max-width: 749px) {
-  /* Phone: the lead photograph carries it, the other two sit side by side. */
-  .alp-trio__grid { grid-template-columns: 1fr 1fr; gap: 10px; }
-  .alp-trio__cell:first-child { grid-column: 1 / -1; }
-  .alp-trio__cell img, .alp-trio__cell video { height: clamp(150px, 34vw, 220px); }
-  .alp-trio__cell:first-child img, .alp-trio__cell:first-child video { height: clamp(190px, 46vw, 280px); }
-}
-
-/* Product-card chips on the mist ground read as mist, not paper — white would
-   punch holes in the field. */
-body.template-index .alp-card .alp-chip { background: var(--alp-mist); }
-
-/* ── Manifesto (f_04 / f_13) ─────────────────────────────────────────────── */
-.alp-manifesto {
-  position: relative;
-  padding: var(--alp-space-section) var(--alp-pad-page);
-  overflow: hidden;
-}
-
-.alp-manifesto--olive { background: var(--alp-olive); }
-
-/* "On the page" (option 2a): olive ink straight onto the ground, set to a
-   readable measure rather than full bleed, and a size down from the slab. */
-.alp-manifesto--page { padding: clamp(24px, 5vw, 64px) var(--alp-pad-page); }
-.alp-manifesto--page .alp-manifesto__inner { max-width: 40rem; margin: 0; gap: 8px; }
-.alp-manifesto--page .alp-manifesto__para {
-  font-size: clamp(1.25rem, 2.2vw, 1.9rem);
-  line-height: 1.3;
-  color: var(--alp-ink);
-  text-indent: 0;
-}
-.alp-manifesto--page .alp-manifesto__para--refrain { color: rgba(76, 75, 59, 0.6); }
-
-.alp-manifesto__inner {
-  position: relative;
-  z-index: 2;
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: clamp(28px, 4vw, 56px);
-}
-
-.alp-manifesto__para {
-  font-family: var(--alp-font-display);
-  font-weight: 600;
-  font-size: clamp(1.7rem, 4.4vw, 3.6rem);
-  line-height: 1.16;
-  color: var(--alp-haze);
-  text-indent: 2.2em;
-  margin: 0;
-}
-
-.alp-manifesto__para p { margin: 0; font: inherit; color: inherit; text-indent: inherit; }
-
-.alp-manifesto__para--refrain { text-indent: 0; }
-
-.alp-manifesto__figure {
-  width: clamp(280px, 44vw, 560px);
-  margin: clamp(16px, 3vw, 40px) auto 0;
-}
-
-/* Cutouts sit ABOVE the text, as in f_04 (the backpack overlaps the letters) */
-.alp-manifesto__cutouts { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
-.alp-manifesto__cut { position: absolute; width: clamp(120px, 22vw, 340px); height: auto; }
-.alp-manifesto__cut--pack { top: 4%; right: 22%; transform: rotate(8deg); }
-.alp-manifesto__cut--boot { top: 26%; left: 8%; transform: rotate(-12deg); width: clamp(90px, 15vw, 230px); }
-.alp-manifesto__cut--gaiters { top: 12%; right: 4%; transform: rotate(4deg); width: clamp(90px, 14vw, 210px); }
-
-/* ── Collection (f_07) ───────────────────────────────────────────────────── */
-.alp-collection { padding: var(--alp-space-section) var(--alp-pad-page); }
-
-.alp-collection__head { display: flex; align-items: baseline; gap: 20px; flex-wrap: wrap; margin-bottom: 36px; }
-.alp-collection__head h2 { font-family: var(--alp-font-display); font-weight: 600; font-size: clamp(1.6rem, 3vw, 2.4rem); margin: 0; }
-.alp-collection__head p { color: rgba(76, 75, 59, 0.7); font-size: 0.9rem; margin: 0; }
-
-.alp-collection__duo {
-  display: grid;
-  grid-template-columns: 2.4fr 1fr;
-  gap: 20px;
-  margin-bottom: 20px;
-}
-
-.alp-collection__panel { position: relative; overflow: hidden; height: min(80vh, 840px); margin: 0; }
-.alp-collection__panel img, .alp-collection__panel svg.alp-ph { width: 100%; height: 100%; object-fit: cover; }
-
-.alp-collection__star {
-  position: absolute;
-  top: 50%; left: 50%;
-  width: clamp(160px, 34%, 420px);
-  transform: translate(-50%, -50%);
-  fill: var(--alp-accent);
-  opacity: 0.94;
-}
-
-.alp-chip-row {
-  position: absolute;
-  left: 16px; bottom: 16px;
-  display: flex;
-  gap: 8px;
-}
-.alp-chip-row .alp-chip { font-size: 0.8rem; }
-.alp-chip-row h3.alp-chip, .alp-chip-row p.alp-chip { margin: 0; }
-
-.alp-collection__rail {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-}
-
-.alp-card { position: relative; }
-.alp-card > a { display: block; color: inherit; text-decoration: none; }
-.alp-card img, .alp-card svg.alp-ph { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; }
-
-/* ── Statement (f_10) ────────────────────────────────────────────────────── */
-.alp-statement { position: relative; }
-.alp-statement__media img, .alp-statement__media svg { width: 100%; height: 92svh; object-fit: cover; }
-
-.alp-statement__text {
-  position: absolute;
-  left: 50%; top: 7%;
-  transform: translateX(-50%);
-  width: min(94%, 1400px);
-  text-align: center;
-  font-family: var(--alp-font-ui);
-  font-weight: 800;
-  font-size: clamp(1.5rem, 4.4vw, 4rem);
-  line-height: 1.05;
-  text-transform: uppercase;
-  letter-spacing: -0.01em;
-  color: rgba(76, 75, 59, 0.42);
-  mix-blend-mode: multiply;
-  margin: 0;
-}
-
-/* ── Product hero ────────────────────────────────────────────────────────────
-   The lead photograph and the two-up under it. 8b gives the images the whole
-   field because the buy controls are in the rail; 9d does the same above a
-   pinned buy bar. Either way the picture never shares a screen with a form. */
-.alp-phero { position: relative; overflow: hidden; }
-.alp-phero__media img, .alp-phero__media svg {
-  width: 100%;
-  height: clamp(470px, 62vh, 820px);
-  object-fit: cover;
-  display: block;
-}
-
-/* Split by the system's 3px mist rule, shown through as the flex gap. */
-.alp-phero__pair {
-  display: flex;
-  gap: 3px;
-  background: var(--alp-mist);
-}
-.alp-phero__pair .alp-phero__pairshot {
-  flex: 1;
-  min-width: 0;
-  width: 50%;
-  height: clamp(150px, 30vw, 440px);
-  object-fit: cover;
-  display: block;
-}
-
-/* ── Story / Journal ─────────────────────────────────────────────────────── */
-.alp-story {
-  padding: var(--alp-space-section) var(--alp-pad-page);
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: clamp(24px, 5vw, 80px);
-  align-items: center;
-  max-width: 1300px;
-  margin: 0 auto;
-}
-
-.alp-story__figure { margin: 0; }
-.alp-story__body h2 { font-family: var(--alp-font-display); font-weight: 600; font-size: clamp(1.6rem, 3vw, 2.4rem); margin: 0 0 16px; }
-.alp-story__body p { max-width: 46ch; margin: 0 0 24px; color: rgba(76, 75, 59, 0.85); }
-
-.alp-text-link {
-  color: var(--alp-ink);
-  font-weight: 600;
-  text-decoration: underline;
-  text-underline-offset: 4px;
-}
-.alp-text-link:hover { color: var(--alp-accent); }
-
-/* ── Footer ──────────────────────────────────────────────────────────────── */
-/* Option 2a: the footer is an olive slab closing the mist page — bone type on
-   olive, sage for the muted rows, and the bleed wordmark in mist so it reads
-   as the page colour surfacing through the dark band. */
-.alp-foot {
-  background: var(--alp-olive);
-  color: var(--alp-bg);
-  padding: clamp(40px, 7vw, 90px) var(--alp-pad-page) 0;
-  overflow: hidden;
-}
-
-.alp-foot__dispatch { max-width: 520px; margin-bottom: 56px; }
-.alp-foot__dispatch h2 { font-family: var(--alp-font-display); font-weight: 600; font-size: 1.6rem; margin: 0 0 8px; }
-.alp-foot__dispatch p { color: var(--alp-haze); margin: 0 0 20px; }
-
-.alp-foot__form { display: flex; gap: 8px; }
-.alp-foot__form input[type='email'] {
-  flex: 1;
-  min-width: 0;
-  font: inherit;
-  padding: 10px 14px;
-  border: 1px solid rgba(167, 184, 180, 0.55);
-  border-radius: 3px;
-  background: transparent;
-  color: var(--alp-bg);
-}
-.alp-foot__form input[type='email']::placeholder { color: rgba(237, 236, 197, 0.55); }
-.alp-foot__form input[type='email']:focus { outline: 2px solid var(--alp-citrus); outline-offset: 1px; }
-/* Flare on the olive slab: the newsletter is the one thing to press down here,
-   so it takes the accent. (It was mist, which read as another piece of chrome
-   next to the input rather than the action.) */
-.alp-chip--submit { background: var(--alp-citrus); color: var(--alp-ink); border-color: var(--alp-citrus); }
-.alp-chip--submit:hover { background: var(--alp-bg); color: var(--alp-ink); border-color: var(--alp-bg); }
-
-.alp-foot__note { font-weight: 600; }
-
-/* auto-fit, because the column count is no longer fixed: the footer renders
-   however many columns the store actually has links for. */
-.alp-foot__columns {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 24px;
-  padding-bottom: 48px;
-  border-bottom: 1px solid rgba(167, 184, 180, 0.3);
-}
-
-.alp-foot__columns h3 {
-  font-size: 0.75rem;
-  font-weight: 700;
+:where(.alp) *, :where(.alp) *::before, :where(.alp) *::after { box-sizing: border-box; }
+.alp [hidden] { display: none !important; }
+/* The resets below sit in :where() so they weigh no more than a bare element:
+   any component class always beats them. (At .alp-level weight they beat
+   .alp-btn's white text and every olive button went blank.) */
+/* Dawn hides every empty div/a/p (base.css `div:empty { display: none }`).
+   Here an empty element is usually a photo slot, a scrim or a grab handle
+   that has to keep its box. */
+:where(.alp) :is(div, a, p):empty { display: block; }
+:where(.alp) h1, :where(.alp) h2, :where(.alp) h3, :where(.alp) p, :where(.alp) ul, :where(.alp) dl, :where(.alp) dd, :where(.alp) fieldset { margin: 0; }
+:where(.alp) h1, :where(.alp) h2, :where(.alp) h3 { font-family: var(--alp-font-display); font-weight: 600; letter-spacing: 0; line-height: 1.2; color: inherit; }
+:where(.alp) ul { padding: 0; list-style: none; }
+:where(.alp) fieldset { border: 0; padding: 0; min-width: 0; }
+:where(.alp) a { color: inherit; text-decoration: none; }
+:where(.alp) a:hover { color: var(--alp-accent); }
+:where(.alp) button { font: inherit; color: inherit; }
+:where(.alp) summary { list-style: none; cursor: pointer; }
+:where(.alp) summary::-webkit-details-marker { display: none; }
+:where(.alp) summary::before, :where(.alp) summary::after { content: none; }
+:where(.alp) img { display: block; max-width: 100%; }
+:where(.alp) :focus-visible { outline: 2px solid var(--alp-flare); outline-offset: 2px; box-shadow: none; }
+
+.alp-vh {
+  position: absolute !important; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.alp-fill { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.alp-over {
+  font: 600 12px/1.4 var(--alp-font-ui);
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  margin: 0 0 14px;
-}
-
-.alp-foot__columns ul { list-style: none; display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; }
-.alp-foot__columns a { color: var(--alp-haze); text-decoration: none; font-size: 0.9rem; }
-.alp-foot__columns a:hover { color: var(--alp-bg); text-decoration: underline; }
-
-.alp-foot__small { padding: 20px 0 0; font-size: 0.75rem; color: rgba(185, 190, 163, 0.75); }
-
-.alp-foot__wordmark {
-  display: flex;
-  justify-content: center;
-  margin-top: clamp(24px, 6vw, 56px);
-  transform: translateY(12%);
-  pointer-events: none;
-}
-.alp-foot__wordmark img {
-  /* Percent, not vw: vw still counts the rail's 196px, so the bleed wordmark
-     was running off the right edge of every page by exactly that much. */
-  width: min(84%, 1600px);
-  height: auto;
-}
-
-/* The footer closes every template, not just the home page. It used to be
-   hidden everywhere else — which left the collection, product, cart, search,
-   404 and policy pages with no newsletter, no links and no way out but the
-   header. A customer-facing site ends the same way on every page.
-   It still steps aside while the Explore overlay is open. */
-body.alp-menu-open .alp-foot { display: none; }
-
-body.template-index .alp-hero { height: 100svh; min-height: 100svh; }
-
-/* ── Scroll reveal ───────────────────────────────────────────────────────── */
-.alp-reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.55s ease-out, transform 0.55s ease-out; }
-.alp-reveal.is-in { opacity: 1; transform: none; }
-
-@media (prefers-reduced-motion: reduce) {
-  .alp-reveal { opacity: 1; transform: none; transition: none; }
-}
-
-/* In the theme editor, sections are re-rendered on every tweak; never hide
-   content behind the reveal animation there. */
-.shopify-design-mode .alp-reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
-
-/* ── Breakpoints ─────────────────────────────────────────────────────────── */
-@media (max-width: 989px) {
-  .alp-collection__rail { grid-template-columns: repeat(2, 1fr); }
-}
-
-@media (max-width: 860px) {
-  .alp-collection__duo { grid-template-columns: 1fr; }
-  .alp-collection__panel { height: 62vh; }
-
-  .alp-collection__rail {
-    display: flex;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    margin: 0 calc(-1 * var(--alp-pad-page));
-    padding: 0 var(--alp-pad-page);
-  }
-  .alp-collection__rail .alp-card { flex: 0 0 76vw; scroll-snap-align: start; }
-
-  .alp-story { grid-template-columns: 1fr; }
-
-  .alp-foot__columns { grid-template-columns: repeat(2, 1fr); gap: 32px 20px; }
-}
-
-
-/* ── Catalogue / collection page (option 2c) ─────────────────────────────────
-   The system the wireframe names, and the reason this page reads as one thing:
-
-     mist  = chrome and controls (banner ground, facet rail, closing band)
-     bone  = content (the grid)
-     olive = ink, and every active state
-     flare = the one thing to press (there is exactly one, in the closing band)
-
-   (Turn 8a/9c retires the mist GROUND: the page is bone like every other
-   template, and mist is back to rules, active states and wayfinding. Olive on
-   mist is 4.35:1, which is why it could never carry the grid's small type.) */
-.alp-cat { background: var(--alp-bg); }
-
-/* Banner height is a choice, not a constant. Tall is the wireframe's
-   proportion; short exists because the all-products catalogue opening on a
-   full-height banner means the first thing a shopper does on the shop page is
-   scroll past it to find the shop. */
-.alp-cat__banner {
-  position: relative;
-  overflow: hidden;
-  background: var(--alp-olive);
-}
-.alp-cat__banner--tall { height: clamp(300px, 30vw, 440px); }
-.alp-cat__banner--short { height: clamp(200px, 20vw, 300px); }
-.alp-cat__banner img { width: 100%; height: 100%; object-fit: cover; }
-
-/* Type over photography always sits on a scrim. */
-.alp-cat__banner::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  /* Measured, not guessed: sampling the rendered pixels behind this text put
-     the eyebrow at 2.66:1 on a bright banner, against the 4.5 it needs. The
-     tile passes the same test at 6.45 because its veil and its caption plate
-     compound; the banner has only ever had this one layer, so this one has to
-     do the whole job. */
-  background: linear-gradient(
-    rgba(76, 75, 59, 0) 22%,
-    rgba(76, 75, 59, 0.62) 58%,
-    rgba(76, 75, 59, 0.96) 100%
-  );
-}
-
-/* The 3px divider between the banner and the page — the system's section
-   break, same rule the passage draws. */
-.alp-cat__rule { height: 3px; background: var(--alp-mist); }
-
-/* The overlay carries its own scrim, the way the tile's caption plate does.
-   The banner's single ramp got the eyebrow to 4.25:1 — better than the 2.66 it
-   started at, still under 4.5, and the eyebrow sits higher in the frame than
-   the title so it is always in the lighter part of the gradient. Two layers is
-   what the tile already does, and the tile measures 6.45. */
-.alp-cat__banner-overlay {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 2;
-  padding: clamp(56px, 9vw, 120px) var(--alp-pad-page) clamp(14px, 2.4vw, 26px);
-  background: linear-gradient(to top, rgba(76, 75, 59, 0.85), rgba(76, 75, 59, 0));
-  pointer-events: none;
-}
-
-.alp-cat__eyebrow {
-  margin: 0 0 4px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--alp-bg);
-}
-
-.alp-cat__title {
-  margin: 0;
-  font-family: var(--alp-font-display);
-  font-weight: 600;
-  font-size: clamp(1.75rem, 2.2vw + 1rem, 2.5rem);
-  line-height: 1.12;
-  letter-spacing: -0.01em;
-  color: var(--alp-bg);
-  text-wrap: pretty;
-}
-/* Banner off: the title still needs the page's ink, not the scrim's bone. */
-.alp-cat__title--plain {
-  color: var(--alp-ink);
-  padding: clamp(20px, 4vw, 40px) var(--alp-pad-page) 0;
-}
-
-/* The intro runs on the same caption gutter as every passage on the site. */
-.alp-cat__intro {
-  display: grid;
-  grid-template-columns: var(--alp-gutter) 1fr;
-  gap: var(--alp-gutter-gap);
-  padding: var(--alp-band) var(--alp-field-pad) calc(var(--alp-band) * 0.4);
-}
-.alp-cat__intro-eyebrow {
-  margin: 0;
-  font-family: var(--alp-font-ui);
-  font-size: 0.594rem;
-  font-weight: 600;
-  line-height: 1.5;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-.alp-cat__intro-body { max-width: 70ch; }
-.alp-cat__intro-body > :first-child { margin-top: 0; }
-.alp-cat__intro-body > :last-child { margin-bottom: 0; }
-.alp-cat__intro-body p { margin: 0 0 12px; font-size: 1rem; line-height: 1.65; }
-
-/* The chip row IS the filter UI on a phone. Hidden on desktop, where the same
-   facets are a list in the nav rail. */
-.alp-cat__chiprow { display: flex; flex-wrap: wrap; gap: 8px; }
-.alp-cat__chiprow .alp-chip { min-height: 44px; box-sizing: border-box; }
-
-/* ── Facet rail ─────────────────────────────────────────────────────────────
-   Desktop: a mist column beside the grid. Phone: a panel the Filter button
-   opens. The toggle is a clipped checkbox rather than a script, so the
-   disclosure survives with JavaScript off — and stays keyboard-reachable. */
-.alp-cat__toggle {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-.alp-cat__controls {
-  display: none;
-  gap: 8px;
-  align-items: center;
-  padding: 14px var(--alp-pad-page);
-}
-
-.alp-cat__filter-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4em;
-  flex: 1;
-  justify-content: center;
-  background: var(--alp-ink);
-  color: var(--alp-bg);
-  border: 1px solid var(--alp-ink);
-  border-radius: 3px;
-  padding: 9px 16px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  line-height: 1.2;
-  cursor: pointer;
-}
-.alp-cat__toggle:focus-visible + .alp-cat__controls .alp-cat__filter-btn,
-.alp-cat__toggle:focus-visible ~ .alp-cat__controls .alp-cat__filter-btn {
-  outline: 2px solid var(--alp-citrus);
-  outline-offset: 2px;
-}
-
-.alp-cat__body {
-  display: grid;
-  /* Single column: the facets live in the nav rail on desktop now. The aside
-     below is only ever the phone's toggled panel. */
-  grid-template-columns: 1fr;
-  align-items: start;
-}
-/* No filters merchandised and no other collections to point at: the grid takes
-   the full width rather than leaving an empty mist column beside it. */
-.alp-cat__body--full { grid-template-columns: 1fr; }
-
-/* Desktop hides the aside outright — its markup is rendered again in the nav
-   rail, and on a phone this is the toggled panel.
-
-   Child selector, not the bare class: the base `.alp-cat__side` rule below
-   sets display:flex at the same specificity and comes later in the file, so a
-   plain `.alp-cat__side { display: none }` inside a media query LOSES to it —
-   which is how the catalogue ended up drawing its filters twice, once in the
-   rail and once as a mist slab across the page. */
-@media (min-width: 990px) {
-  .alp-cat__body > .alp-cat__side { display: none; }
-}
-
-.alp-cat__side {
-  align-self: stretch;
-  background: var(--alp-mist);
-  padding: clamp(20px, 3vw, 32px) clamp(14px, 1.6vw, 22px) clamp(28px, 5vw, 60px) var(--alp-pad-page);
-  display: flex;
-  flex-direction: column;
-  gap: clamp(18px, 2.4vw, 28px);
-}
-
-.alp-cat__facet-head {
-  margin: 0 0 10px;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--alp-ink);
-}
-
-.alp-cat__facet-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
-.alp-cat__facet-link {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  font-size: 0.9rem;
-  color: var(--alp-ink);
-  text-decoration: none;
-}
-.alp-cat__facet-link:hover { text-decoration: underline; text-underline-offset: 3px; }
-.alp-cat__facet-link.is-active { font-weight: 700; }
-.alp-cat__facet-count { color: rgba(76, 75, 59, 0.55); font-variant-numeric: tabular-nums; }
-
-.alp-cat__chips { display: flex; flex-wrap: wrap; gap: 6px; }
-
-.alp-cat__swatches { display: flex; flex-wrap: wrap; gap: 10px; }
-.alp-cat__swatch {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: var(--alp-swatch, var(--alp-haze));
-  border: 1px solid var(--alp-line);
-  display: block;
-}
-.alp-cat__swatch:hover { border-color: var(--alp-ink); }
-.alp-cat__swatch.is-active { box-shadow: 0 0 0 2px var(--alp-mist), 0 0 0 4px var(--alp-ink); }
-.alp-cat__swatch:focus-visible { outline: 2px solid var(--alp-ink); outline-offset: 2px; }
-
-.alp-cat__price-row { display: flex; align-items: center; gap: 6px; }
-.alp-cat__price-field {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  flex: 1;
-  min-width: 0;
-  background: var(--alp-bg);
-  border: 1px solid var(--alp-line);
-  border-radius: 3px;
-  padding: 5px 8px;
-  font-size: 0.85rem;
-  color: var(--alp-ink);
-}
-.alp-cat__price-field input {
-  font: inherit;
-  color: inherit;
-  width: 100%;
-  min-width: 0;
-  border: 0;
-  background: transparent;
-  padding: 0;
-}
-.alp-cat__price-field input:focus-visible { outline: none; }
-.alp-cat__price-field:focus-within { border-color: var(--alp-ink); }
-.alp-cat__price-dash { color: rgba(76, 75, 59, 0.55); }
-.alp-cat__price-go { margin-top: 8px; }
-
-.alp-cat__clear {
-  align-self: flex-start;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--alp-ink);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-.alp-cat__clear:hover { color: var(--alp-accent); }
-
-/* ── Grid side ───────────────────────────────────────────────────────────── */
-.alp-cat__main {
-  background: var(--alp-bg);
-  padding: clamp(10px, 1.2vw, 16px) var(--alp-pad-page) clamp(30px, 5vw, 64px);
-  min-height: 40vh;
-}
-
-.alp-cat__toolbar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: clamp(12px, 2vw, 20px);
-}
-
-/* Full olive: at 70% this measured 3.56:1 on bone, against the 4.5 it needs. */
-.alp-cat__count {
-  margin: 0;
-  font-size: 0.82rem;
-  color: var(--alp-ink);
-}
-
-.alp-cat__sort {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.82rem;
-  color: var(--alp-ink);
-  background: var(--alp-bg);
-  border: 1px solid var(--alp-line);
-  border-radius: 3px;
-  padding: 5px 10px;
-}
-.alp-cat__sort select {
-  font: inherit;
-  color: var(--alp-ink);
-  font-weight: 600;
-  background: transparent;
-  border: 0;
-  padding: 0 2px;
-  cursor: pointer;
-}
-.alp-cat__sort select:focus-visible { outline: 2px solid var(--alp-citrus); outline-offset: 2px; }
-
-.alp-cat__grid {
-  display: grid;
-  grid-template-columns: repeat(var(--alp-cat-cols, 3), 1fr);
-  gap: clamp(14px, 1.9vw, 28px);
-}
-
-.alp-cat__card-media { position: relative; display: block; }
-.alp-cat__card-media img { width: 100%; object-fit: contain; }
-.alp-cat--portrait .alp-cat__card-media img { aspect-ratio: 3 / 4; }
-.alp-cat--square .alp-cat__card-media img { aspect-ratio: 1 / 1; }
-.alp-cat--adapt .alp-cat__card-media img { aspect-ratio: auto; height: auto; }
-/* The waitlist flag rides the image, top-left, in mist — chrome, not content. */
-.alp-cat__flag {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  background: var(--alp-mist);
-  border-color: var(--alp-ink);
-}
-
-/* Name and price on a mist rule, not two floating chips — the same meta line
-   the shelf uses, so a product reads the same wherever you meet it. */
-.alp-cat__card-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid var(--alp-mist);
-}
-.alp-cat__card-name { font-size: clamp(0.781rem, 0.3vw + 0.72rem, 0.9375rem); line-height: 1.3; }
-.alp-cat__card-price { flex: none; font-size: clamp(0.781rem, 0.3vw + 0.72rem, 0.9375rem); }
-a:hover .alp-cat__card-name { color: var(--alp-accent); }
-
-.alp-cat__pager {
-  display: flex;
-  gap: 8px;
-  justify-content: center;
-  align-items: center;
-  padding: clamp(24px, 4vw, 48px) 0 0;
-}
-
-.alp-cat__empty {
-  padding: clamp(40px, 8vw, 90px) 0;
-  text-align: center;
-  color: var(--alp-ink);
-}
-
-/* ── Closing band ───────────────────────────────────────────────────────────
-   Olive, with the single flare button — the one thing to press on the whole
-   catalogue.
-
-   It used to be mist, "so it reads as chrome closing the page". That was
-   before the supporting paragraph: olive on mist is 4.35:1 and this band
-   carries 0.9rem of it. Olive is the system's slab colour and inverts the type
-   properly, so the band keeps its job and passes. */
-.alp-cat__cta {
-  background: var(--alp-ink);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-  padding: clamp(22px, 3.4vw, 40px) var(--alp-pad-page);
-}
-.alp-cat__cta-text h2 {
-  margin: 0;
-  font-family: var(--alp-font-display);
-  font-weight: 600;
-  font-size: clamp(1.15rem, 2vw, 1.6rem);
-  color: var(--alp-bg);
-}
-.alp-cat__cta-text p { margin: 4px 0 0; font-size: 0.9rem; color: var(--alp-haze); }
-
-@media (max-width: 989px) {
-  .alp-cat__grid { grid-template-columns: repeat(2, 1fr); }
-
-  /* No nav rail below this width, so the catalogue's own controls take over:
-     the chip row plus the Filter panel. This has to be the SAME breakpoint the
-     rail switches at, or a tablet gets neither. */
-  .alp-cat__controls { display: flex; flex-wrap: wrap; gap: 8px; }
-  .alp-cat__intro { grid-template-columns: 1fr; gap: 8px; padding: 22px var(--alp-pad-page) 16px; }
-  .alp-cat__controls .alp-cat__sort { margin-left: 0; flex: 1; justify-content: center; background: transparent; border-style: dashed; }
-  .alp-cat__body { grid-template-columns: 1fr; }
-  .alp-cat__side { display: none; padding: 0 var(--alp-pad-page) clamp(20px, 5vw, 32px); }
-  .alp-cat__toggle:checked ~ .alp-cat__body .alp-cat__side { display: flex; }
-  .alp-cat__main { padding-top: clamp(12px, 3vw, 20px); }
-  /* One sort control per page: the toolbar's belongs to the desktop rail. */
-  .alp-cat__toolbar .alp-cat__sort { display: none; }
-  .alp-cat__toolbar { margin-bottom: 10px; }
-}
-
-/* ── Product page additions (option 1g — editorial) ──────────────────────── */
-
-.alp-waitlist-banner {
-  margin: var(--alp-pad-page);
-  border: 1px solid var(--alp-line);
-  background: var(--alp-bg);
-  padding: 16px 18px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  align-items: center;
-  justify-content: space-between;
-}
-.alp-waitlist-banner__heading { margin: 0; font-family: var(--alp-font-ui); font-weight: 600; font-size: 0.95rem; }
-.alp-waitlist-banner__subtext { margin: 4px 0 0; font-size: 0.8rem; color: var(--alp-accent); }
-.alp-waitlist-banner__form-wrap { flex: 0 0 auto; }
-.alp-waitlist-banner__form { display: flex; gap: 6px; }
-.alp-waitlist-banner__form input[type='email'] {
-  flex: 1;
-  min-width: 180px;
-  font: inherit;
-  padding: 9px 12px;
-  border: 1px solid var(--alp-ink);
-  border-radius: 3px;
-  background: var(--alp-surface);
-  color: var(--alp-ink);
-}
-.alp-waitlist-banner__note { margin: 0; font-weight: 600; font-size: 0.85rem; }
-
-.alp-kit { padding: 0 var(--alp-pad-page) var(--alp-space-section); }
-.alp-kit__heading { font-family: var(--alp-font-display); font-weight: 600; font-size: clamp(1.1rem, 1.6vw, 1.4rem); margin: 0 0 16px; }
-.alp-kit__row { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end; }
-.alp-kit__items { display: flex; flex-wrap: wrap; gap: 14px; flex: 1 1 320px; }
-.alp-kit__item { display: flex; flex-direction: column; gap: 8px; width: 120px; }
-.alp-kit__item-media { display: block; }
-.alp-kit__item-media img { width: 100%; aspect-ratio: 1; object-fit: cover; }
-.alp-kit__buy { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; flex: 0 0 auto; }
-.alp-kit__price { margin: 0; font-family: var(--alp-font-ui); font-size: 0.85rem; color: var(--alp-accent); }
-.alp-kit__price s { opacity: 0.7; }
-.alp-kit__price strong { font-size: 1.05rem; color: var(--alp-ink); }
-.alp-kit__cta { justify-content: center; padding: 11px 20px; }
-
-.alp-fit-gallery { padding: 0 var(--alp-pad-page) var(--alp-space-section); }
-.alp-fit-gallery__heading { font-family: var(--alp-font-display); font-weight: 600; font-size: clamp(1.1rem, 1.6vw, 1.4rem); margin: 0 0 16px; }
-.alp-fit-gallery__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-.alp-fit-gallery__item { margin: 0; }
-.alp-fit-gallery__item img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; }
-.alp-fit-gallery__item figcaption { margin-top: 6px; font-size: 0.78rem; color: var(--alp-accent); }
-
-@media (max-width: 749px) {
-  .alp-waitlist-banner { flex-direction: column; align-items: stretch; }
-  .alp-waitlist-banner__form { flex-direction: column; }
-  .alp-kit__buy { width: 100%; }
-  .alp-kit__cta { width: 100%; }
-  .alp-fit-gallery__grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
-}
-
-/* ── Waitlist / password page ────────────────────────────────────────────────
-   The pre-launch front door. It used to carry its own palette and its own two
-   typefaces, which is how it was still showing the study's yellow (#F9C80E)
-   and Instrument Serif long after the brand board retired both. It reads the
-   same tokens as the rest of the site now: bone type on a scrimmed video,
-   sage for the quiet lines, and flare spent once on the button. */
-body.waitlist {
-  background: var(--alp-olive);
-  font-family: var(--alp-font-ui);
-  color: var(--alp-bg);
-}
-/* No fixed header on this template, so no bar to clear. */
-body.waitlist #MainContent { padding-top: 0; }
-
-.wl {
-  position: relative;
-  min-height: 100svh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  background: var(--alp-olive);
-  padding: clamp(28px, 6vw, 64px) var(--alp-pad-page);
-}
-
-.wl__media {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  z-index: 0;
-}
-
-/* The system's scrim tone, not black — heavier top and bottom so the mark and
-   the microcopy both hold on a bright sky. */
-.wl__scrim {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background: linear-gradient(180deg, rgba(47, 47, 38, 0.55), rgba(47, 47, 38, 0.3) 45%, rgba(47, 47, 38, 0.6));
-}
-
-.wl__inner {
-  position: relative;
-  z-index: 2;
-  width: 100%;
-  max-width: 640px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-
-/* The mark is artwork, sized by height like every other lockup in the system,
-   and it is the page's h1 — so the accessible name is the shop, not a line of
-   marketing. */
-.wl__mark { margin: 0; }
-.wl__mark img {
-  display: block;
-  height: clamp(3.6rem, 9vw + 1.2rem, 8rem);
-  width: auto;
-  max-width: 100%;
-  margin-inline: auto;
-}
-
-.wl__tagline {
-  margin: clamp(12px, 2vw, 18px) 0 0;
-  font-size: clamp(0.6rem, 0.3vw + 0.55rem, 0.75rem);
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--alp-haze);
-}
-
-.wl__form-wrap { width: 100%; }
-
-.wl__heading {
-  margin: clamp(26px, 5vw, 44px) 0 0;
-  font-family: var(--alp-font-display);
-  font-weight: 600;
-  font-size: clamp(1.5rem, 3.4vw, 2.4rem);
-  line-height: 1.12;
-  color: var(--alp-bg);
-  text-wrap: pretty;
-}
-
-.wl__body {
-  margin: 10px auto 0;
-  max-width: 44ch;
-  font-size: clamp(0.9rem, 0.4vw + 0.82rem, 1rem);
-  line-height: 1.55;
-  color: var(--alp-haze);
-}
-
-.wl__form {
-  display: flex;
-  gap: 8px;
-  width: 100%;
-  max-width: 460px;
-  margin: clamp(18px, 3vw, 26px) auto 0;
-}
-
-/* Clipped, not hidden: base.css isn't loaded on this layout, so the page
-   carries its own visually-hidden. */
-.wl__label {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-.wl__input {
-  flex: 1;
-  min-width: 0;
-  font: inherit;
-  font-size: 0.9rem;
-  padding: 11px 14px;
-  border: 1px solid rgba(237, 236, 197, 0.55);
-  border-radius: 3px;
-  background: rgba(47, 47, 38, 0.35);
-  color: var(--alp-bg);
-}
-.wl__input::placeholder { color: rgba(237, 236, 197, 0.6); }
-.wl__input:focus {
-  outline: 2px solid var(--alp-citrus);
-  outline-offset: 1px;
-  border-color: var(--alp-citrus);
-}
-
-.wl__submit { flex: none; }
-
-.wl__micro {
-  margin: 12px 0 0;
-  font-size: 0.75rem;
-  color: var(--alp-haze);
-}
-
-.wl__error {
-  margin: 12px 0 0;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--alp-citrus);
-}
-
-.wl__done {
-  margin: clamp(26px, 5vw, 44px) auto 0;
-  max-width: 40ch;
-  font-family: var(--alp-font-display);
-  font-weight: 600;
-  font-size: clamp(1.1rem, 2vw, 1.5rem);
-  line-height: 1.25;
-  color: var(--alp-bg);
-}
-
-.wl__social {
-  display: flex;
-  gap: 14px;
-  justify-content: center;
-  margin-top: clamp(28px, 5vw, 44px);
-}
-.wl__social-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border: 1px solid rgba(237, 236, 197, 0.4);
-  border-radius: 3px;
-  color: var(--alp-bg);
-}
-.wl__social-link:hover { background: var(--alp-bg); color: var(--alp-olive); }
-.wl__social-link svg { width: 20px; height: 20px; display: block; }
-
-@media (max-width: 749px) {
-  .wl__form { flex-direction: column; }
-  .wl__submit { justify-content: center; }
-}
-
-/* ── Ethos (the brand story) ─────────────────────────────────────────────────
-   Built for density. The home page's problem was never spacing values, it was
-   that four sections each said one short thing and left the width unused; this
-   one says a lot and uses all of it.
-
-   Three shapes in a row so the eye keeps moving: a statement with its support
-   running beside it, a numbered ledger of landscapes across the full measure,
-   then two columns of prose. Hairlines do the dividing — no boxes, no cards. */
-.alp-ethos { padding: clamp(40px, 6vw, 84px) var(--alp-pad-page); }
-.alp-ethos--bone { background: var(--alp-bg); color: var(--alp-ink); }
-.alp-ethos--mist { background: var(--alp-mist); color: var(--alp-ink); }
-.alp-ethos--olive { background: var(--alp-olive); color: var(--alp-bg); }
-
-.alp-ethos__inner { max-width: 1280px; margin: 0 auto; }
-
-/* Lead: statement left, supporting lines right. On a phone they stack, and the
-   statement stops being a column heading and just leads. */
-.alp-ethos__lead {
-  display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-  gap: clamp(16px, 3vw, 48px);
-  align-items: start;
-  padding-bottom: clamp(20px, 3vw, 32px);
-}
-
-.alp-ethos__eyebrow {
-  grid-column: 1 / -1;
-  margin: 0 0 clamp(10px, 1.6vw, 18px);
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
   color: var(--alp-accent);
 }
-.alp-ethos--olive .alp-ethos__eyebrow { color: var(--alp-haze); }
+@media (max-width: 749px) { .alp-over { font-size: 11px; } }
 
-.alp-ethos__statement {
-  margin: 0;
-  font-family: var(--alp-font-display);
-  font-weight: 600;
-  font-size: clamp(1.35rem, 2.6vw, 2.1rem);
-  line-height: 1.14;
-  letter-spacing: -0.01em;
-  text-wrap: balance;
+/* ── Buttons, chips, badges ──────────────────────────────────────────────── */
+.alp-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.3em;
+  padding: 16px 20px;
+  background: var(--alp-ink); color: #fff;
+  border: 1px solid var(--alp-ink); border-radius: 3px;
+  font: 600 15px/1.2 var(--alp-font-ui);
+  text-align: center; cursor: pointer;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+.alp a.alp-btn:hover, .alp-btn:hover { background: var(--alp-accent); border-color: var(--alp-accent); color: #fff; }
+.alp-btn--line { background: transparent; color: var(--alp-ink); }
+.alp a.alp-btn--line:hover, .alp-btn--line:hover { background: var(--alp-ink); border-color: var(--alp-ink); color: #fff; }
+.alp-btn--flare { background: var(--alp-flare); color: var(--alp-ink); }
+.alp a.alp-btn--flare:hover, .alp-btn--flare:hover { background: var(--alp-ink); border-color: var(--alp-ink); color: var(--alp-flare); }
+.alp-btn--block { display: flex; width: 100%; }
+.alp-btn:disabled, .alp-btn[aria-disabled='true'] { opacity: 0.5; cursor: default; }
+.alp-btn.is-busy { opacity: 0.6; pointer-events: none; }
+
+.alp-chip {
+  display: inline-flex; align-items: center; gap: 0.35em;
+  padding: 8px 14px;
+  background: var(--alp-surface); color: var(--alp-ink);
+  border: 1px solid var(--alp-line); border-radius: 3px;
+  font: 500 14px/1.2 var(--alp-font-ui);
+  white-space: nowrap; cursor: pointer;
+}
+.alp-chip--strong { font-weight: 600; }
+.alp-chip--line { background: transparent; border-color: var(--alp-ink); font-weight: 600; }
+.alp-chip--flare { background: var(--alp-flare); border-color: var(--alp-ink); font-weight: 600; }
+.alp a.alp-chip:hover, button.alp-chip:hover, summary.alp-chip:hover,
+a:hover > .alp-duo__stack .alp-chip, summary:hover > .alp-chip {
+  background: var(--alp-ink); border-color: var(--alp-ink); color: #fff;
+}
+.alp-chip.is-on { background: var(--alp-ink); border-color: var(--alp-ink); color: var(--alp-bg); }
+
+.alp-badge {
+  display: inline-block; padding: 6px 10px;
+  border: 1px solid var(--alp-ink); border-radius: 3px;
+  font: 600 12px/1.2 var(--alp-font-ui);
+}
+.alp-badge--flare { background: var(--alp-flare); border-color: var(--alp-flare); }
+
+.alp-x {
+  display: inline-flex; padding: 4px; margin: -4px;
+  background: none; border: 0; cursor: pointer; line-height: 0;
 }
 
-.alp-ethos__intro { display: flex; flex-direction: column; gap: 10px; }
-.alp-ethos__intro p {
-  margin: 0;
-  font-size: clamp(0.92rem, 0.5vw + 0.82rem, 1.02rem);
-  line-height: 1.5;
-  color: rgba(76, 75, 59, 0.82);
-}
-.alp-ethos--olive .alp-ethos__intro p { color: var(--alp-haze); }
+.alp-pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+.alp-pair--12 { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 8px; }
 
-/* The hinge line between the lead and the ledger — full measure, a size up,
-   with the rule above it doing the separating. */
-.alp-ethos__country {
-  margin: 0;
-  padding: clamp(18px, 2.6vw, 28px) 0 clamp(14px, 2vw, 22px);
-  border-top: 1px solid var(--alp-line);
-  font-family: var(--alp-font-display);
-  font-weight: 600;
-  font-size: clamp(1.05rem, 1.8vw, 1.5rem);
-  line-height: 1.2;
-  text-wrap: balance;
+/* ── Email signup (newsletter, Notify me) ────────────────────────────────── */
+.alp-signup { display: flex; flex-wrap: wrap; }
+.alp-signup__input {
+  flex: 1; min-width: 0;
+  padding: 16px; margin: 0;
+  background: #fff; color: var(--alp-ink);
+  border: 1px solid var(--alp-ink); border-radius: 0;
+  font: 15px/1.2 var(--alp-font-ui);
+  box-shadow: none; -webkit-appearance: none; appearance: none;
 }
-.alp-ethos--olive .alp-ethos__country { border-top-color: var(--alp-line-on-dark, rgba(237, 236, 197, 0.3)); }
-
-/* The ledger. Three columns of landscapes on a desktop, two on a tablet, one
-   on a phone — the rows keep their hairline at every width, so it reads as a
-   list rather than a set of cards. */
-.alp-ethos__ledger {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0 clamp(16px, 2.4vw, 40px);
+.alp-signup__input::placeholder { color: var(--alp-accent); opacity: 1; }
+.alp-signup__btn {
+  padding: 16px 24px;
+  background: var(--alp-ink); color: #fff;
+  border: 1px solid var(--alp-ink); border-radius: 0;
+  font: 600 15px/1.2 var(--alp-font-ui); cursor: pointer;
 }
-
-.alp-ethos__row {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 10px;
-  align-items: baseline;
-  padding: clamp(12px, 1.6vw, 18px) 0;
-  border-top: 1px solid var(--alp-line);
-}
-.alp-ethos--olive .alp-ethos__row { border-top-color: rgba(237, 236, 197, 0.3); }
-
-.alp-ethos__n {
-  font-size: 0.7rem;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.08em;
-  color: var(--alp-accent);
-}
-.alp-ethos--olive .alp-ethos__n { color: var(--alp-haze); }
-
-.alp-ethos__line {
-  margin: 0;
-  font-size: clamp(0.88rem, 0.45vw + 0.8rem, 0.98rem);
-  line-height: 1.45;
-  text-wrap: pretty;
-}
-
-/* The passage: two columns of prose, rule above, a size down from the ledger's
-   neighbours so the section lands quietly rather than shouting to the end. */
-.alp-ethos__passage {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: clamp(16px, 3vw, 48px);
-  margin-top: clamp(22px, 3vw, 36px);
-  padding-top: clamp(18px, 2.6vw, 28px);
-  border-top: 1px solid var(--alp-line);
-}
-.alp-ethos--olive .alp-ethos__passage { border-top-color: rgba(237, 236, 197, 0.3); }
-
-.alp-ethos__col { display: flex; flex-direction: column; gap: 9px; }
-.alp-ethos__col p {
-  margin: 0;
-  font-size: clamp(0.9rem, 0.45vw + 0.82rem, 1rem);
-  line-height: 1.5;
-  color: rgba(76, 75, 59, 0.88);
-  text-wrap: pretty;
-}
-.alp-ethos--olive .alp-ethos__col p { color: var(--alp-haze); }
-
-@media (max-width: 989px) {
-  .alp-ethos__ledger { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-
+.alp-signup__btn:hover { background: var(--alp-accent); border-color: var(--alp-accent); }
+.alp-signup__ok, .alp-signup__err { flex-basis: 100%; font-size: 14px; }
+.alp-signup__err { margin-top: 8px !important; }
+.alp-signup--sm .alp-signup__input { padding: 12px; font-size: 13px; }
+.alp-signup--sm .alp-signup__btn { padding: 12px 14px; font-size: 13px; }
+.alp-signup--olive .alp-signup__input { background: transparent; border-color: var(--alp-bg); color: var(--alp-bg); padding: 11px; }
+.alp-signup--olive .alp-signup__input::placeholder { color: var(--alp-haze); }
+.alp-signup--olive .alp-signup__btn { background: var(--alp-bg); border-color: var(--alp-bg); color: var(--alp-ink); padding: 11px 12px; }
+.alp-signup--olive .alp-signup__ok { color: var(--alp-bg); }
 @media (max-width: 749px) {
-  .alp-ethos__lead { grid-template-columns: 1fr; }
-  .alp-ethos__ledger { grid-template-columns: 1fr; }
-  .alp-ethos__passage { grid-template-columns: 1fr; gap: 9px; }
+  .alp-signup__input { padding: 14px; font-size: 14px; }
+  .alp-signup__btn { padding: 14px 16px; font-size: 14px; }
 }
 
-/* ── Tile ────────────────────────────────────────────────────────────────────
-   A full-bleed picture with its name in the corner. Stacked without gutters
-   these are what make the page read as one continuous run of photography
-   rather than a stack of separate sections.
-
-   The plate is a gradient of scrim, not a solid bar: the design system asks
-   for type over photography to sit on a scrim, and a gradient does that
-   without drawing a box across the bottom of every image. */
-.alp-tile { position: relative; overflow: hidden; }
-.alp-tile__hit { display: block; color: inherit; text-decoration: none; }
-
-.alp-tile__media,
-.alp-tile__media img,
-.alp-tile__media video {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.alp-tile__media { height: 100%; }
-
-/* Heights. Set on the section, and on the anchor when there is one, so the
-   link fills the tile rather than shrink-wrapping the picture. */
-.alp-tile--band,
-.alp-tile--band .alp-tile__hit { height: clamp(150px, 22vw, 260px); }
-.alp-tile--short,
-.alp-tile--short .alp-tile__hit { height: clamp(240px, 34vw, 420px); }
-.alp-tile--medium,
-.alp-tile--medium .alp-tile__hit { height: clamp(330px, 48vw, 620px); }
-.alp-tile--tall,
-.alp-tile--tall .alp-tile__hit { height: clamp(440px, 72vw, 820px); }
-.alp-tile--full,
-.alp-tile--full .alp-tile__hit { height: min(88svh, 900px); }
-
-.alp-tile--inset { padding: 0 var(--alp-pad-page); }
-
-.alp-tile__plate {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding: clamp(34px, 7vw, 64px) var(--alp-pad-page) clamp(14px, 2.4vw, 24px);
-  /* Olive, not the retired #2f2f26 ink, and strong enough to carry bone type
-     over a blown-out sky. */
-  background: linear-gradient(to top, rgba(76, 75, 59, 0.92), rgba(76, 75, 59, 0));
-  pointer-events: none;
-}
-
-/* A headline is three lines, not a one-line caption, so it needs ground under
-   all of it rather than just the last line. */
-.alp-tile__plate:has(.alp-tile__label--headline) {
-  padding-top: clamp(120px, 22vw, 260px);
-  background: linear-gradient(to top, rgba(76, 75, 59, 0.94) 35%, rgba(76, 75, 59, 0));
-}
-
-.alp-tile__eyebrow {
-  margin: 0 0 4px;
-  font-family: var(--alp-font-ui);
-  font-weight: 600;
-  font-size: clamp(0.58rem, 0.25vw + 0.52rem, 0.7rem);
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: rgba(237, 236, 197, 0.78);
-}
-
-.alp-tile__label {
-  margin: 0;
-  font-family: var(--alp-font-ui);
-  font-weight: 600;
-  font-size: clamp(1rem, 0.9vw + 0.8rem, 1.45rem);
-  line-height: 1.2;
-  color: var(--alp-bg);
-}
-/* Underlined only when it goes somewhere — the label on a tile that is just a
-   photograph is a caption, and a caption that looks like a link is a lie. */
-.alp-tile__label--link { text-decoration: underline; text-underline-offset: 0.18em; text-decoration-thickness: 1px; }
-.alp-tile__hit:hover .alp-tile__label--link { color: var(--alp-citrus); }
-
-.alp-tile__blurb {
-  margin: 5px 0 0;
-  font-size: clamp(0.78rem, 0.3vw + 0.72rem, 0.9rem);
-  color: rgba(237, 236, 197, 0.82);
-  max-width: 46ch;
-}
-
-/* Veil + corner caption (turn 7b/9a).
-
-   The veil is a ramp rather than the plate's short scrim, so a caption at the
-   foot of a tall picture has real ground under it. Where it is on, the plate's
-   own gradient would only double it up. */
-.alp-tile__veil {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background: linear-gradient(
-    rgba(76, 75, 59, 0) 30%,
-    rgba(76, 75, 59, 0.55) 62%,
-    rgba(76, 75, 59, 0.94) 100%
-  );
-  pointer-events: none;
-}
-
-/* The plate keeps its OWN scrim rather than deferring to the veil.
-
-   These used to be exclusive — the veil turned the plate's gradient off — and
-   the About hero came back with a bone headline sitting on a bright sunset,
-   barely readable. Whatever the cause there, one mechanism silently switching
-   the other off is the wrong shape for a legibility guarantee: a caption over
-   a photograph has to stay readable if EITHER is missing. They compound now,
-   and the cost of both is a slightly deeper foot on an already-dark picture. */
-
-/* The caption runs corner to corner — place on the left, frame number on the
-   right — so a stack of tiles reads as a contact sheet. */
-.alp-tile__plate {
-  z-index: 2;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 16px;
-}
-.alp-tile__plate-main { min-width: 0; }
-
-/* A statement over the photograph, rather than a name in the corner — the
-   About hero and the journal lead both open this way. */
-.alp-tile__label--headline {
-  font-family: var(--alp-font-display);
-  font-size: clamp(1.4rem, 2.2vw + 0.9rem, 2.5rem);
-  line-height: 1.12;
-  letter-spacing: -0.02em;
-  max-width: 22ch;
-  text-wrap: pretty;
-}
-.alp-tile__frame { flex: none; margin: 0; }
-
-/* Full bone, not 78% of it: a letterspaced 9.5px cap line at 0.78 opacity over
-   photography is the exact case that failed contrast in review. */
-.alp-tile__eyebrow { color: var(--alp-bg); }
-
-/* ── Shelf ───────────────────────────────────────────────────────────────────
-   Products on bone, a mist rule under each picture, gaps between cells rather
-   than hairlines around them.
-
-   The grid used to draw hairline insets on every cell precisely because a gap
-   would have shown the mist home-page ground through the field. The ground is
-   bone now, so a gap shows bone — and the rule that carries meaning has moved
-   to the meta line under each picture, where it is mist like every other
-   dividing rule in the system. */
-.alp-shelf { background: var(--alp-bg); }
-
-/* The head runs on the same caption gutter as every passage. */
-.alp-shelf__head {
-  display: grid;
-  grid-template-columns: var(--alp-gutter) 1fr;
-  gap: var(--alp-gutter-gap);
-  align-items: baseline;
-  padding: var(--alp-band) var(--alp-field-pad) calc(var(--alp-band) * 0.5);
-}
-
-.alp-shelf__eyebrow {
-  margin: 0;
-  font-family: var(--alp-font-ui);
-  font-size: 0.594rem;
-  font-weight: 600;
-  line-height: 1.5;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-
-.alp-shelf__headfield {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.alp-shelf__heading {
-  margin: 0;
-  font-family: var(--alp-font-display);
-  font-weight: 600;
-  font-size: clamp(1.3rem, 1.4vw + 0.95rem, 1.75rem);
-  line-height: 1.2;
-  letter-spacing: -0.015em;
-}
-
-/* An olive chip, not an underlined link: this is the one call to action in the
-   block and it should read as a thing you press. */
-.alp-shelf__more {
-  background: var(--alp-ink);
-  border-color: var(--alp-ink);
-  color: var(--alp-bg);
-  white-space: nowrap;
-}
-a.alp-shelf__more:hover { background: var(--alp-accent); border-color: var(--alp-accent); color: var(--alp-bg); }
-
-.alp-shelf__grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-  padding: 0 var(--alp-pad-page) 30px;
-}
-
-.alp-shelf__cell { display: block; color: inherit; text-decoration: none; }
-
-.alp-shelf__pic { position: relative; }
-/* Contain, not cover. The catalogue's photography is cut-out packshots rather
-   than product-in-the-country, and cover crops a garment already floating in
-   its own white field — the launch shorts lost their waistband to it.
-
-   The RATIO is a setting rather than a constant: contain inside a ratio the
-   photographs do not share is what produces letterboxing, and the right ratio
-   is a fact about the catalogue, not about the theme. */
-.alp-shelf__pic img {
-  width: 100%;
-  object-fit: contain;
-}
-.alp-shelf--portrait .alp-shelf__pic img { aspect-ratio: 3 / 4; }
-.alp-shelf--square .alp-shelf__pic img { aspect-ratio: 1 / 1; }
-/* Adapt: the photograph's own shape, so nothing is cropped and nothing is
-   padded. Rows can end up uneven, which is the honest trade. */
-.alp-shelf--adapt .alp-shelf__pic img { aspect-ratio: auto; height: auto; }
-
-.alp-shelf__flag {
-  position: absolute;
-  top: 6px;
-  left: 6px;
-  background: var(--alp-mist);
-  border: 1px solid var(--alp-line);
-  border-radius: 3px;
-  padding: 3px 7px;
-  font-family: var(--alp-font-ui);
-  font-weight: 600;
-  font-size: 0.66rem;
-  letter-spacing: 0.04em;
-}
-
-.alp-shelf__meta {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid var(--alp-mist);
-}
-
-.alp-shelf__name {
-  margin: 0;
-  font-family: var(--alp-font-ui);
-  font-weight: 400;
-  font-size: clamp(0.781rem, 0.3vw + 0.72rem, 0.9375rem);
-  line-height: 1.3;
-}
-a.alp-shelf__cell:hover .alp-shelf__name { color: var(--alp-accent); }
-
-.alp-shelf__price {
-  margin: 0;
-  flex: none;
-  font-size: clamp(0.781rem, 0.3vw + 0.72rem, 0.9375rem);
-}
-.alp-shelf__price s { margin-right: 5px; color: rgba(76, 75, 59, 0.45); }
-
-/* Editor-only notice — the section renders nothing at all on the storefront
-   when the catalogue is empty. */
-.alp-shelf__empty {
-  grid-column: 1 / -1;
-  margin: 0;
-  padding: clamp(20px, 3vw, 36px) var(--alp-pad-page);
-  font-size: 0.85rem;
-  color: var(--alp-ink);
-}
-
-@media (min-width: 750px) {
-  .alp-shelf--3up .alp-shelf__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .alp-shelf--4up .alp-shelf__grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-}
-
-@media (min-width: 990px) {
-  .alp-shelf__grid { gap: 24px; padding: 0 var(--alp-field-pad) var(--alp-band); }
-}
-
-@media (max-width: 989px) {
-  .alp-shelf__head {
-    grid-template-columns: 1fr;
-    gap: 8px;
-    padding: 30px var(--alp-pad-page) 14px;
-  }
-}
-
-/* ── Shelf: solo ─────────────────────────────────────────────────────────────
-   One product, centred, while the shop is one product deep.
-
-   The whole composition centres or none of it does. The grid head runs on the
-   caption gutter — eyebrow hard left, heading beside it — and that layout is
-   built around a field of many things all starting at the same left edge. Put
-   one centred photograph under it and the eyebrow points at nothing. So solo
-   restacks the head centred and drops the gutter.
-
-   Every selector here is two classes deep (0,2,0) so it beats the grid rules
-   it replaces (0,1,0) wherever they sit in the file, including inside the
-   media queries above. Do not flatten them.
-
-   Solo never carries --2up/--3up/--4up: the section emits one or the other and
-   never both, so the column counts cannot fight the cap. */
-.alp-shelf--solo .alp-shelf__head {
-  grid-template-columns: minmax(0, 1fr);
-  justify-items: center;
-  text-align: center;
-  gap: 12px;
-}
-.alp-shelf--solo .alp-shelf__headfield {
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-/* Measured at 1440: the heading ran 821px over a 700px photograph, so the
-   words were wider than the thing they name and the centred block had two
-   different centres' worth of edges. The same cap as the grid track below
-   puts both on one column. */
-@media (min-width: 990px) {
-  .alp-shelf--solo .alp-shelf__headfield { max-width: min(62%, 760px); }
-}
-
-/* Phones get the full field — 62% of a 390px screen is a thumbnail. */
-.alp-shelf--solo .alp-shelf__grid { grid-template-columns: minmax(0, 1fr); }
-
-/* Name and price stay on one line over the same mist rule the grid uses: the
-   rule is the shelf's signature and one product should still be on a shelf.
-   Centred, because everything above it is. */
-.alp-shelf--solo .alp-shelf__meta {
-  justify-content: center;
-  gap: 18px;
-}
-
-/* The catalogue link, under the product rather than level with the heading. */
-.alp-shelf__tail {
-  display: flex;
-  justify-content: center;
-  padding: 0 var(--alp-pad-page) 36px;
-}
-
-@media (min-width: 990px) {
-  /* Capped AND proportional. A percentage alone becomes a billboard on a wide
-     monitor; a fixed width alone shrinks to a stamp on one. 62% of the field
-     up to 760px puts the product at roughly the scale it has on its own
-     product page, which is the scale it should arrive at.
-
-     The cap is a percentage of the GRID, not of the viewport — vw counts the
-     196px rail, which is how the hero wordmark once overflowed the column. */
-  .alp-shelf--solo .alp-shelf__grid {
-    grid-template-columns: minmax(0, min(62%, 760px));
-    justify-content: center;
-    padding: 0 var(--alp-field-pad) 40px;
-  }
-
-  .alp-shelf__tail { padding: 0 var(--alp-field-pad) var(--alp-band); }
-}
-
-/* ── Touch targets ───────────────────────────────────────────────────────────
-   Measured at 390px: the base chip came out 35px tall, and the menu sheet's
-   fine-print and Follow links were 15px. Both are well under the 44px that
-   Apple's HIG and WCAG 2.5.8 ask for, and both are things people tap with a
-   thumb, outdoors, one-handed.
-
-   Interactive chips only — a.alp-chip and button.alp-chip. The same class is
-   used for static flags like "Waitlist", which should not grow. */
-@media (max-width: 989px) {
-  a.alp-chip,
-  button.alp-chip {
-    min-height: 44px;
-    box-sizing: border-box;
-  }
-
-  .alp-sheet__col a,
-  .alp-sheet__account a {
-    min-height: 44px;
-    display: flex;
-    align-items: center;
-  }
-  .alp-sheet__col ul { gap: 0; }
-}
-
-/* ── Stock Dawn surfaces ─────────────────────────────────────────────────────
-   Policy pages, the contact page, search, 404 and the cart's empty state are
-   still Dawn's own sections, and Dawn paints them white with a black button.
-   Next to the bone rail that reads as a different website — which is exactly
-   what a customer meets when they tap "Privacy policy" in the footer.
-
-   This does not restyle Dawn; it puts its surfaces on the palette. */
-body.template-page,
-body.template-search,
-body.template-404,
-body.template-list-collections,
-body.template-customers-login,
-body.template-customers-register,
-body.template-customers-account,
-body.template-customers-order,
-body.template-customers-addresses { background: var(--alp-bg); }
-
-/* Dawn's colour schemes paint an opaque ground on every section wrapper. */
-body.template-page .color-scheme-1,
-body.template-page .shopify-policy__container,
-body.template-search .color-scheme-1,
-body.template-404 .color-scheme-1,
-body.template-cart .cart__warnings,
-body.template-cart .color-scheme-1 {
-  background: transparent;
-  color: var(--alp-ink);
-}
-
-/* Policy and page headings onto the brand face. */
-.shopify-policy__title h1,
-body.template-page .main-page-title,
-body.template-search .title,
-body.template-404 .title {
-  font-family: var(--alp-font-display);
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  color: var(--alp-ink);
-}
-
-.shopify-policy__container { max-width: 68ch; padding: clamp(40px, 6vw, 80px) var(--alp-pad-page); }
-.shopify-policy__title { text-align: left; }
-.shopify-policy__body { font-family: var(--alp-font-ui); line-height: 1.65; color: var(--alp-ink); }
-.shopify-policy__body h2 { font-family: var(--alp-font-display); font-weight: 600; letter-spacing: -0.01em; }
-
-/* Dawn's black buttons become the brand's olive chip. */
-body.template-page .button,
-body.template-search .button,
-body.template-404 .button,
-body.template-cart .cart__warnings .button,
-body.template-customers-login .button,
-body.template-customers-register .button {
-  background: var(--alp-ink);
-  color: var(--alp-bg);
-  border: 1px solid var(--alp-ink);
-  border-radius: 3px;
-  box-shadow: none;
-  font-family: var(--alp-font-ui);
-  font-weight: 600;
-}
-body.template-page .button:hover,
-body.template-cart .cart__warnings .button:hover {
-  background: var(--alp-accent);
-  border-color: var(--alp-accent);
-}
-
-/* The contact form's fields, onto the palette. */
-body.template-page .field__input,
-body.template-page .select__select,
-body.template-page textarea {
-  background: var(--alp-bg);
-  border-radius: 3px;
-  color: var(--alp-ink);
-}
-
-/* ── Cart ────────────────────────────────────────────────────────────────────
-   8c makes the cart a page with the summary as the one olive slab, mist rules
-   between the lines, and the checkout button the only flare on it.
-
-   Dawn renders the items and the footer as two SEPARATE sections, siblings
-   inside #MainContent, so the two-column layout is built on the section
-   wrappers rather than inside either one. That is also why the summary can be
-   sticky: it is a real grid column, not a box floated inside the list. */
-body.template-cart { background: var(--alp-bg); }
-
-body.template-cart .cart,
-body.template-cart .cart__footer {
-  background: transparent;
-  padding: 0;
-}
-
-body.template-cart .title-wrapper-with-link,
-body.template-cart .cart__empty-text,
-body.template-cart .cart__warnings {
-  padding: 0 var(--alp-pad-page);
-}
-
-body.template-cart .title,
-body.template-cart .cart__empty-text {
-  font-family: var(--alp-font-display);
-  font-weight: 600;
-  font-size: clamp(1.75rem, 2.2vw + 1rem, 2.5rem);
-  line-height: 1.12;
-  letter-spacing: -0.02em;
-  color: var(--alp-ink);
-}
-
-/* The rows. A 3px mist rule opens the list — the system's section break — and
-   hairlines separate the lines inside it. */
-body.template-cart .cart-items,
-body.template-cart .cart-item {
-  border: 0;
-  background: transparent;
-}
-body.template-cart .cart-items { width: 100%; }
-body.template-cart .cart-items__heading { display: none; }
-
-body.template-cart .cart-item {
-  border-top: 1px solid var(--alp-line);
-  padding: 26px 0;
-}
-body.template-cart .cart-item:first-child { border-top: 3px solid var(--alp-mist); }
-body.template-cart .cart-item:last-child { border-bottom: 1px solid var(--alp-line); }
-
-body.template-cart .cart-item__image {
-  width: 100%;
-  aspect-ratio: 3 / 4;
-  object-fit: cover;
-}
-body.template-cart .cart-item__name {
-  font-family: var(--alp-font-ui);
-  font-weight: 400;
-  font-size: 1rem;
-  color: var(--alp-ink);
-  text-decoration: none;
-}
-body.template-cart .cart-item__name:hover { color: var(--alp-accent); }
-
-/* The summary — the one olive block on the page. */
-body.template-cart .cart__blocks,
-body.template-cart .totals,
-body.template-cart .cart__ctas,
-body.template-cart .tax-note {
-  background: var(--alp-ink);
-  color: var(--alp-bg);
-}
-body.template-cart .cart__blocks {
-  padding: 32px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-body.template-cart .totals__total,
-body.template-cart .totals__subtotal,
-body.template-cart .totals__subtotal-value { color: var(--alp-bg); }
-body.template-cart .tax-note { color: var(--alp-haze); font-size: 0.8125rem; }
-
-body.template-cart .cart__ctas button,
-body.template-cart .cart__ctas .button {
-  width: 100%;
-  background: var(--alp-citrus);
-  color: var(--alp-ink);
-  border: 1px solid var(--alp-citrus);
-  border-radius: 3px;
-  padding: 16px;
-  font-family: var(--alp-font-ui);
-  font-weight: 600;
-  box-shadow: none;
-}
-
-@media (min-width: 990px) {
-  /* Items left, summary right and sticky, per 8c. The children here are
-     Shopify's own section wrappers. */
-  body.template-cart #MainContent {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 380px;
-    gap: var(--alp-gutter-gap);
-    align-items: start;
-    padding: var(--alp-band) var(--alp-field-pad);
-  }
-  body.template-cart .title-wrapper-with-link,
-  body.template-cart .cart__empty-text,
-  body.template-cart .cart__warnings { padding: 0; }
-  body.template-cart #MainContent > * { min-width: 0; }
-  body.template-cart #MainContent > :last-child { position: sticky; top: 28px; }
-}
-
-@media (max-width: 989px) {
-  body.template-cart #MainContent { padding: 24px 0 0; }
-  body.template-cart .cart-item { padding: 18px var(--alp-pad-page); }
-  body.template-cart .cart__blocks { padding: 20px var(--alp-pad-page); }
-}
-
-/* ── Journal ─────────────────────────────────────────────────────────────────
-   Blog index and single dispatch are the same page with a different middle:
-   full-bleed lead, mist rule, then either the body on the caption gutter or the
-   dated index. */
-.alp-journal { background: var(--alp-bg); }
-
-.alp-journal__lead { position: relative; overflow: hidden; }
-.alp-journal__lead img {
-  display: block;
-  width: 100%;
-  height: clamp(420px, 44vw, 620px);
-  object-fit: cover;
-}
-.alp-journal__veil {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(rgba(76, 75, 59, 0) 40%, rgba(76, 75, 59, 0.88));
-}
-.alp-journal__leadtext {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: clamp(22px, 3vw, 44px);
-  z-index: 2;
-  padding: 0 var(--alp-pad-page);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.alp-journal__eyebrow {
-  margin: 0;
-  font-family: var(--alp-font-ui);
-  font-size: 0.594rem;
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--alp-bg);
-}
-.alp-journal__title {
-  margin: 0;
-  max-width: 760px;
-  font-family: var(--alp-font-display);
-  font-weight: 600;
-  font-size: clamp(1.4rem, 2.2vw + 0.9rem, 2.5rem);
-  line-height: 1.12;
-  letter-spacing: -0.02em;
-  color: var(--alp-bg);
-  text-wrap: pretty;
-}
-.alp-journal__title a { color: inherit; text-decoration: none; }
-
-.alp-journal__rule { height: 3px; background: var(--alp-mist); }
-
-.alp-journal__index { padding: 22px var(--alp-pad-page) 8px; }
-.alp-journal__rows { display: flex; flex-direction: column; }
-.alp-journal__row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 14px;
-  padding: 16px 0;
+/* ── Header (desktop 84px · phone 56px) ──────────────────────────────────── */
+.alp-hd-section { position: sticky; top: 0; z-index: 50; }
+.alp-hd { position: relative; z-index: 46; background: var(--alp-bg); }
+/* The scrim lives in the header's stacking context: at 45 it dims the page
+   under the header's own panels; .is-over (55) lifts it over the bar too,
+   for the drawer and sheets, which sit at 60 above everything. */
+.alp-hd__bar {
+  display: flex; align-items: center; gap: 44px;
+  height: 84px; padding: 0 40px;
   border-bottom: 1px solid var(--alp-line);
-  color: var(--alp-ink);
-  text-decoration: none;
+  font: 600 16px/1 var(--alp-font-display);
+  background: var(--alp-bg);
+  position: relative; z-index: 2;
 }
-.alp-journal__row:hover .alp-journal__rowtitle { color: var(--alp-accent); }
-.alp-journal__rowtitle { flex: 1; font-size: 0.875rem; line-height: 1.35; }
-.alp-journal__rowdate { flex: none; font-size: 0.719rem; }
-
-.alp-journal__ride { padding: 26px var(--alp-pad-page); }
-
-@media (min-width: 990px) {
-  .alp-journal__leadtext { padding: 0 var(--alp-field-pad); }
-  .alp-journal__index { padding: 0 var(--alp-field-pad) var(--alp-band); }
-  .alp-journal__ride { padding: 0 var(--alp-field-pad) var(--alp-band); }
-  /* On an article the rail already carries the dispatch index; repeating it in
-     the field would say the same thing twice on one screen. */
-  .alp-journal__index--phone { display: none; }
+.alp-hd__logo { margin-right: 20px; flex: none; }
+.alp-hd__logo img { height: 26px; width: auto; }
+.alp-hd__nav { display: flex; align-items: center; gap: 44px; }
+.alp-hd__link {
+  padding: 0; background: none; border: 0; cursor: pointer;
+  font: inherit; color: inherit; white-space: nowrap;
 }
-
-/* ── Home page density ───────────────────────────────────────────────────────
-   The home page runs compact: tiles and shelves butt straight against each
-   other with no gutter and no space between sections, so the page reads as one
-   continuous run rather than a stack of widely-spaced panels. A new brand with
-   a handful of sections cannot afford 160px of nothing at each end of every
-   one of them.
-
-   All of it is scoped to the home template. Collection, product and policy
-   pages keep the editorial spacing the design system asks for. */
-/* Re-pointed. This block still named alp-collection, alp-gate, alp-trio,
-   alp-manifesto and alp-ethos — the sections the home page used BEFORE it was
-   rebuilt on 7b. None of them are on it any more, so the compactness the
-   comment above describes had quietly stopped applying to anything, and the
-   page went back to full editorial bands at both ends of every section. */
-body.template-index .alp-passage { padding-block: clamp(28px, 3.4vw, 52px); }
-body.template-index .alp-shelf__head { padding-block: clamp(28px, 3.4vw, 52px) clamp(14px, 1.8vw, 24px); }
-body.template-index .alp-shelf__grid { padding-bottom: clamp(28px, 3.4vw, 52px); }
-
-/* The page ends on an olive slab and the footer is olive too, so their two
-   bands meet and read as one dead field. Halve the join. */
-body.template-index #MainContent > .shopify-section:last-child .alp-passage--olive {
-  padding-bottom: clamp(20px, 2.4vw, 36px);
+.alp-hd__link:hover { color: var(--alp-accent); }
+.alp-hd__link.is-on, .alp-hd__link[aria-expanded='true'] { text-decoration: underline; text-underline-offset: 5px; text-decoration-thickness: 1px; }
+.alp-hd__spacer { flex: 1; }
+.alp-hd__now { font: 400 13px/1 var(--alp-font-ui); color: var(--alp-accent); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.alp-hd__burger { padding: 0; background: none; border: 0; cursor: pointer; line-height: 0; }
+.alp-hd__icon-close { display: none; }
+.alp-hd__burger[aria-expanded='true'] .alp-hd__icon-open { display: none; }
+.alp-hd__burger[aria-expanded='true'] .alp-hd__icon-close { display: block; }
+@media (max-width: 1100px) and (min-width: 750px) {
+  .alp-hd__bar, .alp-hd__nav { gap: 28px; }
+  .alp-hd__now { display: none; }
+}
+@media (max-width: 749px) {
+  .alp-hd__bar { height: 56px; padding: 0 18px; gap: 18px; font-size: 14px; }
+  .alp-hd__logo { margin-right: 0; }
+  .alp-hd__logo img { height: 19px; }
 }
 
-body.template-index .alp-collection { padding: clamp(28px, 4vw, 56px) var(--alp-pad-page); }
-body.template-index .alp-collection__head { margin-bottom: clamp(14px, 2vw, 24px); }
-body.template-index .alp-gate { padding: clamp(28px, 4.5vw, 56px) var(--alp-pad-page) clamp(22px, 3vw, 40px); }
-body.template-index .alp-trio { padding: 0; }
-body.template-index .alp-trio__grid { gap: 1px; }
-body.template-index .alp-manifesto--page { padding: clamp(20px, 3vw, 40px) var(--alp-pad-page); }
-body.template-index .alp-ethos { padding-block: clamp(26px, 4vw, 56px); }
+/* Panels under the bar: they slide down from behind it. */
+.alp-mapmenu, .alp-shopmenu, .alp-searchmenu, .alp-menu {
+  position: absolute; left: 0; right: 0; top: 100%;
+  background: var(--alp-bg);
+  border-bottom: 1px solid var(--alp-ink);
+  transform: translateY(-12px); opacity: 0;
+  transition: transform 0.25s ease-out, opacity 0.25s ease-out;
+}
+.alp-mapmenu.is-open, .alp-shopmenu.is-open, .alp-searchmenu.is-open, .alp-menu.is-open { transform: none; opacity: 1; }
 
+/* Shop panel — the shop landing (D02) in small */
+.alp-shopmenu { display: grid; grid-template-columns: 320px minmax(0, 1fr) minmax(0, 1fr); height: 460px; }
+.alp-shopmenu__side { display: flex; flex-direction: column; gap: 16px; padding: 40px; }
+.alp-shopmenu__side .alp-btn { align-self: flex-start; padding: 13px 22px; }
+.alp-shopmenu__panel { position: relative; display: block; overflow: hidden; background: var(--alp-haze); }
+.alp-shopmenu__panel--ground { background: var(--alp-card); }
+.alp a.alp-shopmenu__panel:hover { color: inherit; }
+
+/* Search panel — D06 as an overlay */
+.alp-searchmenu { max-height: calc(100vh - var(--alp-hd)); overflow-y: auto; }
+.alp-searchmenu__form { padding: 32px clamp(40px, 14vw, 180px) 24px; }
+.alp-searchmenu__head { padding: 8px 40px 16px; font: 600 18px/1.2 var(--alp-font-display); }
+.alp-searchmenu__grid { padding: 0 12px 40px; }
+.alp-searchmenu__results {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px;
+  padding: 0 clamp(40px, 14vw, 180px) 40px;
+}
+.alp-searchmenu__col .alp-over { padding: 0 0 4px; color: var(--alp-ink); }
+.alp-searchmenu__col .alp-hit--none { border-bottom: 0; }
+
+/* D08 · Bush Map panel */
+.alp-mapmenu { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); height: 460px; }
+.alp-mapmenu__map { position: relative; background: var(--alp-mist); overflow: hidden; }
+.alp-mapmenu__body { display: flex; flex-direction: column; padding: 40px 48px; }
+.alp-mapmenu__title { font: 600 24px/1.2 var(--alp-font-display); }
+.alp-mapmenu__tag { margin: 8px 0 24px !important; font-size: 15px; }
+.alp-mapmenu__body .alp-over { color: var(--alp-ink); margin-bottom: 6px; }
+.alp-mapmenu__fill { flex: 1; }
+.alp-list__row {
+  display: flex; justify-content: space-between; gap: 16px;
+  padding: 14px 0; border-top: 1px solid var(--alp-line); font-size: 15px;
+}
+.alp-list__row:last-child { border-bottom: 1px solid var(--alp-line); }
+.alp-list__row span:last-child { color: var(--alp-accent); white-space: nowrap; }
+.alp-list__row--quiet { color: var(--alp-accent); }
+.alp-mapmenu .alp-btn { padding: 15px; }
+
+/* M01 · Phone menu sheet */
+.alp-menu {
+  padding: 6px 22px 24px;
+  max-height: calc(100svh - 56px); overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.alp-menu__row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px 0; border-bottom: 1px solid var(--alp-line);
+  font: 600 22px/1.2 var(--alp-font-display);
+}
+.alp-menu__sub {
+  display: flex; flex-direction: column; gap: 14px;
+  padding: 16px 0 18px 16px; border-bottom: 1px solid var(--alp-line);
+  font: 16px/1.3 var(--alp-font-ui);
+}
+.alp-menu__pm::after { content: '+'; font-family: var(--alp-font-ui); font-weight: 400; }
+details[open] > summary .alp-menu__pm::after { content: '−'; }
+.alp-menu__foot {
+  display: flex; justify-content: space-between; align-items: flex-end; gap: 16px;
+  padding-top: 20px; font: 13px/1.5 var(--alp-font-ui);
+}
+
+/* Category lists (alp-shop-links) */
+.alp-cats { display: flex; }
+.alp-cats__item.is-soon { color: var(--alp-accent); }
+.alp-cats__item small { font: 400 13px var(--alp-font-ui); }
+.alp-menu .alp-cats__item small { font-size: 12px; }
+
+/* Country / currency */
+.alp-currency { display: inline-block; margin: 0; }
+.alp-currency__select {
+  padding: 0 18px 0 0; margin: 0;
+  background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%234c4b3b'/%3E%3C/svg%3E") no-repeat right center;
+  border: 0; border-radius: 0; color: inherit; font: inherit;
+  -webkit-appearance: none; appearance: none; cursor: pointer;
+}
+
+/* Page dimmer behind every panel, drawer and sheet */
+div.alp-scrim {
+  display: block;
+  position: fixed; inset: 0; z-index: 45;
+  background: var(--alp-scrim);
+  opacity: 0; transition: opacity 0.25s ease-out;
+}
+div.alp-scrim[hidden] { display: none; }
+.alp-scrim.is-open { opacity: 1; }
+.alp-scrim.is-over { z-index: 55; }
+
+/* ── Hero (D01 · M02) ────────────────────────────────────────────────────── */
+.alp-hero { position: relative; height: 720px; overflow: hidden; background: var(--alp-olive); }
+.alp-hero__media, .alp-hero__media picture { position: absolute; inset: 0; }
+.alp-hero__scrim { position: absolute; inset: 0; background: var(--alp-scrim-hero); pointer-events: none; }
+.alp-hero__centre {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px;
+  pointer-events: none; padding: 0 24px;
+}
+.alp-hero__mark { height: 150px; width: auto; max-width: 90%; }
+.alp-hero__tagline { font: 600 20px/1.2 var(--alp-font-display); color: var(--alp-bg); }
+@media (max-width: 749px) {
+  .alp-hero { height: calc(100svh - 56px); min-height: 520px; }
+  .alp-hero__centre { gap: 20px; }
+  .alp-hero__mark { height: auto; width: 300px; max-width: 80vw; }
+  .alp-hero__tagline { font-size: 17px; }
+}
+
+/* ── Phone heading row ("The shorts · Shop") ── */
+.alp-headrow { display: flex; justify-content: space-between; align-items: baseline; padding: 28px 18px 14px; }
+.alp-headrow__title { font-size: 22px; line-height: 1.2; }
+.alp-headrow__link { font-size: 14px; text-decoration: underline; text-underline-offset: 3px; }
+
+/* ── Photo pairs (D01 rows 2 and 4 · M02) ────────────────────────────────── */
+.alp-duo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.alp-duo--640 { height: 640px; }
+.alp-duo--links { height: 560px; }
+.alp-duo__panel { position: relative; display: block; overflow: hidden; background: var(--alp-card); }
+.alp-duo__panel--ground, .alp-duo__panel--card { background: var(--alp-card); }
+.alp-duo__panel--mist { background: var(--alp-mist); }
+.alp-duo__panel--bone { background: var(--alp-haze); }
+.alp-duo__caption {
+  position: absolute; left: 24px; bottom: 24px;
+  font: 600 16px/1.2 var(--alp-font-display); color: var(--alp-bg);
+}
+.alp-duo__chips { position: absolute; left: 24px; bottom: 24px; display: flex; gap: 8px; }
+.alp-duo__stack {
+  position: absolute; left: 24px; bottom: 24px;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 10px;
+}
+.alp-duo__title { font: 600 28px/1.15 var(--alp-font-display); color: var(--alp-bg); }
+.alp a.alp-duo__panel:hover { color: inherit; }
+@media (max-width: 749px) {
+  .alp-duo--links { height: 240px; gap: 6px; margin-top: 6px; }
+  .alp-duo__stack { left: 12px; bottom: 12px; }
+  .alp-duo--links .alp-chip { padding: 7px 12px; font-size: 13px; border-color: transparent; }
+  .alp-duo__caption { left: 18px; bottom: 18px; font-size: 20px; }
+}
+
+.alp-photo { position: relative; display: block; overflow: hidden; background: var(--alp-card); }
+.alp-photo--480 { height: 480px; }
+.alp-photo--500 { height: 500px; }
+.alp-photo--520 { height: 520px; }
+
+/* ── Product card ────────────────────────────────────────────────────────── */
+.alp-grid4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; padding: 12px 12px 48px; }
+/* An <a> on route and ride cards, so it must be a block for its 3:4 to hold. */
+.alp-card__media { display: block; position: relative; aspect-ratio: 3 / 4; background: var(--alp-card); overflow: hidden; }
+.alp-card__media--mist { background: var(--alp-mist); }
+.alp-card__link { position: absolute; inset: 0; }
+.alp-card__cap { padding: 14px 12px 0; font: 15px/1.5 var(--alp-font-ui); }
+.alp-card__name { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+.alp-card__price, .alp-card__stats { display: block; }
+.alp-card__stats { color: var(--alp-accent); }
+.alp-card__tag { position: absolute; left: 14px; top: 14px; padding: 5px 9px; border-radius: 3px; background: #fff; font: 600 12px/1.2 var(--alp-font-ui); }
+.alp-card__tag--flare { background: var(--alp-flare); }
+
+.alp-card__quick {
+  position: absolute; left: 16px; right: 16px; bottom: 16px;
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding: 12px 16px; background: #fff;
+  font: 500 15px/1.2 var(--alp-font-ui);
+  opacity: 0; transform: translateY(8px);
+  transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+}
+.alp-card:hover .alp-card__quick, .alp-card__quick:focus-within { opacity: 1; transform: none; }
+@media (hover: none) { .alp-card__quick { opacity: 1; transform: none; } }
+.alp-card__quick-label { font-weight: 600; }
+.alp-card__sizes { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px 14px; }
+.alp-card__size { padding: 2px 0; background: none; border: 0; cursor: pointer; font: inherit; }
+.alp-card__size:hover { text-decoration: underline; text-underline-offset: 3px; }
+.alp-card__size:disabled { color: var(--alp-accent); text-decoration: line-through; cursor: default; }
+.alp-card__size.is-busy { opacity: 0.4; }
+
+@media (max-width: 749px) {
+  .alp-card__media { aspect-ratio: auto; height: 500px; }
+  .alp-card__qa { position: absolute; right: 14px; bottom: 14px; padding: 10px 14px; font-weight: 600; }
+  .alp-card__cap { display: flex; justify-content: space-between; gap: 16px; padding: 12px 18px 24px; }
+  .alp-card__name { text-decoration: none; }
+  .alp-grid4 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); padding: 0 18px 24px; }
+  .alp-grid4 .alp-card__media { height: auto; aspect-ratio: 3 / 4; }
+  .alp-grid4 .alp-card__cap { display: block; padding: 10px 0 0; font-size: 14px; }
+}
+
+/* ── Next drop ───────────────────────────────────────────────────────────── */
+.alp-drop__tile {
+  aspect-ratio: 3 / 4; background: var(--alp-card);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+}
+.alp-drop__name { font: 600 22px/1.2 var(--alp-font-display); }
+.alp-drop__cap { padding: 14px 12px 0; font: 15px/1.5 var(--alp-font-ui); }
+.alp-notify__link { display: inline-block; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+.alp-notify__pop { padding-top: 10px; }
+
+.alp-band { margin: 6px 0; background: var(--alp-card); }
+.alp-band__row { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 24px 18px; }
+.alp-band__name { display: block; margin-top: 10px; font: 600 20px/1.2 var(--alp-font-display); }
+.alp-band .alp-badge { padding: 5px 9px; }
+.alp-band .alp-chip { padding: 9px 14px; }
+.alp-band__form { padding: 0 18px 24px; }
+
+.alp-drop-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; padding: 0 12px 40px; }
+.alp-drop-row__tile {
+  min-height: 220px; background: var(--alp-card);
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;
+  padding: 0 32px;
+}
+.alp-drop-row__name { font: 600 24px/1.2 var(--alp-font-display); }
+.alp-drop-row .alp-notify { text-align: right; }
+.alp-drop-row .alp-notify__pop { width: 320px; }
+
+/* ── Shop landing (D02 · M03) ────────────────────────────────────────────── */
+.alp-shop__grid { display: grid; grid-template-columns: 320px minmax(0, 1fr) minmax(0, 1fr); height: 800px; }
+.alp-shop__side { display: flex; flex-direction: column; gap: 16px; padding: 40px; }
+.alp-cats--big { flex-direction: column; gap: 16px; font: 600 20px/1.2 var(--alp-font-display); }
+.alp-shop__fill { flex: 1; }
+.alp-shop__now { font: 15px/1.5 var(--alp-font-ui); font-variant-numeric: tabular-nums; }
+.alp-shop__fine { font-size: 12px; }
+.alp-shop__panel { position: relative; display: block; overflow: hidden; background: var(--alp-haze); }
+.alp-shop__panel--ground { background: var(--alp-card); }
+.alp-shop__label { position: absolute; left: 24px; bottom: 24px; font: 600 18px/1.2 var(--alp-font-display); color: var(--alp-ink); }
+.alp-shop__label--bone { color: var(--alp-bg); }
+.alp a.alp-shop__panel:hover { color: inherit; }
+
+.alp-rows { padding: 4px 18px 14px; }
+.alp-rows__row {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+  padding: 16px 0; border-bottom: 1px solid var(--alp-line);
+  font: 600 22px/1.2 var(--alp-font-display);
+}
+.alp-rows__row small { font: 400 13px var(--alp-font-ui); color: var(--alp-accent); }
+.alp-rows__row.is-soon { color: var(--alp-accent); }
+
+/* ── Collection (D03 · D04 · M04 · M05) ──────────────────────────────────── */
+.alp-cat__bar {
+  display: flex; align-items: center; gap: 40px;
+  height: 64px; padding: 0 40px;
+  border-bottom: 1px solid var(--alp-line);
+  font: 16px/1 var(--alp-font-ui);
+}
+.alp-cats--bar { gap: 40px; align-items: center; }
+.alp-cats--bar .alp-cats__item { color: var(--alp-accent); white-space: nowrap; }
+.alp-cats--bar .alp-cats__item.is-on { color: var(--alp-ink); font-weight: 600; }
+.alp-cats--bar .alp-cats__item small { font-size: 12px; }
+.alp-cat__spacer { flex: 1; }
+.alp-cat__count { font-size: 14px; color: var(--alp-accent); }
+.alp-cat__tool { padding: 0; background: none; border: 0; cursor: pointer; font: inherit; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+.alp-cat__sort select {
+  padding: 0 18px 0 0; background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%234c4b3b'/%3E%3C/svg%3E") no-repeat right center;
+  border: 0; font: inherit; color: inherit; -webkit-appearance: none; appearance: none; cursor: pointer;
+}
+.alp-cat__countrow { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; font-size: 13px; color: var(--alp-accent); }
+.alp-cat__countrow .alp-chip { color: var(--alp-ink); padding: 7px 11px; font-size: 13px; }
+
+.alp-cat__layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; padding: 12px; }
+.alp-cat__tiles { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; align-content: start; }
+.alp-cat__tiles .alp-card__cap, .alp-cat__tiles .alp-drop__cap { padding: 14px 10px 20px; }
+.alp-cat__feature {
+  position: sticky; top: calc(var(--alp-hd) + 12px);
+  height: min(900px, calc(100vh - var(--alp-hd) - 24px)); min-height: 520px;
+  background: var(--alp-haze); overflow: hidden;
+}
+.alp-cat__empty { grid-column: 1 / -1; padding: 40px 0; }
+.alp-cat__empty a { text-decoration: underline; text-underline-offset: 3px; }
+
+.alp-olive-tile {
+  aspect-ratio: 3 / 4; background: var(--alp-olive); color: var(--alp-bg);
+  display: flex; flex-direction: column; justify-content: flex-end; gap: 12px; padding: 24px;
+}
+.alp-olive-tile__head { font: 600 22px/1.2 var(--alp-font-display); }
+
+@media (max-width: 749px) {
+  .alp-cat__bar { height: 48px; padding: 0 18px; gap: 22px; font-size: 15px; overflow-x: auto; scrollbar-width: none; }
+  .alp-cat__bar::-webkit-scrollbar { display: none; }
+  .alp-cats--bar { gap: 22px; }
+  .alp-cats--bar .alp-cats__item small { font-size: 11px; }
+  .alp-cat__layout { display: block; padding: 0; }
+  .alp-cat__tiles { display: block; }
+  .alp-cat__tiles .alp-card__cap { padding: 12px 18px 24px; }
+}
+
+/* Filters — desktop: a panel under the bar; phone: a bottom sheet. */
+.alp-filters { border-bottom: 1px solid var(--alp-line); }
+.alp-filters__groups {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.4fr);
+  gap: 48px; padding: 40px 40px 32px;
+}
+.alp-filters__head { display: flex; justify-content: space-between; margin-bottom: 20px; font: 600 18px/1.2 var(--alp-font-display); }
+.alp-filters__values { display: flex; flex-direction: column; gap: 8px; }
+.alp-filters__values--sizes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.alp-filters__price { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.alp-filters__price label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--alp-accent); }
+.alp-filters__price input { padding: 12px; border: 1px solid var(--alp-ink); border-radius: 0; background: #fff; font: 15px var(--alp-font-ui); color: var(--alp-ink); }
+.alp-filters__actions {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px;
+  padding: 0 clamp(40px, 20vw, 260px) 40px;
+}
+.alp-filters__actions .alp-btn { border-radius: 0; }
+
+.alp-opt { position: relative; display: flex; cursor: pointer; font: 15px/1.3 var(--alp-font-ui); }
+.alp-opt input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.alp-opt--box { border: 1px solid var(--alp-line); }
+.alp-opt__box { width: 44px; flex: none; border-right: 1px solid var(--alp-line); display: flex; align-items: center; justify-content: center; font: 600 13px var(--alp-font-display); }
+.alp-opt__text { padding: 12px 14px; }
+.alp-opt--box:has(input:checked) { border: 1.5px solid var(--alp-ink); background: #fff; }
+.alp-opt--box input:checked + .alp-opt__box { background: var(--alp-ink); color: var(--alp-bg); border-right-color: var(--alp-ink); }
+.alp-opt--box input:checked + .alp-opt__box::after { content: '✓'; }
+.alp-opt--tile .alp-opt__face { flex: 1; padding: 13px 0; text-align: center; border: 1px solid var(--alp-ink); background: #fff; }
+.alp-opt--tile input:checked + .alp-opt__face { background: var(--alp-ink); color: var(--alp-bg); }
+.alp-opt--code { border: 1px solid var(--alp-ink); background: #fff; }
+.alp-opt__code { width: 52px; flex: none; border-right: 1px solid var(--alp-ink); font: 20px/46px var(--alp-font-code); text-align: center; }
+.alp-opt--code .alp-opt__text { padding: 13px 14px; }
+.alp-opt--code:has(input:checked) { outline: 1.5px solid var(--alp-ink); }
+.alp-opt--code input:checked + .alp-opt__code { background: var(--alp-ink); color: var(--alp-bg); }
+.alp-opt input:focus-visible + * { outline: 2px solid var(--alp-flare); outline-offset: 2px; }
+.alp-opt.is-dead { opacity: 0.55; cursor: default; }
+@media (min-width: 750px) {
+  .alp-filters__head { pointer-events: none; }
+}
+
+/* Bottom sheets: filters (phone), quick add, added */
+.alp-sheet__grab { width: 40px; height: 4px; border-radius: 2px; background: rgba(76, 75, 59, 0.3); margin: 0 auto; }
+.alp-sheet__head { display: flex; justify-content: space-between; align-items: center; font: 600 18px/1.2 var(--alp-font-display); }
+@media (max-width: 749px) {
+  .alp-filters, .alp-sheet {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+    max-height: 88svh; overflow-y: auto; overscroll-behavior: contain;
+    background: var(--alp-bg); border: 0; border-radius: 16px 16px 0 0;
+    transform: translateY(100%);
+    transition: transform 0.25s ease-out;
+  }
+  .alp-filters.is-open, .alp-sheet.is-open { transform: none; }
+  .alp-filters__form { display: flex; flex-direction: column; min-height: 600px; padding: 12px 22px calc(40px + env(safe-area-inset-bottom)); }
+  .alp-filters .alp-sheet__grab { margin-bottom: 16px; }
+  .alp-filters .alp-sheet__head { font-size: 20px; }
+  .alp-filters__groups { display: block; padding: 8px 0 0; flex: 1; }
+  .alp-filters__group { border-top: 1px solid var(--alp-line); }
+  .alp-filters__group:last-child { border-bottom: 1px solid var(--alp-line); }
+  .alp-filters__head { margin: 0; padding: 18px 0; font-size: 16px; }
+  .alp-filters__group[open] .alp-filters__head { padding-bottom: 0; }
+  .alp-filters__values, .alp-filters__price { padding: 16px 0; }
+  .alp-filters__actions { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 10px; padding: 24px 0 0; }
+  .alp-filters__actions .alp-btn { border-radius: 3px; }
+  .alp-filters__actions a.alp-btn { order: -1; }
+}
+.alp-sheet {
+  display: flex; flex-direction: column; gap: 18px;
+  padding: 12px 22px calc(40px + env(safe-area-inset-bottom));
+}
+@media (min-width: 750px) {
+  /* The sheets are a phone pattern; on desktop the same steps happen in the
+     card's hover strip and the cart drawer. If one is ever opened here it
+     sits as a centred card. */
+  .alp-sheet {
+    position: fixed; left: 50%; bottom: 40px; z-index: 60; width: 420px;
+    transform: translate(-50%, 16px); opacity: 0; transition: transform 0.25s ease-out, opacity 0.25s ease-out;
+    background: var(--alp-bg); border: 1px solid var(--alp-ink); border-radius: 3px;
+  }
+  .alp-sheet.is-open { transform: translate(-50%, 0); opacity: 1; }
+}
+.alp-sheet__item { display: flex; gap: 14px; align-items: center; font: 14px/1.5 var(--alp-font-ui); }
+.alp-sheet__thumb { position: relative; width: 72px; height: 96px; flex: none; background: var(--alp-card); overflow: hidden; }
+.alp-sheet__thumb img { width: 100%; height: 100%; object-fit: cover; }
+.alp-sheet__name { font: 600 16px/1.3 var(--alp-font-display); }
+.alp-sheet__sizes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.alp-sheet__size {
+  padding: 15px 0; background: #fff; border: 1px solid var(--alp-ink); border-radius: 3px;
+  font: 600 15px/1.2 var(--alp-font-ui); cursor: pointer;
+}
+.alp-sheet__size:hover { background: var(--alp-ink); color: #fff; }
+.alp-sheet__size:disabled { border-color: var(--alp-line); color: var(--alp-accent); font-weight: 400; text-decoration: line-through; cursor: default; background: #fff; }
+.alp-sheet__size.is-busy { opacity: 0.5; }
+.alp-sheet__hint { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; }
+.alp-sheet__hint span { color: var(--alp-accent); }
+.alp-sheet__hint a { text-decoration: underline; text-underline-offset: 3px; }
+.alp-sheet__total { display: flex; justify-content: space-between; border-top: 1px solid var(--alp-line); padding-top: 16px; font: 600 16px/1.2 var(--alp-font-display); }
+.alp-sheet .alp-btn { padding: 16px; }
+.alp-sheet__keep { padding: 0; background: none; border: 0; cursor: pointer; font-size: 13px; text-decoration: underline; text-underline-offset: 3px; }
+
+/* ── Product (D05 · M06) ─────────────────────────────────────────────────── */
+.alp-pdp__grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); }
+.alp-pdp__media { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; padding: 8px; align-content: start; }
+.alp-pdp__img { position: relative; aspect-ratio: 3 / 4; background: var(--alp-card); overflow: hidden; }
+.alp-pdp__info {
+  position: sticky; top: var(--alp-hd); align-self: start;
+  display: flex; flex-direction: column; gap: 22px;
+  padding: 48px 40px; border-left: 1px solid var(--alp-line);
+}
+.alp-pdp__title { margin-top: -10px !important; font-size: 34px; line-height: 1.05; }
+.alp-pdp__price { font-size: 18px; }
+.alp-pdp__price small { font-size: 13px; color: var(--alp-accent); }
+.alp-pdp__desc { font: 15px/1.6 var(--alp-font-ui); }
+.alp-pdp__desc p + p { margin-top: 0.8em; }
+.alp-pdp__nexthead { padding: 40px 40px 16px; font-size: 20px; }
+
+.alp-buy { display: flex; flex-direction: column; gap: 22px; }
+.alp-buy__opt { display: flex; flex-direction: column; gap: 10px; }
+.alp-buy__opthead { display: flex; justify-content: space-between; width: 100%; padding: 0; font: 14px/1.3 var(--alp-font-ui); }
+.alp-buy__opthead a { text-decoration: underline; text-underline-offset: 3px; }
+.alp-buy__chosen b { font-weight: 600; }
+@media (min-width: 750px) { .alp-buy__chosen { display: none !important; } }
+.alp-buy__tiles { display: grid; grid-template-columns: repeat(var(--n, 6), minmax(0, 1fr)); gap: 6px; }
+.alp-tile { position: relative; display: block; cursor: pointer; }
+.alp-tile input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.alp-tile span {
+  display: block; padding: 12px 0; text-align: center;
+  border: 1px solid var(--alp-ink); background: #fff; font: 14px/1.2 var(--alp-font-ui);
+}
+.alp-tile:hover span { background: var(--alp-card); }
+.alp-tile input:checked + span { background: var(--alp-ink); color: var(--alp-bg); }
+.alp-tile input:focus-visible + span { outline: 2px solid var(--alp-flare); outline-offset: 2px; }
+.alp-tile.is-out { cursor: default; }
+.alp-tile.is-out span { border-color: var(--alp-line); color: var(--alp-accent); text-decoration: line-through; background: transparent; }
+.alp-buy.is-need .alp-buy__tiles { outline: 2px solid var(--alp-flare); outline-offset: 4px; animation: alp-nudge 0.3s ease-out; }
+@keyframes alp-nudge { 0%, 100% { transform: none; } 30% { transform: translateX(-4px); } 60% { transform: translateX(4px); } }
+.alp-buy__need { font-size: 13px; color: var(--alp-accent); margin-top: -12px !important; }
+.alp-buy__actions { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+.alp-buy__actions .alp-btn { padding: 18px; font-size: 16px; }
+.alp-buy__actions .alp-btn:only-child { grid-column: 1 / -1; }
+
+.alp-acc { border-top: 1px solid var(--alp-line); }
+.alp-acc__item + .alp-acc__item { border-top: 1px solid var(--alp-line); }
+.alp-acc__item:last-child { border-bottom: 1px solid var(--alp-line); }
+.alp-acc__head { display: flex; justify-content: space-between; padding: 16px 0; font: 600 15px/1.2 var(--alp-font-display); }
+.alp-acc__body { padding: 0 0 18px; font: 14px/1.5 var(--alp-font-ui); }
+.alp-acc__body p + p, .alp-acc__body li + li { margin-top: 8px; }
+.alp-acc__body ul { padding-left: 0; list-style: none; }
+.alp-acc__body a { text-decoration: underline; text-underline-offset: 3px; }
+
+@media (max-width: 749px) {
+  .alp-pdp { padding-bottom: calc(190px + env(safe-area-inset-bottom)); }
+  .alp-pdp__grid { display: block; }
+  .alp-pdp__media { display: flex; flex-direction: column; gap: 6px; padding: 0; }
+  .alp-pdp__img { aspect-ratio: auto; height: 520px; }
+  .alp-pdp__info { position: static; padding: 28px 18px; gap: 16px; border: 0; }
+  .alp-pdp__title { margin-top: -8px !important; font-size: 30px; }
+  .alp-pdp__price { font-size: 17px; }
+  .alp-pdp__info .alp-over { order: 0; }
+  .alp-pdp__info .alp-pdp__desc { order: 2; }
+  .alp-pdp__info .alp-acc { order: 3; }
+
+  /* The buy block becomes the sticky bottom bar. */
+  .alp-buy {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+    gap: 10px; padding: 12px 18px calc(12px + env(safe-area-inset-bottom));
+    background: var(--alp-bg); border-top: 1px solid var(--alp-ink);
+  }
+  .alp-buy__opt { gap: 10px; }
+  .alp-buy__opthead { font-size: 13px; }
+  .alp-buy__tiles { gap: 5px; }
+  .alp-tile span { padding: 11px 0; }
+  .alp-buy__need { margin-top: 0 !important; }
+  .alp-buy__actions { gap: 8px; }
+  .alp-buy__actions .alp-btn { padding: 15px; font-size: 15px; }
+  .alp-buy__add { background: transparent; color: var(--alp-ink); }
+  .alp-buy__add:hover { background: var(--alp-ink); color: #fff; }
+  body.alp-locked .alp-buy { z-index: 30; }
+}
+
+/* ── Cart drawer (D07 · M08) and /cart ───────────────────────────────────── */
+.alp-drawer {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 60;
+  width: 640px; max-width: 100vw;
+  display: flex; flex-direction: column; gap: 22px;
+  padding: 32px 48px 40px;
+  background: var(--alp-bg); border-left: 1px solid var(--alp-ink);
+  transform: translateX(100%); transition: transform 0.25s ease-out;
+  overflow-y: auto;
+}
+.alp-drawer.is-open { transform: none; }
+.alp-drawer__head { display: flex; justify-content: space-between; align-items: center; }
+.alp-drawer__title { font-size: 22px; }
+.alp-drawer__body { flex: 1; display: flex; flex-direction: column; gap: 22px; min-height: 0; }
+.alp-cart__lines { flex: 1; display: flex; flex-direction: column; gap: 22px; }
+.alp-line { display: flex; gap: 20px; padding-top: 12px; }
+.alp-line__thumb { position: relative; width: 132px; height: 176px; flex: none; background: var(--alp-card); overflow: hidden; }
+.alp-line__main { flex: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; font-size: 15px; }
+.alp-line__name { font: 600 17px/1.2 var(--alp-font-display); }
+.alp-line__meta { color: var(--alp-accent); }
+.alp-qty {
+  display: flex; justify-content: space-between; align-items: center;
+  width: 120px; margin-top: 10px; background: #fff; border: 1px solid var(--alp-ink);
+}
+.alp-qty__btn { padding: 10px 14px; line-height: 1; }
+.alp-line__remove { margin-top: 8px; font-size: 13px; text-decoration: underline; text-underline-offset: 3px; }
+.alp-line__price { font-size: 15px; }
+.alp-cart.is-busy, [data-alp-cart-body].is-busy { opacity: 0.6; pointer-events: none; }
+.alp-cart__empty { padding-top: 12px; }
+.alp-cart__empty a { text-decoration: underline; text-underline-offset: 3px; }
+.alp-cart__drop { border-top: 1px solid var(--alp-line); padding-top: 18px; font-size: 14px; }
+.alp-cart__drop summary { display: flex; justify-content: space-between; gap: 12px; }
+.alp-cart__drop .alp-notify__panel { padding-top: 12px; }
+.alp-cart__foot { display: flex; flex-direction: column; gap: 10px; border-top: 1px solid var(--alp-line); padding-top: 20px; }
+.alp-cart__total { display: flex; justify-content: space-between; font: 600 18px/1.2 var(--alp-font-display); }
+.alp-cart__note { font-size: 13px; color: var(--alp-accent); margin-bottom: 12px !important; }
+.alp-cart__foot .alp-btn { padding: 18px; font-size: 16px; }
+@media (max-width: 749px) {
+  .alp-drawer { width: 100%; padding: 0; gap: 0; border: 0; }
+  .alp-drawer__head {
+    height: calc(56px + env(safe-area-inset-top)); padding: env(safe-area-inset-top) 18px 0;
+    border-bottom: 1px solid var(--alp-line); flex: none;
+  }
+  .alp-drawer__title { font-size: 18px; }
+  .alp-drawer__body { gap: 0; }
+  .alp-cart__lines { padding: 20px 18px; gap: 18px; }
+  .alp-line { gap: 14px; padding-top: 0; }
+  .alp-line__thumb { width: 104px; height: 138px; }
+  .alp-line__main { gap: 5px; font-size: 14px; }
+  .alp-line__name { font-size: 16px; }
+  .alp-qty { width: 110px; margin-top: 8px; }
+  .alp-qty__btn { padding: 10px 12px; }
+  .alp-line__price { font-size: 14px; }
+  .alp-cart__foot {
+    position: sticky; bottom: 0; background: var(--alp-bg);
+    border-top: 1px solid var(--alp-ink); padding: 16px 18px calc(40px + env(safe-area-inset-bottom));
+  }
+  .alp-cart__total { font-size: 17px; }
+  .alp-cart__note { margin-bottom: 0 !important; }
+  .alp-cart__foot .alp-btn { padding: 17px; }
+}
+.alp-cartpage { max-width: 760px; margin: 0 auto; padding: 48px 40px 80px; }
+.alp-cartpage__title { margin-bottom: 12px !important; font-size: 28px; }
+@media (max-width: 749px) { .alp-cartpage { padding: 20px 0 0; } .alp-cartpage__title { padding: 0 18px; font-size: 22px; } }
+
+/* ── Page headings (Rides, Recaps, Bush Map) ─────────────────────────────── */
+.alp-pagehead { text-align: center; padding: 64px 24px 12px; }
+.alp-pagehead__title { font: 600 40px/1.1 var(--alp-font-display); }
+.alp-pagehead__sub { margin-top: 10px !important; font-size: 16px; }
+.alp-more { text-align: center; padding: 24px 0 56px; }
+.alp-more a { font-weight: 600; text-decoration: underline; text-underline-offset: 4px; }
+.alp-pages { display: flex; justify-content: center; gap: 24px; padding: 32px 18px; font-size: 15px; }
+.alp-pages a { text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 749px) {
+  .alp-pagehead { padding: 30px 18px 18px; }
+  .alp-pagehead__title { font-size: 28px; }
+  .alp-pagehead__sub { margin-top: 6px !important; font-size: 14px; }
+}
+
+/* ── Rides (D09 · M10) ───────────────────────────────────────────────────── */
+.alp-rides__cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; padding: 36px 40px 72px; }
+.alp-rides__none { text-align: center; padding: 24px 24px 72px; font-size: 16px; }
+.alp-rides__none a { text-decoration: underline; text-underline-offset: 3px; }
+.alp-ride { background: #fff; border: 1px solid var(--alp-line); }
+.alp-ride__photo { position: relative; display: block; height: 260px; background: var(--alp-card); overflow: hidden; }
+.alp-ride__date {
+  position: absolute; left: 16px; top: 16px;
+  padding: 6px 10px; border-radius: 3px; background: #fff;
+  font: 600 13px/1.2 var(--alp-font-ui);
+}
+.alp-ride.is-next .alp-ride__date { background: var(--alp-flare); }
+.alp-ride__body { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 22px; text-align: center; }
+.alp-ride__title { font-size: 20px; line-height: 1.2; }
+.alp-ride__meta { font-size: 14px; color: var(--alp-accent); }
+.alp-ride__body .alp-chip { margin-top: 10px; padding: 8px 18px; }
+.alp-rides__recaps { text-align: center; padding: 0 0 36px; }
+
+.alp-recap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); height: 520px; }
+.alp-recap__photo { position: relative; display: block; overflow: hidden; background: var(--alp-card); }
+.alp-recap__text { display: flex; flex-direction: column; justify-content: center; gap: 14px; padding: 64px; }
+.alp-recap--flip .alp-recap__photo { order: 2; }
+.alp-recap--flip .alp-recap__text { align-items: flex-end; text-align: right; }
+.alp-recap__date { font-size: 14px; color: var(--alp-accent); }
+.alp-recap__title { font-size: 30px; line-height: 1.15; }
+.alp-recap__body { max-width: 420px; font-size: 16px; line-height: 1.6; }
+.alp-recap__read { font-weight: 600; text-decoration: underline; text-underline-offset: 4px; }
+@media (max-width: 749px) {
+  .alp-rides__cards { display: flex; flex-direction: column; gap: 14px; padding: 0 18px; }
+  .alp-ride__photo { height: 200px; }
+  .alp-ride__date { left: 12px; top: 12px; padding: 5px 9px; font-size: 12px; }
+  .alp-ride__body { gap: 4px; padding: 16px; }
+  .alp-ride__title { font-size: 18px; }
+  .alp-ride__meta { font-size: 13px; }
+  .alp-ride__body .alp-chip { margin-top: 8px; font-size: 13px; }
+  .alp-rides__recaps { padding: 36px 0 16px; }
+  .alp-recap { display: block; height: auto; }
+  .alp-recap__photo { height: 320px; }
+  .alp-recap__text, .alp-recap--flip .alp-recap__text { align-items: flex-start; text-align: left; gap: 8px; padding: 16px 18px 28px; }
+  .alp-recap__date { font-size: 13px; }
+  .alp-recap__title { font-size: 22px; line-height: 1.2; }
+  .alp-recap__body { font-size: 15px; line-height: 1.55; }
+  .alp-recap__read { font-size: 14px; }
+}
+
+/* ── Bush Map page (M09) ─────────────────────────────────────────────────── */
+.alp-bushmap__head { padding: 64px 40px 32px; text-align: center; font-size: 16px; }
+.alp-bushmap__title { font-size: 40px; margin-bottom: 8px !important; }
+.alp-bushmap__cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px 16px; padding: 0 40px; }
+.alp-route { display: block; }
+.alp-route__photo { position: relative; display: block; height: 260px; background: var(--alp-mist); overflow: hidden; }
+.alp-route__tag { position: absolute; left: 12px; top: 12px; padding: 5px 9px; border-radius: 3px; background: #fff; font: 600 12px/1.2 var(--alp-font-ui); }
+.alp-route__cap { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding-top: 10px; }
+.alp-route__name { font: 600 17px/1.25 var(--alp-font-display); }
+.alp-route__stats { font-size: 13px; color: var(--alp-accent); white-space: nowrap; }
+.alp-bushmap__actions { display: flex; justify-content: center; gap: 12px; padding: 40px 40px 72px; }
+.alp-bushmap__actions .alp-btn { min-width: 220px; }
+.alp-stickybar {
+  position: sticky; bottom: 0; z-index: 4; margin-top: 24px;
+  padding: 12px 18px calc(34px + env(safe-area-inset-bottom));
+  background: var(--alp-bg); border-top: 1px solid var(--alp-ink);
+}
+@media (max-width: 749px) {
+  .alp-bushmap__head { padding: 26px 18px 18px; text-align: left; font-size: 15px; }
+  .alp-bushmap__title { font-size: 28px; margin-bottom: 6px !important; }
+  .alp-bushmap__cards { display: flex; flex-direction: column; gap: 22px; padding: 0 18px; }
+  .alp-bushmap__actions { display: block; padding: 22px 18px 0; }
+  .alp-bushmap__actions .alp-btn { width: 100%; padding: 14px; }
+}
+
+/* ── About (D10 · M11) ───────────────────────────────────────────────────── */
+.alp-about__split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); min-height: 720px; }
+.alp-about__photo { position: relative; overflow: hidden; background: var(--alp-card); }
+.alp-about__text { display: flex; flex-direction: column; gap: 20px; padding: 72px 64px; }
+.alp-about__title { font-size: 40px; line-height: 1.1; }
+.alp-about__body { display: flex; flex-direction: column; gap: 20px; font: 17px/1.65 var(--alp-font-ui); }
+.alp-about__body p { margin: 0; }
+.alp-about__fill { flex: 1; }
+.alp-about__facts { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding-top: 24px; border-top: 1px solid var(--alp-line); }
+.alp-about__facts dt { font: 600 16px/1.3 var(--alp-font-display); }
+.alp-about__facts dd { margin-top: 4px; font-size: 15px; }
+.alp-about__facts a { text-decoration: underline; text-underline-offset: 3px; }
+.alp-about__statement { padding: 96px 120px; text-align: center; font: 600 56px/1.1 var(--alp-font-display); }
+.alp-about__trio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; height: 420px; padding: 0 12px 12px; }
+.alp-about__tri { position: relative; overflow: hidden; background: var(--alp-card); }
+@media (max-width: 749px) {
+  .alp-about__split { display: block; min-height: 0; }
+  .alp-about__photo { height: 460px; }
+  .alp-about__text { gap: 16px; padding: 28px 18px; }
+  .alp-about__title { font-size: 30px; }
+  .alp-about__body { gap: 16px; font-size: 16px; line-height: 1.6; }
+  .alp-about__fill { display: none; }
+  .alp-about__facts { gap: 16px; padding-top: 18px; margin-top: 6px; }
+  .alp-about__facts dt { font-size: 15px; }
+  .alp-about__facts dd { margin-top: 3px; font-size: 14px; }
+  .alp-about__statement { padding: 48px 18px; font-size: 34px; }
+  .alp-about__trio { display: block; height: auto; padding: 0; }
+  .alp-about__tri { height: 320px; }
+  .alp-about__tri + .alp-about__tri { margin-top: 6px; }
+}
+
+/* ── Search (D06 · M07) ──────────────────────────────────────────────────── */
+.alp-search { padding-bottom: 40px; }
+.alp-search__form { display: flex; padding: 32px clamp(40px, 14vw, 180px) 24px; }
+.alp-search__input {
+  flex: 1; min-width: 0; margin: 0; padding: 18px 20px;
+  background: #fff; border: 1px solid var(--alp-ink); border-radius: 0;
+  font: 17px/1.2 var(--alp-font-ui); color: var(--alp-ink);
+  -webkit-appearance: none; appearance: none; box-shadow: none;
+}
+.alp-search__input::placeholder { color: var(--alp-accent); opacity: 1; }
+.alp-search__go { padding: 18px 32px; background: var(--alp-ink); color: #fff; border: 1px solid var(--alp-ink); border-radius: 0; font: 600 16px/1.2 var(--alp-font-ui); cursor: pointer; }
+.alp-search__go:hover { background: var(--alp-accent); border-color: var(--alp-accent); }
+.alp-search__popular { padding: 8px 40px 16px; font-size: 18px; }
+.alp-search__grid { padding: 0 12px 40px; }
+.alp-search__chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 clamp(40px, 14vw, 180px) 6px; }
+.alp-search__chips .alp-chip { padding: 7px 11px; font-size: 13px; border-color: var(--alp-line); }
+.alp-search__chips .alp-chip.is-on { border-color: var(--alp-ink); }
+.alp-search__groups { padding: 0 clamp(40px, 14vw, 180px); }
+.alp-search__group .alp-over { padding: 14px 0 4px; color: var(--alp-ink); }
+.alp-hit {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 13px 0; border-bottom: 1px solid var(--alp-line); font-size: 14px;
+}
+a.alp-hit:has(.alp-hit__thumb) { padding: 8px 0; }
+.alp-hit__thumb { position: relative; width: 52px; height: 66px; flex: none; background: var(--alp-card); overflow: hidden; }
+.alp-hit__name { flex: 1; }
+.alp-hit__aside { color: var(--alp-accent); white-space: nowrap; }
+.alp-hit__aside--link { color: var(--alp-ink); text-decoration: underline; text-underline-offset: 3px; }
+.alp-hit--none { color: var(--alp-accent); }
+@media (max-width: 749px) {
+  .alp-search__form { padding: 14px 18px; }
+  .alp-search__input { padding: 14px; font-size: 15px; }
+  .alp-search__go { padding: 14px 16px; font-size: 14px; }
+  .alp-search__popular { padding: 8px 18px 14px; font-size: 17px; }
+  .alp-search__grid { padding: 0 18px 24px; }
+  .alp-search__chips { padding: 0 18px 6px; }
+  .alp-search__groups { padding: 0 18px; }
+  .alp-search__group .alp-over { padding: 12px 0 4px; }
+}
+
+/* ── Recap article ───────────────────────────────────────────────────────── */
+.alp-article .alp-pagehead { padding-bottom: 32px; }
+.alp-article__photo { position: relative; height: min(70vh, 720px); background: var(--alp-card); overflow: hidden; }
+.alp-article__body { max-width: 680px; margin: 0 auto; padding: 48px 24px 24px; font: 17px/1.7 var(--alp-font-ui); }
+.alp-article__body p + p { margin-top: 1em; }
+.alp-article__body img { margin: 24px 0; height: auto; }
+.alp-article__body a { text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 749px) { .alp-article__photo { height: 420px; } .alp-article__body { padding: 28px 18px 8px; font-size: 16px; } }
+
+/* ── Footer (D11 · M12) ──────────────────────────────────────────────────── */
+.alp-ft { border-top: 1px solid var(--alp-line); background: var(--alp-bg); }
+.alp-ft__top {
+  display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 80px;
+  padding: 56px 64px; border-bottom: 1px solid var(--alp-line);
+}
+.alp-ft__head { font: 600 18px/1.2 var(--alp-font-display); }
+.alp-ft__copy { margin: 10px 0 18px !important; font-size: 15px; }
+.alp-ft__region { align-self: end; }
+.alp-ft__muted { font-size: 14px; color: var(--alp-accent); margin-bottom: 8px !important; }
+.alp-ft__cols { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; padding: 44px 64px; }
+.alp-ft__col ul { display: flex; flex-direction: column; gap: 14px; font-size: 15px; }
+.alp-ft__colhead { margin-bottom: 14px !important; font: 600 12px/1.2 var(--alp-font-ui); letter-spacing: 0.12em; text-transform: uppercase; }
+.alp-ft__mark { padding: 0 64px 24px; }
+.alp-ft__mark img { width: 100%; height: auto; }
+.alp-ft__base {
+  display: flex; justify-content: space-between; gap: 16px;
+  padding: 20px 64px; border-top: 1px solid var(--alp-line); font-size: 14px;
+}
+@media (max-width: 749px) {
+  .alp-ft__top { display: block; padding: 26px 18px; }
+  .alp-ft__head { font-size: 17px; }
+  .alp-ft__copy { margin: 6px 0 14px !important; font-size: 14px; }
+  .alp-ft__cols { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 26px 14px; padding: 26px 18px; }
+  .alp-ft__col ul { gap: 10px; font-size: 14px; }
+  .alp-ft__colhead { margin-bottom: 10px !important; font-size: 11px; }
+  .alp-ft__mark { padding: 0 18px; }
+  .alp-ft__base { margin-top: 16px; padding: 16px 18px calc(40px + env(safe-area-inset-bottom)); font-size: 13px; }
+}
+
+/* ── Toast ── */
+.alp-toast {
+  position: fixed; left: 50%; bottom: 24px; z-index: 70;
+  max-width: calc(100vw - 36px); padding: 12px 16px;
+  background: var(--alp-ink); color: var(--alp-bg); border-radius: 3px;
+  font-size: 14px; transform: translate(-50%, 16px); opacity: 0; pointer-events: none;
+  transition: transform 0.25s ease-out, opacity 0.25s ease-out;
+}
+.alp-toast.is-on { transform: translate(-50%, 0); opacity: 1; }
+
+/* ── Motion ──────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .alp *, .alp-scrim { transition: none !important; animation: none !important; }
+}

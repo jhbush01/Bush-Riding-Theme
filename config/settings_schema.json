@@ -8,6 +8,151 @@
     "theme_support_url": "https://support.shopify.com/"
   },
   {
+    "name": "Bush Riding",
+    "settings": [
+      {
+        "type": "paragraph",
+        "content": "Shared by the header, menus, footer and pages. Set once here instead of in every section."
+      },
+      {
+        "type": "header",
+        "content": "Shop categories"
+      },
+      {
+        "type": "link_list",
+        "id": "alp_shop_menu",
+        "label": "Shop menu",
+        "info": "The category list in the header menu, shop landing and collection bar. A link to a collection with no products shows as \"next drop\". Leave empty to use View all, Bottoms, T-Shirts and Caps."
+      },
+      {
+        "type": "range",
+        "id": "alp_filter_threshold",
+        "label": "Show Filters and Sort from",
+        "min": 2,
+        "max": 24,
+        "step": 1,
+        "unit": "pcs",
+        "default": 6
+      },
+      {
+        "type": "header",
+        "content": "Pages"
+      },
+      {
+        "type": "page",
+        "id": "alp_rides_page",
+        "label": "Rides page",
+        "info": "Leave empty to use the page with the handle rides, or — if there is none — the journal, which shows the Rides layout. A page with the handle rides gets the Rides layout by itself, no template to pick."
+      },
+      {
+        "type": "page",
+        "id": "alp_bush_map_page",
+        "label": "Bush Map page (phones)",
+        "info": "Leave empty to use the page with the handle bush-map (it gets the Bush Map layout by itself). With no such page, Bush Map on phones goes straight to the map. On desktop, Bush Map opens the menu panel instead."
+      },
+      {
+        "type": "page",
+        "id": "alp_about_page",
+        "label": "About page",
+        "info": "Leave empty to use the page with the handle about."
+      },
+      {
+        "type": "url",
+        "id": "alp_size_guide_url",
+        "label": "Size guide link"
+      },
+      {
+        "type": "header",
+        "content": "Bush Map"
+      },
+      {
+        "type": "text",
+        "id": "alp_map_url",
+        "label": "Map site",
+        "default": "https://map.bushriding.cc",
+        "info": "Open the map, route links and Submit a route all go here."
+      },
+      {
+        "type": "text",
+        "id": "alp_map_api",
+        "label": "Routes and events API",
+        "default": "https://map-api.bushriding.cc",
+        "info": "The routes worker. Its /routes and /events feeds fill the Bush Map menu, route cards, search and Rides."
+      },
+      {
+        "type": "text",
+        "id": "alp_near_region",
+        "label": "Near-you region",
+        "default": "Brisbane Metro",
+        "info": "Routes in this region lead the Bush Map menu."
+      },
+      {
+        "type": "header",
+        "content": "Local time and weather"
+      },
+      {
+        "type": "text",
+        "id": "alp_place",
+        "label": "Place",
+        "default": "Gold Coast, Queensland"
+      },
+      {
+        "type": "text",
+        "id": "alp_place_short",
+        "label": "Place, short",
+        "default": "Gold Coast, QLD"
+      },
+      {
+        "type": "text",
+        "id": "alp_timezone",
+        "label": "Time zone",
+        "default": "Australia/Brisbane",
+        "info": "IANA name, e.g. Australia/Sydney."
+      },
+      {
+        "type": "text",
+        "id": "alp_tz_label",
+        "label": "Time zone label",
+        "default": "AEST"
+      },
+      {
+        "type": "checkbox",
+        "id": "alp_weather",
+        "label": "Show live weather",
+        "default": true,
+        "info": "From Open-Meteo, no key needed. Hidden if it can't be reached."
+      },
+      {
+        "type": "text",
+        "id": "alp_lat",
+        "label": "Latitude",
+        "default": "-28.0167"
+      },
+      {
+        "type": "text",
+        "id": "alp_lon",
+        "label": "Longitude",
+        "default": "153.4000"
+      },
+      {
+        "type": "header",
+        "content": "Ride with us"
+      },
+      {
+        "type": "text",
+        "id": "alp_strava_url",
+        "label": "Strava club",
+        "default": "https://www.strava.com/clubs/1814797"
+      },
+      {
+        "type": "text",
+        "id": "alp_instagram_url",
+        "label": "Instagram",
+        "default": "https://www.instagram.com/bushriding"
+      }
+    ]
+  },
+  {
     "name": "t:settings_schema.logo.name",
     "settings": [
       {

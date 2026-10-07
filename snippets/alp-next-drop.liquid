@@ -1,0 +1,74 @@
+{%- comment -%}
+  "Next drop" — the categories that haven't landed yet (alp-shop-links,
+  variant 'soon'). Notify me opens an email field in place; signups are
+  tagged next-drop plus the category.
+
+  variant:
+    tiles – one 3:4 tile per category, name + Notify me underneath (desktop grids)
+    row   – 220px tiles with a Notify me chip (desktop product page)
+    band  – all of them folded into one band (phones)
+  key     – keeps form ids unique when a page shows more than one set
+
+  Only the first badge/chip is flare: one accent per screen.
+{%- endcomment -%}
+{%- capture soon -%}{%- render 'alp-shop-links', variant: 'soon' -%}{%- endcapture -%}
+{%- assign soon = soon | strip | split: '|' -%}
+
+{%- if soon.size > 0 -%}
+  {%- case variant -%}
+    {%- when 'band' -%}
+      <details class="alp-band alp-notify">
+        <summary class="alp-band__row">
+          <span>
+            <span class="alp-badge alp-badge--flare">Next drop</span>
+            <span class="alp-band__name">{{ soon | join: ' & ' | escape }}</span>
+          </span>
+          <span class="alp-chip alp-chip--line">Notify me</span>
+        </summary>
+        <div class="alp-band__form">
+          {%- assign form_id = 'NextDropBand' | append: key -%}
+          {%- render 'alp-signup', id: form_id, tags: 'next-drop', label: 'Notify me', thanks: "Noted. You'll hear when they land." -%}
+        </div>
+      </details>
+
+    {%- when 'row' -%}
+      <div class="alp-drop-row">
+        {%- for name in soon -%}
+          {%- assign handle = name | handleize -%}
+          <div class="alp-drop-row__tile">
+            <span class="alp-drop-row__name">{{ name | escape }}</span>
+            <details class="alp-notify">
+              <summary class="alp-chip{% if forloop.first %} alp-chip--flare{% else %} alp-chip--line{% endif %}">Notify me</summary>
+              <div class="alp-notify__pop">
+                {%- assign form_id = 'NextDropRow' | append: key | append: handle -%}
+                {%- assign form_tags = 'next-drop, ' | append: handle -%}
+                {%- render 'alp-signup', id: form_id, tags: form_tags, label: 'Notify me', size: 'sm', thanks: "Noted. You'll hear when they land." -%}
+              </div>
+            </details>
+          </div>
+        {%- endfor -%}
+      </div>
+
+    {%- else -%}
+      {%- for name in soon -%}
+        {%- assign handle = name | handleize -%}
+        <div class="alp-drop">
+          <div class="alp-drop__tile">
+            <span class="alp-badge{% if forloop.first %} alp-badge--flare{% endif %}">Next drop</span>
+            <span class="alp-drop__name">{{ name | escape }}</span>
+          </div>
+          <div class="alp-drop__cap">
+            {{ name | escape }}
+            <details class="alp-notify">
+              <summary class="alp-notify__link">Notify me</summary>
+              <div class="alp-notify__pop">
+                {%- assign form_id = 'NextDrop' | append: key | append: handle -%}
+                {%- assign form_tags = 'next-drop, ' | append: handle -%}
+                {%- render 'alp-signup', id: form_id, tags: form_tags, label: 'Notify me', size: 'sm', thanks: "Noted. You'll hear when they land." -%}
+              </div>
+            </details>
+          </div>
+        </div>
+      {%- endfor -%}
+  {%- endcase -%}
+{%- endif -%}

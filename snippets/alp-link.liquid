@@ -1,0 +1,59 @@
+{%- comment -%}
+  One place that knows where things live, so a moved page is fixed once.
+  Capture it: {% capture rides_url %}{% render 'alp-link', to: 'rides' %}{% endcapture %}
+
+  to: rides | about | bush_map | map | submit | size_guide | shop | strava | instagram
+  Pages fall back to their conventional handle, then to something that still
+  works (the journal for Rides — the blog template is the Rides layout — and
+  the map site for Bush Map) — a nav link
+  to a 404 is worse than a link one step further away.
+{%- endcomment -%}
+{%- liquid
+  assign map_url = settings.alp_map_url | default: 'https://map.bushriding.cc' | remove_last: '/'
+  case to
+    when 'rides'
+      assign p = settings.alp_rides_page | default: pages['rides']
+      assign b = blogs['journal']
+      if b == blank or b.handle == blank
+        for x in blogs
+          assign b = x
+          break
+        endfor
+      endif
+      if p != blank and p.url != blank
+        echo p.url
+      elsif b != blank and b.url != blank
+        echo b.url
+      else
+        echo map_url | append: '/events/'
+      endif
+    when 'about'
+      assign p = settings.alp_about_page | default: pages['about']
+      if p != blank and p.url != blank
+        echo p.url
+      endif
+    when 'bush_map'
+      assign p = settings.alp_bush_map_page | default: pages['bush-map']
+      if p != blank and p.url != blank
+        echo p.url
+      else
+        echo map_url
+      endif
+    when 'map'
+      echo map_url
+    when 'submit'
+      echo map_url | append: '/submit.html'
+    when 'size_guide'
+      if settings.alp_size_guide_url != blank
+        echo settings.alp_size_guide_url
+      elsif pages['size-guide'] != blank
+        echo pages['size-guide'].url
+      endif
+    when 'shop'
+      echo routes.collections_url
+    when 'strava'
+      echo settings.alp_strava_url
+    when 'instagram'
+      echo settings.alp_instagram_url
+  endcase
+-%}

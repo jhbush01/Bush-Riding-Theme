@@ -1,0 +1,37 @@
+/* THE palette. Six colours. Bone, mist and olive carry printed hexes on the
+   brand board; sage, khaki and flare are taken from the official logo artwork.
+   Nothing else is a brand colour — no navy, no lavender, no terracotta. */
+:root{
+  --bone:#edecc5;    /* pale cream — the page */
+  --sage:#b8bca1;    /* soft eucalypt green */
+  --mist:#a7b8b4;    /* dusty blue-green */
+  --khaki:#817f57;   /* mid khaki */
+  --olive:#4c4b3b;   /* dark olive — the ink and the primary */
+  --flare:#ece26a;   /* high-vis yellow — the one accent */
+
+  /* Neutral. White is not a brand colour; it is paper, used for surfaces only. */
+  --paper:#ffffff;
+
+  /* Semantic — surfaces */
+  --surface-page:var(--bone);
+  --surface-card:var(--paper);
+  --surface-muted:var(--sage);
+  --surface-cool:var(--mist);
+  --surface-inverse:var(--olive);
+  --surface-accent:var(--flare);
+
+  /* Semantic — text. Olive is the darkest value on the board and carries all
+     body copy (7.3:1 on bone). */
+  --text-body:var(--olive);
+  --text-heading:var(--olive);
+  --text-muted:var(--khaki);
+  --text-on-dark:var(--bone);
+  --text-on-dark-muted:var(--sage);
+  --text-on-accent:var(--olive);
+
+  /* Semantic — lines and focus */
+  --line:rgba(76,75,59,0.24);
+  --line-strong:var(--olive);
+  --line-on-dark:rgba(237,236,197,0.30);
+  --focus-ring:var(--flare);
+}

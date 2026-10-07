@@ -9,197 +9,58 @@
  */
 {
   "sections": {
-    "hero": {
-      "type": "alpine-product-hero",
-      "settings": {}
-    },
     "main": {
-      "type": "main-product",
+      "type": "alpine-product",
+      "settings": {
+        "show_next_drop": true
+      },
       "blocks": {
-        "vendor": {
-          "type": "text",
+        "fabric": {
+          "type": "accordion",
           "settings": {
-            "text": "{{ product.vendor }}",
-            "text_style": "uppercase"
+            "title": "Fabric & features",
+            "source": "custom",
+            "content": "<ul><li>Ultra-lightweight, durable nylon outer shell</li><li>Moisture-wicking nylon inner lining</li><li>Rear zipper pocket</li></ul>",
+            "open": true
           }
         },
-        "title": {
-          "type": "title",
-          "settings": {}
-        },
-        "price": {
-          "type": "price",
-          "settings": {}
-        },
-        "variant_picker": {
-          "type": "variant_picker",
+        "fit": {
+          "type": "accordion",
           "settings": {
-            "picker_type": "button",
-            "swatch_shape": "circle"
+            "title": "Fit",
+            "source": "custom",
+            "content": "",
+            "open": false
           }
         },
-        "quantity_selector": {
-          "type": "quantity_selector",
-          "settings": {}
-        },
-        "buy_buttons": {
-          "type": "buy_buttons",
+        "care": {
+          "type": "accordion",
           "settings": {
-            "show_dynamic_checkout": true,
-            "show_gift_card_recipient": true
+            "title": "Care",
+            "source": "care",
+            "content": "",
+            "open": false
           }
         },
-        "description": {
-          "type": "description",
-          "settings": {}
-        },
-        "share": {
-          "type": "share",
+        "shipping": {
+          "type": "accordion",
           "settings": {
-            "share_label": "Share"
+            "title": "Shipping & returns",
+            "source": "shipping",
+            "content": "",
+            "open": false
           }
         }
       },
       "block_order": [
-        "vendor",
-        "title",
-        "price",
-        "variant_picker",
-        "quantity_selector",
-        "buy_buttons",
-        "description",
-        "share"
-      ],
-      "settings": {
-        "enable_sticky_info": false,
-        "color_scheme": "scheme-1",
-        "media_size": "small",
-        "constrain_to_viewport": true,
-        "media_fit": "contain",
-        "gallery_layout": "stacked",
-        "mobile_thumbnails": "hide",
-        "media_position": "left",
-        "image_zoom": "lightbox",
-        "hide_variants": true,
-        "enable_video_looping": false,
-        "padding_top": 20,
-        "padding_bottom": 12
-      }
-    },
-    "waitlist": {
-      "type": "product-waitlist-banner",
-      "settings": {
-        "force_show": false
-      }
-    },
-    "kit_bundle": {
-      "type": "product-kit-bundle",
-      "settings": {
-        "heading": "Build the kit — save 15%",
-        "discount_percent": 15
-      }
-    },
-    "specs": {
-      "type": "product-specs",
-      "settings": {
-        "title": "The details"
-      }
-    },
-    "fit_gallery": {
-      "type": "product-fit-gallery",
-      "blocks": {
-        "rider_a": {
-          "type": "rider",
-          "settings": { "caption": "Rider A · 178 cm · M" }
-        },
-        "rider_b": {
-          "type": "rider",
-          "settings": { "caption": "Rider B · 165 cm · S" }
-        },
-        "rider_c": {
-          "type": "rider",
-          "settings": { "caption": "Rider C · 190 cm · L" }
-        }
-      },
-      "block_order": ["rider_a", "rider_b", "rider_c"],
-      "settings": {
-        "heading": "Fit gallery"
-      }
-    },
-    "disclosures": {
-      "type": "disclosures",
-      "settings": {
-        "padding_top": 36,
-        "padding_bottom": 0
-      }
-    },
-    "related-products": {
-      "type": "related-products",
-      "settings": {
-        "heading": "You may also like",
-        "heading_size": "h2",
-        "products_to_show": 4,
-        "columns_desktop": 4,
-        "columns_mobile": "2",
-        "color_scheme": "scheme-1",
-        "image_ratio": "square",
-        "image_shape": "default",
-        "show_secondary_image": true,
-        "show_vendor": false,
-        "show_rating": false,
-        "padding_top": 36,
-        "padding_bottom": 28
-      }
-    },
-    "value_bar": {
-      "type": "value-bar",
-      "blocks": {
-        "vb_ship": {
-          "type": "item",
-          "settings": {
-            "icon": "shipping",
-            "text": "Free shipping over $150"
-          }
-        },
-        "vb_returns": {
-          "type": "item",
-          "settings": {
-            "icon": "returns",
-            "text": "30-day returns, no drama"
-          }
-        },
-        "vb_aus": {
-          "type": "item",
-          "settings": {
-            "icon": "star",
-            "text": "Designed in Australia"
-          }
-        }
-      },
-      "block_order": [
-        "vb_ship",
-        "vb_returns",
-        "vb_aus"
-      ],
-      "settings": {}
-    },
-    "sticky_atc": {
-      "type": "sticky-atc",
-      "settings": {
-        "color_scheme": "scheme-1"
-      }
+        "fabric",
+        "fit",
+        "care",
+        "shipping"
+      ]
     }
   },
   "order": [
-    "hero",
-    "main",
-    "value_bar",
-    "waitlist",
-    "kit_bundle",
-    "specs",
-    "fit_gallery",
-    "disclosures",
-    "related-products",
-    "sticky_atc"
+    "main"
   ]
 }

@@ -1,0 +1,94 @@
+{%- comment -%}
+  Two photo panels side by side, each a link (D01 "Ride with us" | "Get the
+  route. Join the bush.", M02 Rides | BUSH MAP™).
+
+  Desktop: 560px tall, the line in bone over the photo with a white chip
+  beneath. Phone: 240px, the chip alone — the line doesn't fit a half-width
+  panel and the chip already says where it goes.
+
+  A panel's link can be a URL, or one of the site's own destinations so it
+  follows Theme settings when a page moves.
+{%- endcomment -%}
+<section class="alp alp-duo alp-duo--links">
+  {%- for block in section.blocks -%}
+    {%- liquid
+      assign url = block.settings.url
+      case block.settings.to
+        when 'rides'
+          capture url
+            render 'alp-link', to: 'rides'
+          endcapture
+        when 'map'
+          capture url
+            render 'alp-link', to: 'map'
+          endcapture
+        when 'bush_map'
+          capture url
+            render 'alp-link', to: 'bush_map'
+          endcapture
+        when 'about'
+          capture url
+            render 'alp-link', to: 'about'
+          endcapture
+      endcase
+    -%}
+    <a class="alp-duo__panel alp-duo__panel--{{ block.settings.ground }}" href="{{ url | default: '#' }}" {{ block.shopify_attributes }}>
+      {%- if block.settings.image != blank -%}
+        {{ block.settings.image | image_url: width: 1600 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '400, 800, 1200, 1600', sizes: '50vw', alt: '' }}
+      {%- endif -%}
+      <span class="alp-duo__stack">
+        {%- if block.settings.title != blank -%}
+          <span class="alp-duo__title alp-d">{{ block.settings.title | escape }}</span>
+        {%- endif -%}
+        <span class="alp-chip alp-chip--strong">{{ block.settings.chip | escape }}</span>
+      </span>
+    </a>
+  {%- endfor -%}
+</section>
+
+{% schema %}
+{
+  "name": "Photo pair",
+  "tag": "div",
+  "max_blocks": 2,
+  "blocks": [
+    {
+      "type": "panel",
+      "name": "Panel",
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Photo" },
+        {
+          "type": "select", "id": "ground", "label": "Ground behind the photo", "default": "bone",
+          "options": [
+            { "value": "bone", "label": "Bone" },
+            { "value": "mist", "label": "Mist (map)" },
+            { "value": "card", "label": "Card" }
+          ]
+        },
+        { "type": "text", "id": "title", "label": "Line (desktop)", "default": "Ride with us" },
+        { "type": "text", "id": "chip", "label": "Chip", "default": "Rides" },
+        {
+          "type": "select", "id": "to", "label": "Goes to", "default": "rides",
+          "options": [
+            { "value": "rides", "label": "Rides page" },
+            { "value": "map", "label": "The map site" },
+            { "value": "bush_map", "label": "Bush Map page" },
+            { "value": "about", "label": "About page" },
+            { "value": "url", "label": "Link below" }
+          ]
+        },
+        { "type": "url", "id": "url", "label": "Link" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Photo pair",
+      "blocks": [
+        { "type": "panel", "settings": { "title": "Ride with us", "chip": "Rides", "to": "rides" } },
+        { "type": "panel", "settings": { "title": "Get the route. Join the bush.", "chip": "BUSH MAP™", "to": "map", "ground": "mist" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

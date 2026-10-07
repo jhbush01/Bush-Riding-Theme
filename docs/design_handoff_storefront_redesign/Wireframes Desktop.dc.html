@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="_ds/bush-riding-design-system-e1a4add7-9c80-4356-9e4f-0696f3fb404c/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/bush-riding-design-system-e1a4add7-9c80-4356-9e4f-0696f3fb404c/tokens/colors.css">
+<link rel="stylesheet" href="_ds/bush-riding-design-system-e1a4add7-9c80-4356-9e4f-0696f3fb404c/tokens/typography.css">
+<link rel="stylesheet" href="_ds/bush-riding-design-system-e1a4add7-9c80-4356-9e4f-0696f3fb404c/tokens/space.css">
+<link rel="stylesheet" href="_ds/bush-riding-design-system-e1a4add7-9c80-4356-9e4f-0696f3fb404c/tokens/base.css">
+<link rel="stylesheet" href="_ds/bush-riding-design-system-e1a4add7-9c80-4356-9e4f-0696f3fb404c/styles.css">
+<script src="_ds/bush-riding-design-system-e1a4add7-9c80-4356-9e4f-0696f3fb404c/_ds_bundle.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Archivo:wght@600&family=Inter:wght@400;500&display=swap">
+<style>
+body{margin:0;background:#edecc5;font-family:Inter,system-ui,sans-serif;color:#4c4b3b}
+a{color:#4c4b3b}a:hover{color:#817f57}
+.dv-turn{padding:40px 44px 32px;border-bottom:1px solid rgba(76,75,59,.24);scroll-margin-top:16px}
+.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 8px}
+.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#4c4b3b;color:#edecc5;border-radius:4px;text-decoration:none}
+.dv-tname{font:600 15px/1.2 Archivo,sans-serif;color:#4c4b3b}
+.dv-sub{font:16px/1.4 Kalam,cursive;color:#817f57;margin:0 0 28px;max-width:900px}
+.dv-grp{margin:0 0 44px}
+.dv-gname{font:600 13px Archivo,sans-serif;letter-spacing:.08em;text-transform:uppercase;margin:0 0 14px;padding-bottom:6px;border-bottom:1px solid rgba(76,75,59,.24)}
+.dv-opts{display:flex;flex-wrap:wrap;gap:32px;align-items:flex-start}
+.dv-opt{flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px;width:760px}
+.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(76,75,59,.12);color:#4c4b3b;border-radius:5px;text-decoration:none}
+.dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 12px/1.3 Inter,sans-serif;color:#4c4b3b}
+.dv-card{background:#fff;border:1.5px solid #4c4b3b;border-radius:2px;overflow:hidden;position:relative}
+.dv-opt:target .dv-oid{background:#ece26a}
+.dv-next{margin:10px 0 0;font:12px/1.5 Inter,sans-serif;color:#817f57}
+.hd{display:flex;align-items:center;gap:22px;height:50px;padding:0 16px;font:600 11px Archivo,sans-serif;border-bottom:1px solid rgba(76,75,59,.24);background:#fff;position:relative;z-index:2}
+.hs{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;height:50px;padding:0 16px;font:600 11px Archivo,sans-serif;border-bottom:1px solid rgba(76,75,59,.24);background:#fff;position:relative;z-index:2}
+.u{text-decoration:underline;text-underline-offset:3px}
+.ph{position:relative;background:linear-gradient(to top right,transparent calc(50% - .7px),rgba(76,75,59,.4) 50%,transparent calc(50% + .7px)),linear-gradient(to bottom right,transparent calc(50% - .7px),rgba(76,75,59,.4) 50%,transparent calc(50% + .7px)),#b8bca1}
+.pp{position:relative;background:linear-gradient(to top right,transparent calc(50% - .5px),rgba(76,75,59,.2) 50%,transparent calc(50% + .5px)),linear-gradient(to bottom right,transparent calc(50% - .5px),rgba(76,75,59,.2) 50%,transparent calc(50% + .5px)),#eceada}
+.mp{position:relative;background:repeating-linear-gradient(35deg,transparent 0 14px,rgba(76,75,59,.12) 14px 15px),#a7b8b4}
+.lb{position:absolute;left:8px;bottom:6px;font:500 10px Inter,sans-serif;background:rgba(255,255,255,.85);padding:1px 5px}
+.cap{font:10px/1.4 Inter,sans-serif}
+.mut{color:#817f57}
+.h{font:600 18px/1.15 Archivo,sans-serif}
+.h2{font:600 13px/1.2 Archivo,sans-serif}
+.ch{border:1px solid #4c4b3b;padding:4px 9px;font:10px Inter,sans-serif;white-space:nowrap}
+.bt{background:#4c4b3b;color:#edecc5;padding:7px 12px;font:500 10px Inter,sans-serif;text-align:center}
+.bf{background:#ece26a;color:#4c4b3b;padding:7px 12px;font:500 10px Inter,sans-serif;text-align:center;border:1px solid #4c4b3b}
+.in{border:1px solid #4c4b3b;padding:7px 10px;font:10px Inter,sans-serif;color:#817f57;flex:1}
+.ln{height:1px;background:rgba(76,75,59,.24)}
+.n{position:absolute;z-index:5;width:18px;height:18px;border-radius:50%;background:#ece26a;border:1.5px solid #4c4b3b;font:700 11px/16px Kalam,cursive;text-align:center}
+.nt{margin:0;padding:0 0 0 2px;list-style:none;font:15px/1.35 Kalam,cursive;color:#4c4b3b;display:flex;flex-direction:column;gap:3px}
+.nt b{display:inline-block;width:18px;height:18px;border-radius:50%;background:#ece26a;border:1.5px solid #4c4b3b;font:700 11px/16px Kalam,cursive;text-align:center;margin-right:6px}
+.soon{font:italic 10px Inter,sans-serif;color:#817f57}
+.dim{position:absolute;inset:0;background:rgba(76,75,59,.45);z-index:3}
+</style>
+</helmet>
+<section class="dv-turn" id="t2">
+<div class="dv-thd"><a class="dv-tid" href="#t2">2</a><span class="dv-tname">Confirmed desktop set</span></div>
+<p class="dv-sub">Home <a class="dv-oid" href="#1a">1a</a> · Shop landing <a class="dv-oid" href="#1c">1c</a> · Collection <a class="dv-oid" href="#1e">1e</a> · Filters <a class="dv-oid" href="#1g">1g</a> · Product <a class="dv-oid" href="#1i">1i</a> · Search <a class="dv-oid" href="#1k">1k</a> · Cart <a class="dv-oid" href="#1n">1n</a> · Bush Map <a class="dv-oid" href="#1p">1p</a> · Rides <a class="dv-oid" href="#1r">1r</a> · About <a class="dv-oid" href="#1s">1s</a> · Footer <a class="dv-oid" href="#2a">2a</a>, which is <a class="dv-oid" href="#1u">1u</a> plus the big wordmark from <a class="dv-oid" href="#1v">1v</a></p>
+<div class="dv-opts">
+<div class="dv-opt" id="2a"><div class="dv-olabel"><a class="dv-oid" href="#2a">2a</a>Footer: <a class="dv-oid" href="#1u">1u</a> layout with the large wordmark from <a class="dv-oid" href="#1v">1v</a></div>
+<div class="dv-card">
+<div style="display:grid;grid-template-columns:1.4fr 1fr;padding:26px 30px;gap:40px;border-bottom:1px solid rgba(76,75,59,.24)">
+<div><div class="h2">Newsletter</div><div class="cap" style="margin:6px 0 10px">We send the occasional route, nothing else.</div><div style="display:flex"><span class="in" style="padding:9px">Email address</span><span class="bt" style="padding:9px 14px">Subscribe</span></div></div>
+<div style="align-self:end"><div class="cap mut">Country / Region</div><div class="cap" style="margin-top:4px">AU / (AUD) ▾</div></div></div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);padding:22px 30px;gap:10px">
+<div class="cap" style="display:flex;flex-direction:column;gap:6px"><span style="letter-spacing:.1em;font-weight:500">HELP</span><span>Shipping & delivery</span><span>Returns & exchanges</span><span>Size guide</span></div>
+<div class="cap" style="display:flex;flex-direction:column;gap:6px"><span style="letter-spacing:.1em;font-weight:500">BUSH RIDING</span><span>About</span><span>Rides</span><span>Bush Map</span></div>
+<div class="cap" style="display:flex;flex-direction:column;gap:6px"><span style="letter-spacing:.1em;font-weight:500">CONTACT</span><span>Customer service</span><span>Instagram</span><span>Strava</span></div>
+<div class="cap" style="display:flex;flex-direction:column;gap:6px"><span style="letter-spacing:.1em;font-weight:500">LEGAL</span><span>Privacy policy</span><span>Terms of service</span><span>Accessibility</span></div></div>
+<div style="padding:6px 30px 14px"><img src="assets/wordmark-olive.svg" style="width:100%;display:block"></div>
+<div style="border-top:1px solid rgba(76,75,59,.24);padding:10px 30px" class="cap">© Bush Riding™ 2026</div>
+</div>
+<ol class="nt"><li>The wordmark runs the full width of the page, between the link columns and the copyright line.</li></ol></div>
+</div>
+</section>
+<section class="dv-turn" id="t1">
+<div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">Desktop wireframes · 1440px, shown at ~53%</span></div>
+<p class="dv-sub">Option a on each screen follows the RCOS references closely. Option b tries a symmetric layout, with the logo centred and the nav split either side of it. Hatched boxes are photo placeholders: sage for lifestyle shots, pale for product on a plain ground, mist for the map.</p>
+
+<div class="dv-grp"><div class="dv-gname">01 · Home</div><div class="dv-opts">
+<div class="dv-opt" id="1a"><div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>Reference: full-bleed hero, then alternating photo and product rows</div>
+<div class="dv-card">
+<div class="hd"><img src="assets/wordmark-olive.svg" style="height:16px"><span>Shop</span><span>Bush Map</span><span>Rides</span><span style="flex:1"></span><span class="cap mut">08:29:04 · 24°</span><span>Search</span><span>Cart (0)</span></div>
+<span class="n" style="top:16px;left:500px">1</span>
+<div class="ph" style="height:380px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:30px"><img src="assets/wordmark-bone.svg" style="height:70px;position:relative"><div style="width:1px;height:50px;border-left:1.5px dashed #fff;position:relative"></div><span class="lb">Video loop, landscape, riders small in frame</span></div>
+<span class="n" style="top:200px;left:20px">2</span>
+<div style="display:grid;grid-template-columns:1fr 1fr"><div class="ph" style="height:260px"><span class="lb">Lifestyle: bottoms on the bike</span></div><div class="pp" style="height:260px"><span class="lb">Bottoms 01, flat lay</span></div></div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:6px">
+<div><div class="pp" style="height:150px;display:flex;align-items:flex-end;padding:8px;box-sizing:border-box"><div style="background:#fff;width:100%;text-align:center;padding:5px 0;font:10px Inter;position:relative">Quick view</div></div><div class="cap" style="padding:6px 4px 0"><span class="u">Bottoms 01</span><br>$000</div></div>
+<div><div class="pp" style="height:150px"></div><div class="cap" style="padding:6px 4px 0">Bottoms 02<br>$000</div></div>
+<div><div class="pp" style="height:150px"></div><div class="cap" style="padding:6px 4px 0">Bottoms 03<br>$000</div></div>
+<div><div class="pp" style="height:150px;opacity:.5"></div><div class="cap" style="padding:6px 4px 0">T-Shirt<br><span class="soon">Next drop · Notify me</span></div></div>
+</div>
+<span class="n" style="top:660px;left:330px">3</span>
+<div style="display:grid;grid-template-columns:1fr 1fr;margin-top:10px"><div class="ph" style="height:200px"><span class="lb">Ride recap photo</span></div><div class="mp" style="height:200px"><span class="lb">Bush Map still → /map</span></div></div>
+<div style="padding:10px 16px" class="cap mut">↓ footer (see <a class="dv-oid" href="#1u">1u</a>)</div>
+</div>
+<ol class="nt"><li><b>1</b>Local time and weather sit next to Search, the same as the reference.</li><li><b>2</b>Each row pairs one lifestyle shot with one product shot.</li><li><b>3</b>Lower down, photo pairs link to Rides and the Bush Map.</li></ol></div>
+
+<div class="dv-opt" id="1b"><div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>Symmetric: header over the hero, then one hero product</div>
+<div class="dv-card">
+<div class="ph" style="height:420px"><div style="position:absolute;top:0;left:0;right:0;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;height:50px;padding:0 16px;font:600 11px Archivo;color:#fff"><div style="display:flex;gap:22px"><span>Shop</span><span>Bush Map</span><span>Rides</span></div><span class="cap">08:29 · 24°</span><div style="display:flex;gap:22px;justify-content:flex-end"><span>Search</span><span>Cart (0)</span></div></div>
+<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><img src="assets/wordmark-bone.svg" style="height:80px"></div>
+<div style="position:absolute;bottom:16px;left:0;right:0;text-align:center;color:#fff;font:12px Inter">Made for the detour.</div><span class="n" style="top:60px;left:370px">1</span></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;align-items:stretch"><div class="pp" style="height:300px"><span class="lb">Bottoms 01, hero shot</span></div>
+<div style="padding:28px;display:flex;flex-direction:column;justify-content:center;gap:10px;text-align:center;align-items:center"><span class="cap mut" style="letter-spacing:.1em">DROP 01</span><div class="h">The bottoms</div><div class="cap" style="max-width:240px">One line on how they ride: comfortable all day, fine at the café stop.</div><div style="display:flex;gap:6px"><span class="ch">Shop bottoms</span></div><span class="n" style="position:relative">2</span></div></div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;padding:6px"><div class="pp" style="height:150px"><span class="lb">Bottoms 01 · $000</span></div><div class="pp" style="height:150px"><span class="lb">Bottoms 02 · $000</span></div><div class="pp" style="height:150px"><span class="lb">Bottoms 03 · $000</span></div></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:0 6px 6px"><div class="pp" style="height:110px;opacity:.55"><span class="lb">T-Shirts · next drop</span></div><div class="pp" style="height:110px;opacity:.55"><span class="lb">Caps · next drop</span></div></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;border-top:1px solid rgba(76,75,59,.24)"><div style="padding:20px;text-align:center;border-right:1px solid rgba(76,75,59,.24)"><div class="h2">Bush Map</div><div class="cap mut">Routes, curated and community</div></div><div style="padding:20px;text-align:center"><div class="h2">Next ride</div><div class="cap mut">Sat 18 Oct · 92 km · RSVP</div></div><span class="n" style="top:auto;bottom:24px;left:370px">3</span></div>
+</div>
+<ol class="nt"><li><b>1</b>The header sits over the video and turns solid white once you scroll.</li><li><b>2</b>While bottoms are the only product, they get the whole second screen.</li><li><b>3</b>A two-column band links Bush Map and the next ride, one on each side.</li></ol></div>
+</div></div>
+
+<div class="dv-grp"><div class="dv-gname">02 · Shop landing</div><div class="dv-opts">
+<div class="dv-opt" id="1c"><div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a>Reference: category list on the left, two feature images</div>
+<div class="dv-card">
+<div class="hd"><img src="assets/wordmark-olive.svg" style="height:16px"><span class="u">Shop</span><span>Bush Map</span><span>Rides</span><span style="flex:1"></span><span>Search</span><span>Cart (0)</span></div>
+<div style="display:grid;grid-template-columns:190px 1fr 1fr;height:470px">
+<div style="padding:18px 16px;display:flex;flex-direction:column;gap:8px;font:12px Inter"><span>View all</span><span>Bottoms</span><span class="mut">T-Shirts <span class="soon">· next drop</span></span><span class="mut">Caps <span class="soon">· next drop</span></span><span style="flex:1"></span>
+<div class="cap">Local time 08:29:04<br>Gold Coast, QLD<br>24° · cloud</div><div style="display:flex"><span class="in">Email address</span><span class="bt">Subscribe</span></div><div class="cap mut">We send the occasional route, nothing else.</div></div>
+<div class="pp"><span class="lb">Bottoms 01</span></div><div class="ph"><span class="lb">Bottoms, out riding</span></div>
+</div>
+<span class="n" style="top:118px;left:168px">1</span><span class="n" style="top:330px;left:160px">2</span>
+</div>
+<ol class="nt"><li><b>1</b>T-Shirts and Caps stay in the list but are muted. Clicking one goes to a "coming in the next drop" grid.</li><li><b>2</b>Time, weather and newsletter sit at the bottom of the sidebar, the same as the reference.</li></ol></div>
+
+<div class="dv-opt" id="1d"><div class="dv-olabel"><a class="dv-oid" href="#1d">1d</a>Symmetric: three equal category panels</div>
+<div class="dv-card">
+<div class="hs"><div style="display:flex;gap:22px"><span class="u">Shop</span><span>Bush Map</span><span>Rides</span></div><img src="assets/wordmark-olive.svg" style="height:16px"><div style="display:flex;gap:22px;justify-content:flex-end"><span>Search</span><span>Cart (0)</span></div></div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);height:420px">
+<div class="ph" style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:22px;gap:6px"><span class="h2" style="background:#fff;padding:2px 6px;position:relative">Bottoms</span><span class="ch" style="background:#fff;position:relative">Shop now</span></div>
+<div class="ph" style="opacity:.6;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:22px;gap:6px;border-left:6px solid #fff;border-right:6px solid #fff"><span class="h2" style="background:#fff;padding:2px 6px;position:relative">T-Shirts</span><span class="soon" style="background:#fff;padding:2px 6px;position:relative">Coming in the next drop</span></div>
+<div class="ph" style="opacity:.6;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:22px;gap:6px"><span class="h2" style="background:#fff;padding:2px 6px;position:relative">Caps</span><span class="soon" style="background:#fff;padding:2px 6px;position:relative">Coming in the next drop</span></div>
+</div>
+<div style="padding:12px;text-align:center" class="cap">View all →</div>
+<span class="n" style="top:80px;left:370px">1</span>
+</div>
+<ol class="nt"><li><b>1</b>Three columns of equal width, so a new category drops into the grid without a redesign. Upcoming panels are faded and have no "Shop now" link.</li></ol></div>
+</div></div>
+
+<div class="dv-grp"><div class="dv-gname">03 · Collection grid</div><div class="dv-opts">
+<div class="dv-opt" id="1e"><div class="dv-olabel"><a class="dv-oid" href="#1e">1e</a>Reference: category bar, with a large lifestyle tile across two rows</div>
+<div class="dv-card">
+<div class="hd"><img src="assets/wordmark-olive.svg" style="height:16px"><span class="u">Shop</span><span>Bush Map</span><span>Rides</span><span style="flex:1"></span><span>Search</span><span>Cart (0)</span></div>
+<div style="display:flex;gap:20px;padding:0 16px;height:36px;align-items:center;font:11px Inter;border-bottom:1px solid rgba(76,75,59,.24)"><span style="font-weight:500">View all</span><span class="mut">New in</span><span class="mut">Bottoms</span><span class="mut">T-Shirts <span class="soon">soon</span></span><span class="mut">Caps <span class="soon">soon</span></span><span style="flex:1"></span><span>Filters</span><span>Sort by</span></div>
+<div style="display:grid;grid-template-columns:1fr 1fr 2fr;grid-template-rows:auto auto;gap:6px;padding:8px">
+<div><div class="pp" style="height:170px;display:flex;align-items:flex-end;padding:8px;box-sizing:border-box"><div style="background:#fff;width:100%;text-align:center;padding:5px 0;font:10px Inter;position:relative">Quick view</div></div><div class="cap" style="padding:6px 4px">Bottoms 01 · Olive<br>$000</div></div>
+<div><div class="pp" style="height:170px"></div><div class="cap" style="padding:6px 4px">Bottoms 01 · Khaki<br>$000</div></div>
+<div class="ph" style="grid-row:span 2"><span class="lb">Lifestyle: riders in bottoms</span></div>
+<div><div class="pp" style="height:170px"></div><div class="cap" style="padding:6px 4px">Bottoms 02<br>$000</div></div>
+<div><div class="pp" style="height:170px"></div><div class="cap" style="padding:6px 4px">Bottoms 03<br><span class="u">Notify me</span></div></div>
+</div>
+<span class="n" style="top:41px;left:470px">1</span><span class="n" style="top:110px;left:30px">2</span><span class="n" style="top:300px;left:600px">3</span>
+</div>
+<ol class="nt"><li><b>1</b>Upcoming categories show a small "soon" tag.</li><li><b>2</b>Quick View appears on hover and opens the size picker without leaving the grid.</li><li><b>3</b>A lifestyle tile breaks up the grid every four products.</li></ol></div>
+
+<div class="dv-opt" id="1f"><div class="dv-olabel"><a class="dv-oid" href="#1f">1f</a>Symmetric: three-column grid with a full-width photo between rows</div>
+<div class="dv-card">
+<div class="hs"><div style="display:flex;gap:22px"><span class="u">Shop</span><span>Bush Map</span><span>Rides</span></div><img src="assets/wordmark-olive.svg" style="height:16px"><div style="display:flex;gap:22px;justify-content:flex-end"><span>Search</span><span>Cart (0)</span></div></div>
+<div style="text-align:center;padding:18px 0 10px"><div class="h">Bottoms</div><div class="cap mut">3 styles</div></div>
+<div style="display:flex;justify-content:center;gap:6px;padding-bottom:12px"><span class="ch" style="background:#4c4b3b;color:#edecc5">All</span><span class="ch">Bottoms</span><span class="ch" style="opacity:.5">T-Shirts · soon</span><span class="ch" style="opacity:.5">Caps · soon</span><span class="ch">Filters +</span></div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:0 8px">
+<div><div class="pp" style="height:170px"></div><div class="cap" style="padding:6px 0;text-align:center">Bottoms 01<br>$000</div></div>
+<div><div class="pp" style="height:170px"></div><div class="cap" style="padding:6px 0;text-align:center">Bottoms 02<br>$000</div></div>
+<div><div class="pp" style="height:170px"></div><div class="cap" style="padding:6px 0;text-align:center">Bottoms 03<br>$000</div></div>
+</div>
+<div class="ph" style="height:150px;margin-top:6px"><span class="lb" style="left:50%;transform:translateX(-50%)">Full-bleed ride photo, caption centred</span></div>
+<div style="padding:10px;text-align:center" class="cap mut">More products continue below</div>
+<span class="n" style="top:70px;left:470px">1</span>
+</div>
+<ol class="nt"><li><b>1</b>Title, chips and product captions are all centred. With only three products today, one row fills the screen with no gaps.</li></ol></div>
+</div></div>
+
+<div class="dv-grp"><div class="dv-gname">04 · Filters</div><div class="dv-opts">
+<div class="dv-opt" id="1g"><div class="dv-olabel"><a class="dv-oid" href="#1g">1g</a>Reference: panel drops down from the category bar</div>
+<div class="dv-card">
+<div class="hd"><img src="assets/wordmark-olive.svg" style="height:16px"><span class="u">Shop</span><span>Bush Map</span><span>Rides</span><span style="flex:1"></span><span>Search</span><span>Cart (0)</span></div>
+<div style="display:flex;gap:20px;padding:0 16px;height:36px;align-items:center;font:11px Inter;border-bottom:1px solid rgba(76,75,59,.24)"><span style="font-weight:500">View all</span><span class="mut">Bottoms</span><span class="mut">T-Shirts</span><span class="mut">Caps</span><span style="flex:1"></span><span class="u">Filters</span><span>Sort by</span></div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;padding:18px 16px">
+<div><div class="h2" style="margin-bottom:10px">Colour</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+<div style="display:flex;border:1px solid #4c4b3b"><span style="width:22px;background:#4c4b3b"></span><span class="cap" style="padding:4px 6px">Olive</span></div>
+<div style="display:flex;border:1px solid #4c4b3b"><span style="width:22px;background:#817f57"></span><span class="cap" style="padding:4px 6px">Khaki</span></div>
+<div style="display:flex;border:1px solid #4c4b3b"><span style="width:22px;background:#b8bca1"></span><span class="cap" style="padding:4px 6px">Sage</span></div>
+<div style="display:flex;border:1px solid #4c4b3b"><span style="width:22px;background:#222"></span><span class="cap" style="padding:4px 6px">Black</span></div></div></div>
+<div><div class="h2" style="margin-bottom:10px">Fit & size</div><div style="display:flex;flex-wrap:wrap;gap:4px"><span class="ch">Relaxed</span><span class="ch">Regular</span></div><div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px"><span class="ch">XS</span><span class="ch">S</span><span class="ch">M</span><span class="ch">L</span><span class="ch">XL</span><span class="ch">XXL</span></div></div>
+<div><div class="h2" style="margin-bottom:10px">Features</div><div style="display:grid;gap:4px">
+<div style="display:flex;border:1px solid #4c4b3b"><span style="width:28px;border-right:1px solid #4c4b3b;font:600 10px/22px Archivo;text-align:center">ST</span><span class="cap" style="padding:4px 6px">Stretch woven</span></div>
+<div style="display:flex;border:1px solid #4c4b3b"><span style="width:28px;border-right:1px solid #4c4b3b;font:600 10px/22px Archivo;text-align:center">WR</span><span class="cap" style="padding:4px 6px">Water resistant</span></div>
+<div style="display:flex;border:1px solid #4c4b3b"><span style="width:28px;border-right:1px solid #4c4b3b;font:600 10px/22px Archivo;text-align:center">ZP</span><span class="cap" style="padding:4px 6px">Zip pockets</span></div></div></div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:6px 140px 18px"><span class="bt">Apply filters</span><span class="ch" style="text-align:center">Cancel</span></div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:0 8px;border-top:1px solid rgba(76,75,59,.24);padding-top:6px"><div class="pp" style="height:60px"></div><div class="pp" style="height:60px"></div><div class="ph" style="height:60px"></div></div>
+<span class="n" style="top:122px;left:720px">1</span>
+</div>
+<ol class="nt"><li><b>1</b>Feature codes copy the reference's fabric tiles. Codes and options are placeholders; the real fabric list is needed.</li></ol></div>
+
+<div class="dv-opt" id="1h"><div class="dv-olabel"><a class="dv-oid" href="#1h">1h</a>Drawer from the right with accordions, so the grid stays visible</div>
+<div class="dv-card" style="height:520px">
+<div class="hs"><div style="display:flex;gap:22px"><span class="u">Shop</span><span>Bush Map</span><span>Rides</span></div><img src="assets/wordmark-olive.svg" style="height:16px"><div style="display:flex;gap:22px;justify-content:flex-end"><span>Search</span><span>Cart (0)</span></div></div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:60px 8px 0"><div class="pp" style="height:200px"></div><div class="pp" style="height:200px"></div><div class="pp" style="height:200px"></div></div>
+<div class="dim" style="top:50px"></div>
+<div style="position:absolute;top:50px;right:0;bottom:0;width:280px;background:#fff;z-index:4;padding:16px;box-sizing:border-box;display:flex;flex-direction:column;gap:0">
+<div style="display:flex;justify-content:space-between" class="h2"><span>Filters</span><span>×</span></div>
+<div class="ln" style="margin:12px 0"></div>
+<div style="display:flex;justify-content:space-between;font:11px Inter;padding:6px 0"><span>Colour</span><span>−</span></div>
+<div style="display:flex;gap:4px;padding-bottom:10px"><span style="width:22px;height:22px;background:#4c4b3b;outline:2px solid #ece26a;outline-offset:2px"></span><span style="width:22px;height:22px;background:#817f57"></span><span style="width:22px;height:22px;background:#b8bca1"></span><span style="width:22px;height:22px;background:#222"></span></div>
+<div class="ln"></div><div style="display:flex;justify-content:space-between;font:11px Inter;padding:10px 0"><span>Size</span><span>+</span></div>
+<div class="ln"></div><div style="display:flex;justify-content:space-between;font:11px Inter;padding:10px 0"><span>Fit</span><span>+</span></div>
+<div class="ln"></div><div style="display:flex;justify-content:space-between;font:11px Inter;padding:10px 0"><span>Features</span><span>+</span></div>
+<div class="ln"></div><div style="flex:1"></div>
+<div class="bt">Show 2 results</div><div class="cap" style="text-align:center;padding-top:8px;text-decoration:underline">Clear all</div>
+</div>
+<span class="n" style="top:440px;left:470px">1</span>
+</div>
+<ol class="nt"><li><b>1</b>The button shows a live result count, so you never filter down to an empty grid. This matters while the catalogue is small.</li></ol></div>
+</div></div>
+
+<div class="dv-grp"><div class="dv-gname">05 · Product page</div><div class="dv-opts">
+<div class="dv-opt" id="1i"><div class="dv-olabel"><a class="dv-oid" href="#1i">1i</a>Images scroll on the left, details stay fixed on the right</div>
+<div class="dv-card">
+<div class="hd"><img src="assets/wordmark-olive.svg" style="height:16px"><span class="u">Shop</span><span>Bush Map</span><span>Rides</span><span style="flex:1"></span><span>Search</span><span>Cart (0)</span></div>
+<div style="display:grid;grid-template-columns:2fr 1fr">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px"><div class="pp" style="height:230px"><span class="lb">Front</span></div><div class="pp" style="height:230px"><span class="lb">Back</span></div><div class="ph" style="height:230px"><span class="lb">On the bike</span></div><div class="pp" style="height:230px"><span class="lb">Detail: pocket</span></div></div>
+<div style="padding:18px 16px;display:flex;flex-direction:column;gap:10px;border-left:1px solid rgba(76,75,59,.24)">
+<div class="h">Bottoms 01</div><div style="font:13px Inter">$000</div>
+<div class="cap">Colour · Olive</div><div style="display:flex;gap:4px"><span style="width:20px;height:20px;background:#4c4b3b;outline:1.5px solid #4c4b3b;outline-offset:2px"></span><span style="width:20px;height:20px;background:#817f57"></span><span style="width:20px;height:20px;background:#222"></span></div>
+<div style="display:flex;justify-content:space-between" class="cap"><span>Size</span><span class="u">Size guide</span></div><div style="display:grid;grid-template-columns:repeat(6,1fr);gap:3px"><span class="ch" style="padding:4px 0;text-align:center">XS</span><span class="ch" style="padding:4px 0;text-align:center">S</span><span class="ch" style="padding:4px 0;text-align:center;background:#4c4b3b;color:#edecc5">M</span><span class="ch" style="padding:4px 0;text-align:center">L</span><span class="ch" style="padding:4px 0;text-align:center">XL</span><span class="ch" style="padding:4px 0;text-align:center;opacity:.4">XXL</span></div>
+<div class="bt" style="padding:10px">Add to cart</div>
+<div class="cap">A couple of lines on how they feel on a long day, then fabric and fit.</div>
+<div class="ln"></div><div class="cap" style="display:flex;justify-content:space-between"><span>Fabric & features</span><span>+</span></div>
+<div class="ln"></div><div class="cap" style="display:flex;justify-content:space-between"><span>Fit</span><span>+</span></div>
+<div class="ln"></div><div class="cap" style="display:flex;justify-content:space-between"><span>Care</span><span>+</span></div>
+<div class="ln"></div><div class="cap" style="display:flex;justify-content:space-between"><span>Shipping & returns</span><span>+</span></div>
+</div></div>
+<div style="padding:12px 16px 8px" class="h2">You may also like</div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:0 8px 10px"><div class="pp" style="height:90px"></div><div class="pp" style="height:90px"></div><div class="pp" style="height:90px;opacity:.5"></div><div class="pp" style="height:90px;opacity:.5"></div></div>
+<span class="n" style="top:94px;left:735px">1</span>
+</div>
+<ol class="nt"><li><b>1</b>The detail column stays fixed while the images scroll. Accordions keep specs out of the way until someone opens them.</li></ol></div>
+
+<div class="dv-opt" id="1j"><div class="dv-olabel"><a class="dv-oid" href="#1j">1j</a>Symmetric: one centred column, wide image strip, ride photos below</div>
+<div class="dv-card">
+<div class="hs"><div style="display:flex;gap:22px"><span class="u">Shop</span><span>Bush Map</span><span>Rides</span></div><img src="assets/wordmark-olive.svg" style="height:16px"><div style="display:flex;gap:22px;justify-content:flex-end"><span>Search</span><span>Cart (0)</span></div></div>
+<div style="display:grid;grid-template-columns:1fr 1.4fr 1fr;gap:4px;padding:4px"><div class="pp" style="height:250px"></div><div class="pp" style="height:250px"><span class="lb">Main: front</span></div><div class="pp" style="height:250px"></div></div>
+<div style="display:flex;justify-content:center;gap:5px;padding:6px"><span style="width:6px;height:6px;border-radius:50%;background:#4c4b3b"></span><span style="width:6px;height:6px;border-radius:50%;border:1px solid #4c4b3b"></span><span style="width:6px;height:6px;border-radius:50%;border:1px solid #4c4b3b"></span></div>
+<div style="max-width:300px;margin:0 auto;padding:10px 0 18px;display:flex;flex-direction:column;gap:9px;text-align:center;align-items:stretch">
+<div class="h">Bottoms 01</div><div style="font:13px Inter">$000</div>
+<div style="display:flex;gap:4px;justify-content:center"><span style="width:20px;height:20px;background:#4c4b3b;outline:1.5px solid #4c4b3b;outline-offset:2px"></span><span style="width:20px;height:20px;background:#817f57"></span><span style="width:20px;height:20px;background:#222"></span></div>
+<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:3px"><span class="ch" style="padding:4px 0">XS</span><span class="ch" style="padding:4px 0">S</span><span class="ch" style="padding:4px 0;background:#4c4b3b;color:#edecc5">M</span><span class="ch" style="padding:4px 0">L</span><span class="ch" style="padding:4px 0">XL</span><span class="ch" style="padding:4px 0;opacity:.4">XXL</span></div>
+<div class="bt" style="padding:10px">Add to cart</div></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;border-top:1px solid rgba(76,75,59,.24);font:11px Inter"><div style="padding:12px 16px;border-right:1px solid rgba(76,75,59,.24)">Fabric & features +</div><div style="padding:12px 16px">Fit & care +</div></div>
+<div style="display:grid;grid-template-columns:1fr 1fr"><div class="ph" style="height:180px"><span class="lb">Worn: gravel</span></div><div class="ph" style="height:180px"><span class="lb">Worn: café stop</span></div></div>
+<span class="n" style="top:330px;left:640px">1</span><span class="n" style="top:478px;left:735px">2</span>
+</div>
+<ol class="nt"><li><b>1</b>The detail block is a single centred column, kept as short as possible.</li><li><b>2</b>Two ride photos show the product being worn, before any specs.</li></ol></div>
+</div></div>
+
+<div class="dv-grp"><div class="dv-gname">06 · Search</div><div class="dv-opts">
+<div class="dv-opt" id="1k"><div class="dv-olabel"><a class="dv-oid" href="#1k">1k</a>Reference: search bar opens under the header, popular products below</div>
+<div class="dv-card">
+<div class="hd"><img src="assets/wordmark-olive.svg" style="height:16px"><span>Shop</span><span>Bush Map</span><span>Rides</span><span style="flex:1"></span><span class="u">Search</span><span>Cart (0)</span></div>
+<div style="display:flex;padding:16px 90px 10px"><span class="in" style="padding:10px">Search here</span><span class="bt" style="padding:10px 18px">Search</span></div>
+<div class="h2" style="padding:6px 16px">Most popular</div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:0 8px 10px">
+<div><div class="pp" style="height:170px"></div><div class="cap" style="padding:6px 4px">Bottoms 01<br>$000</div></div><div><div class="pp" style="height:170px"></div><div class="cap" style="padding:6px 4px">Bottoms 02<br>$000</div></div><div><div class="pp" style="height:170px"></div><div class="cap" style="padding:6px 4px">Bottoms 03<br>$000</div></div><div><div class="pp" style="height:170px;opacity:.5"></div><div class="cap" style="padding:6px 4px">Cap<br><span class="soon">Next drop</span></div></div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:0 8px;opacity:.4"><div class="ph" style="height:40px"></div><div class="ph" style="height:40px"></div><div class="ph" style="height:40px"></div><div class="ph" style="height:40px"></div></div>
+<span class="n" style="top:72px;left:60px">1</span>
+</div>
+<ol class="nt"><li><b>1</b>The bar pushes the page down rather than covering it.</li></ol></div>
+
+<div class="dv-opt" id="1l"><div class="dv-olabel"><a class="dv-oid" href="#1l">1l</a>Full-screen search across products, routes and rides</div>
+<div class="dv-card" style="background:#4c4b3b;color:#edecc5">
+<div class="hs" style="background:#4c4b3b;color:#edecc5;border-color:rgba(237,236,197,.3)"><div style="display:flex;gap:22px"><span>Shop</span><span>Bush Map</span><span>Rides</span></div><img src="assets/wordmark-bone.svg" style="height:16px"><div style="display:flex;gap:22px;justify-content:flex-end"><span class="u">Search</span><span>×</span></div></div>
+<div style="padding:50px 120px 20px;text-align:center"><div style="border-bottom:1.5px solid #edecc5;font:600 22px Archivo;padding-bottom:8px;text-align:left">gravel sh<span style="border-right:2px solid #ece26a"></span></div></div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;padding:10px 40px 30px">
+<div><div class="cap" style="letter-spacing:.1em;margin-bottom:8px">PRODUCTS</div><div style="display:flex;gap:8px;align-items:center;margin-bottom:6px"><div class="pp" style="width:40px;height:50px"></div><span class="cap">Bottoms 01 · $000</span></div><div style="display:flex;gap:8px;align-items:center"><div class="pp" style="width:40px;height:50px"></div><span class="cap">Bottoms 02 · $000</span></div></div>
+<div><div class="cap" style="letter-spacing:.1em;margin-bottom:8px">ROUTES · BUSH MAP</div><div class="cap" style="display:flex;flex-direction:column;gap:6px"><span>Route name · 84 km · 1,210 m</span><span>Route name · 132 km · 2,040 m</span><span class="u">See all on the map</span></div></div>
+<div><div class="cap" style="letter-spacing:.1em;margin-bottom:8px">RIDES</div><div class="cap" style="display:flex;flex-direction:column;gap:6px"><span>Sat 18 Oct · Ride name</span><span>Recap · Ride name</span></div></div>
+</div>
+<span class="n" style="top:110px;left:660px">1</span>
+</div>
+<ol class="nt"><li><b>1</b>One search covers products, routes and rides, with results in three columns of equal width.</li></ol></div>
+</div></div>
+
+<div class="dv-grp"><div class="dv-gname">07 · Cart drawer</div><div class="dv-opts">
+<div class="dv-opt" id="1m"><div class="dv-olabel"><a class="dv-oid" href="#1m">1m</a>Reference: empty cart, with suggestions</div>
+<div class="dv-card" style="height:500px">
+<div class="hd"><img src="assets/wordmark-olive.svg" style="height:16px"><span>Shop</span><span>Bush Map</span><span>Rides</span></div>
+<div class="ph" style="height:200px;opacity:.6"></div>
+<div class="dim"></div>
+<div style="position:absolute;top:0;right:0;bottom:0;width:330px;background:#fff;z-index:4;padding:16px;box-sizing:border-box;display:flex;flex-direction:column;gap:12px">
+<div style="text-align:right;font:18px Inter">×</div>
+<div style="text-align:center;font:12px Inter;padding-top:30px">Your cart is empty</div>
+<div class="bf" style="padding:12px">Continue shopping</div>
+<div style="flex:1"></div>
+<div class="cap" style="border-bottom:1px solid #4c4b3b;padding-bottom:4px">You may also like</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><div><div class="pp" style="height:130px"></div><div class="cap" style="padding-top:4px">Bottoms 01<br>$000</div></div><div><div class="pp" style="height:130px"></div><div class="cap" style="padding-top:4px">Bottoms 02<br>$000</div></div></div>
+</div>
+<span class="n" style="top:150px;left:420px">1</span>
+</div>
+<ol class="nt"><li><b>1</b>Flare is the screen's one accent and goes on the main action. The reference used a tan fill here.</li></ol></div>
+
+<div class="dv-opt" id="1n"><div class="dv-olabel"><a class="dv-oid" href="#1n">1n</a>Filled cart, half-width split panel</div>
+<div class="dv-card" style="height:500px">
+<div class="hs"><div style="display:flex;gap:22px"><span>Shop</span><span>Bush Map</span><span>Rides</span></div><img src="assets/wordmark-olive.svg" style="height:16px"><div></div></div>
+<div class="ph" style="position:absolute;top:50px;left:0;width:380px;bottom:0"><span class="lb">Page stays visible, dimmed</span></div><div class="dim" style="top:50px;right:380px"></div>
+<div style="position:absolute;top:0;right:0;bottom:0;width:380px;background:#fff;z-index:4;padding:16px 20px;box-sizing:border-box;display:flex;flex-direction:column;gap:12px;border-left:1px solid #4c4b3b">
+<div style="display:flex;justify-content:space-between" class="h2"><span>Cart (2)</span><span>×</span></div>
+<div class="cap" style="background:#edecc5;padding:6px 8px">You're $40 off free shipping.</div>
+<div style="display:flex;gap:10px"><div class="pp" style="width:70px;height:90px"></div><div class="cap" style="flex:1;display:flex;flex-direction:column;gap:3px"><span style="font-weight:500">Bottoms 01</span><span class="mut">Olive · M</span><div style="display:flex;border:1px solid #4c4b3b;width:70px;justify-content:space-between;padding:2px 6px;margin-top:4px"><span>−</span><span>1</span><span>+</span></div></div><span class="cap">$000</span></div>
+<div class="ln"></div>
+<div style="display:flex;gap:10px"><div class="pp" style="width:70px;height:90px"></div><div class="cap" style="flex:1;display:flex;flex-direction:column;gap:3px"><span style="font-weight:500">Bottoms 02</span><span class="mut">Khaki · L</span><div style="display:flex;border:1px solid #4c4b3b;width:70px;justify-content:space-between;padding:2px 6px;margin-top:4px"><span>−</span><span>1</span><span>+</span></div></div><span class="cap">$000</span></div>
+<div style="flex:1"></div><div class="ln"></div>
+<div style="display:flex;justify-content:space-between;font:12px Inter"><span>Subtotal</span><span>$000</span></div>
+<div class="cap mut">Shipping and taxes at checkout · AUD</div>
+<div class="bf" style="padding:12px">Checkout</div>
+</div>
+<span class="n" style="top:14px;left:470px">1</span>
+</div>
+<ol class="nt"><li><b>1</b>A free-shipping note in bone sits under the header, with no progress bar.</li></ol></div>
+</div></div>
+
+<div class="dv-grp"><div class="dv-gname">08 · Bush Map entry point</div><div class="dv-opts">
+<div class="dv-opt" id="1o"><div class="dv-olabel"><a class="dv-oid" href="#1o">1o</a>Bush Map nav item opens a landing page on the store</div>
+<div class="dv-card">
+<div class="hd"><img src="assets/wordmark-olive.svg" style="height:16px"><span>Shop</span><span class="u">Bush Map</span><span>Rides</span><span style="flex:1"></span><span>Search</span><span>Cart (0)</span></div>
+<div class="mp" style="height:300px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px"><div style="background:#fff;padding:14px 20px;text-align:center;position:relative;border:1px solid #4c4b3b"><div class="h">BUSH MAP™</div><div class="cap">Our curated gravel routes and events</div><div class="bt" style="margin-top:8px">Open the map</div></div><span class="lb">Static map still, pins in olive / khaki / flare</span></div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:8px">
+<div><div class="ph" style="height:120px"></div><div class="cap" style="padding:6px 2px"><span class="h2">Route name</span><br>210 km · 3,140 m</div></div>
+<div><div class="ph" style="height:120px"></div><div class="cap" style="padding:6px 2px"><span class="h2">Route name</span><br>84 km · 1,210 m</div></div>
+<div><div class="ph" style="height:120px"></div><div class="cap" style="padding:6px 2px"><span class="h2">Route name</span><br>132 km · 2,040 m</div></div>
+</div>
+<div style="padding:4px 16px 14px;display:flex;justify-content:space-between" class="cap"><span>Submit a route</span><span class="u">All routes →</span></div>
+<span class="n" style="top:150px;left:500px">1</span>
+</div>
+<ol class="nt"><li><b>1</b>The store page introduces the map, then hands off to map.bushriding.cc. The store and the map app stay separate.</li></ol></div>
+
+<div class="dv-opt" id="1p"><div class="dv-olabel"><a class="dv-oid" href="#1p">1p</a>Bush Map dropdown menu from the nav</div>
+<div class="dv-card" style="height:440px">
+<div class="hs"><div style="display:flex;gap:22px"><span>Shop</span><span class="u">Bush Map ▾</span><span>Rides</span></div><img src="assets/wordmark-olive.svg" style="height:16px"><div style="display:flex;gap:22px;justify-content:flex-end"><span>Search</span><span>Cart (0)</span></div></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;background:#fff;position:relative;z-index:4;border-bottom:1px solid #4c4b3b">
+<div class="mp" style="height:250px"><span class="lb">Live mini-map, nearest routes</span></div>
+<div style="padding:18px 20px;display:flex;flex-direction:column;gap:0">
+<div class="cap" style="letter-spacing:.1em;margin-bottom:8px">NEAR YOU</div>
+<div style="display:flex;justify-content:space-between;padding:7px 0;border-top:1px solid rgba(76,75,59,.24)" class="cap"><span>Route name</span><span class="mut">84 km · 1,210 m</span></div>
+<div style="display:flex;justify-content:space-between;padding:7px 0;border-top:1px solid rgba(76,75,59,.24)" class="cap"><span>Route name</span><span class="mut">132 km · 2,040 m</span></div>
+<div style="display:flex;justify-content:space-between;padding:7px 0;border-top:1px solid rgba(76,75,59,.24)" class="cap"><span>Route name</span><span class="mut">210 km · 3,140 m</span></div>
+<div style="display:flex;justify-content:space-between;padding:7px 0;border-top:1px solid rgba(76,75,59,.24)" class="cap"><span>Bush event · Sat 18 Oct</span><span class="mut">khaki pin</span></div>
+<div style="flex:1"></div><div style="display:flex;gap:6px"><span class="bt" style="flex:1">Open the map</span><span class="ch" style="flex:1;text-align:center">Submit a route</span></div>
+</div></div>
+<div class="ph" style="position:absolute;top:300px;left:0;right:0;bottom:0;opacity:.5"></div><div class="dim" style="top:300px"></div>
+<span class="n" style="top:70px;left:370px">1</span>
+</div>
+<ol class="nt"><li><b>1</b>The menu drops down over the page and splits evenly, map on the left and list on the right. No extra page to build.</li></ol></div>
+</div></div>
+
+<div class="dv-grp"><div class="dv-gname">09 · Rides / events</div><div class="dv-opts">
+<div class="dv-opt" id="1q"><div class="dv-olabel"><a class="dv-oid" href="#1q">1q</a>Upcoming rides as a list, recaps in a four-column grid</div>
+<div class="dv-card">
+<div class="hd"><img src="assets/wordmark-olive.svg" style="height:16px"><span>Shop</span><span>Bush Map</span><span class="u">Rides</span><span style="flex:1"></span><span>Search</span><span>Cart (0)</span></div>
+<div style="background:#b8bca1;padding:36px 16px;text-align:center"><div class="h" style="font-size:26px">Rides</div><div class="cap">Ride with us. Share your stories.</div></div>
+<div class="h2" style="padding:14px 16px 6px">Upcoming</div>
+<div style="padding:0 16px">
+<div style="display:grid;grid-template-columns:90px 1fr 120px 80px 60px;gap:10px;padding:8px 0;border-top:1px solid #4c4b3b" class="cap"><span>Sat 18 Oct</span><span style="font-weight:500">Ride name</span><span class="mut">Meeting point</span><span class="mut">92 km</span><span class="u">RSVP</span></div>
+<div style="display:grid;grid-template-columns:90px 1fr 120px 80px 60px;gap:10px;padding:8px 0;border-top:1px solid rgba(76,75,59,.24)" class="cap"><span>Sun 2 Nov</span><span style="font-weight:500">Ride name</span><span class="mut">Meeting point</span><span class="mut">64 km</span><span class="u">RSVP</span></div>
+<div style="display:grid;grid-template-columns:90px 1fr 120px 80px 60px;gap:10px;padding:8px 0;border-top:1px solid rgba(76,75,59,.24);border-bottom:1px solid rgba(76,75,59,.24)" class="cap"><span>Sat 15 Nov</span><span style="font-weight:500">Ride name</span><span class="mut">Meeting point</span><span class="mut">120 km</span><span class="u">RSVP</span></div>
+</div>
+<div class="h2" style="padding:18px 16px 8px">Recaps</div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:0 8px 12px">
+<div><div class="ph" style="height:130px"></div><div class="cap" style="padding:6px 2px">Ride recap title<br><span class="mut">Read · 09/2026</span></div></div><div><div class="ph" style="height:130px"></div><div class="cap" style="padding:6px 2px">Ride recap title<br><span class="mut">Read · 08/2026</span></div></div><div><div class="ph" style="height:130px"></div><div class="cap" style="padding:6px 2px">Ride recap title<br><span class="mut">Read · 07/2026</span></div></div><div><div class="ph" style="height:130px"></div><div class="cap" style="padding:6px 2px">Ride recap title<br><span class="mut">Read · 06/2026</span></div></div>
+</div>
+<span class="n" style="top:70px;left:700px">1</span>
+</div>
+<ol class="nt"><li><b>1</b>Upcoming rides use a plain table with distance as a number. RSVP could open a form or go to Strava, still to decide. The Basecamp header becomes a flat sage band.</li></ol></div>
+
+<div class="dv-opt" id="1r"><div class="dv-olabel"><a class="dv-oid" href="#1r">1r</a>Symmetric: three upcoming ride cards, recaps in alternating pairs</div>
+<div class="dv-card">
+<div class="hs"><div style="display:flex;gap:22px"><span>Shop</span><span>Bush Map</span><span class="u">Rides</span></div><img src="assets/wordmark-olive.svg" style="height:16px"><div style="display:flex;gap:22px;justify-content:flex-end"><span>Search</span><span>Cart (0)</span></div></div>
+<div style="text-align:center;padding:22px 0 14px"><div class="h">Upcoming rides</div></div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:0 8px">
+<div style="border:1px solid #4c4b3b"><div class="ph" style="height:110px"><span class="lb">18 OCT</span></div><div class="cap" style="padding:8px;text-align:center"><span class="h2">Ride name</span><br>92 km · café stop<br><span class="u">RSVP</span></div></div>
+<div style="border:1px solid #4c4b3b"><div class="ph" style="height:110px"><span class="lb">2 NOV</span></div><div class="cap" style="padding:8px;text-align:center"><span class="h2">Ride name</span><br>64 km · all welcome<br><span class="u">RSVP</span></div></div>
+<div style="border:1px solid #4c4b3b"><div class="ph" style="height:110px"><span class="lb">15 NOV</span></div><div class="cap" style="padding:8px;text-align:center"><span class="h2">Ride name</span><br>120 km · camp out<br><span class="u">RSVP</span></div></div>
+</div>
+<div style="text-align:center;padding:22px 0 10px"><div class="h">Recaps</div></div>
+<div style="display:grid;grid-template-columns:1fr 1fr"><div class="ph" style="height:170px"></div><div style="padding:20px;display:flex;flex-direction:column;justify-content:center;gap:6px"><span class="cap mut">09/2026</span><span class="h2">Ride recap title</span><span class="cap">One line from the ride.</span><span class="cap u">Read</span></div></div>
+<div style="display:grid;grid-template-columns:1fr 1fr"><div style="padding:20px;display:flex;flex-direction:column;justify-content:center;gap:6px;text-align:right"><span class="cap mut">08/2026</span><span class="h2">Ride recap title</span><span class="cap">One line from the ride.</span><span class="cap u">Read</span></div><div class="ph" style="height:170px"></div></div>
+<span class="n" style="top:330px;left:12px">1</span>
+</div>
+<ol class="nt"><li><b>1</b>Each recap pairs a photo and text, swapping sides down the page. This suits a film-photo, story-led feel.</li></ol></div>
+</div></div>
+
+<div class="dv-grp"><div class="dv-gname">10 · About</div><div class="dv-opts">
+<div class="dv-opt" id="1s"><div class="dv-olabel"><a class="dv-oid" href="#1s">1s</a>Split photo and text, like the reference's store block</div>
+<div class="dv-card">
+<div class="hd"><img src="assets/wordmark-olive.svg" style="height:16px"><span>Shop</span><span>Bush Map</span><span>Rides</span><span style="flex:1"></span><span>Search</span><span>Cart (0)</span></div>
+<div style="display:grid;grid-template-columns:1fr 1fr"><div class="ph" style="height:320px"><span class="lb">Documentary ride photo</span></div>
+<div style="padding:26px 22px;display:flex;flex-direction:column;gap:12px"><div class="h">About Bush Riding</div><div class="cap">Opening paragraph: who we are and the detour.</div><div class="cap">Second paragraph: designed in Australia, gender-neutral, priced so more people can ride in it.</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px"><div><div class="h2">Designed in</div><div class="cap">Australia</div></div><div><div class="h2">Ride with us</div><div class="cap u">Strava group</div></div></div></div></div>
+<div style="padding:36px 80px;text-align:center;font:600 20px/1.25 Archivo">Made for the detour.</div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:0 8px 10px"><div class="ph" style="height:130px"></div><div class="ph" style="height:130px"></div><div class="ph" style="height:130px"></div></div>
+<span class="n" style="top:60px;left:12px">1</span>
+</div>
+<ol class="nt"><li><b>1</b>Copy blocks are placeholders. The text will come from the brand positioning doc, kept in our voice.</li></ol></div>
+
+<div class="dv-opt" id="1t"><div class="dv-olabel"><a class="dv-oid" href="#1t">1t</a>Symmetric: full-bleed statement, then four proof points</div>
+<div class="dv-card">
+<div class="ph" style="height:340px"><div style="position:absolute;top:0;left:0;right:0;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;height:50px;padding:0 16px;font:600 11px Archivo;color:#fff"><div style="display:flex;gap:22px"><span>Shop</span><span>Bush Map</span><span>Rides</span></div><img src="assets/wordmark-bone.svg" style="height:16px"><div style="display:flex;gap:22px;justify-content:flex-end"><span>Search</span><span>Cart (0)</span></div></div>
+<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><div style="background:rgba(76,75,59,.7);color:#edecc5;padding:14px 22px;font:600 22px Archivo">Made for the detour.</div></div></div>
+<div style="max-width:420px;margin:0 auto;padding:30px 0;text-align:center" class="cap">One centred paragraph: the journey matters more than pace, and community comes first.</div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid rgba(76,75,59,.24);border-bottom:1px solid rgba(76,75,59,.24)">
+<div style="padding:16px;text-align:center;border-right:1px solid rgba(76,75,59,.24)"><div class="h2">Designed in Australia</div></div><div style="padding:16px;text-align:center;border-right:1px solid rgba(76,75,59,.24)"><div class="h2">Gender-neutral</div></div><div style="padding:16px;text-align:center;border-right:1px solid rgba(76,75,59,.24)"><div class="h2">Mid-tier pricing</div></div><div style="padding:16px;text-align:center"><div class="h2">Monthly rides</div></div></div>
+<div style="display:grid;grid-template-columns:1fr 1fr"><div class="ph" style="height:170px"></div><div class="ph" style="height:170px"></div></div>
+<span class="n" style="top:378px;left:620px">1</span>
+</div>
+<ol class="nt"><li><b>1</b>The four proof points come straight from the positioning doc: designed in Australia, gender-neutral, mid-tier pricing, monthly rides.</li></ol></div>
+</div></div>
+
+<div class="dv-grp"><div class="dv-gname">11 · Footer + newsletter</div><div class="dv-opts">
+<div class="dv-opt" id="1u"><div class="dv-olabel"><a class="dv-oid" href="#1u">1u</a>Reference: newsletter left, region right, four link columns</div>
+<div class="dv-card">
+<div style="display:grid;grid-template-columns:1.4fr 1fr;padding:26px 30px;gap:40px;border-bottom:1px solid rgba(76,75,59,.24)">
+<div><div class="h2">Newsletter</div><div class="cap" style="margin:6px 0 10px">We send the occasional route, nothing else.</div><div style="display:flex"><span class="in" style="padding:9px">Email address</span><span class="bt" style="padding:9px 14px">Subscribe</span></div></div>
+<div style="align-self:end"><div class="cap mut">Country / Region</div><div class="cap" style="margin-top:4px">AU / (AUD) ▾</div></div></div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);padding:22px 30px;gap:10px">
+<div class="cap" style="display:flex;flex-direction:column;gap:6px"><span style="letter-spacing:.1em;font-weight:500">HELP</span><span>Shipping & delivery</span><span>Returns & exchanges</span><span>Size guide</span></div>
+<div class="cap" style="display:flex;flex-direction:column;gap:6px"><span style="letter-spacing:.1em;font-weight:500">BUSH RIDING</span><span>About</span><span>Rides</span><span>Bush Map</span></div>
+<div class="cap" style="display:flex;flex-direction:column;gap:6px"><span style="letter-spacing:.1em;font-weight:500">CONTACT</span><span>Customer service</span><span>Instagram</span><span>Strava</span></div>
+<div class="cap" style="display:flex;flex-direction:column;gap:6px"><span style="letter-spacing:.1em;font-weight:500">LEGAL</span><span>Privacy policy</span><span>Terms of service</span><span>Accessibility</span></div></div>
+<div style="border-top:1px solid rgba(76,75,59,.24);padding:10px 30px" class="cap">© Bush Riding™ 2026</div>
+<span class="n" style="top:24px;left:740px">1</span>
+</div>
+<ol class="nt"><li><b>1</b>The currency selector goes here. If you sell outside Australia, it could also go in the header.</li></ol></div>
+
+<div class="dv-opt" id="1v"><div class="dv-olabel"><a class="dv-oid" href="#1v">1v</a>Symmetric: olive footer, centred newsletter, large wordmark</div>
+<div class="dv-card" style="background:#4c4b3b;color:#edecc5">
+<div style="text-align:center;padding:30px 0 18px"><div class="h2">Get the route. Join the bush.</div><div class="cap" style="margin:6px 0 12px">We send the occasional route, nothing else.</div><div style="display:flex;max-width:360px;margin:0 auto"><span class="in" style="padding:9px;border-color:#edecc5;color:#b8bca1;text-align:left">Email address</span><span class="bf" style="padding:9px 14px">Subscribe</span></div></div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);padding:20px 60px;gap:10px;text-align:center;border-top:1px solid rgba(237,236,197,.25)">
+<div class="cap" style="display:flex;flex-direction:column;gap:6px"><span style="letter-spacing:.1em;color:#b8bca1">HELP</span><span>Shipping</span><span>Returns</span><span>Size guide</span></div>
+<div class="cap" style="display:flex;flex-direction:column;gap:6px"><span style="letter-spacing:.1em;color:#b8bca1">BUSH RIDING</span><span>About</span><span>Rides</span><span>Bush Map</span></div>
+<div class="cap" style="display:flex;flex-direction:column;gap:6px"><span style="letter-spacing:.1em;color:#b8bca1">CONTACT</span><span>Customer service</span><span>Instagram</span><span>Strava</span></div>
+<div class="cap" style="display:flex;flex-direction:column;gap:6px"><span style="letter-spacing:.1em;color:#b8bca1">LEGAL</span><span>Privacy</span><span>Terms</span><span>Accessibility</span></div></div>
+<div style="padding:10px 20px;text-align:center"><img src="assets/wordmark-bone.svg" style="width:100%;max-width:700px"></div>
+<div style="display:grid;grid-template-columns:1fr auto 1fr;padding:10px 20px 14px;border-top:1px solid rgba(237,236,197,.25)" class="cap"><span>08:29:04 · 24° cloud</span><span>© Bush Riding™ 2026</span><span style="text-align:right">AU / (AUD) ▾</span></div>
+<span class="n" style="top:auto;bottom:60px;left:12px">1</span>
+</div>
+<ol class="nt"><li><b>1</b>Local time and weather move from the header to the footer, with currency on the opposite side so the row balances.</li></ol></div>
+</div></div>
+
+<p class="dv-next">Try next: "go with the b direction but use the header from <a class="dv-oid" href="#1a">1a</a>" · "riff on <a class="dv-oid" href="#1j">1j</a> and <a class="dv-oid" href="#1n">1n</a>" · "start the mobile versions of the picks"</p>
+</section>
+</x-dc>
+</body>
+</html>

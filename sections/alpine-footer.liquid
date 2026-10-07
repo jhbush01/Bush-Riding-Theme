@@ -1,168 +1,82 @@
 {%- comment -%}
-  Bush Riding footer — newsletter ("Ride with us."), link columns, small print
-  and the oversized wordmark bleeding off the bottom of the page. The newsletter
-  uses Shopify's native customer form, so signups land in Admin → Customers with
-  the accepts-marketing flag, tagged "newsletter".
+  Bush Riding footer — the same on every page (D11 desktop, M12 phone).
+  Newsletter and country/region, four link columns (4-up desktop, 2×2 phone),
+  the wordmark the full width of the page, and the copyright row.
 
-  Links. The footer is the last thing a customer reads, so nothing in it is
-  allowed to 404. Two modes:
-
-    • Set link columns in the theme editor and those are what render — with any
-      row whose page/collection/product has since been deleted dropped, and a
-      column that ends up empty dropped with it.
-    • Set none (the default) and the footer builds itself out of what the store
-      actually has: the collections that exist and hold stock, the blogs that
-      have been published to, and the policies that have been written. A policy
-      that isn't written doesn't appear.
-
-  The Bush Map is the one outbound link, and the only flare on the slab is the
-  newsletter's button — the one thing to press.
+  Each column takes a Shopify menu. Left empty, it falls back to the design's
+  links — and only the ones that resolve (a policy or page that doesn't exist
+  is left out rather than linked to a 404).
 {%- endcomment -%}
-
 {%- liquid
-  assign map_url = section.settings.map_url | default: 'https://map.bushriding.cc'
-  assign map_label = section.settings.map_label | default: 'BUSH MAP™'
+  capture rides_url
+    render 'alp-link', to: 'rides'
+  endcapture
+  capture about_url
+    render 'alp-link', to: 'about'
+  endcapture
+  capture map_url
+    render 'alp-link', to: 'map'
+  endcapture
+  capture size_url
+    render 'alp-link', to: 'size_guide'
+  endcapture
 -%}
 
-<footer class="alp alp-foot">
-  <div class="alp-foot__dispatch" id="dispatches">
-    <h2>{{ section.settings.newsletter_heading | escape }}</h2>
-    <p>{{ section.settings.newsletter_text | escape }}</p>
-    {%- form 'customer', class: 'alp-foot__form-wrap' -%}
-      {%- if form.posted_successfully? -%}
-        <p class="alp-foot__note" role="status">Thanks — you're on the list.</p>
-      {%- else -%}
-        <input type="hidden" name="contact[tags]" value="newsletter">
-        <div class="alp-foot__form">
-          <label class="visually-hidden" for="AlpDispatchEmail">Email address</label>
-          <input
-            id="AlpDispatchEmail"
-            type="email"
-            name="contact[email]"
-            placeholder="Email address"
-            autocomplete="email"
-            required
-          >
-          <button class="alp-chip alp-chip--submit" type="submit">
-            {{- section.settings.newsletter_button | default: 'Go' | escape -}}
-          </button>
-        </div>
-        {%- if form.errors -%}
-          <p class="alp-foot__note" role="alert">
-            {{ form.errors.translated_fields.email | capitalize }} {{ form.errors.messages.email }}
-          </p>
-        {%- endif -%}
-      {%- endif -%}
-    {%- endform -%}
+<footer class="alp alp-ft">
+  <div class="alp-ft__top">
+    <div class="alp-ft__news">
+      <p class="alp-ft__head">{{ section.settings.news_heading | escape }}</p>
+      <p class="alp-ft__copy">{{ section.settings.news_copy | escape }}</p>
+      {%- render 'alp-signup', id: 'FooterNewsletter', tags: 'newsletter', label: 'Subscribe' -%}
+    </div>
+    <div class="alp-ft__region alp-d">
+      <p class="alp-ft__muted">Country / Region</p>
+      {%- render 'alp-currency', id: 'FooterCurrency' -%}
+    </div>
   </div>
 
-  {%- comment -%}
-    Editor columns first. Each is captured before it is printed so a column
-    with nothing left in it after the dead rows are dropped never renders as a
-    bare heading.
-  {%- endcomment -%}
-  {%- capture editor_columns -%}
+  <div class="alp-ft__cols">
     {%- for block in section.blocks -%}
-      {%- capture rows -%}
-        {%- for link in block.settings.menu.links -%}
-          {%- liquid
-            assign keep = true
-            case link.type
-              when 'page_link', 'product_link', 'collection_link', 'blog_link', 'article_link'
-                if link.object == blank
-                  assign keep = false
-                endif
-            endcase
-          -%}
-          {%- if keep -%}
-            <li><a href="{{ link.url }}">{{ link.title | escape }}</a></li>
+      <div class="alp-ft__col" {{ block.shopify_attributes }}>
+        <p class="alp-ft__colhead">{{ block.settings.heading | escape }}</p>
+        <ul role="list">
+          {%- if block.settings.menu != blank -%}
+            {%- for link in block.settings.menu.links -%}
+              <li><a href="{{ link.url }}">{{ link.title | escape }}</a></li>
+            {%- endfor -%}
+          {%- else -%}
+            {%- case block.settings.preset -%}
+              {%- when 'help' -%}
+                {%- if shop.shipping_policy != blank -%}<li><a href="{{ shop.shipping_policy.url }}">Shipping &amp; delivery</a></li>{%- endif -%}
+                {%- if shop.refund_policy != blank -%}<li><a href="{{ shop.refund_policy.url }}">Returns &amp; exchanges</a></li>{%- endif -%}
+                {%- if size_url != blank -%}<li><a href="{{ size_url }}">Size guide</a></li>{%- endif -%}
+              {%- when 'brand' -%}
+                {%- if about_url != blank -%}<li><a href="{{ about_url }}">About</a></li>{%- endif -%}
+                <li><a href="{{ rides_url }}">Rides</a></li>
+                <li><a href="{{ map_url }}">Bush Map™</a></li>
+              {%- when 'contact' -%}
+                {%- if pages['contact'] != blank -%}<li><a href="{{ pages['contact'].url }}">Customer service</a></li>
+                {%- elsif shop.email != blank -%}<li><a href="mailto:{{ shop.email }}">Customer service</a></li>{%- endif -%}
+                {%- if settings.alp_instagram_url != blank -%}<li><a href="{{ settings.alp_instagram_url }}" target="_blank" rel="noopener">Instagram</a></li>{%- endif -%}
+                {%- if settings.alp_strava_url != blank -%}<li><a href="{{ settings.alp_strava_url }}" target="_blank" rel="noopener">Strava</a></li>{%- endif -%}
+              {%- when 'legal' -%}
+                {%- if shop.privacy_policy != blank -%}<li><a href="{{ shop.privacy_policy.url }}">Privacy policy</a></li>{%- endif -%}
+                {%- if shop.terms_of_service != blank -%}<li><a href="{{ shop.terms_of_service.url }}">Terms of service</a></li>{%- endif -%}
+                {%- if pages['accessibility'] != blank -%}<li><a href="{{ pages['accessibility'].url }}">Accessibility</a></li>{%- endif -%}
+            {%- endcase -%}
           {%- endif -%}
-        {%- endfor -%}
-      {%- endcapture -%}
-
-      {%- if rows != blank -%}
-        <nav aria-label="{{ block.settings.heading | escape }}" {{ block.shopify_attributes }}>
-          <h3>{{ block.settings.heading | escape }}</h3>
-          <ul role="list">{{ rows }}</ul>
-        </nav>
-      {%- endif -%}
+        </ul>
+      </div>
     {%- endfor -%}
-  {%- endcapture -%}
+  </div>
 
-  {%- capture legal_rows -%}{%- render 'alp-legal-links' -%}{%- endcapture -%}
+  <div class="alp-ft__mark">
+    <img src="{{ 'wordmark-olive.svg' | asset_url }}" alt="" width="1273" height="543" loading="lazy">
+  </div>
 
-  {%- if editor_columns != blank -%}
-    <div class="alp-foot__columns">{{ editor_columns }}</div>
-  {%- else -%}
-    <div class="alp-foot__columns">
-      <nav aria-label="Shop">
-        <h3>Shop</h3>
-        <ul role="list">
-          <li><a href="{{ routes.all_products_collection_url }}">Everything</a></li>
-          {%- assign shown = 0 -%}
-          {%- for c in collections -%}
-            {%- if c.handle != 'all' and c.products_count > 0 and shown < 5 -%}
-              <li><a href="{{ c.url }}">{{ c.title | escape }}</a></li>
-              {%- assign shown = shown | plus: 1 -%}
-            {%- endif -%}
-          {%- endfor -%}
-        </ul>
-      </nav>
-
-      <nav aria-label="Explore">
-        <h3>Explore</h3>
-        <ul role="list">
-          <li><a href="{{ routes.root_url }}">Home</a></li>
-          <li><a href="{{ map_url }}">{{ map_label | escape }}</a></li>
-          {%- for blog in blogs -%}
-            {%- if blog.articles_count > 0 -%}
-              <li><a href="{{ blog.url }}">{{ blog.title | escape }}</a></li>
-            {%- endif -%}
-          {%- endfor -%}
-          <li><a href="{{ routes.cart_url }}">Cart</a></li>
-          {%- if shop.customer_accounts_enabled -%}
-            {%- if customer -%}
-              <li><a href="{{ routes.account_url }}">My account</a></li>
-            {%- else -%}
-              <li><a href="{{ routes.account_login_url }}">Sign in</a></li>
-            {%- endif -%}
-          {%- endif -%}
-        </ul>
-      </nav>
-
-      {%- if legal_rows != blank -%}
-        <nav aria-label="The fine print">
-          <h3>The fine print</h3>
-          <ul role="list">{{ legal_rows }}</ul>
-        </nav>
-      {%- endif -%}
-    </div>
-  {%- endif -%}
-
-  <p class="alp-foot__small">
-    © {{ section.settings.wordmark | default: shop.name | escape }} {{ 'now' | date: '%Y' }}
-    {%- if section.settings.small_print != blank %} — {{ section.settings.small_print | escape }}{% endif -%}
-  </p>
-
-  {%- comment -%}
-    The oversized bleed lockup — artwork, not type. Was set in
-    var(--alp-font-ui) at font-size: 24rem, which typeset "Bush Riding" as
-    text; the design system is explicit that the wordmark is drawn artwork
-    and must never be typeset. Image, sized by height, decorative (the
-    accessible name already lives on the header logo and the © line above).
-  {%- endcomment -%}
-  <div class="alp-foot__wordmark" aria-hidden="true">
-    {%- if section.settings.wordmark_image != blank -%}
-      {{ section.settings.wordmark_image | image_url: width: 2400 | image_tag: loading: 'lazy', alt: '' }}
-    {%- else -%}
-      <img
-        src="{{ 'wordmark-' | append: section.settings.wordmark_tone | append: '.svg' | asset_url }}"
-        alt=""
-        loading="lazy"
-        width="1273"
-        height="543"
-      >
-    {%- endif -%}
+  <div class="alp-ft__base">
+    <span>© Bush Riding™ {{ 'now' | date: '%Y' }}<span class="alp-d"> · {{ section.settings.signoff | escape }}</span></span>
+    <span class="alp-m">{%- render 'alp-currency', id: 'FooterCurrencyPhone' -%}</span>
   </div>
 </footer>
 
@@ -171,63 +85,43 @@
   "name": "Bush Riding footer",
   "tag": "div",
   "settings": [
-    { "type": "text", "id": "newsletter_heading", "label": "Newsletter heading", "default": "Ride with us." },
-    {
-      "type": "text",
-      "id": "newsletter_text",
-      "label": "Newsletter text",
-      "default": "One email a month from the bush — stories, routes and first looks. No noise."
-    },
-    { "type": "text", "id": "newsletter_button", "label": "Newsletter button", "default": "Go" },
-    {
-      "type": "text",
-      "id": "wordmark",
-      "label": "Wordmark",
-      "default": "Bush Riding™",
-      "info": "Leave blank to use the store name. Used for the © line and the bleed image's alt text fallback."
-    },
-    { "type": "text", "id": "small_print", "label": "Small print" },
-    { "type": "header", "content": "Automatic links" },
-    {
-      "type": "paragraph",
-      "content": "With no link columns set below, the footer lists the collections, blogs and policies the store actually has. Add a column to take over."
-    },
-    { "type": "text", "id": "map_label", "label": "Bush Map label", "default": "BUSH MAP™" },
-    { "type": "url", "id": "map_url", "label": "Bush Map link", "info": "Defaults to https://map.bushriding.cc." },
-    { "type": "header", "content": "Bleed wordmark" },
-    {
-      "type": "select",
-      "id": "wordmark_tone",
-      "label": "Tone",
-      "options": [
-        { "value": "mist", "label": "Mist (default — the page colour on olive)" },
-        { "value": "bone", "label": "Bone" },
-        { "value": "olive", "label": "Olive" },
-        { "value": "khaki", "label": "Khaki" },
-        { "value": "sage", "label": "Sage" },
-        { "value": "flare", "label": "Flare" },
-        { "value": "white", "label": "White" },
-        { "value": "black", "label": "Black" }
-      ],
-      "default": "mist"
-    },
-    {
-      "type": "image_picker",
-      "id": "wordmark_image",
-      "label": "Image override",
-      "info": "Leave blank to use the shipped mist wordmark artwork above."
-    }
+    { "type": "text", "id": "news_heading", "label": "Newsletter heading", "default": "Newsletter" },
+    { "type": "text", "id": "news_copy", "label": "Newsletter line", "default": "We send the occasional route, nothing else." },
+    { "type": "text", "id": "signoff", "label": "Sign-off after the copyright", "default": "Designed in Australia" }
   ],
   "blocks": [
     {
       "type": "column",
       "name": "Link column",
+      "limit": 4,
       "settings": [
-        { "type": "text", "id": "heading", "label": "Heading", "default": "Shop" },
-        { "type": "link_list", "id": "menu", "label": "Menu" }
+        { "type": "text", "id": "heading", "label": "Heading", "default": "HELP" },
+        { "type": "link_list", "id": "menu", "label": "Menu", "info": "Leave empty to use the built-in links below." },
+        {
+          "type": "select",
+          "id": "preset",
+          "label": "Built-in links",
+          "options": [
+            { "value": "help", "label": "Help: shipping, returns, size guide" },
+            { "value": "brand", "label": "Bush Riding: about, rides, map" },
+            { "value": "contact", "label": "Contact: customer service, Instagram, Strava" },
+            { "value": "legal", "label": "Legal: privacy, terms, accessibility" }
+          ],
+          "default": "help"
+        }
       ]
     }
   ],
-  "max_blocks": 4
+  "presets": [
+    {
+      "name": "Bush Riding footer",
+      "blocks": [
+        { "type": "column", "settings": { "heading": "HELP", "preset": "help" } },
+        { "type": "column", "settings": { "heading": "BUSH RIDING", "preset": "brand" } },
+        { "type": "column", "settings": { "heading": "CONTACT", "preset": "contact" } },
+        { "type": "column", "settings": { "heading": "LEGAL", "preset": "legal" } }
+      ]
+    }
+  ]
 }
 {% endschema %}

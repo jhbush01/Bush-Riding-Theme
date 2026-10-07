@@ -1,0 +1,235 @@
+{%- comment -%}
+  Collection (D03 / D04 desktop, M04 / M05 phone).
+
+  Category bar: View all · New in · Bottoms · T-Shirts soon · Caps soon, and
+  at the right either "1 product" or — from the Theme settings threshold
+  (6) up — Filters and Sort by. Filters and Sort do nothing for a handful of
+  products, so they aren't drawn until they would.
+
+  Desktop: product tiles two-up in the left half, the lifestyle photo holding
+  the right half, then a Next drop tile per category that hasn't landed and
+  the olive "Hear about the next drop first." tile.
+  Phone: one column, a full-width lifestyle photo after every two products,
+  then the Next drop band.
+
+  Filters are Shopify's (Search & Discovery). Desktop drops them under the
+  bar; on a phone the same form is a bottom sheet with accordions. "Show N
+  results" is a live count — alpine.js re-asks this section for its count
+  as the boxes change.
+{%- endcomment -%}
+{%- liquid
+  assign threshold = settings.alp_filter_threshold | default: 6
+  assign show_tools = false
+  if collection.all_products_count >= threshold
+    assign show_tools = true
+  endif
+
+  assign active = 0
+  for f in collection.filters
+    assign active = active | plus: f.active_values.size
+    if f.type == 'price_range'
+      if f.min_value.value != blank or f.max_value.value != blank
+        assign active = active | plus: 1
+      endif
+    endif
+  endfor
+
+  assign count = collection.products_count
+  assign sort_by = collection.sort_by | default: collection.default_sort_by
+
+  assign codes = section.settings.codes | newline_to_br | split: '<br />'
+-%}
+
+{%- paginate collection.products by 24 -%}
+<section
+  class="alp alp-cat"
+  data-alp-cat
+  data-alp-section="{{ section.id }}"
+  data-alp-count="{{ count }}"
+>
+  <h1 class="alp-vh">{{ collection.title | escape }}</h1>
+
+  <div class="alp-cat__bar">
+    <nav class="alp-cats alp-cats--bar" aria-label="Categories">
+      {%- render 'alp-shop-links', variant: 'bar' -%}
+    </nav>
+    <span class="alp-cat__spacer alp-d"></span>
+    {%- if show_tools -%}
+      <button class="alp-cat__tool alp-d" type="button" data-alp-toggle="alp-filters" aria-expanded="false" aria-controls="alp-filters">
+        Filters{% if active > 0 %} ({{ active }}){% endif %}
+      </button>
+      <label class="alp-cat__sort alp-d">
+        <span class="alp-vh">Sort by</span>
+        <select name="sort_by" form="alp-filter-form" data-alp-autosubmit>
+          {%- for o in collection.sort_options -%}
+            <option value="{{ o.value | escape }}"{% if o.value == sort_by %} selected{% endif %}>{% if forloop.first %}Sort by: {% endif %}{{ o.name | escape }}</option>
+          {%- endfor -%}
+        </select>
+      </label>
+    {%- else -%}
+      <span class="alp-cat__count alp-d">{{ count }} {% if count == 1 %}product{% else %}products{% endif %}</span>
+    {%- endif -%}
+  </div>
+
+  <div class="alp-cat__countrow alp-m">
+    <span>{{ count }} {% if count == 1 %}product{% else %}products{% endif %}</span>
+    {%- if show_tools -%}
+      <button class="alp-chip alp-chip--line" type="button" data-alp-toggle="alp-filters" aria-expanded="false" aria-controls="alp-filters">
+        Filters{% if active > 0 %} ({{ active }}){% endif %}
+      </button>
+    {%- endif -%}
+  </div>
+
+  {%- if show_tools -%}
+    <div class="alp-filters" id="alp-filters" data-alp-panel data-alp-sheet hidden>
+      <form class="alp-filters__form" id="alp-filter-form" action="{{ collection.url }}" method="get" data-alp-filter-form>
+        <div class="alp-sheet__grab alp-m" aria-hidden="true"></div>
+        <div class="alp-sheet__head alp-m">
+          <span>Filters</span>
+          <button class="alp-x" type="button" data-alp-close aria-label="Close filters">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        </div>
+
+        <div class="alp-filters__groups">
+          {%- for f in collection.filters -%}
+            {%- assign is_size = false -%}
+            {%- assign label_down = f.label | downcase -%}
+            {%- if label_down contains 'size' -%}{%- assign is_size = true -%}{%- endif -%}
+            <details class="alp-filters__group"{% if forloop.first or f.active_values.size > 0 %} open{% endif %}>
+              <summary class="alp-filters__head">{{ f.label | escape }}<span class="alp-menu__pm alp-m" aria-hidden="true"></span></summary>
+              {%- case f.type -%}
+                {%- when 'price_range' -%}
+                  <div class="alp-filters__price">
+                    <label><span>From</span>
+                      <input type="number" name="{{ f.min_value.param_name }}" value="{{ f.min_value.value | money_without_currency | remove: ',' }}" placeholder="0" min="0" inputmode="decimal">
+                    </label>
+                    <label><span>To</span>
+                      <input type="number" name="{{ f.max_value.param_name }}" value="{{ f.max_value.value | money_without_currency | remove: ',' }}" placeholder="{{ f.range_max | money_without_currency | remove: ',' }}" min="0" inputmode="decimal">
+                    </label>
+                  </div>
+                {%- else -%}
+                  <div class="alp-filters__values{% if is_size %} alp-filters__values--sizes{% endif %}">
+                    {%- for v in f.values -%}
+                      {%- liquid
+                        assign code = ''
+                        for line in codes
+                          assign pair = line | strip | split: ':'
+                          if pair.size == 2
+                            assign k = pair[0] | strip | downcase
+                            assign vl = v.label | downcase
+                            if k == vl
+                              assign code = pair[1] | strip
+                            endif
+                          endif
+                        endfor
+                        assign dead = false
+                        if v.count == 0 and v.active == false
+                          assign dead = true
+                        endif
+                      -%}
+                      <label class="alp-opt{% if is_size %} alp-opt--tile{% elsif code != blank %} alp-opt--code{% else %} alp-opt--box{% endif %}{% if dead %} is-dead{% endif %}">
+                        <input
+                          type="checkbox"
+                          name="{{ v.param_name }}"
+                          value="{{ v.value }}"
+                          {% if v.active %}checked{% endif %}
+                          {% if dead %}disabled{% endif %}
+                        >
+                        {%- if is_size -%}
+                          <span class="alp-opt__face">{{ v.label | escape }}</span>
+                        {%- elsif code != blank -%}
+                          <span class="alp-opt__code">{{ code | escape }}</span><span class="alp-opt__text">{{ v.label | escape }}</span>
+                        {%- else -%}
+                          <span class="alp-opt__box" aria-hidden="true"></span><span class="alp-opt__text">{{ v.label | escape }}</span>
+                        {%- endif -%}
+                      </label>
+                    {%- endfor -%}
+                  </div>
+              {%- endcase -%}
+            </details>
+          {%- endfor -%}
+        </div>
+
+        <div class="alp-filters__actions">
+          <button class="alp-btn" type="submit" data-alp-filter-submit>Show {{ count }} {% if count == 1 %}result{% else %}results{% endif %}</button>
+          <button class="alp-btn alp-btn--line alp-d" type="button" data-alp-close>Cancel</button>
+          <a class="alp-btn alp-btn--line alp-m" href="{{ collection.url }}?sort_by={{ sort_by | url_encode }}">Clear</a>
+        </div>
+      </form>
+    </div>
+  {%- endif -%}
+
+  <div class="alp-cat__layout">
+    <div class="alp-cat__tiles">
+      {%- assign n = collection.products.size -%}
+      {%- for product in collection.products -%}
+        {%- if forloop.index <= 2 -%}{%- assign eager = 'eager' -%}{%- else -%}{%- assign eager = 'lazy' -%}{%- endif -%}
+        {%- render 'alp-card', product: product, loading: eager -%}
+        {%- liquid
+          assign put_life = false
+          assign every = forloop.index | modulo: 2
+          if every == 0 and forloop.last == false
+            assign put_life = true
+          endif
+          if forloop.last and n < 3
+            assign put_life = true
+          endif
+        -%}
+        {%- if put_life and section.settings.lifestyle != blank -%}
+          <div class="alp-photo alp-photo--520 alp-m">
+            {{ section.settings.lifestyle | image_url: width: 1200 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '600, 900, 1200', sizes: '100vw', alt: '' }}
+          </div>
+        {%- endif -%}
+      {%- else -%}
+        <p class="alp-cat__empty">Nothing here yet. {% if active > 0 %}<a href="{{ collection.url }}">Clear the filters</a>{% else %}<a href="{{ routes.all_products_collection_url }}">See everything</a>{% endif %}</p>
+      {%- endfor -%}
+
+      {%- if paginate.current_page == 1 and active == 0 -%}
+        <div class="alp-d alp-contents">
+          {%- render 'alp-next-drop', variant: 'tiles', key: 'cat' -%}
+          <div class="alp-olive-tile">
+            <p class="alp-olive-tile__head">{{ section.settings.notify_heading | escape }}</p>
+            {%- render 'alp-signup', id: 'CatNextDrop', tags: 'next-drop', label: 'Notify me', tone: 'olive', size: 'sm', thanks: "Noted. You'll hear first." -%}
+          </div>
+        </div>
+      {%- endif -%}
+    </div>
+
+    <div class="alp-cat__feature alp-d">
+      {%- if section.settings.lifestyle != blank -%}
+        {{ section.settings.lifestyle | image_url: width: 1600 | image_tag: class: 'alp-fill', loading: 'eager', widths: '800, 1200, 1600', sizes: '50vw', alt: '' }}
+      {%- endif -%}
+    </div>
+  </div>
+
+  {%- if paginate.current_page == 1 and active == 0 -%}
+    <div class="alp-m">{%- render 'alp-next-drop', variant: 'band', key: 'cat' -%}</div>
+  {%- endif -%}
+
+  {%- if paginate.pages > 1 -%}
+    <nav class="alp-pages" aria-label="Pages">
+      {%- if paginate.previous -%}<a href="{{ paginate.previous.url }}">← Previous</a>{%- endif -%}
+      <span>Page {{ paginate.current_page }} of {{ paginate.pages }}</span>
+      {%- if paginate.next -%}<a href="{{ paginate.next.url }}">Next →</a>{%- endif -%}
+    </nav>
+  {%- endif -%}
+</section>
+{%- endpaginate -%}
+
+{% schema %}
+{
+  "name": "Collection",
+  "tag": "div",
+  "settings": [
+    { "type": "image_picker", "id": "lifestyle", "label": "Lifestyle photo", "info": "Holds the right half on desktop; repeats after every two products on phones." },
+    { "type": "text", "id": "notify_heading", "label": "Next-drop tile heading", "default": "Hear about the next drop first." },
+    {
+      "type": "textarea", "id": "codes", "label": "Filter codes",
+      "default": "Ultra-lightweight nylon shell: LW\nMoisture-wicking lining: MW\nRear zip pocket: ZP",
+      "info": "One per line, \"Filter value: CODE\". Shown as the two-letter code tile in Filters."
+    },
+    { "type": "paragraph", "content": "Filters and Sort appear once a collection reaches the count set in Theme settings → Bush Riding." }
+  ]
+}
+{% endschema %}

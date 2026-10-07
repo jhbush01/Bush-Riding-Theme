@@ -1,0 +1,44 @@
+{%- comment -%}
+  Email signup — the newsletter and every "Notify me". All of them are
+  Shopify customer forms; the tags are what tell them apart in Admin →
+  Customers (newsletter vs next-drop, t-shirts…), so no app is needed to
+  segment who asked for what.
+
+  id       – unique form id (required)
+  tags     – customer tags
+  label    – button text (Subscribe)
+  tone     – 'olive' for the bone-on-olive tile
+  thanks   – success line
+{%- endcomment -%}
+{%- liquid
+  assign classes = 'alp-signup'
+  if tone == 'olive'
+    assign classes = classes | append: ' alp-signup--olive'
+  endif
+  if size == 'sm'
+    assign classes = classes | append: ' alp-signup--sm'
+  endif
+-%}
+{%- form 'customer', id: id, class: classes -%}
+  <input type="hidden" name="contact[tags]" value="{{ tags | default: 'newsletter' }}">
+  {%- if form.posted_successfully? -%}
+    <p class="alp-signup__ok" role="status">{{ thanks | default: "You're on the list. We'll be in touch." }}</p>
+  {%- else -%}
+    <label class="alp-vh" for="{{ id }}-email">Email address</label>
+    <input
+      class="alp-signup__input"
+      id="{{ id }}-email"
+      type="email"
+      name="contact[email]"
+      placeholder="Email address"
+      autocomplete="email"
+      autocapitalize="off"
+      spellcheck="false"
+      required
+    >
+    <button class="alp-signup__btn" type="submit">{{ label | default: 'Subscribe' }}</button>
+    {%- if form.errors -%}
+      <p class="alp-signup__err" role="alert">That email didn't go through. Mind checking it?</p>
+    {%- endif -%}
+  {%- endif -%}
+{%- endform -%}

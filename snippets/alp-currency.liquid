@@ -1,0 +1,20 @@
+{%- comment -%}
+  Country / currency — "AU / (AUD) ▾". Shopify Markets drives it; with only
+  one market there is nothing to choose, so it is plain text.
+  id – unique form id
+{%- endcomment -%}
+{%- assign here = localization.country -%}
+{%- capture current -%}{{ here.iso_code }} / ({{ here.currency.iso_code }}){%- endcapture -%}
+{%- if localization.available_countries.size > 1 -%}
+  {%- form 'localization', id: id, class: 'alp-currency' -%}
+    <label class="alp-vh" for="{{ id }}-select">Country / region</label>
+    <select class="alp-currency__select" id="{{ id }}-select" name="country_code" data-alp-autosubmit>
+      {%- for c in localization.available_countries -%}
+        <option value="{{ c.iso_code }}"{% if c.iso_code == here.iso_code %} selected{% endif %}>{{ c.iso_code }} / ({{ c.currency.iso_code }})</option>
+      {%- endfor -%}
+    </select>
+    <noscript><button type="submit">Update</button></noscript>
+  {%- endform -%}
+{%- else -%}
+  <span class="alp-currency">{{ current }}</span>
+{%- endif -%}

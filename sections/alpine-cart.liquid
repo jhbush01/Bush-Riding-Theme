@@ -1,0 +1,72 @@
+{%- comment -%}
+  The cart drawer and the two quick-add sheets. Rendered once from
+  layout/theme.liquid and re-rendered by alpine.js through Shopify's Section
+  Rendering API after every add or change (sections=alpine-cart).
+
+  Drawer (D07): 640px from the right, page dimmed; full screen on a phone
+  (M08). Opens by itself after an add on desktop.
+  Quick add (M06a): "Choose a size to add" — tapping a size adds it.
+  Added (M06b): the item, Subtotal, View cart + Checkout, Keep shopping.
+  Both sheets are filled from the card's data and the add response.
+{%- endcomment -%}
+<div class="alp alp-cartwrap" data-alp-cart-root data-alp-cart-count-value="{{ cart.item_count }}">
+  <aside class="alp-drawer" id="alp-cart" data-alp-panel data-alp-drawer role="dialog" aria-modal="true" aria-labelledby="alp-cart-title" hidden>
+    <div class="alp-drawer__head">
+      <h2 class="alp-drawer__title" id="alp-cart-title">Cart ({{ cart.item_count }})</h2>
+      <button class="alp-x" type="button" data-alp-close aria-label="Close cart">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="alp-drawer__body" data-alp-cart-body>
+      {%- render 'alp-cart-body', where: 'drawer' -%}
+    </div>
+  </aside>
+
+  <div class="alp-sheet" id="alp-quick" data-alp-panel data-alp-sheet role="dialog" aria-modal="true" aria-labelledby="alp-quick-title" hidden>
+    <div class="alp-sheet__grab" aria-hidden="true"></div>
+    <div class="alp-sheet__head">
+      <span id="alp-quick-title">Choose a size to add</span>
+      <button class="alp-x" type="button" data-alp-close aria-label="Close">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="alp-sheet__item">
+      <span class="alp-sheet__thumb"><img alt="" width="240" height="320" data-alp-q-img hidden></span>
+      <span><b class="alp-sheet__name" data-alp-q-title></b><br><span data-alp-q-price></span> {{ cart.currency.iso_code }}</span>
+    </div>
+    <div class="alp-sheet__sizes" data-alp-q-sizes></div>
+    <p class="alp-sheet__hint">
+      <span>Tapping a size adds it to your cart.</span>
+      {%- capture size_url -%}{%- render 'alp-link', to: 'size_guide' -%}{%- endcapture -%}
+      {%- if size_url != blank -%}<a href="{{ size_url }}">Size guide</a>{%- endif -%}
+    </p>
+  </div>
+
+  <div class="alp-sheet" id="alp-added" data-alp-panel data-alp-sheet role="dialog" aria-modal="true" aria-labelledby="alp-added-title" hidden>
+    <div class="alp-sheet__grab" aria-hidden="true"></div>
+    <div class="alp-sheet__head">
+      <span id="alp-added-title">Added to cart</span>
+      <button class="alp-x" type="button" data-alp-close aria-label="Close">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="alp-sheet__item">
+      <span class="alp-sheet__thumb"><img alt="" width="240" height="320" data-alp-a-img hidden></span>
+      <span><b class="alp-sheet__name" data-alp-a-title></b><br><span data-alp-a-meta></span></span>
+    </div>
+    <p class="alp-sheet__total"><span>Subtotal</span><span data-alp-subtotal>{{ cart.total_price | money_without_trailing_zeros }}</span></p>
+    <form class="alp-pair alp-pair--12" action="{{ routes.cart_url }}" method="post">
+      <a class="alp-btn alp-btn--line" href="{{ routes.cart_url }}" data-alp-open-cart>View cart</a>
+      <button class="alp-btn alp-btn--flare" type="submit" name="checkout">Checkout</button>
+    </form>
+    <button class="alp-sheet__keep" type="button" data-alp-close>Keep shopping</button>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Cart drawer",
+  "tag": "div",
+  "settings": []
+}
+{% endschema %}

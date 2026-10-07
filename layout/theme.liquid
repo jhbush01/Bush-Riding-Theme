@@ -4,11 +4,9 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-    {%- comment -%} Safari tints the notch/status-bar area with theme-color, so
-        it should be the colour the bar actually sits on — and that is mist on
-        every template now. (It was a near-black and an off-white left over from
-        the photo hero; neither is a brand tone.) {%- endcomment -%}
-    <meta name="theme-color" content="#a7b8b4">
+    {%- comment -%} Safari tints the status bar with theme-color: bone, the colour
+        the header sits on. {%- endcomment -%}
+    <meta name="theme-color" content="#edecc5">
     <link rel="canonical" href="{{ canonical_url }}">
 
     {%- if settings.favicon != blank -%}
@@ -19,7 +17,7 @@
       <link rel="preconnect" href="https://fonts.shopifycdn.com" crossorigin>
     {%- endunless -%}
 
-    {%- comment -%} ALP1NE skin: display + UI faces, tokens and behaviour {%- endcomment -%}
+    {%- comment -%} Bush Riding storefront: Archivo (headings) + Inter (body), tokens and behaviour {%- endcomment -%}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -354,6 +352,9 @@
     </main>
 
     {% sections 'footer-group' %}
+
+    {%- comment -%} Cart drawer + quick-add sheets; re-rendered by alpine.js after every add. {%- endcomment -%}
+    {% section 'alpine-cart' %}
 
     <ul hidden>
       <li id="a11y-refresh-page-message">{{ 'accessibility.refresh_page' | t }}</li>

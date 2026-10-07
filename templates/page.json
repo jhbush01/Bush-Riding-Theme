@@ -1,14 +1,44 @@
 {
   "sections": {
-    "main": {
-      "type": "main-page",
+    "about": {
+      "type": "alpine-about",
       "settings": {
-        "padding_top": 28,
-        "padding_bottom": 28
+        "only_handle": "about",
+        "image": "shopify://shop_images/IMG_0891.jpg",
+        "photo_1": "shopify://shop_images/IMG_2419.jpg",
+        "photo_2": "shopify://shop_images/IMG_2124.jpg",
+        "photo_3": "shopify://shop_images/IMG_8186.jpg"
+      }
+    },
+    "rides": {
+      "type": "alpine-rides",
+      "settings": {
+        "only_handle": "rides",
+        "photo_1": "shopify://shop_images/IMG_2419.jpg",
+        "photo_2": "shopify://shop_images/IMG_2124.jpg",
+        "photo_3": "shopify://shop_images/IMG_8186.jpg",
+        "limit": 3,
+        "recaps": 2
+      }
+    },
+    "bush_map": {
+      "type": "alpine-bush-map",
+      "settings": {
+        "only_handle": "bush-map",
+        "limit": 6
+      }
+    },
+    "main": {
+      "type": "alpine-page",
+      "settings": {
+        "skip_handles": "about, rides, bush-map"
       }
     }
   },
   "order": [
+    "about",
+    "rides",
+    "bush_map",
     "main"
   ]
 }

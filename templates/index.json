@@ -9,92 +9,58 @@
  */
 {
   "sections": {
-    "alpine_hero": {
+    "hero": {
       "type": "alpine-hero",
       "settings": {
         "video_url": "",
         "image": "shopify://shop_images/IMG_8186.jpg",
-        "tagline": "",
-        "place": "Wooyung Beach, New South Wales",
-        "frame": "",
         "show_wordmark": true,
-        "wordmark_tone": "bone"
+        "wordmark_tone": "bone",
+        "tagline": "Made for the detour."
       }
     },
-    "alpine_country": {
-      "type": "alpine-passage",
+    "shop": {
+      "type": "alpine-home-shop",
       "settings": {
-        "ground": "bone",
-        "size": "large",
-        "rule_below": false,
-        "eyebrow": "The country",
-        "heading": "Our country is vast, breath-taking and at times, unforgiving.",
-        "body": "<p>Sweltering summer storms electrocute the sky and clap our ears with thunder.</p><p>Star-choked outback skies swallow the darkness whole.</p>",
-        "cta_label": "",
-        "cta_url": ""
+        "lifestyle": "shopify://shop_images/IMG_2124.jpg",
+        "lifestyle_caption": "On the long way home",
+        "second_suffix": ", rear",
+        "mobile_heading": "The shorts"
       }
     },
-    "alpine_tile_story": {
-      "type": "alpine-tile",
-      "settings": {
-        "collection": "",
-        "image": "shopify://shop_images/IMG_2124.jpg",
-        "video_url": "",
-        "eyebrow": "Mount Nebo, Queensland",
-        "label": "",
-        "blurb": "",
-        "label_size": "label",
-        "frame": "",
-        "link": "",
-        "veil": true,
-        "height": "medium",
-        "full_width": true
-      }
-    },
-    "alpine_shelf": {
-      "type": "alpine-shelf",
-      "settings": {
-        "collection": "bush-riding-launch",
-        "layout": "solo",
-        "products_to_show": 2,
-        "columns": "2",
-        "image_ratio": "adapt",
-        "eyebrow": "New",
-        "heading": "The Tailwind shorts. Your next adventure starts here.",
-        "link_label": "Explore ✦",
-        "link_url": "/collections/all"
-      }
-    },
-    "alpine_map": {
-      "type": "alpine-passage",
-      "settings": {
-        "ground": "olive",
-        "size": "large",
-        "rule_below": true,
-        "eyebrow": "Bush Map™",
-        "heading": "Finding gravel routes can be painful, so we made our own map.",
-        "body": "<p></p><p>Explore the Bush Map and find curated routes created by our community. <br/>We've made it easy to download the GPX file so that you spend less time planning and more time riding. </p>",
-        "cta_label": "Explore the map",
-        "cta_url": "https://map.bushriding.cc"
-      }
-    },
-    "alpine_next_ride": {
-      "type": "alpine-next-ride",
-      "settings": {
-        "ground": "mist",
-        "heading": "Next ride",
-        "note": "Free · all welcome",
-        "cta_label": "View on BUSH MAP™ →",
-        "show_on_desktop": false
-      }
+    "pair": {
+      "type": "alpine-duo",
+      "blocks": {
+        "rides": {
+          "type": "panel",
+          "settings": {
+            "image": "shopify://shop_images/IMG_2419.jpg",
+            "ground": "bone",
+            "title": "Ride with us",
+            "chip": "Rides",
+            "to": "rides"
+          }
+        },
+        "map": {
+          "type": "panel",
+          "settings": {
+            "ground": "mist",
+            "title": "Get the route. Join the bush.",
+            "chip": "BUSH MAP™",
+            "to": "map"
+          }
+        }
+      },
+      "block_order": [
+        "rides",
+        "map"
+      ],
+      "settings": {}
     }
   },
   "order": [
-    "alpine_hero",
-    "alpine_next_ride",
-    "alpine_shelf",
-    "alpine_country",
-    "alpine_tile_story",
-    "alpine_map"
+    "hero",
+    "shop",
+    "pair"
   ]
 }

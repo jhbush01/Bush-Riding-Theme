@@ -1,0 +1,19 @@
+{%- comment -%}
+  /cart — the same body as the drawer, as a page. Reached without script, or
+  from "View cart". On a phone it reads as M08: lines, then a sticky
+  Subtotal + Checkout.
+{%- endcomment -%}
+<section class="alp alp-cartpage" data-alp-cart-page>
+  <h1 class="alp-cartpage__title">Cart ({{ cart.item_count }})</h1>
+  <div data-alp-cart-body>
+    {%- render 'alp-cart-body', where: 'page' -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Cart",
+  "tag": "div",
+  "settings": []
+}
+{% endschema %}

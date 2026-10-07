@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="_ds/bush-riding-design-system-e1a4add7-9c80-4356-9e4f-0696f3fb404c/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/bush-riding-design-system-e1a4add7-9c80-4356-9e4f-0696f3fb404c/tokens/colors.css">
+<link rel="stylesheet" href="_ds/bush-riding-design-system-e1a4add7-9c80-4356-9e4f-0696f3fb404c/tokens/typography.css">
+<link rel="stylesheet" href="_ds/bush-riding-design-system-e1a4add7-9c80-4356-9e4f-0696f3fb404c/tokens/space.css">
+<link rel="stylesheet" href="_ds/bush-riding-design-system-e1a4add7-9c80-4356-9e4f-0696f3fb404c/tokens/base.css">
+<link rel="stylesheet" href="_ds/bush-riding-design-system-e1a4add7-9c80-4356-9e4f-0696f3fb404c/styles.css">
+<script src="_ds/bush-riding-design-system-e1a4add7-9c80-4356-9e4f-0696f3fb404c/_ds_bundle.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Archivo:wght@600&family=Inter:wght@400;500&display=swap">
+<style>
+body{margin:0;background:#edecc5;font-family:Inter,system-ui,sans-serif;color:#4c4b3b}
+a{color:#4c4b3b}a:hover{color:#817f57}
+.dv-turn{padding:40px 44px 32px;border-bottom:1px solid rgba(76,75,59,.24);scroll-margin-top:16px}
+.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 8px}
+.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#4c4b3b;color:#edecc5;border-radius:4px;text-decoration:none}
+.dv-tname{font:600 15px/1.2 Archivo,sans-serif}
+.dv-sub{font:16px/1.4 Kalam,cursive;color:#817f57;margin:0 0 28px;max-width:900px}
+.dv-grp{margin:0 0 44px;display:inline-block;vertical-align:top;margin-right:56px}
+.dv-gname{font:600 13px Archivo,sans-serif;letter-spacing:.08em;text-transform:uppercase;margin:0 0 14px;padding-bottom:6px;border-bottom:1px solid rgba(76,75,59,.24)}
+.dv-opts{display:flex;gap:28px;align-items:flex-start}
+.dv-opt{flex:none;display:flex;flex-direction:column;gap:10px;scroll-margin-top:16px;width:402px}
+.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(76,75,59,.12);color:#4c4b3b;border-radius:5px;text-decoration:none}
+.dv-olabel{display:flex;align-items:baseline;gap:8px;font:12px/1.3 Inter,sans-serif}
+.dv-opt:target .dv-oid{background:#ece26a}
+.dv-next{margin:10px 0 0;font:12px/1.5 Inter,sans-serif;color:#817f57}
+.sc{padding-top:54px;background:#fff;min-height:100%;position:relative;box-sizing:border-box;color:#4c4b3b}
+.fx{height:874px;overflow:hidden}
+.mh{display:flex;align-items:center;gap:16px;height:48px;padding:0 16px;font:600 12px Archivo,sans-serif;border-bottom:1px solid rgba(76,75,59,.24);background:#fff;position:relative;z-index:2}
+.u{text-decoration:underline;text-underline-offset:3px}
+.ph{position:relative;background:linear-gradient(to top right,transparent calc(50% - .7px),rgba(76,75,59,.4) 50%,transparent calc(50% + .7px)),linear-gradient(to bottom right,transparent calc(50% - .7px),rgba(76,75,59,.4) 50%,transparent calc(50% + .7px)),#b8bca1}
+.pp{position:relative;background:linear-gradient(to top right,transparent calc(50% - .5px),rgba(76,75,59,.2) 50%,transparent calc(50% + .5px)),linear-gradient(to bottom right,transparent calc(50% - .5px),rgba(76,75,59,.2) 50%,transparent calc(50% + .5px)),#eceada}
+.mp{position:relative;background:repeating-linear-gradient(35deg,transparent 0 14px,rgba(76,75,59,.12) 14px 15px),#a7b8b4}
+.lb{position:absolute;left:8px;bottom:6px;font:500 11px Inter,sans-serif;background:rgba(255,255,255,.85);padding:1px 5px}
+.cap{font:12px/1.45 Inter,sans-serif}
+.mut{color:#817f57}
+.h{font:600 22px/1.15 Archivo,sans-serif}
+.h2{font:600 15px/1.2 Archivo,sans-serif}
+.ch{border:1px solid #4c4b3b;padding:8px 12px;font:12px Inter,sans-serif;white-space:nowrap;text-align:center}
+.bt{background:#4c4b3b;color:#edecc5;padding:14px;font:500 13px Inter,sans-serif;text-align:center}
+.bf{background:#ece26a;color:#4c4b3b;padding:14px;font:500 13px Inter,sans-serif;text-align:center;border:1px solid #4c4b3b}
+.in{border:1px solid #4c4b3b;padding:13px 12px;font:13px Inter,sans-serif;color:#817f57;flex:1}
+.ln{height:1px;background:rgba(76,75,59,.24)}
+.row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid rgba(76,75,59,.24);font:14px Inter,sans-serif}
+.soon{font:italic 11px Inter,sans-serif;color:#817f57}
+.dim{position:absolute;inset:0;background:rgba(76,75,59,.45);z-index:3}
+.nt{margin:0;padding:0 0 0 16px;font:15px/1.35 Kalam,cursive;display:flex;flex-direction:column;gap:3px}
+</style>
+</helmet>
+<section class="dv-turn" id="t4">
+<div class="dv-thd"><a class="dv-tid" href="#t4">4</a><span class="dv-tname">Confirmed mobile set</span></div>
+<p class="dv-sub">Menu <a class="dv-oid" href="#3a">3a</a> · Home <a class="dv-oid" href="#3d">3d</a> · Shop landing <a class="dv-oid" href="#3e">3e</a> · Collection <a class="dv-oid" href="#3g">3g</a> · Filters <a class="dv-oid" href="#3i">3i</a> · Product <a class="dv-oid" href="#3k">3k</a> · Search <a class="dv-oid" href="#4a">4a</a>, which is <a class="dv-oid" href="#3m">3m</a> with results grouped like <a class="dv-oid" href="#3n">3n</a> · Cart <a class="dv-oid" href="#3o">3o</a> · Bush Map <a class="dv-oid" href="#3r">3r</a> · Rides <a class="dv-oid" href="#3s">3s</a> · About <a class="dv-oid" href="#3u">3u</a> · Footer <a class="dv-oid" href="#3x">3x</a></p>
+<div class="dv-grp"><div class="dv-gname">Search · merged</div><div class="dv-opts">
+<div class="dv-opt" id="4a"><div class="dv-olabel"><a class="dv-oid" href="#4a">4a</a><a class="dv-oid" href="#3m">3m</a> field and keyboard, results grouped like <a class="dv-oid" href="#3n">3n</a></div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" keyboard="{{ true }}" hint-size="402px,874px">
+<div class="sc">
+<div class="mh"><img src="assets/wordmark-olive.svg" style="height:16px"><span style="flex:1"></span><span class="u">Search</span><span>Cart (0)</span><span style="font-size:16px">≡</span></div>
+<div style="display:flex;padding:12px 16px"><span class="in" style="color:#4c4b3b">gravel sh<span style="border-right:2px solid #4c4b3b;margin-left:1px"></span></span><span class="bt" style="padding:13px 16px">Search</span></div>
+<div style="display:flex;gap:6px;padding:0 16px 8px"><span class="ch" style="background:#4c4b3b;color:#edecc5">All</span><span class="ch">Products 2</span><span class="ch">Routes 4</span><span class="ch">Rides 1</span></div>
+<div style="padding:0 16px">
+<div class="cap" style="letter-spacing:.1em;padding:8px 0 2px">PRODUCTS</div>
+<div style="display:flex;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(76,75,59,.24)"><div class="pp" style="width:56px;height:70px"></div><span class="cap" style="flex:1">Bottoms 01</span><span class="cap">$000</span></div>
+<div style="display:flex;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(76,75,59,.24)"><div class="pp" style="width:56px;height:70px"></div><span class="cap" style="flex:1">Bottoms 02</span><span class="cap">$000</span></div>
+<div class="cap" style="letter-spacing:.1em;padding:14px 0 2px">ROUTES · BUSH MAP</div>
+<div class="row"><span class="cap">Route name</span><span class="cap mut">84 km · 1,210 m</span></div>
+<div class="row"><span class="cap">Route name</span><span class="cap mut">132 km · 2,040 m</span></div>
+<div class="cap" style="letter-spacing:.1em;padding:14px 0 2px">RIDES</div>
+<div class="row"><span class="cap">Sat 18 Oct · Ride name</span><span class="cap u">RSVP</span></div></div>
+</div>
+</x-import>
+<ul class="nt"><li>Before anything is typed, the list shows Most popular, as in <a class="dv-oid" href="#3m">3m</a>. Once you type, results split into Products, Routes and Rides.</li></ul></div>
+</div></div>
+</section>
+<section class="dv-turn" id="t3">
+<div class="dv-thd"><a class="dv-tid" href="#t3">3</a><span class="dv-tname">Mobile wireframes · iPhone 402px, built from the confirmed desktop set</span></div>
+<p class="dv-sub">Header on every screen: logo left, then Search, Cart and menu on the right. Product grids are one column, with a full-width lifestyle photo every two rows. Option a on each screen adapts the desktop pick directly; option b tries one alternative. Scroll inside each phone to see the full page.</p>
+
+<div class="dv-grp"><div class="dv-gname">01 · Menu (drop-down sheet)</div><div class="dv-opts">
+<div class="dv-opt" id="3a"><div class="dv-olabel"><a class="dv-oid" href="#3a">3a</a>Text-only sheet with nested Shop links</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="sc fx">
+<div class="mh"><img src="assets/wordmark-olive.svg" style="height:16px"><span style="flex:1"></span><span>Search</span><span>Cart (0)</span><span style="font-size:16px">×</span></div>
+<div class="ph" style="height:700px;opacity:.6"></div><div class="dim" style="top:102px"></div>
+<div style="position:absolute;top:102px;left:0;right:0;background:#fff;z-index:4;padding:8px 20px 20px;border-bottom:1.5px solid #4c4b3b">
+<div class="row" style="font:600 18px Archivo"><span>Shop</span><span>−</span></div>
+<div style="padding:4px 0 10px 14px;display:flex;flex-direction:column;gap:10px" class="cap"><span>View all</span><span>Bottoms</span><span class="mut">T-Shirts <span class="soon">· next drop</span></span><span class="mut">Caps <span class="soon">· next drop</span></span></div>
+<div class="row" style="font:600 18px Archivo"><span>Bush Map</span><span>→</span></div>
+<div class="row" style="font:600 18px Archivo"><span>Rides</span><span>→</span></div>
+<div class="row" style="font:600 18px Archivo"><span>About</span><span>→</span></div>
+<div style="display:flex;justify-content:space-between;padding-top:16px" class="cap"><span>Local time 08:29:04<br>Gold Coast, QLD · 24° cloud</span><span>AU / (AUD) ▾</span></div>
+</div></div>
+</x-import>
+<ul class="nt"><li>The sheet drops down under the header and leaves the page visible, dimmed, below it.</li><li>Local time and weather go at the bottom of the sheet, with currency beside them.</li></ul></div>
+
+<div class="dv-opt" id="3b"><div class="dv-olabel"><a class="dv-oid" href="#3b">3b</a>Sheet with category photo tiles above the text links</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="sc fx">
+<div class="mh"><img src="assets/wordmark-olive.svg" style="height:16px"><span style="flex:1"></span><span>Search</span><span>Cart (0)</span><span style="font-size:16px">×</span></div>
+<div class="ph" style="height:700px;opacity:.6"></div><div class="dim" style="top:102px"></div>
+<div style="position:absolute;top:102px;left:0;right:0;background:#fff;z-index:4;padding:16px 16px 20px;border-bottom:1.5px solid #4c4b3b">
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px"><div><div class="pp" style="height:130px"></div><div class="cap" style="padding-top:4px">Bottoms</div></div><div style="opacity:.55"><div class="pp" style="height:130px"></div><div class="cap" style="padding-top:4px">T-Shirts<br><span class="soon">next drop</span></div></div><div style="opacity:.55"><div class="pp" style="height:130px"></div><div class="cap" style="padding-top:4px">Caps<br><span class="soon">next drop</span></div></div></div>
+<div class="row" style="font:600 18px Archivo;margin-top:8px"><span>Shop all</span><span>→</span></div>
+<div class="row" style="font:600 18px Archivo"><span>Bush Map</span><span>→</span></div>
+<div class="row" style="font:600 18px Archivo"><span>Rides</span><span>→</span></div>
+<div class="row" style="font:600 18px Archivo"><span>About</span><span>→</span></div>
+<div style="display:flex;justify-content:space-between;padding-top:16px" class="cap"><span>08:29:04 · Gold Coast · 24°</span><span>AU / (AUD) ▾</span></div>
+</div></div>
+</x-import>
+<ul class="nt"><li>Category photos show what's coming in the next drop before anyone taps Shop.</li></ul></div>
+</div></div>
+
+<div class="dv-grp"><div class="dv-gname">02 · Home · from <a class="dv-oid" href="Wireframes Desktop.dc.html#1a">1a</a></div><div class="dv-opts">
+<div class="dv-opt" id="3c"><div class="dv-olabel"><a class="dv-oid" href="#3c">3c</a>Direct: hero, then a one-column feed of photos and products</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="sc">
+<div class="mh"><img src="assets/wordmark-olive.svg" style="height:16px"><span style="flex:1"></span><span>Search</span><span>Cart (0)</span><span style="font-size:16px">≡</span></div>
+<div class="ph" style="height:720px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:40px"><img src="assets/wordmark-bone.svg" style="width:260px;position:relative"><div style="width:1px;height:70px;border-left:1.5px dashed #fff;position:relative"></div><span class="lb">Video loop, portrait crop</span></div>
+<div class="ph" style="height:420px"><span class="lb">Lifestyle: bottoms on the bike</span></div>
+<div style="padding:12px 0"><div class="pp" style="height:440px;display:flex;align-items:flex-end;padding:12px;box-sizing:border-box"><div style="background:#fff;width:100%;text-align:center;padding:10px 0;font:13px Inter;position:relative">Quick view</div></div><div class="cap" style="padding:8px 16px">Bottoms 01<br>$000</div></div>
+<div style="padding-bottom:12px"><div class="pp" style="height:440px"></div><div class="cap" style="padding:8px 16px">Bottoms 02<br>$000</div></div>
+<div class="ph" style="height:300px"><span class="lb">Ride recap → Rides</span></div>
+<div class="mp" style="height:300px;margin-top:4px"><span class="lb">Bush Map still → Bush Map</span></div>
+<div class="cap mut" style="padding:16px">↓ footer (<a class="dv-oid" href="#3w">3w</a>)</div>
+</div>
+</x-import>
+<ul class="nt"><li>The hero is full height, as on desktop. Below it, the photo and product pairs stack into one column.</li><li>Quick View shows by default on mobile, because there's no hover on touch screens.</li></ul></div>
+
+<div class="dv-opt" id="3d"><div class="dv-olabel"><a class="dv-oid" href="#3d">3d</a>Hero, then a swipeable product row</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="sc">
+<div class="mh"><img src="assets/wordmark-olive.svg" style="height:16px"><span style="flex:1"></span><span>Search</span><span>Cart (0)</span><span style="font-size:16px">≡</span></div>
+<div class="ph" style="height:720px;display:flex;align-items:center;justify-content:center"><img src="assets/wordmark-bone.svg" style="width:260px;position:relative"><span class="lb">Video loop, portrait crop</span></div>
+<div style="display:flex;justify-content:space-between;padding:18px 16px 10px"><span class="h2">The bottoms</span><span class="cap u">Shop all</span></div>
+<div style="display:flex;gap:8px;padding-left:16px;overflow:hidden"><div style="flex:none;width:290px"><div class="pp" style="height:360px"></div><div class="cap" style="padding-top:6px">Bottoms 01 · $000</div></div><div style="flex:none;width:290px"><div class="pp" style="height:360px"></div><div class="cap" style="padding-top:6px">Bottoms 02 · $000</div></div></div>
+<div style="display:flex;justify-content:center;gap:5px;padding:12px"><span style="width:6px;height:6px;border-radius:50%;background:#4c4b3b"></span><span style="width:6px;height:6px;border-radius:50%;border:1px solid #4c4b3b"></span><span style="width:6px;height:6px;border-radius:50%;border:1px solid #4c4b3b"></span></div>
+<div class="ph" style="height:420px"><span class="lb">Lifestyle, full bleed</span></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:4px"><div class="ph" style="height:200px"><span class="lb">Rides</span></div><div class="mp" style="height:200px"><span class="lb">Bush Map</span></div></div>
+<div class="cap mut" style="padding:16px">↓ footer</div>
+</div>
+</x-import>
+<ul class="nt"><li>Each product card peeks at the next, so it's clear the row swipes sideways. This keeps the home page short.</li></ul></div>
+</div></div>
+
+<div class="dv-grp"><div class="dv-gname">03 · Shop landing · from <a class="dv-oid" href="Wireframes Desktop.dc.html#1c">1c</a></div><div class="dv-opts">
+<div class="dv-opt" id="3e"><div class="dv-olabel"><a class="dv-oid" href="#3e">3e</a>Direct: category list first, feature images below</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="sc">
+<div class="mh"><img src="assets/wordmark-olive.svg" style="height:16px"><span style="flex:1"></span><span>Search</span><span>Cart (0)</span><span style="font-size:16px">≡</span></div>
+<div style="padding:8px 20px 16px">
+<div class="row" style="font:600 18px Archivo"><span>View all</span><span>→</span></div>
+<div class="row" style="font:600 18px Archivo"><span>Bottoms</span><span>→</span></div>
+<div class="row" style="font:600 18px Archivo;color:#817f57"><span>T-Shirts <span class="soon">next drop</span></span><span></span></div>
+<div class="row" style="font:600 18px Archivo;color:#817f57"><span>Caps <span class="soon">next drop</span></span><span></span></div></div>
+<div class="pp" style="height:460px"><span class="lb">Bottoms 01</span></div>
+<div class="ph" style="height:460px;margin-top:4px"><span class="lb">Bottoms, out riding</span></div>
+<div style="padding:20px 16px;display:flex;flex-direction:column;gap:8px"><div style="display:flex"><span class="in">Email address</span><span class="bt" style="padding:13px 16px">Subscribe</span></div><div class="cap mut">We send the occasional route, nothing else.</div></div>
+</div>
+</x-import>
+<ul class="nt"><li>The desktop sidebar becomes a list at the top. The newsletter moves to the bottom of the page.</li></ul></div>
+
+<div class="dv-opt" id="3f"><div class="dv-olabel"><a class="dv-oid" href="#3f">3f</a>Feature images first, category chips stick to the top</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="sc">
+<div class="mh"><img src="assets/wordmark-olive.svg" style="height:16px"><span style="flex:1"></span><span>Search</span><span>Cart (0)</span><span style="font-size:16px">≡</span></div>
+<div style="display:flex;gap:6px;padding:10px 16px;border-bottom:1px solid rgba(76,75,59,.24);overflow:hidden;position:sticky;top:0;background:#fff;z-index:2"><span class="ch" style="background:#4c4b3b;color:#edecc5">All</span><span class="ch">Bottoms</span><span class="ch" style="opacity:.5">T-Shirts · soon</span><span class="ch" style="opacity:.5">Caps · soon</span></div>
+<div class="pp" style="height:520px"><span class="lb">Bottoms 01 · Shop bottoms</span></div>
+<div class="ph" style="height:520px;margin-top:4px"><span class="lb">Bottoms, out riding</span></div>
+<div class="pp" style="height:260px;margin-top:4px;opacity:.55"><span class="lb">T-Shirts & caps · next drop · Notify me</span></div>
+</div>
+</x-import>
+<ul class="nt"><li>Images get the whole screen. The category chips stay at the top as you scroll.</li></ul></div>
+</div></div>
+
+<div class="dv-grp"><div class="dv-gname">04 · Collection · from <a class="dv-oid" href="Wireframes Desktop.dc.html#1e">1e</a></div><div class="dv-opts">
+<div class="dv-opt" id="3g"><div class="dv-olabel"><a class="dv-oid" href="#3g">3g</a>Direct: category row and Filters / Sort at the top</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="sc">
+<div class="mh"><img src="assets/wordmark-olive.svg" style="height:16px"><span style="flex:1"></span><span>Search</span><span>Cart (0)</span><span style="font-size:16px">≡</span></div>
+<div style="display:flex;gap:18px;padding:0 16px;height:42px;align-items:center;font:13px Inter;border-bottom:1px solid rgba(76,75,59,.24);overflow:hidden;white-space:nowrap"><span style="font-weight:500">View all</span><span class="mut">New in</span><span class="mut">Bottoms</span><span class="mut">T-Shirts <span class="soon">soon</span></span><span class="mut">Caps</span></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;font:13px Inter;border-bottom:1px solid rgba(76,75,59,.24)"><span style="padding:12px 16px;border-right:1px solid rgba(76,75,59,.24)">Filters +</span><span style="padding:12px 16px">Sort by ▾</span></div>
+<div style="padding:8px 0"><div class="pp" style="height:460px;display:flex;align-items:flex-end;padding:12px;box-sizing:border-box"><div style="background:#fff;width:100%;text-align:center;padding:10px 0;font:13px Inter;position:relative">Quick view</div></div><div class="cap" style="padding:8px 16px">Bottoms 01 · Olive<br>$000</div></div>
+<div style="padding-bottom:8px"><div class="pp" style="height:460px"></div><div class="cap" style="padding:8px 16px">Bottoms 01 · Khaki<br>$000</div></div>
+<div class="ph" style="height:480px"><span class="lb">Lifestyle, every 2 rows</span></div>
+<div style="padding:8px 0"><div class="pp" style="height:460px"></div><div class="cap" style="padding:8px 16px">Bottoms 02<br>$000</div></div>
+</div>
+</x-import>
+<ul class="nt"><li>A full-width lifestyle photo comes after every two products, as you asked.</li></ul></div>
+
+<div class="dv-opt" id="3h"><div class="dv-olabel"><a class="dv-oid" href="#3h">3h</a>Filters / Sort fixed at the bottom, within thumb reach</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="sc fx">
+<div class="mh"><img src="assets/wordmark-olive.svg" style="height:16px"><span style="flex:1"></span><span>Search</span><span>Cart (0)</span><span style="font-size:16px">≡</span></div>
+<div style="padding:16px 16px 10px"><div class="h">Bottoms</div><div class="cap mut">3 styles</div></div>
+<div style="display:flex;gap:6px;padding:0 16px 12px;overflow:hidden"><span class="ch" style="background:#4c4b3b;color:#edecc5">All</span><span class="ch">Bottoms</span><span class="ch" style="opacity:.5">T-Shirts · soon</span><span class="ch" style="opacity:.5">Caps</span></div>
+<div class="pp" style="height:460px"></div><div class="cap" style="padding:8px 16px">Bottoms 01<br>$000</div>
+<div style="position:absolute;left:16px;right:16px;bottom:40px;display:grid;grid-template-columns:1fr 1fr;background:#4c4b3b;color:#edecc5;font:500 13px Inter;z-index:4"><span style="padding:14px;text-align:center;border-right:1px solid rgba(237,236,197,.3)">Filters (0)</span><span style="padding:14px;text-align:center">Sort by</span></div>
+</div>
+</x-import>
+<ul class="nt"><li>The Filters and Sort bar stays fixed at the bottom of the screen, so the top is free for the title and chips.</li></ul></div>
+</div></div>
+
+<div class="dv-grp"><div class="dv-gname">05 · Filters (bottom sheet) · from <a class="dv-oid" href="Wireframes Desktop.dc.html#1g">1g</a></div><div class="dv-opts">
+<div class="dv-opt" id="3i"><div class="dv-olabel"><a class="dv-oid" href="#3i">3i</a>Accordions, one section open at a time</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="sc fx">
+<div class="mh"><img src="assets/wordmark-olive.svg" style="height:16px"><span style="flex:1"></span><span>Search</span><span>Cart (0)</span><span style="font-size:16px">≡</span></div>
+<div class="pp" style="height:500px"></div><div class="dim"></div>
+<div style="position:absolute;left:0;right:0;bottom:0;height:560px;background:#fff;z-index:4;border-top:1.5px solid #4c4b3b;padding:10px 20px 40px;box-sizing:border-box;display:flex;flex-direction:column">
+<div style="width:40px;height:4px;background:rgba(76,75,59,.3);margin:0 auto 12px"></div>
+<div style="display:flex;justify-content:space-between" class="h2"><span>Filters</span><span>×</span></div>
+<div class="row" style="margin-top:8px"><span>Colour</span><span>−</span></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:12px 0">
+<div style="display:flex;border:1px solid #4c4b3b;outline:2px solid #ece26a"><span style="width:30px;background:#4c4b3b"></span><span class="cap" style="padding:8px">Olive</span></div>
+<div style="display:flex;border:1px solid #4c4b3b"><span style="width:30px;background:#817f57"></span><span class="cap" style="padding:8px">Khaki</span></div>
+<div style="display:flex;border:1px solid #4c4b3b"><span style="width:30px;background:#b8bca1"></span><span class="cap" style="padding:8px">Sage</span></div>
+<div style="display:flex;border:1px solid #4c4b3b"><span style="width:30px;background:#222"></span><span class="cap" style="padding:8px">Black</span></div></div>
+<div class="row"><span>Size</span><span>+</span></div><div class="row"><span>Fit</span><span>+</span></div><div class="row"><span>Features</span><span>+</span></div>
+<div style="flex:1"></div>
+<div style="display:grid;grid-template-columns:1fr 2fr;gap:8px"><span class="ch" style="padding:14px">Clear</span><span class="bt">Show 2 results</span></div>
+</div></div>
+</x-import>
+<ul class="nt"><li>The sheet keeps the same colour tiles as desktop. The button shows a live result count.</li></ul></div>
+
+<div class="dv-opt" id="3j"><div class="dv-olabel"><a class="dv-oid" href="#3j">3j</a>Taller sheet with every section open, scrolls inside</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="sc fx">
+<div class="mh"><img src="assets/wordmark-olive.svg" style="height:16px"><span style="flex:1"></span><span>Search</span><span>Cart (0)</span><span style="font-size:16px">≡</span></div>
+<div class="pp" style="height:500px"></div><div class="dim"></div>
+<div style="position:absolute;left:0;right:0;bottom:0;height:700px;background:#fff;z-index:4;border-top:1.5px solid #4c4b3b;padding:10px 20px 40px;box-sizing:border-box;display:flex;flex-direction:column;gap:12px">
+<div style="width:40px;height:4px;background:rgba(76,75,59,.3);margin:0 auto"></div>
+<div style="display:flex;justify-content:space-between" class="h2"><span>Filters</span><span class="cap u">Clear all</span></div>
+<div class="cap" style="letter-spacing:.1em">COLOUR</div><div style="display:flex;gap:8px"><span style="width:36px;height:36px;background:#4c4b3b;outline:2px solid #ece26a;outline-offset:2px"></span><span style="width:36px;height:36px;background:#817f57"></span><span style="width:36px;height:36px;background:#b8bca1"></span><span style="width:36px;height:36px;background:#222"></span></div>
+<div class="cap" style="letter-spacing:.1em">SIZE</div><div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px"><span class="ch" style="padding:10px 0">XS</span><span class="ch" style="padding:10px 0">S</span><span class="ch" style="padding:10px 0;background:#4c4b3b;color:#edecc5">M</span><span class="ch" style="padding:10px 0">L</span><span class="ch" style="padding:10px 0">XL</span><span class="ch" style="padding:10px 0">XXL</span></div>
+<div class="cap" style="letter-spacing:.1em">FIT</div><div style="display:flex;gap:6px"><span class="ch">Relaxed</span><span class="ch">Regular</span></div>
+<div class="cap" style="letter-spacing:.1em">FEATURES</div><div style="display:grid;gap:4px">
+<div style="display:flex;border:1px solid #4c4b3b"><span style="width:36px;border-right:1px solid #4c4b3b;font:600 11px/34px Archivo;text-align:center">ST</span><span class="cap" style="padding:8px">Stretch woven</span></div>
+<div style="display:flex;border:1px solid #4c4b3b"><span style="width:36px;border-right:1px solid #4c4b3b;font:600 11px/34px Archivo;text-align:center">WR</span><span class="cap" style="padding:8px">Water resistant</span></div></div>
+<div style="flex:1"></div><span class="bt">Show 2 results</span>
+</div></div>
+</x-import>
+<ul class="nt"><li>Every option is visible without opening anything, which works while the filter list is short.</li></ul></div>
+</div></div>
+
+<div class="dv-grp"><div class="dv-gname">06 · Product · from <a class="dv-oid" href="Wireframes Desktop.dc.html#1i">1i</a></div><div class="dv-opts">
+<div class="dv-opt" id="3k"><div class="dv-olabel"><a class="dv-oid" href="#3k">3k</a>Stacked images, details below, sticky price and Add to cart</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="sc">
+<div class="mh"><img src="assets/wordmark-olive.svg" style="height:16px"><span style="flex:1"></span><span>Search</span><span>Cart (0)</span><span style="font-size:16px">≡</span></div>
+<div class="pp" style="height:500px"><span class="lb">Front</span></div><div class="pp" style="height:500px;margin-top:4px"><span class="lb">Back</span></div><div class="ph" style="height:500px;margin-top:4px"><span class="lb">On the bike</span></div><div class="pp" style="height:500px;margin-top:4px"><span class="lb">Detail</span></div>
+<div style="padding:20px 16px;display:flex;flex-direction:column;gap:12px">
+<div class="h">Bottoms 01</div><div style="font:15px Inter">$000</div>
+<div class="cap">Colour · Olive</div><div style="display:flex;gap:8px"><span style="width:30px;height:30px;background:#4c4b3b;outline:1.5px solid #4c4b3b;outline-offset:2px"></span><span style="width:30px;height:30px;background:#817f57"></span><span style="width:30px;height:30px;background:#222"></span></div>
+<div style="display:flex;justify-content:space-between" class="cap"><span>Size</span><span class="u">Size guide</span></div><div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px"><span class="ch" style="padding:12px 0">XS</span><span class="ch" style="padding:12px 0">S</span><span class="ch" style="padding:12px 0;background:#4c4b3b;color:#edecc5">M</span><span class="ch" style="padding:12px 0">L</span><span class="ch" style="padding:12px 0">XL</span><span class="ch" style="padding:12px 0;opacity:.4">XXL</span></div>
+<div class="cap">A couple of lines on how they feel on a long day.</div>
+<div><div class="row"><span>Fabric & features</span><span>+</span></div><div class="row"><span>Fit</span><span>+</span></div><div class="row"><span>Care</span><span>+</span></div><div class="row"><span>Shipping & returns</span><span>+</span></div></div>
+<div class="h2" style="padding-top:12px">You may also like</div>
+<div style="display:flex;gap:8px;overflow:hidden"><div class="pp" style="flex:none;width:220px;height:280px"></div><div class="pp" style="flex:none;width:220px;height:280px"></div></div>
+</div>
+<div style="position:sticky;bottom:0;background:#fff;border-top:1px solid #4c4b3b;padding:10px 16px 34px;display:flex;gap:10px;align-items:center;z-index:4"><div class="cap" style="flex:1">Bottoms 01<br><b style="font-weight:500">$000</b></div><span class="bt" style="flex:1.4">Add to cart · M</span></div>
+</div>
+</x-import>
+<ul class="nt"><li>The sticky bar shows the selected size. Tapping it before a size is picked scrolls you up to the size picker.</li></ul></div>
+
+<div class="dv-opt" id="3l"><div class="dv-olabel"><a class="dv-oid" href="#3l">3l</a>Name and price above the images, size picked in a sheet</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="sc">
+<div class="mh"><img src="assets/wordmark-olive.svg" style="height:16px"><span style="flex:1"></span><span>Search</span><span>Cart (0)</span><span style="font-size:16px">≡</span></div>
+<div style="display:flex;justify-content:space-between;align-items:baseline;padding:14px 16px"><span class="h2">Bottoms 01</span><span class="cap">$000</span></div>
+<div class="pp" style="height:500px"><span class="lb">Front</span></div><div class="ph" style="height:500px;margin-top:4px"><span class="lb">On the bike</span></div><div class="pp" style="height:500px;margin-top:4px"><span class="lb">Back</span></div>
+<div style="padding:20px 16px;display:flex;flex-direction:column;gap:12px"><div class="cap">A couple of lines on how they feel on a long day.</div>
+<div><div class="row"><span>Fabric & features</span><span>+</span></div><div class="row"><span>Fit & size guide</span><span>+</span></div><div class="row"><span>Care</span><span>+</span></div></div></div>
+<div style="position:sticky;bottom:0;background:#fff;border-top:1px solid #4c4b3b;padding:10px 16px 34px;display:grid;grid-template-columns:1fr 1fr;gap:8px;z-index:4"><span class="ch" style="padding:13px">Olive · Size ▾</span><span class="bt">Add to cart</span></div>
+</div>
+</x-import>
+<ul class="nt"><li>The name and price come before the photos. Colour and size are picked from a sheet that opens from the sticky bar.</li></ul></div>
+</div></div>
+
+<div class="dv-grp"><div class="dv-gname">07 · Search · from <a class="dv-oid" href="Wireframes Desktop.dc.html#1k">1k</a></div><div class="dv-opts">
+<div class="dv-opt" id="3m"><div class="dv-olabel"><a class="dv-oid" href="#3m">3m</a>Direct: search field, popular products as a list</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" keyboard="{{ true }}" hint-size="402px,874px">
+<div class="sc">
+<div class="mh"><img src="assets/wordmark-olive.svg" style="height:16px"><span style="flex:1"></span><span class="u">Search</span><span>Cart (0)</span><span style="font-size:16px">≡</span></div>
+<div style="display:flex;padding:12px 16px"><span class="in" style="color:#4c4b3b">Search here<span style="border-right:2px solid #4c4b3b;margin-left:1px"></span></span><span class="bt" style="padding:13px 16px">Search</span></div>
+<div class="h2" style="padding:8px 16px">Most popular</div>
+<div style="padding:0 16px">
+<div style="display:flex;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(76,75,59,.24)"><div class="pp" style="width:56px;height:70px"></div><span class="cap" style="flex:1">Bottoms 01</span><span class="cap">$000</span></div>
+<div style="display:flex;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(76,75,59,.24)"><div class="pp" style="width:56px;height:70px"></div><span class="cap" style="flex:1">Bottoms 02</span><span class="cap">$000</span></div>
+<div style="display:flex;gap:12px;align-items:center;padding:8px 0"><div class="pp" style="width:56px;height:70px"></div><span class="cap" style="flex:1">Bottoms 03</span><span class="cap">$000</span></div></div>
+</div>
+</x-import>
+<ul class="nt"><li>Popular products shrink to a list of small rows, so they stay visible above the keyboard.</li></ul></div>
+
+<div class="dv-opt" id="3n"><div class="dv-olabel"><a class="dv-oid" href="#3n">3n</a>Results grouped into products, routes and rides</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="sc">
+<div class="mh"><img src="assets/wordmark-olive.svg" style="height:16px"><span style="flex:1"></span><span class="u">Search</span><span>Cart (0)</span><span style="font-size:16px">≡</span></div>
+<div style="padding:12px 16px"><div style="border-bottom:1.5px solid #4c4b3b;font:600 20px Archivo;padding:8px 0">gravel sh<span style="border-right:2px solid #4c4b3b"></span></div></div>
+<div style="display:flex;gap:6px;padding:0 16px 12px"><span class="ch" style="background:#4c4b3b;color:#edecc5">All</span><span class="ch">Products 2</span><span class="ch">Routes 4</span><span class="ch">Rides 1</span></div>
+<div style="padding:0 16px">
+<div class="cap" style="letter-spacing:.1em;padding:8px 0">PRODUCTS</div>
+<div style="display:flex;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(76,75,59,.24)"><div class="pp" style="width:56px;height:70px"></div><span class="cap" style="flex:1">Bottoms 01</span><span class="cap">$000</span></div>
+<div class="cap" style="letter-spacing:.1em;padding:16px 0 4px">ROUTES · BUSH MAP</div>
+<div class="row"><span class="cap">Route name</span><span class="cap mut">84 km · 1,210 m</span></div>
+<div class="row"><span class="cap">Route name</span><span class="cap mut">132 km · 2,040 m</span></div>
+<div class="cap" style="letter-spacing:.1em;padding:16px 0 4px">RIDES</div>
+<div class="row"><span class="cap">Sat 18 Oct · Ride name</span><span class="cap u">RSVP</span></div></div>
+</div>
+</x-import>
+<ul class="nt"><li>This is the one-search-for-everything idea from desktop <a class="dv-oid" href="Wireframes Desktop.dc.html#1l">1l</a>, with chips to narrow the results.</li></ul></div>
+</div></div>
+
+<div class="dv-grp"><div class="dv-gname">08 · Cart · from <a class="dv-oid" href="Wireframes Desktop.dc.html#1n">1n</a></div><div class="dv-opts">
+<div class="dv-opt" id="3o"><div class="dv-olabel"><a class="dv-oid" href="#3o">3o</a>Full-screen cart, sticky checkout</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="sc fx" style="display:flex;flex-direction:column">
+<div class="mh"><span class="h2">Cart (2)</span><span style="flex:1"></span><span style="font-size:18px">×</span></div>
+<div style="padding:14px 16px;display:flex;flex-direction:column;gap:14px;flex:1">
+<div class="cap" style="background:#edecc5;padding:10px 12px">You're $40 off free shipping.</div>
+<div style="display:flex;gap:12px"><div class="pp" style="width:90px;height:116px"></div><div class="cap" style="flex:1;display:flex;flex-direction:column;gap:4px"><span style="font-weight:500">Bottoms 01</span><span class="mut">Olive · M</span><div style="display:flex;border:1px solid #4c4b3b;width:100px;justify-content:space-between;padding:8px 10px;margin-top:6px"><span>−</span><span>1</span><span>+</span></div></div><span class="cap">$000</span></div>
+<div class="ln"></div>
+<div style="display:flex;gap:12px"><div class="pp" style="width:90px;height:116px"></div><div class="cap" style="flex:1;display:flex;flex-direction:column;gap:4px"><span style="font-weight:500">Bottoms 02</span><span class="mut">Khaki · L</span><div style="display:flex;border:1px solid #4c4b3b;width:100px;justify-content:space-between;padding:8px 10px;margin-top:6px"><span>−</span><span>1</span><span>+</span></div></div><span class="cap">$000</span></div>
+<div class="ln"></div><div class="cap u">Remove</div></div>
+<div style="border-top:1px solid #4c4b3b;padding:14px 16px 40px;display:flex;flex-direction:column;gap:8px"><div style="display:flex;justify-content:space-between;font:14px Inter"><span>Subtotal</span><span>$000</span></div><div class="cap mut">Shipping and taxes at checkout · AUD</div><div class="bf">Checkout</div></div>
+</div>
+</x-import>
+<ul class="nt"><li>The desktop half-width panel becomes the full screen. Checkout stays fixed at the bottom.</li></ul></div>
+
+<div class="dv-opt" id="3p"><div class="dv-olabel"><a class="dv-oid" href="#3p">3p</a>Bottom sheet, page stays visible behind</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="sc fx">
+<div class="mh"><img src="assets/wordmark-olive.svg" style="height:16px"><span style="flex:1"></span><span>Search</span><span>Cart (2)</span><span style="font-size:16px">≡</span></div>
+<div class="pp" style="height:600px"></div><div class="dim"></div>
+<div style="position:absolute;left:0;right:0;bottom:0;height:620px;background:#fff;z-index:4;border-top:1.5px solid #4c4b3b;padding:10px 16px 40px;box-sizing:border-box;display:flex;flex-direction:column;gap:14px">
+<div style="width:40px;height:4px;background:rgba(76,75,59,.3);margin:0 auto"></div>
+<div style="display:flex;justify-content:space-between" class="h2"><span>Added to cart</span><span>×</span></div>
+<div style="display:flex;gap:12px"><div class="pp" style="width:90px;height:116px"></div><div class="cap" style="flex:1"><span style="font-weight:500">Bottoms 01</span><br><span class="mut">Olive · M · Qty 1</span></div><span class="cap">$000</span></div>
+<div class="cap" style="background:#edecc5;padding:10px 12px">You're $40 off free shipping.</div>
+<div class="cap" style="border-bottom:1px solid #4c4b3b;padding-bottom:4px">You may also like</div>
+<div style="display:flex;gap:8px;overflow:hidden"><div class="pp" style="flex:none;width:150px;height:150px"></div><div class="pp" style="flex:none;width:150px;height:150px"></div><div class="pp" style="flex:none;width:150px;height:150px"></div></div>
+<div style="flex:1"></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><span class="ch" style="padding:14px">View cart (2)</span><span class="bf">Checkout</span></div>
+</div></div>
+</x-import>
+<ul class="nt"><li>The sheet opens after Add to cart and confirms what was added. The full cart is one tap away.</li></ul></div>
+</div></div>
+
+<div class="dv-grp"><div class="dv-gname">09 · Bush Map landing · from <a class="dv-oid" href="Wireframes Desktop.dc.html#1p">1p</a></div><div class="dv-opts">
+<div class="dv-opt" id="3q"><div class="dv-olabel"><a class="dv-oid" href="#3q">3q</a>Map still, nearby routes, then Open the map</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="sc">
+<div class="mh"><img src="assets/wordmark-olive.svg" style="height:16px"><span style="flex:1"></span><span>Search</span><span>Cart (0)</span><span style="font-size:16px">≡</span></div>
+<div class="mp" style="height:340px"><span class="lb">Mini-map, nearest routes · pins olive / khaki / flare</span></div>
+<div style="padding:18px 16px 8px"><div class="h">BUSH MAP™</div><div class="cap">Explore more with our curated gravel routes and events</div></div>
+<div style="padding:0 16px">
+<div class="cap" style="letter-spacing:.1em;padding:12px 0 4px">NEAR YOU</div>
+<div class="row"><span class="cap">Route name</span><span class="cap mut">84 km · 1,210 m</span></div>
+<div class="row"><span class="cap">Route name</span><span class="cap mut">132 km · 2,040 m</span></div>
+<div class="row"><span class="cap">Route name</span><span class="cap mut">210 km · 3,140 m</span></div>
+<div class="row"><span class="cap">Bush event · Sat 18 Oct</span><span class="cap mut">RSVP</span></div></div>
+<div style="padding:18px 16px 40px;display:flex;flex-direction:column;gap:8px"><span class="bt">Open the map</span><span class="ch" style="padding:14px">Submit a route</span></div>
+</div>
+</x-import>
+<ul class="nt"><li>The desktop dropdown becomes a small page: map at the top, list below, then the hand-off to the map app.</li></ul></div>
+
+<div class="dv-opt" id="3r"><div class="dv-olabel"><a class="dv-oid" href="#3r">3r</a>Route photo cards, Open the map sticky at the bottom</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="sc">
+<div class="mh"><img src="assets/wordmark-olive.svg" style="height:16px"><span style="flex:1"></span><span>Search</span><span>Cart (0)</span><span style="font-size:16px">≡</span></div>
+<div style="padding:18px 16px 12px"><div class="h">BUSH MAP™</div><div class="cap">Explore more with our curated gravel routes and events</div></div>
+<div style="padding:0 16px;display:flex;flex-direction:column;gap:16px">
+<div><div class="ph" style="height:240px"><span class="lb">Route photo</span></div><div style="display:flex;justify-content:space-between;padding-top:8px"><span class="h2">Route name</span><span class="cap">210 km · 3,140 m</span></div></div>
+<div><div class="ph" style="height:240px"><span class="lb">Route photo</span></div><div style="display:flex;justify-content:space-between;padding-top:8px"><span class="h2">Route name</span><span class="cap">84 km · 1,210 m</span></div></div>
+<div><div class="ph" style="height:240px"><span class="lb">Route photo</span></div><div style="display:flex;justify-content:space-between;padding-top:8px"><span class="h2">Route name</span><span class="cap">132 km · 2,040 m</span></div></div></div>
+<div style="position:sticky;bottom:0;background:#fff;border-top:1px solid #4c4b3b;padding:10px 16px 34px;margin-top:20px;z-index:4"><div class="bt">Open the map</div></div>
+</div>
+</x-import>
+<ul class="nt"><li>Photos lead and distances sit on the right, as the brand prefers. The map app is always one tap away.</li></ul></div>
+</div></div>
+
+<div class="dv-grp"><div class="dv-gname">10 · Rides · from <a class="dv-oid" href="Wireframes Desktop.dc.html#1r">1r</a></div><div class="dv-opts">
+<div class="dv-opt" id="3s"><div class="dv-olabel"><a class="dv-oid" href="#3s">3s</a>Direct: ride cards stacked, recaps alternate photo and text</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="sc">
+<div class="mh"><img src="assets/wordmark-olive.svg" style="height:16px"><span style="flex:1"></span><span>Search</span><span>Cart (0)</span><span style="font-size:16px">≡</span></div>
+<div style="text-align:center;padding:22px 0 14px"><div class="h">Upcoming rides</div></div>
+<div style="padding:0 16px;display:flex;flex-direction:column;gap:10px">
+<div style="border:1px solid #4c4b3b"><div class="ph" style="height:180px"><span class="lb">18 OCT</span></div><div style="padding:12px;text-align:center" class="cap"><span class="h2">Ride name</span><br>92 km · café stop<br><span class="u">RSVP</span></div></div>
+<div style="border:1px solid #4c4b3b"><div class="ph" style="height:180px"><span class="lb">2 NOV</span></div><div style="padding:12px;text-align:center" class="cap"><span class="h2">Ride name</span><br>64 km · all welcome<br><span class="u">RSVP</span></div></div></div>
+<div style="text-align:center;padding:28px 0 12px"><div class="h">Recaps</div></div>
+<div class="ph" style="height:300px"></div><div style="padding:14px 16px 24px;display:flex;flex-direction:column;gap:6px"><span class="cap mut">09/2026</span><span class="h2">Ride recap title</span><span class="cap">One line from the ride.</span><span class="cap u">Read</span></div>
+<div class="ph" style="height:300px"></div><div style="padding:14px 16px 24px;display:flex;flex-direction:column;gap:6px"><span class="cap mut">08/2026</span><span class="h2">Ride recap title</span><span class="cap">One line from the ride.</span><span class="cap u">Read</span></div>
+</div>
+</x-import>
+<ul class="nt"><li>The desktop photo and text pairs stack, photo always on top.</li></ul></div>
+
+<div class="dv-opt" id="3t"><div class="dv-olabel"><a class="dv-oid" href="#3t">3t</a>Upcoming rides swipe sideways, recaps run full bleed</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="sc">
+<div class="mh"><img src="assets/wordmark-olive.svg" style="height:16px"><span style="flex:1"></span><span>Search</span><span>Cart (0)</span><span style="font-size:16px">≡</span></div>
+<div style="display:flex;justify-content:space-between;padding:20px 16px 10px"><span class="h2">Upcoming</span><span class="cap mut">3 rides</span></div>
+<div style="display:flex;gap:8px;padding-left:16px;overflow:hidden">
+<div style="flex:none;width:300px;border:1px solid #4c4b3b"><div class="ph" style="height:200px"><span class="lb">18 OCT</span></div><div style="padding:12px" class="cap"><span class="h2">Ride name</span><br>92 km · café stop<div class="bt" style="margin-top:10px;padding:10px">RSVP</div></div></div>
+<div style="flex:none;width:300px;border:1px solid #4c4b3b"><div class="ph" style="height:200px"><span class="lb">2 NOV</span></div><div style="padding:12px" class="cap"><span class="h2">Ride name</span><br>64 km</div></div></div>
+<div class="h2" style="padding:28px 16px 10px">Recaps</div>
+<div class="ph" style="height:460px"><div style="position:absolute;left:0;right:0;bottom:0;background:rgba(76,75,59,.75);color:#edecc5;padding:14px 16px" class="cap"><span class="h2">Ride recap title</span><br>09/2026 · Read</div></div>
+<div class="ph" style="height:460px;margin-top:4px"><div style="position:absolute;left:0;right:0;bottom:0;background:rgba(76,75,59,.75);color:#edecc5;padding:14px 16px" class="cap"><span class="h2">Ride recap title</span><br>08/2026 · Read</div></div>
+</div>
+</x-import>
+<ul class="nt"><li>The next ride is visible near the top of the screen. Recap captions sit on an olive band over the photo, so the text stays readable.</li></ul></div>
+</div></div>
+
+<div class="dv-grp"><div class="dv-gname">11 · About · from <a class="dv-oid" href="Wireframes Desktop.dc.html#1s">1s</a></div><div class="dv-opts">
+<div class="dv-opt" id="3u"><div class="dv-olabel"><a class="dv-oid" href="#3u">3u</a>Direct: photo, text, statement, photos</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="sc">
+<div class="mh"><img src="assets/wordmark-olive.svg" style="height:16px"><span style="flex:1"></span><span>Search</span><span>Cart (0)</span><span style="font-size:16px">≡</span></div>
+<div class="ph" style="height:420px"><span class="lb">Documentary ride photo</span></div>
+<div style="padding:22px 16px;display:flex;flex-direction:column;gap:12px"><div class="h">About Bush Riding</div><div class="cap">Opening paragraph: who we are and the detour.</div><div class="cap">Second paragraph: designed in Australia, gender-neutral, priced so more people can ride in it.</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px"><div><div class="h2">Designed in</div><div class="cap">Australia</div></div><div><div class="h2">Ride with us</div><div class="cap u">Strava group</div></div></div></div>
+<div style="padding:30px 16px;text-align:center;font:600 24px/1.2 Archivo">Made for the detour.</div>
+<div class="ph" style="height:300px"></div><div class="ph" style="height:300px;margin-top:4px"></div>
+</div>
+</x-import>
+<ul class="nt"><li>The desktop split stacks with the photo first. The rest of the page reads straight down.</li></ul></div>
+
+<div class="dv-opt" id="3v"><div class="dv-olabel"><a class="dv-oid" href="#3v">3v</a>Statement over the photo, two-column photo grid</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="sc">
+<div class="mh"><img src="assets/wordmark-olive.svg" style="height:16px"><span style="flex:1"></span><span>Search</span><span>Cart (0)</span><span style="font-size:16px">≡</span></div>
+<div class="ph" style="height:560px"><div style="position:absolute;left:16px;right:16px;bottom:20px;background:rgba(76,75,59,.75);color:#edecc5;padding:16px;font:600 24px/1.2 Archivo">Made for the detour.</div></div>
+<div style="padding:22px 16px;display:flex;flex-direction:column;gap:12px"><div class="h2">About Bush Riding</div><div class="cap">Opening paragraph: who we are and the detour.</div><div class="cap">Second paragraph: designed in Australia, gender-neutral, priced so more people can ride in it.</div></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px"><div class="ph" style="height:220px"></div><div class="ph" style="height:220px"></div><div class="ph" style="height:220px"></div><div class="ph" style="height:220px"></div></div>
+<div style="padding:20px 16px"><span class="ch" style="display:block">Ride with us · Strava</span></div>
+</div>
+</x-import>
+<ul class="nt"><li>A two-column grid suits a film-photo feel, and the statement sits on a scrim so it stays readable.</li></ul></div>
+</div></div>
+
+<div class="dv-grp"><div class="dv-gname">12 · Footer · from <a class="dv-oid" href="Wireframes Desktop.dc.html#2a">2a</a></div><div class="dv-opts">
+<div class="dv-opt" id="3w"><div class="dv-olabel"><a class="dv-oid" href="#3w">3w</a>Link columns as accordions, wordmark full width</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="sc fx">
+<div class="ph" style="height:120px;opacity:.5"><span class="lb">↑ page content</span></div>
+<div style="padding:24px 16px;border-bottom:1px solid rgba(76,75,59,.24)"><div class="h2">Newsletter</div><div class="cap" style="margin:6px 0 12px">We send the occasional route, nothing else.</div><div style="display:flex"><span class="in">Email address</span><span class="bt" style="padding:13px 16px">Subscribe</span></div></div>
+<div style="padding:0 16px"><div class="row"><span>Help</span><span>+</span></div><div class="row"><span>Bush Riding</span><span>+</span></div><div class="row"><span>Contact</span><span>+</span></div><div class="row"><span>Legal</span><span>+</span></div>
+<div class="row"><span class="cap mut">Country / Region</span><span class="cap">AU / (AUD) ▾</span></div></div>
+<div style="padding:24px 16px 10px"><img src="assets/wordmark-olive.svg" style="width:100%;display:block"></div>
+<div style="padding:10px 16px" class="cap">© Bush Riding™ 2026</div>
+</div>
+</x-import>
+<ul class="nt"><li>Collapsing the four link columns keeps the footer short, so the wordmark comes into view sooner.</li></ul></div>
+
+<div class="dv-opt" id="3x"><div class="dv-olabel"><a class="dv-oid" href="#3x">3x</a>Link columns open in a 2×2 grid</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="sc fx">
+<div class="ph" style="height:120px;opacity:.5"><span class="lb">↑ page content</span></div>
+<div style="padding:24px 16px;border-bottom:1px solid rgba(76,75,59,.24)"><div class="h2">Newsletter</div><div class="cap" style="margin:6px 0 12px">We send the occasional route, nothing else.</div><div style="display:flex"><span class="in">Email address</span><span class="bt" style="padding:13px 16px">Subscribe</span></div></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:22px 12px;padding:22px 16px">
+<div class="cap" style="display:flex;flex-direction:column;gap:8px"><span style="letter-spacing:.1em;font-weight:500">HELP</span><span>Shipping & delivery</span><span>Returns</span><span>Size guide</span></div>
+<div class="cap" style="display:flex;flex-direction:column;gap:8px"><span style="letter-spacing:.1em;font-weight:500">BUSH RIDING</span><span>About</span><span>Rides</span><span>Bush Map</span></div>
+<div class="cap" style="display:flex;flex-direction:column;gap:8px"><span style="letter-spacing:.1em;font-weight:500">CONTACT</span><span>Customer service</span><span>Instagram</span><span>Strava</span></div>
+<div class="cap" style="display:flex;flex-direction:column;gap:8px"><span style="letter-spacing:.1em;font-weight:500">LEGAL</span><span>Privacy</span><span>Terms</span><span>Accessibility</span></div></div>
+<div style="padding:0 16px"><img src="assets/wordmark-olive.svg" style="width:100%;display:block"></div>
+<div style="display:flex;justify-content:space-between;padding:14px 16px;border-top:1px solid rgba(76,75,59,.24);margin-top:14px" class="cap"><span>© Bush Riding™ 2026</span><span>AU / (AUD) ▾</span></div>
+</div>
+</x-import>
+<ul class="nt"><li>All links are visible in two columns, closest to desktop <a class="dv-oid" href="Wireframes Desktop.dc.html#2a">2a</a>.</li></ul></div>
+</div></div>
+
+<p class="dv-next">Try next: pick an option per screen, as you did for desktop · "riff on <a class="dv-oid" href="#3k">3k</a>" · "make the picked set clickable as a prototype"</p>
+</section>
+</x-dc>
+</body>
+</html>

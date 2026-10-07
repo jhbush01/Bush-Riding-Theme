@@ -1,0 +1,37 @@
+{%- comment -%}
+  A plain page (shipping info, size guide, anything written in Online Store
+  → Pages): title and the page's own content.
+
+  The default page template also carries the About, Rides and Bush Map
+  layouts, each switched on by the page's handle, so a page called "About",
+  "Rides" or "Bush Map" gets its design without anyone picking a template.
+  This section steps aside for those handles.
+{%- endcomment -%}
+{%- liquid
+  assign skip = section.settings.skip_handles | split: ','
+  assign show = true
+  for h in skip
+    assign hs = h | strip
+    if hs == page.handle
+      assign show = false
+    endif
+  endfor
+-%}
+{%- if show -%}
+  <article class="alp alp-article alp-page">
+    <header class="alp-pagehead">
+      <h1 class="alp-pagehead__title">{{ page.title | escape }}</h1>
+    </header>
+    <div class="alp-article__body">{{ page.content }}</div>
+  </article>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Page",
+  "tag": "div",
+  "settings": [
+    { "type": "text", "id": "skip_handles", "label": "Pages with their own layout", "default": "about, rides, bush-map", "info": "Handles that show a designed layout from this template instead of plain title and content." }
+  ]
+}
+{% endschema %}

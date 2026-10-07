@@ -1,22 +1,17 @@
-/*
- * ------------------------------------------------------------
- * IMPORTANT: The contents of this file are auto-generated.
- *
- * This file may be updated by the Shopify admin theme editor
- * or related systems. Please exercise caution as any changes
- * made to this file may be overwritten.
- * ------------------------------------------------------------
- */
 {
   "sections": {
-    "journal": {
-      "type": "alpine-journal",
+    "main": {
+      "type": "alpine-rides",
       "settings": {
-        "show_next_ride": true
+        "photo_1": "shopify://shop_images/IMG_2419.jpg",
+        "photo_2": "shopify://shop_images/IMG_2124.jpg",
+        "photo_3": "shopify://shop_images/IMG_8186.jpg",
+        "limit": 3,
+        "recaps": 8
       }
     }
   },
   "order": [
-    "journal"
+    "main"
   ]
 }
