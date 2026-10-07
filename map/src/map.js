@@ -328,6 +328,12 @@ let routeChooserPopup = null; // open "N routes from here" picker, if any
 // Community Bush Ride events (additive; separate source, never filtered).
 let eventFeatures = [];
 const eventById = new Map();
+// Reverse of event.properties.route_id -> event, so a deep link that names a
+// ROUTE id (the only kind a community-ride share link uses — see
+// selectFromHash) can tell in O(1) that the route has a live event riding on
+// it. 1:1 in practice; if two events ever shared a route id, last-write-wins,
+// same as eventById above.
+const eventByRouteId = new Map();
 
 init();
 
@@ -419,7 +425,11 @@ async function loadEvents() {
 function setEventFeatures(feats) {
   eventFeatures = feats;
   eventById.clear();
-  eventFeatures.forEach((f) => eventById.set(f.properties.id, f));
+  eventByRouteId.clear();
+  eventFeatures.forEach((f) => {
+    eventById.set(f.properties.id, f);
+    if (f.properties.route_id) eventByRouteId.set(f.properties.route_id, f);
+  });
 }
 
 // Resolve a hero reference: a full URL (Worker upload / external) is used as-is;
@@ -459,8 +469,14 @@ function initUI() {
   renderResults(applyFilters(routeFeatures));
 
   // Deep link: /#<route-id> (also legacy /map#<route-id>, which redirects here)
-  // opens that route. Handled here so it works even if the basemap never
-  // loads; onLoad redraws the line once the map is ready.
+  // opens that route — UNLESS the id is (or belongs to) a live Community Bush
+  // Ride, in which case it opens the EVENT card instead, exactly as tapping
+  // the event pin does: interested count, meeting details, Strava RSVP up
+  // front. A ride link shared from the website is a route id like any other
+  // — events have no hash scheme of their own — so without this check it fell
+  // through to the generic route card and left riders one tap short of the
+  // thing the link was actually for. Handled here so it works even if the
+  // basemap never loads; onLoad redraws the line/pin once the map is ready.
   selectFromHash();
   window.addEventListener("hashchange", selectFromHash);
 }
@@ -502,7 +518,16 @@ function initBrandLogo() {
 
 function selectFromHash() {
   const id = decodeURIComponent(location.hash.replace(/^#/, ""));
-  if (id && routeById.has(id)) selectRoute(id, true);
+  if (!id) return;
+  // Event first: either the hash names the route an event is tied to (the
+  // normal case — a share link is built from the route id), or, in case one
+  // was ever hand-built from the event's own id, that works too.
+  const event = eventByRouteId.get(id) || eventById.get(id);
+  if (event) {
+    openBushEventDeck(event);
+    return;
+  }
+  if (routeById.has(id)) selectRoute(id, true);
 }
 
 async function initMap() {
@@ -782,7 +807,14 @@ function onLoad() {
   // before the map finished loading.
   refresh();
   setupCategoryFilters();
-  if (selectedId) selectRoute(selectedId, false);
+  // A deep link (selectFromHash) can open the event card before the map is
+  // ready — the sheet itself needs no map, see openEventDetail. selectRoute
+  // doesn't know about that card: it would reopen the plain route card and
+  // silently undo the whole point of the deep link the moment the map
+  // finished loading. Resync via the deck instead, which just redraws the
+  // line/reframes without touching what's on screen.
+  if (deck && deck.kind === "event") showEventFromDeck();
+  else if (selectedId) selectRoute(selectedId, false);
 
   // Non-invasive integration point for the optional diary layer (diary.js).
   // Exposes the map + a ready signal; changes nothing about the map itself.
