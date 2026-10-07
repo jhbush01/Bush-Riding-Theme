@@ -96,7 +96,7 @@
       /* Sheets dim the header too (M05, M06a/b); the desktop drawer leaves it
          lit (D07), as do the header's own panels. */
       scrim(true, el.hasAttribute('data-alp-sheet'));
-      if (isSheetNow(el) || id === 'alp-menu') lock();
+      if (isSheetNow(el) || id === 'alp-menu' || (id === 'alp-searchmenu' && !DESKTOP.matches)) lock();
     }
 
     if (isModal(el) || (id === 'alp-filters' && !DESKTOP.matches)) {
@@ -129,6 +129,8 @@
   document.addEventListener('click', function (e) {
     var t = e.target;
     var toggle = t.closest('[data-alp-toggle]');
+    /* Bush Map opens its panel on hover, but a click goes to the map. */
+    if (toggle && toggle.hasAttribute('data-alp-follow') && DESKTOP.matches) { closePanel(true); return; }
     if (toggle) {
       e.preventDefault();
       var id = toggle.getAttribute('data-alp-toggle');
@@ -200,6 +202,14 @@
       if (openId && document.getElementById(openId).closest('[data-alp-header]')) closePanel(true);
     }, 280);
   });
+  /* Keyboard: tabbing onto Shop, Bush Map or Search opens its panel, so what's
+     in it can be reached without a mouse. */
+  document.addEventListener('focusin', function (e) {
+    if (!DESKTOP.matches) return;
+    var btn = e.target.closest('[data-alp-hover]');
+    if (btn && e.target.matches(':focus-visible')) openPanel(btn.getAttribute('data-alp-toggle'), { focusFrom: btn });
+  });
+
   /* Pointer gone from the window altogether. */
   document.documentElement.addEventListener('mouseleave', function () {
     if (!DESKTOP.matches || !openId || openId === 'alp-menu') return;
