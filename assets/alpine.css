@@ -638,10 +638,14 @@ div.alp-scrim[hidden] { display: none; }
   margin: 0 !important; padding: 96px 0 72px; max-width: 30ch;
   font: 600 clamp(36px, 3.6vw, 60px)/1.08 var(--alp-font-display); letter-spacing: -0.01em;
 }
-.alp-pdp__more { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
-.alp-pdp__more { align-items: start; }
+.alp-pdp__more { display: flex; flex-direction: column; gap: 8px; }
+
 .alp-pdp__fig { margin: 0; }
 .alp-pdp__fig .alp-pdp__img { aspect-ratio: 3 / 4; }
+/* One photo per row at its own proportions — no crop. */
+.alp-pdp__fig .alp-pdp__img--natural { aspect-ratio: auto; }
+.alp-pdp__photo { display: block; width: 100%; height: auto; }
+.alp-pdp__line { padding: 88px 0 80px; }
 .alp-pdp__cap { padding: 14px 4px 18px; max-width: 46ch; font: 15px/1.55 var(--alp-font-ui); }
 .alp-pdp__model { display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 24px 20px 0; font-size: 15px; }
 .alp-pdp__model .alp-btn { padding: 13px 18px; }
@@ -776,7 +780,8 @@ div.alp-scrim[hidden] { display: none; }
   .alp-pdp__price { font-size: 20px; }
   .alp-pills li { padding: 9px 14px; font-size: 12px; }
   .alp-pdp__statement { padding: 32px 18px 36px; font-size: 30px; }
-  .alp-pdp__more { grid-template-columns: 1fr; gap: 6px; }
+  .alp-pdp__more { gap: 6px; }
+  .alp-pdp__line { padding: 36px 18px 40px; }
   .alp-pdp__model { flex-direction: column; align-items: flex-start; padding: 18px 18px 0; }
   .alp-pdp__details { margin: 40px 18px 0; }
   .alp-acc--big .alp-acc__head { padding: 20px 0; font-size: 20px; }

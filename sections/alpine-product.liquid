@@ -20,6 +20,7 @@
     custom.spec_pills       list of single-line text — 124g · FLATLOCK SEAMS…
     custom.temp_min / _max  integer (°C)      — temperature range
     custom.conditions       list of single-line text — hot, cold, rain, low light
+    custom.story_lines      list of multi-line text — a line after each photo row
     custom.model_note       single-line text  — "Jarrod is 180cm and wears M."
     custom.silhouette       collection        — what "Shop the silhouette" opens
     custom.usage, custom.technology, custom.features,
@@ -80,22 +81,33 @@
           <p class="alp-pdp__statement">{{ statement | escape | newline_to_br }}</p>
         {%- endif -%}
 
-        {%- if product.media.size > hero_n -%}
+        {%- comment -%}
+          One photo per row, each at its own proportions across the full left
+          column. custom.story_lines (a list of multi-line text) drops a
+          statement line in after each photo, in order: line 1 after the first
+          photo here, line 2 after the second… Lines beyond the last photo
+          follow at the end.
+        {%- endcomment -%}
+        {%- assign lines = mf.story_lines.value -%}
+        {%- if product.media.size > hero_n or lines != blank -%}
           <div class="alp-pdp__more">
-            {%- comment -%}
-              Each photo's alt text (set on the photo in admin) is printed under
-              it — the caption and the screen-reader description are the same
-              words, so write it to describe the shot.
-            {%- endcomment -%}
+            {%- assign photo_count = product.media.size | minus: hero_n | at_least: 0 -%}
             {%- for m in product.media offset: hero_n -%}
               <figure class="alp-pdp__fig">
-                <div class="alp-pdp__img">
-                  {{ m.preview_image | image_url: width: 1400 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '500, 800, 1100, 1400', sizes: '(min-width: 750px) 33vw, 100vw', alt: m.alt | default: product.title }}
+                <div class="alp-pdp__img alp-pdp__img--natural">
+                  {{ m.preview_image | image_url: width: 2400 | image_tag: class: 'alp-pdp__photo', loading: 'lazy', widths: '700, 1100, 1600, 2000, 2400', sizes: '(min-width: 750px) 66vw, 100vw', alt: m.alt | default: product.title }}
                 </div>
                 {%- if section.settings.alt_captions and m.alt != blank -%}
                   <figcaption class="alp-pdp__cap">{{ m.alt | escape }}</figcaption>
                 {%- endif -%}
               </figure>
+              {%- assign i = forloop.index0 -%}
+              {%- if lines[i] != blank -%}
+                <p class="alp-pdp__statement alp-pdp__line">{{ lines[i] | escape | newline_to_br }}</p>
+              {%- endif -%}
+            {%- endfor -%}
+            {%- for line in lines offset: photo_count -%}
+              <p class="alp-pdp__statement alp-pdp__line">{{ line | escape | newline_to_br }}</p>
             {%- endfor -%}
           </div>
         {%- endif -%}
