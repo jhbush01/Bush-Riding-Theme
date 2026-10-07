@@ -31,7 +31,7 @@
       <span class="alp-line__price">{{ item.final_line_price | money_without_trailing_zeros }}</span>
     </div>
   {%- else -%}
-    <p class="alp-cart__empty">Nothing in here yet. <a href="{{ routes.collections_url }}">Have a look around</a>.</p>
+    <p class="alp-cart__empty">Nothing in here yet. <a href="{{ routes.all_products_collection_url }}">Have a look around</a>.</p>
   {%- endfor -%}
 
   {%- if where == 'drawer' and cart.item_count > 0 -%}

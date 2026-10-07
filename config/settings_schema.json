@@ -16,13 +16,14 @@
       },
       {
         "type": "header",
-        "content": "Shop categories"
+        "content": "Shop"
       },
       {
-        "type": "link_list",
-        "id": "alp_shop_menu",
-        "label": "Shop menu",
-        "info": "The category list in the header menu, shop landing and collection bar. A link to a collection with no products shows as \"next drop\". Leave empty to use View all, Bottoms, T-Shirts and Caps."
+        "type": "text",
+        "id": "alp_next_drop",
+        "label": "Coming in the next drop",
+        "default": "T-Shirts, Caps",
+        "info": "Product types that aren't in the store yet, comma-separated. They show as \"next drop\" with Notify me, and drop off by themselves once a product with that Type is published. The shop menu is built from your products' Types and your collections."
       },
       {
         "type": "range",

@@ -463,6 +463,47 @@
     openPanel('alp-quick', { focusFrom: chip });
   });
 
+  /* ── Email signups (newsletter, Notify me) ───────────────────────────────
+     Posted in the background so the page stays exactly where it is. A normal
+     post reloads the page, and Shopify then marks EVERY signup form on it as
+     successful — the browser lands on the footer's "thanks", miles from the
+     tile that was used. If Shopify asks for a captcha, fall back to the
+     normal post so the visitor can complete it. */
+  document.addEventListener('submit', function (e) {
+    var form = e.target.closest('[data-alp-signup]');
+    if (!form || !window.fetch || !window.FormData) return;
+    e.preventDefault();
+    var btn = $('button[type="submit"]', form);
+    var err = $('[data-alp-err]', form);
+    if (btn) btn.classList.add('is-busy');
+    if (err) err.hidden = true;
+    fetch(form.action.split('#')[0], { method: 'POST', body: new FormData(form), headers: { Accept: 'text/html' }, credentials: 'same-origin' })
+      .then(function (r) {
+        if (/\/challenge/.test(r.url)) { form.submit(); return null; }
+        return r.text().then(function (html) {
+          var doc = new DOMParser().parseFromString(html, 'text/html');
+          var back = form.id ? doc.getElementById(form.id) : null;
+          var okBack = back && $('[data-alp-ok]', back);
+          var errBack = back && $('[data-alp-err]', back);
+          if (errBack && !errBack.hasAttribute('hidden')) return false;
+          if (okBack && !okBack.hasAttribute('hidden')) return true;
+          return /customer_posted=true/.test(r.url);
+        });
+      })
+      .then(function (ok) {
+        if (ok === null) return;
+        if (ok) {
+          $$('input:not([type="hidden"]), button, label', form).forEach(function (n) { n.hidden = true; });
+          var msg = $('[data-alp-ok]', form);
+          if (msg) msg.hidden = false;
+        } else if (err) {
+          err.hidden = false;
+        }
+      })
+      .catch(function () { if (err) err.hidden = false; })
+      .then(function () { if (btn) btn.classList.remove('is-busy'); });
+  });
+
   /* ── Product page buy block ──────────────────────────────────────────────
      Size tiles are radios; the variant id is resolved from all chosen
      options. Nothing is pre-chosen (size is a real decision) unless the URL

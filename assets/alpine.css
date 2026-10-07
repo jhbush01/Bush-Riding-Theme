@@ -233,13 +233,12 @@ a:hover > .alp-duo__stack .alp-chip, summary:hover > .alp-chip {
 }
 .alp-mapmenu.is-open, .alp-shopmenu.is-open, .alp-searchmenu.is-open, .alp-menu.is-open { transform: none; opacity: 1; }
 
-/* Shop panel — the shop landing (D02) in small */
-.alp-shopmenu { display: grid; grid-template-columns: 320px minmax(0, 1fr) minmax(0, 1fr); height: 460px; }
-.alp-shopmenu__side { display: flex; flex-direction: column; gap: 16px; padding: 40px; }
-.alp-shopmenu__side .alp-btn { align-self: flex-start; padding: 13px 22px; }
-.alp-shopmenu__panel { position: relative; display: block; overflow: hidden; background: var(--alp-haze); }
-.alp-shopmenu__panel--ground { background: var(--alp-card); }
-.alp a.alp-shopmenu__panel:hover { color: inherit; }
+/* Shop panel — the shop landing (D02), as the dropdown */
+.alp-shopmenu {
+  display: grid; grid-template-columns: 320px minmax(0, 1fr) minmax(0, 1fr);
+  height: min(800px, calc(100vh - var(--alp-hd)));
+}
+.alp-shopmenu .alp-shop__side { overflow-y: auto; }
 
 /* Search panel — D06 as an overlay */
 .alp-searchmenu { max-height: calc(100vh - var(--alp-hd)); overflow-y: auto; }
@@ -305,6 +304,10 @@ details[open] > summary .alp-menu__pm::after { content: '−'; }
 /* Category lists (alp-shop-links) */
 .alp-cats { display: flex; }
 .alp-cats__item.is-soon { color: var(--alp-accent); }
+.alp-cats__head { font: 600 12px/1.4 var(--alp-font-ui); letter-spacing: 0.12em; text-transform: uppercase; color: var(--alp-accent); }
+.alp-cats__head ~ .alp-cats__head { margin-top: 14px; }
+.alp-cats__rule { width: 1px; height: 20px; background: var(--alp-line); flex: none; }
+.alp-menu .alp-cats__head { font-size: 11px; }
 .alp-cats__item small { font: 400 13px var(--alp-font-ui); }
 .alp-menu .alp-cats__item small { font-size: 12px; }
 
@@ -450,7 +453,6 @@ div.alp-scrim[hidden] { display: none; }
 .alp-drop-row .alp-notify__pop { width: 320px; }
 
 /* ── Shop landing (D02 · M03) ────────────────────────────────────────────── */
-.alp-shop__grid { display: grid; grid-template-columns: 320px minmax(0, 1fr) minmax(0, 1fr); height: 800px; }
 .alp-shop__side { display: flex; flex-direction: column; gap: 16px; padding: 40px; }
 .alp-cats--big { flex-direction: column; gap: 16px; font: 600 20px/1.2 var(--alp-font-display); }
 .alp-shop__fill { flex: 1; }
@@ -461,15 +463,6 @@ div.alp-scrim[hidden] { display: none; }
 .alp-shop__label { position: absolute; left: 24px; bottom: 24px; font: 600 18px/1.2 var(--alp-font-display); color: var(--alp-ink); }
 .alp-shop__label--bone { color: var(--alp-bg); }
 .alp a.alp-shop__panel:hover { color: inherit; }
-
-.alp-rows { padding: 4px 18px 14px; }
-.alp-rows__row {
-  display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
-  padding: 16px 0; border-bottom: 1px solid var(--alp-line);
-  font: 600 22px/1.2 var(--alp-font-display);
-}
-.alp-rows__row small { font: 400 13px var(--alp-font-ui); color: var(--alp-accent); }
-.alp-rows__row.is-soon { color: var(--alp-accent); }
 
 /* ── Collection (D03 · D04 · M04 · M05) ──────────────────────────────────── */
 .alp-cat__bar {
@@ -500,6 +493,12 @@ div.alp-scrim[hidden] { display: none; }
   height: min(900px, calc(100vh - var(--alp-hd) - 24px)); min-height: 520px;
   background: var(--alp-haze); overflow: hidden;
 }
+.alp-cat__group {
+  grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: baseline;
+  padding: 12px 2px 0; font-size: 20px;
+}
+.alp-cat__group ~ .alp-cat__group { padding-top: 28px; }
+.alp-cat__group a { font: 400 14px var(--alp-font-ui); text-decoration: underline; text-underline-offset: 3px; }
 .alp-cat__empty { grid-column: 1 / -1; padding: 40px 0; }
 .alp-cat__empty a { text-decoration: underline; text-underline-offset: 3px; }
 
@@ -517,6 +516,7 @@ div.alp-scrim[hidden] { display: none; }
   .alp-cat__layout { display: block; padding: 0; }
   .alp-cat__tiles { display: block; }
   .alp-cat__tiles .alp-card__cap { padding: 12px 18px 24px; }
+  .alp-cat__group, .alp-cat__group ~ .alp-cat__group { padding: 20px 18px 12px; }
 }
 
 /* Filters — desktop: a panel under the bar; phone: a bottom sheet. */

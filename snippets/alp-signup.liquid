@@ -19,11 +19,17 @@
     assign classes = classes | append: ' alp-signup--sm'
   endif
 -%}
-{%- form 'customer', id: id, class: classes -%}
+{%- form 'customer', id: id, class: classes, data-alp-signup: '' -%}
   <input type="hidden" name="contact[tags]" value="{{ tags | default: 'newsletter' }}">
   {%- if form.posted_successfully? -%}
-    <p class="alp-signup__ok" role="status">{{ thanks | default: "You're on the list. We'll be in touch." }}</p>
+    <p class="alp-signup__ok" role="status" data-alp-ok>{{ thanks | default: "You're on the list. We'll be in touch." }}</p>
   {%- else -%}
+    {%- comment -%}
+      With script the form posts in the background and this line replaces the
+      field in place — the page doesn't reload, so nobody is thrown to another
+      form's "thanks" further down the page.
+    {%- endcomment -%}
+    <p class="alp-signup__ok" role="status" data-alp-ok hidden>{{ thanks | default: "You're on the list. We'll be in touch." }}</p>
     <label class="alp-vh" for="{{ id }}-email">Email address</label>
     <input
       class="alp-signup__input"
@@ -37,8 +43,6 @@
       required
     >
     <button class="alp-signup__btn" type="submit">{{ label | default: 'Subscribe' }}</button>
-    {%- if form.errors -%}
-      <p class="alp-signup__err" role="alert">That email didn't go through. Mind checking it?</p>
-    {%- endif -%}
+    <p class="alp-signup__err" role="alert" data-alp-err{% unless form.errors %} hidden{% endunless %}>That email didn't go through. Mind checking it?</p>
   {%- endif -%}
 {%- endform -%}

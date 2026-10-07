@@ -63,7 +63,7 @@
   <div class="alp-m">
     <div class="alp-headrow">
       <h2 class="alp-headrow__title">{{ section.settings.mobile_heading | escape }}</h2>
-      <a class="alp-headrow__link" href="{{ routes.collections_url }}">Shop</a>
+      <a class="alp-headrow__link" href="{{ routes.all_products_collection_url }}">Shop</a>
     </div>
     {%- if p != blank -%}
       {%- render 'alp-card', product: p -%}

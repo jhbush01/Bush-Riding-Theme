@@ -16,7 +16,9 @@
       "settings": {
         "wordmark": "Bush Riding™",
         "map_image": "shopify://shop_images/Bush_Background.jpg",
-        "map_tagline": "Explore more with our curated gravel routes and events"
+        "map_tagline": "Explore more with our curated gravel routes and events",
+        "shop_image": "shopify://shop_images/IMG_2419.jpg",
+        "shop_image_label": "Shorts"
       }
     }
   },

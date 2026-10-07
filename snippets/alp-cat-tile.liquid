@@ -1,0 +1,24 @@
+{%- comment -%}
+  One product on the collection page, plus — on phones — the full-width
+  lifestyle photo after every second product (or after the last, when there
+  are fewer than three).
+  product, i (1-based position across the page), n (products on the page),
+  lifestyle (image)
+{%- endcomment -%}
+{%- if i <= 2 -%}{%- assign eager = 'eager' -%}{%- else -%}{%- assign eager = 'lazy' -%}{%- endif -%}
+{%- render 'alp-card', product: product, loading: eager -%}
+{%- liquid
+  assign put_life = false
+  assign every = i | modulo: 2
+  if every == 0 and i < n
+    assign put_life = true
+  endif
+  if i == n and n < 3
+    assign put_life = true
+  endif
+-%}
+{%- if put_life and lifestyle != blank -%}
+  <div class="alp-photo alp-photo--520 alp-m">
+    {{ lifestyle | image_url: width: 1200 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '600, 900, 1200', sizes: '100vw', alt: '' }}
+  </div>
+{%- endif -%}

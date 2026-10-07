@@ -1,7 +1,8 @@
 {%- comment -%}
   Collection (D03 / D04 desktop, M04 / M05 phone).
 
-  Category bar: View all · New in · Bottoms · T-Shirts soon · Caps soon, and
+  Category bar: View all · each product Type · next-drop types · then the
+  collections (alp-shop-links). Products are grouped under their Type. At the right either
   at the right either "1 product" or — from the Theme settings threshold
   (6) up — Filters and Sort by. Filters and Sort do nothing for a handful of
   products, so they aren't drawn until they would.
@@ -162,28 +163,54 @@
 
   <div class="alp-cat__layout">
     <div class="alp-cat__tiles">
-      {%- assign n = collection.products.size -%}
-      {%- for product in collection.products -%}
-        {%- if forloop.index <= 2 -%}{%- assign eager = 'eager' -%}{%- else -%}{%- assign eager = 'lazy' -%}{%- endif -%}
-        {%- render 'alp-card', product: product, loading: eager -%}
-        {%- liquid
-          assign put_life = false
-          assign every = forloop.index | modulo: 2
-          if every == 0 and forloop.last == false
-            assign put_life = true
-          endif
-          if forloop.last and n < 3
-            assign put_life = true
-          endif
-        -%}
-        {%- if put_life and section.settings.lifestyle != blank -%}
-          <div class="alp-photo alp-photo--520 alp-m">
-            {{ section.settings.lifestyle | image_url: width: 1200 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '600, 900, 1200', sizes: '100vw', alt: '' }}
-          </div>
+      {%- liquid
+        assign n = collection.products.size
+        assign life = section.settings.lifestyle
+        comment
+          Grouped by product Type (Shorts, …) — the store's own categories —
+          unless someone has filtered, sorted, or is already on one type's
+          page, where headings would only repeat what they chose.
+        endcomment
+        assign grouped = false
+        if section.settings.group_by_type and active == 0 and collection.current_type == blank and collection.sort_by == blank and n > 0
+          assign grouped = true
+        endif
+        assign i = 0
+      -%}
+      {%- if grouped -%}
+        {%- for t in collection.all_types -%}
+          {%- if t == blank -%}{%- continue -%}{%- endif -%}
+          {%- assign in_type = collection.products | where: 'type', t -%}
+          {%- if in_type.size == 0 -%}{%- continue -%}{%- endif -%}
+          <h2 class="alp-cat__group">
+            <span>{{ t | escape }}</span>
+            <a href="{{ t | url_for_type }}">See all</a>
+          </h2>
+          {%- for product in in_type -%}
+            {%- assign i = i | plus: 1 -%}
+            {%- render 'alp-cat-tile', product: product, i: i, n: n, lifestyle: life -%}
+          {%- endfor -%}
+        {%- endfor -%}
+        {%- capture untyped -%}
+          {%- for product in collection.products -%}
+            {%- if product.type == blank -%}x{%- endif -%}
+          {%- endfor -%}
+        {%- endcapture -%}
+        {%- if untyped != blank -%}
+          <h2 class="alp-cat__group"><span>More</span></h2>
+          {%- for product in collection.products -%}
+            {%- if product.type != blank -%}{%- continue -%}{%- endif -%}
+            {%- assign i = i | plus: 1 -%}
+            {%- render 'alp-cat-tile', product: product, i: i, n: n, lifestyle: life -%}
+          {%- endfor -%}
         {%- endif -%}
       {%- else -%}
-        <p class="alp-cat__empty">Nothing here yet. {% if active > 0 %}<a href="{{ collection.url }}">Clear the filters</a>{% else %}<a href="{{ routes.all_products_collection_url }}">See everything</a>{% endif %}</p>
-      {%- endfor -%}
+        {%- for product in collection.products -%}
+          {%- render 'alp-cat-tile', product: product, i: forloop.index, n: n, lifestyle: life -%}
+        {%- else -%}
+          <p class="alp-cat__empty">Nothing here yet. {% if active > 0 %}<a href="{{ collection.url }}">Clear the filters</a>{% else %}<a href="{{ routes.all_products_collection_url }}">See everything</a>{% endif %}</p>
+        {%- endfor -%}
+      {%- endif -%}
 
       {%- if paginate.current_page == 1 and active == 0 -%}
         <div class="alp-d alp-contents">
@@ -223,6 +250,7 @@
   "tag": "div",
   "settings": [
     { "type": "image_picker", "id": "lifestyle", "label": "Lifestyle photo", "info": "Holds the right half on desktop; repeats after every two products on phones." },
+    { "type": "checkbox", "id": "group_by_type", "label": "Group products by Type", "default": true, "info": "Headings per product Type (Shorts, …) on all products and on collections. Off while a filter or sort is applied." },
     { "type": "text", "id": "notify_heading", "label": "Next-drop tile heading", "default": "Hear about the next drop first." },
     {
       "type": "textarea", "id": "codes", "label": "Filter codes",
