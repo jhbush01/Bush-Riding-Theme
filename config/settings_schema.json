@@ -70,7 +70,7 @@
         "id": "alp_map_url",
         "label": "Map site",
         "default": "https://map.bushriding.cc",
-        "info": "Open the map, route links and Submit a route all go here."
+        "info": "Open the map, route links and Submit a route all go here. https:// is added if it's left off."
       },
       {
         "type": "text",

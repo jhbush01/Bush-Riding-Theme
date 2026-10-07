@@ -2,7 +2,7 @@
   One place that knows where things live, so a moved page is fixed once.
   Capture it: {% capture rides_url %}{% render 'alp-link', to: 'rides' %}{% endcapture %}
 
-  to: rides | about | bush_map | map | submit | size_guide | shop | strava | instagram
+  to: rides | about | bush_map | map | submit | api | size_guide | shop | strava | instagram
   Pages fall back to their conventional handle, then to something that still
   works (the journal for Rides — the blog template is the Rides layout — and
   the map site for Bush Map) — a nav link
@@ -15,6 +15,13 @@
     https:/map.bushriding.cc — a path on this store, and a 404.)
   endcomment
   assign map_url = settings.alp_map_url | default: 'https://map.bushriding.cc' | strip
+  comment
+    Typed into the editor as "map.bushriding.cc", a link has no scheme and
+    the browser reads it as a page on this store (bushriding.cc/map…, a 404).
+  endcomment
+  unless map_url contains '://'
+    assign map_url = 'https://' | append: map_url
+  endunless
   assign tail = map_url | slice: -1
   if tail == '/'
     assign keep = map_url.size | minus: 1
@@ -51,6 +58,12 @@
       endif
     when 'map'
       echo map_url
+    when 'api'
+      assign api = settings.alp_map_api | default: 'https://map-api.bushriding.cc' | strip
+      unless api contains '://'
+        assign api = 'https://' | append: api
+      endunless
+      echo api
     when 'submit'
       echo map_url | append: '/submit.html'
     when 'size_guide'
