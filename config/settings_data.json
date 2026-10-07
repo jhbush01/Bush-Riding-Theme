@@ -9,7 +9,8 @@
  */
 {
   "current": {
-    "alp_map_api": "https://map.bushriding.cc",
+    "alp_map_url": "map.bushriding.cc",
+    "alp_map_api": "https://map-api.bushriding.cc",
     "logo_width": 90,
     "favicon": "shopify://shop_images/icon-512.png",
     "type_header_font": "assistant_n4",
