@@ -9,7 +9,17 @@
   to a 404 is worse than a link one step further away.
 {%- endcomment -%}
 {%- liquid
-  assign map_url = settings.alp_map_url | default: 'https://map.bushriding.cc' | remove_last: '/'
+  comment
+    Drop a trailing slash only. (Not remove_last: '/' — that removes the last
+    slash anywhere, which on a bare domain is the one in https://, giving
+    https:/map.bushriding.cc — a path on this store, and a 404.)
+  endcomment
+  assign map_url = settings.alp_map_url | default: 'https://map.bushriding.cc' | strip
+  assign tail = map_url | slice: -1
+  if tail == '/'
+    assign keep = map_url.size | minus: 1
+    assign map_url = map_url | slice: 0, keep
+  endif
   case to
     when 'rides'
       assign p = settings.alp_rides_page | default: pages['rides']
