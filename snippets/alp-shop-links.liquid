@@ -1,0 +1,106 @@
+{%- comment -%}
+  The shop's category list, drawn wherever the design shows it.
+
+  Source: the "Shop menu" theme setting. A link to a collection with no
+  products is a category that hasn't landed yet, so it renders muted with
+  "next drop" instead of linking to an empty grid. With no menu set, the
+  launch line-up: View all, Bottoms, T-Shirts, Caps — the last two resolve to
+  collections if they exist and are "next drop" until they have stock.
+
+  variant:
+    list  – stacked names (shop landing, phone menu)
+    bar   – collection bar; marks the current collection
+    rows  – phone shop landing: live categories with style counts, then the
+            next-drop ones folded into a single row
+    soon  – just the next-drop names, pipe-separated, for tiles and bands
+{%- endcomment -%}
+{%- liquid
+  assign entries = ''
+  assign menu = settings.alp_shop_menu
+  if menu != blank and menu.links.size > 0
+    for link in menu.links
+      assign state = 'live'
+      assign count = ''
+      if link.type == 'collection_link' and link.object != blank
+        assign count = link.object.products_count
+        if count == 0
+          assign state = 'soon'
+        endif
+      endif
+      assign entries = entries | append: link.title | append: '^' | append: link.url | append: '^' | append: state | append: '^' | append: count | append: '~'
+    endfor
+  else
+    assign entries = 'View all^' | append: routes.all_products_collection_url | append: '^live^^~'
+    assign new_in = collections['new-in']
+    if variant == 'bar' and new_in != blank and new_in.products_count > 0
+      assign entries = entries | append: 'New in^' | append: new_in.url | append: '^live^^~'
+    endif
+    assign launch = 'Bottoms:bottoms,T-Shirts:t-shirts,Caps:caps' | split: ','
+    for pair in launch
+      assign label = pair | split: ':' | first
+      assign handle = pair | split: ':' | last
+      assign c = collections[handle]
+      if c != blank and c.products_count > 0
+        assign entries = entries | append: label | append: '^' | append: c.url | append: '^live^' | append: c.products_count | append: '~'
+      elsif handle == 'bottoms'
+        comment
+          No Bottoms collection yet: the shorts are the whole catalogue, so the
+          row still goes somewhere real.
+        endcomment
+        assign entries = entries | append: label | append: '^' | append: routes.all_products_collection_url | append: '^live^' | append: collections.all.products_count | append: '~'
+      else
+        assign entries = entries | append: label | append: '^^soon^0~'
+      endif
+    endfor
+  endif
+  assign entries = entries | split: '~'
+-%}
+
+{%- case variant -%}
+  {%- when 'soon' -%}
+    {%- assign out = '' -%}
+    {%- for e in entries -%}
+      {%- assign f = e | split: '^' -%}
+      {%- if f[2] == 'soon' -%}{%- assign out = out | append: f[0] | append: '|' -%}{%- endif -%}
+    {%- endfor -%}
+    {{- out | remove_last: '|' -}}
+
+  {%- when 'rows' -%}
+    {%- assign soon_names = '' -%}
+    {%- for e in entries -%}
+      {%- assign f = e | split: '^' -%}
+      {%- if f[2] == 'soon' -%}
+        {%- assign soon_names = soon_names | append: f[0] | append: '|' -%}
+      {%- elsif f[0] != 'View all' -%}
+        <a class="alp-rows__row" href="{{ f[1] }}">
+          <span>{{ f[0] | escape }}</span>
+          <small>{% if f[3] != blank %}{{ f[3] }} {% if f[3] == '1' %}style{% else %}styles{% endif %} {% endif %}→</small>
+        </a>
+      {%- endif -%}
+    {%- endfor -%}
+    {%- if soon_names != blank -%}
+      {%- assign names = soon_names | remove_last: '|' | split: '|' -%}
+      <div class="alp-rows__row is-soon">
+        <span>{{ names | join: ' & ' | escape }}</span>
+        <small>Next drop</small>
+      </div>
+    {%- endif -%}
+
+  {%- else -%}
+    {%- assign marked = false -%}
+    {%- for e in entries -%}
+      {%- assign f = e | split: '^' -%}
+      {%- if f[2] == 'soon' -%}
+        <span class="alp-cats__item is-soon">{{ f[0] | escape }} <small>{% if variant == 'bar' %}soon{% else %}· next drop{% endif %}</small></span>
+      {%- else -%}
+        {%- liquid
+          assign here = false
+          if variant == 'bar' and marked == false and collection != blank and f[1] == collection.url
+            assign here = true
+            assign marked = true
+          endif
+        -%}
+        <a class="alp-cats__item{% if here %} is-on{% endif %}" href="{{ f[1] }}"{% if here %} aria-current="page"{% endif %}{% if menu_link %} data-alp-close{% endif %}>{{ f[0] | escape }}</a>
+      {%- endif -%}
+    {%- endfor -%}
+{%- endcase -%}

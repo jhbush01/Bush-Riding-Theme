@@ -1,0 +1,14 @@
+/* Bush Riding type — the three tiers on the brand board (Artboard 10).
+     1. DX Burst                 display / logo — LICENSED, files supplied
+     2. Aktiv Grotesk Semibold   subheadings + all website headings
+     3. Inter Regular            all body copy
+
+   DX Burst ships in two cuts. Regular is the rough brush edge; Smooth is the
+   cleaned-up edge. Both are real OTFs in assets/fonts — no substitute.
+
+   STILL SUBSTITUTED: Aktiv Grotesk Semibold -> "Archivo" 600. Send the licensed
+   .woff2 and swap the @import below for an @font-face rule. Inter is exact. */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Archivo:wght@400;500;600;700&display=swap');
+
+@font-face{font-family:'DX Burst';src:url('../assets/fonts/DxBurst-Regular.otf') format('opentype');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'DX Burst Smooth';src:url('../assets/fonts/DxBurst-Smooth.otf') format('opentype');font-weight:400;font-style:normal;font-display:swap}

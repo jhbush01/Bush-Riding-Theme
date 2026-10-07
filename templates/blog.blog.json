@@ -9,14 +9,14 @@
  */
 {
   "sections": {
-    "journal": {
-      "type": "alpine-journal",
+    "main": {
+      "type": "alpine-blog",
       "settings": {
-        "show_next_ride": true
+        "heading": "Recaps"
       }
     }
   },
   "order": [
-    "journal"
+    "main"
   ]
 }

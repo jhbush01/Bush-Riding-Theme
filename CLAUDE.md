@@ -69,13 +69,18 @@ most of the work — text and icon as support. Show, don't tell.
 
 - **Repo root** — the Shopify theme (Dawn-based). The published store theme
   follows `main`; Shopify's GitHub integration syncs connected branches.
-  Its skin came out of the ALP1NE design study and kept that prefix: the live
-  header, footer and homepage are `sections/alpine-*.liquid` driven by
-  `assets/alpine.css` / `alpine.js` and `--alp-*` tokens. The name is
-  historical — the copy in them is Bush Riding's and must follow the voice
-  above. They are IN PRODUCTION (`sections/header-group.json`,
-  `footer-group.json` and `templates/index.json` all reference them), so
-  don't delete them as leftovers.
+  The storefront is the October 2026 redesign
+  (`docs/design_handoff_storefront_redesign/` — README.md is the spec, the
+  Hifi `.dc.html` files are the visual reference). Every storefront page is
+  an `sections/alpine-*.liquid` section with `snippets/alp-*.liquid`, styled
+  by `assets/alpine.css` and driven by `assets/alpine.js` on `--alp-*`
+  tokens (the prefix is historical). Shared config — shop menu, Rides /
+  About / Bush Map pages, map API, time zone, weather, Strava — is in
+  Theme settings → Bush Riding, read through `snippets/alp-link.liquid`.
+  The three-tap checkout (card → size → Checkout; product → size → Buy now)
+  is a hard requirement: don't add a step to it. Dawn's own sections remain
+  only for accounts, policies, contact and the password page (`main-waitlist`
+  + `assets/waitlist.css`).
 - **`map/`** — bushridingmap.com… now **map.bushriding.cc**: static MapLibre
   routes map deployed by Cloudflare Pages (output dir `map`), plus Pages
   Functions in `functions/`. SEO route pages under `map/routes/**` are
@@ -86,6 +91,9 @@ most of the work — text and icon as support. Show, don't tell.
   (diary.bushriding.cc, reached same-origin via the `/diary-api` Pages
   proxy): accounts + ride diary. Both Workers deploy via Cloudflare's
   Git-connected builds (root dirs `/worker`, `/diary-worker`).
+- **`docs/design_handoff_storefront_redesign/`** — the storefront redesign
+  handoff (spec, hi-fi and wireframe prototypes, the design chat). Nothing
+  here ships.
 - **`docs/design-system/`** — the archived Claude Design handoff bundle.
   `docs/design-system/project/readme.md` is the governing design document:
   the palette (with the brand-board PDFs that prove the hexes), the type

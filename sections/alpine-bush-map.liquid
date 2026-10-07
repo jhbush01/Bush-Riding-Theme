@@ -1,0 +1,58 @@
+{%- comment -%}
+  Bush Map landing (M09) — where "Bush Map" goes from the phone menu.
+  Routes come live from the routes worker (/routes), near-you region first:
+  photo, region tag, name, km · m, each linking to the route on the map.
+  Submit a route, and Open the map fixed to the foot of the screen.
+  On desktop the same cards sit three-up (the nav's panel is the usual way in
+  there, but the page has to stand up if someone lands on it).
+{%- endcomment -%}
+{%- liquid
+  capture map_url
+    render 'alp-link', to: 'map'
+  endcapture
+  capture submit_url
+    render 'alp-link', to: 'submit'
+  endcapture
+-%}
+<section class="alp alp-bushmap" data-alp-routes-page data-alp-limit="{{ section.settings.limit }}">
+  <header class="alp-bushmap__head">
+    <h1 class="alp-bushmap__title">BUSH MAP™</h1>
+    <p>{{ section.settings.tagline | escape }}</p>
+  </header>
+
+  <div class="alp-bushmap__cards" data-alp-route-list></div>
+  <p class="alp-rides__none" data-alp-route-none hidden>The routes are taking a moment. <a href="{{ map_url }}">Open the map</a> to see them all.</p>
+
+  <template data-alp-route-template>
+    <a class="alp-route">
+      <span class="alp-route__photo">
+        <img class="alp-fill" alt="" width="900" height="600" loading="lazy" data-r-img hidden>
+        <span class="alp-route__tag" data-r-region></span>
+      </span>
+      <span class="alp-route__cap">
+        <span class="alp-route__name" data-r-name></span>
+        <span class="alp-route__stats" data-r-stats></span>
+      </span>
+    </a>
+  </template>
+
+  <div class="alp-bushmap__actions">
+    <a class="alp-btn alp-btn--line" href="{{ submit_url }}">Submit a route</a>
+    <a class="alp-btn alp-d" href="{{ map_url }}">Open the map</a>
+  </div>
+  <div class="alp-stickybar alp-m">
+    <a class="alp-btn alp-btn--block" href="{{ map_url }}">Open the map</a>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Bush Map",
+  "tag": "div",
+  "settings": [
+    { "type": "text", "id": "tagline", "label": "Tagline", "default": "Explore more with our curated gravel routes and events" },
+    { "type": "range", "id": "limit", "label": "Routes shown", "min": 2, "max": 12, "step": 1, "default": 6 }
+  ],
+  "presets": [{ "name": "Bush Map" }]
+}
+{% endschema %}

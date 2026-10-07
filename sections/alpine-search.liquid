@@ -1,0 +1,90 @@
+{%- comment -%}
+  Search (D06 / M07) — one field for shorts, routes and rides.
+
+  Before a search: "Most popular" — the featured product(s), then routes and
+  the next ride from the routes worker.
+  After one: chips All / Products n / Routes n / Rides n and grouped results.
+  Products are Shopify's search; routes and rides are matched against the
+  worker's feeds in the browser (alpine.js), so Shopify never has to know
+  about them.
+{%- endcomment -%}
+{%- liquid
+  assign q = search.terms | escape
+  assign product_hits = 0
+  if search.performed
+    for r in search.results
+      if r.object_type == 'product'
+        assign product_hits = product_hits | plus: 1
+      endif
+    endfor
+  endif
+-%}
+<section class="alp alp-search" data-alp-search data-alp-q="{{ q }}">
+  <form class="alp-search__form" action="{{ routes.search_url }}" method="get" role="search">
+    <label class="alp-vh" for="AlpSearch">Search</label>
+    <input
+      class="alp-search__input"
+      id="AlpSearch"
+      type="search"
+      name="q"
+      value="{{ q }}"
+      placeholder="Search shorts, routes and rides"
+      autocomplete="off"
+      {% unless search.performed %}autofocus{% endunless %}
+    >
+    <input type="hidden" name="type" value="product">
+    <button class="alp-search__go" type="submit">Search</button>
+  </form>
+
+  {%- if search.performed -%}
+    <div class="alp-search__chips" role="tablist" aria-label="Show">
+      <button class="alp-chip alp-chip--line is-on" type="button" data-alp-filter="all" role="tab" aria-selected="true">All</button>
+      <button class="alp-chip alp-chip--line" type="button" data-alp-filter="products" role="tab" aria-selected="false">Products {{ product_hits }}</button>
+      <button class="alp-chip alp-chip--line" type="button" data-alp-filter="routes" role="tab" aria-selected="false">Routes <span data-alp-count-routes>0</span></button>
+      <button class="alp-chip alp-chip--line" type="button" data-alp-filter="rides" role="tab" aria-selected="false">Rides <span data-alp-count-rides>0</span></button>
+    </div>
+
+    <div class="alp-search__groups">
+      <div class="alp-search__group" data-alp-group="products">
+        <p class="alp-over">Products</p>
+        {%- for r in search.results -%}
+          {%- if r.object_type == 'product' -%}
+            <a class="alp-hit" href="{{ r.url }}">
+              <span class="alp-hit__thumb">
+                {%- if r.featured_media != blank -%}{{ r.featured_media.preview_image | image_url: width: 160 | image_tag: class: 'alp-fill', loading: 'lazy', alt: '' }}{%- endif -%}
+              </span>
+              <span class="alp-hit__name">{{ r.title | escape }}</span>
+              <span>{{ r.price | money_without_trailing_zeros }}</span>
+            </a>
+          {%- endif -%}
+        {%- endfor -%}
+        {%- if product_hits == 0 -%}<p class="alp-hit alp-hit--none">No products match “{{ q }}”.</p>{%- endif -%}
+      </div>
+      <div class="alp-search__group" data-alp-group="routes" hidden>
+        <p class="alp-over">Routes · Bush Map™</p>
+        <div data-alp-route-hits></div>
+      </div>
+      <div class="alp-search__group" data-alp-group="rides" hidden>
+        <p class="alp-over">Rides</p>
+        <div data-alp-ride-hits></div>
+      </div>
+    </div>
+  {%- else -%}
+    <h2 class="alp-search__popular">Most popular</h2>
+    <div class="alp-grid4 alp-search__grid" data-alp-popular>
+      {%- for p in section.settings.products -%}
+        {%- render 'alp-card', product: p, quick: false -%}
+      {%- endfor -%}
+    </div>
+  {%- endif -%}
+</section>
+
+{% schema %}
+{
+  "name": "Search",
+  "tag": "div",
+  "settings": [
+    { "type": "product_list", "id": "products", "label": "Most popular products", "limit": 2, "info": "Shown before a search, ahead of two routes and the next ride." }
+  ]
+}
+{% endschema %}

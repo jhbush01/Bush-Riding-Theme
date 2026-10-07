@@ -1,0 +1,26 @@
+{%- comment -%}
+  Ride recaps — journal articles as alternating photo/text rows (D09), or
+  photo-then-text on a phone (M10). Used by Rides and the blog page.
+  articles – the list to draw
+  limit    – optional cap
+{%- endcomment -%}
+{%- assign cap = limit | default: 50 -%}
+{%- for a in articles limit: cap -%}
+  <article class="alp-recap{% cycle '', ' alp-recap--flip' %}">
+    <a class="alp-recap__photo" href="{{ a.url }}" tabindex="-1" aria-hidden="true">
+      {%- if a.image != blank -%}
+        {{ a.image | image_url: width: 1600 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '600, 1000, 1600', sizes: '(min-width: 750px) 50vw, 100vw', alt: '' }}
+      {%- endif -%}
+    </a>
+    <div class="alp-recap__text">
+      <span class="alp-recap__date">{{ a.published_at | date: '%B %Y' }}</span>
+      <h3 class="alp-recap__title"><a href="{{ a.url }}">{{ a.title | escape }}</a></h3>
+      {%- if a.excerpt != blank -%}
+        <p class="alp-recap__body">{{ a.excerpt | strip_html | truncatewords: 40 }}</p>
+      {%- else -%}
+        <p class="alp-recap__body">{{ a.content | strip_html | truncatewords: 32 }}</p>
+      {%- endif -%}
+      <a class="alp-recap__read" href="{{ a.url }}">Read</a>
+    </div>
+  </article>
+{%- endfor -%}

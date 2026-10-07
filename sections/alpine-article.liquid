@@ -1,0 +1,25 @@
+{%- comment -%}
+  One ride recap: month, title, the photo full width, then the story.
+{%- endcomment -%}
+{%- capture rides_url -%}{%- render 'alp-link', to: 'rides' -%}{%- endcapture -%}
+<article class="alp alp-article">
+  <header class="alp-pagehead">
+    <p class="alp-recap__date">{{ article.published_at | date: '%B %Y' }}</p>
+    <h1 class="alp-pagehead__title">{{ article.title | escape }}</h1>
+  </header>
+  {%- if article.image != blank -%}
+    <div class="alp-article__photo">
+      {{ article.image | image_url: width: 2400 | image_tag: class: 'alp-fill', loading: 'eager', widths: '800, 1200, 1800, 2400', sizes: '100vw', alt: article.image.alt | default: '' }}
+    </div>
+  {%- endif -%}
+  <div class="alp-article__body">{{ article.content }}</div>
+  <p class="alp-more"><a href="{{ rides_url }}">Back to rides</a></p>
+</article>
+
+{% schema %}
+{
+  "name": "Recap",
+  "tag": "div",
+  "settings": []
+}
+{% endschema %}

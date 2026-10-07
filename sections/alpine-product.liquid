@@ -1,0 +1,207 @@
+{%- comment -%}
+  Product page (D05 desktop, M06 phone).
+
+  Desktop: photos 2×2 at 3:4 in the left two-thirds; the right third sticks —
+  overline (product type), name, price, size tiles, Add to cart · {size} and
+  Buy now side by side, description, accordions. Below, the next drop.
+  Phone: photos stacked full width, then the details; size and the two
+  buttons live in a bar fixed to the bottom of the screen.
+
+  One form serves both: on a phone CSS lifts the buy block into the bottom
+  bar, so there is one set of size inputs and one variant id — never two
+  pickers that can disagree.
+
+  Size is required. With nothing picked, Add to cart / Buy now point at the
+  size row instead of submitting. Sold-out sizes are struck through.
+
+  Buy now adds the size and goes straight to checkout (alpine.js). Without
+  JS the same button posts to /cart/add with return_to=/checkout, so it still
+  lands in checkout.
+{%- endcomment -%}
+{%- liquid
+  assign current = product.selected_or_first_available_variant
+  assign preset = false
+  if product.has_only_default_variant
+    assign preset = true
+  endif
+  assign price = product.price | money_without_trailing_zeros
+  capture size_url
+    render 'alp-link', to: 'size_guide'
+  endcapture
+-%}
+<section class="alp alp-pdp" data-alp-pdp>
+  <div class="alp-pdp__grid">
+    <div class="alp-pdp__media">
+      {%- for m in product.media -%}
+        {%- if forloop.index <= 2 -%}{%- assign eager = 'eager' -%}{%- else -%}{%- assign eager = 'lazy' -%}{%- endif -%}
+        <div class="alp-pdp__img">
+          {{ m.preview_image | image_url: width: 1600 | image_tag: class: 'alp-fill', loading: eager, widths: '600, 900, 1200, 1600', sizes: '(min-width: 750px) 33vw, 100vw', alt: m.alt | default: product.title }}
+        </div>
+      {%- else -%}
+        <div class="alp-pdp__img"></div>
+        <div class="alp-pdp__img"></div>
+      {%- endfor -%}
+    </div>
+
+    <div class="alp-pdp__info">
+      {%- if product.type != blank -%}<p class="alp-over">{{ product.type | escape }}</p>{%- endif -%}
+      <h1 class="alp-pdp__title">{{ product.title | escape }}</h1>
+      <p class="alp-pdp__price"><span data-alp-price>{{ current.price | money_without_trailing_zeros }}</span> <small>{{ cart.currency.iso_code }}</small></p>
+
+      {%- form 'product', product, class: 'alp-buy', data-alp-buy: '', novalidate: 'novalidate' -%}
+        {%- comment -%}
+          The variant id. With script, alpine.js names this input and fills it
+          from the size tiles. Without script it stays unnamed and the select
+          in <noscript> carries the id instead, so the form still adds to cart.
+        {%- endcomment -%}
+        <input type="hidden" {% if preset %}name="id" {% endif %}value="{% if preset %}{{ current.id }}{% endif %}" data-alp-variant>
+        {%- unless preset -%}
+          <noscript>
+            <label class="alp-buy__opthead" for="AlpNoJsVariant">Size</label>
+            <select id="AlpNoJsVariant" name="id">
+              {%- for v in product.variants -%}
+                <option value="{{ v.id }}"{% unless v.available %} disabled{% endunless %}>{{ v.title | escape }}{% unless v.available %} (sold out){% endunless %}</option>
+              {%- endfor -%}
+            </select>
+          </noscript>
+        {%- endunless -%}
+        <script type="application/json" data-alp-variants>
+          [
+            {%- for v in product.variants -%}
+              {"id": {{ v.id }}, "available": {{ v.available | json }}, "options": {{ v.options | json }}, "price": {{ v.price | money_without_trailing_zeros | json }}}{% unless forloop.last %},{% endunless %}
+            {%- endfor -%}
+          ]
+        </script>
+
+        {%- unless preset -%}
+          {%- for option in product.options_with_values -%}
+            {%- assign opt_index = forloop.index0 -%}
+            <fieldset class="alp-buy__opt" data-alp-option="{{ opt_index }}">
+              <legend class="alp-buy__opthead">
+                <span>{{ option.name | escape }}<span class="alp-buy__chosen" data-alp-chosen-wrap hidden> · <b data-alp-chosen></b></span></span>
+                {%- if forloop.first and size_url != blank -%}<a href="{{ size_url }}">Size guide</a>{%- endif -%}
+              </legend>
+              <div class="alp-buy__tiles" style="--n: {{ option.values.size | at_most: 6 }}">
+                {%- for value in option.values -%}
+                  {%- liquid
+                    comment
+                      Struck through when no variant with this value can be bought.
+                      Exact for single-option products; alpine.js refines it for
+                      the rest once other options are picked.
+                    endcomment
+                    assign can = false
+                    for v in product.variants
+                      if v.options[opt_index] == value and v.available
+                        assign can = true
+                        break
+                      endif
+                    endfor
+                  -%}
+                  <label class="alp-tile{% unless can %} is-out{% endunless %}">
+                    <input type="radio" name="alp-opt-{{ opt_index }}" value="{{ value | escape }}"{% unless can %} disabled{% endunless %}>
+                    <span>{{ value | escape }}</span>
+                  </label>
+                {%- endfor -%}
+              </div>
+            </fieldset>
+          {%- endfor -%}
+          <p class="alp-buy__need" data-alp-need hidden role="status">Choose a size first.</p>
+        {%- endunless -%}
+
+        <div class="alp-buy__actions">
+          {%- if product.available -%}
+            <button class="alp-btn alp-buy__add" type="submit" data-alp-add-btn>
+              Add to cart<span class="alp-d" data-alp-add-size></span>
+            </button>
+            <button class="alp-btn alp-btn--flare alp-buy__now" type="submit" name="return_to" value="/checkout" data-alp-buy-now>
+              Buy now<span class="alp-m"> · {{ price }}</span>
+            </button>
+          {%- else -%}
+            <button class="alp-btn alp-buy__add" type="button" disabled>Sold out</button>
+          {%- endif -%}
+        </div>
+      {%- endform -%}
+
+      {%- if product.description != blank -%}
+        <div class="alp-pdp__desc">{{ product.description }}</div>
+      {%- endif -%}
+
+      <div class="alp-acc">
+        {%- for block in section.blocks -%}
+          {%- liquid
+            assign body = ''
+            case block.settings.source
+              when 'custom'
+                assign body = block.settings.content
+              when 'care'
+                assign body = product.metafields.specs.care_guide.value
+              when 'fabric'
+                assign body = product.metafields.specs.fabric_tech.value
+              when 'shipping'
+                if shop.shipping_policy != blank
+                  assign ship_text = shop.shipping_policy.body | strip_html | truncatewords: 40
+                  capture body
+                    echo '<p>' | append: ship_text | append: '</p>'
+                    if shop.refund_policy != blank
+                      echo '<p><a href="' | append: shop.refund_policy.url | append: '">Returns and exchanges</a> · <a href="' | append: shop.shipping_policy.url | append: '">Shipping</a></p>'
+                    endif
+                  endcapture
+                endif
+            endcase
+            if block.settings.source != 'custom' and body == blank
+              assign body = block.settings.content
+            endif
+          -%}
+          {%- if body != blank -%}
+            <details class="alp-acc__item"{% if block.settings.open %} open{% endif %} {{ block.shopify_attributes }}>
+              <summary class="alp-acc__head">{{ block.settings.title | escape }}<span class="alp-menu__pm" aria-hidden="true"></span></summary>
+              <div class="alp-acc__body">{{ body }}</div>
+            </details>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    </div>
+  </div>
+
+  {%- if section.settings.show_next_drop -%}
+    <div class="alp-pdp__next alp-d">
+      {%- capture drops -%}{%- render 'alp-next-drop', variant: 'row', key: 'pdp' -%}{%- endcapture -%}
+      {%- if drops != blank -%}
+        <h2 class="alp-pdp__nexthead">Coming in the next drop</h2>
+        {{ drops }}
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+</section>
+
+{% schema %}
+{
+  "name": "Product",
+  "tag": "div",
+  "settings": [
+    { "type": "checkbox", "id": "show_next_drop", "label": "Show the next drop under the product (desktop)", "default": true }
+  ],
+  "blocks": [
+    {
+      "type": "accordion",
+      "name": "Accordion",
+      "settings": [
+        { "type": "text", "id": "title", "label": "Title", "default": "Fabric & features" },
+        {
+          "type": "select", "id": "source", "label": "Content", "default": "custom",
+          "options": [
+            { "value": "custom", "label": "Text below" },
+            { "value": "fabric", "label": "Product metafield specs.fabric_tech" },
+            { "value": "care", "label": "Product metafield specs.care_guide" },
+            { "value": "shipping", "label": "Shipping and returns policies" }
+          ],
+          "info": "A metafield or policy that's empty falls back to the text below. With no text either, the accordion isn't shown."
+        },
+        { "type": "richtext", "id": "content", "label": "Text" },
+        { "type": "checkbox", "id": "open", "label": "Open by default", "default": false }
+      ]
+    }
+  ],
+  "presets": [{ "name": "Product" }]
+}
+{% endschema %}

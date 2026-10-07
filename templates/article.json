@@ -9,14 +9,12 @@
  */
 {
   "sections": {
-    "journal": {
-      "type": "alpine-journal",
-      "settings": {
-        "show_next_ride": true
-      }
+    "main": {
+      "type": "alpine-article",
+      "settings": {}
     }
   },
   "order": [
-    "journal"
+    "main"
   ]
 }

@@ -1,19 +1,247 @@
-/* Bush Riding theme skin — behaviour. The `alpine`/`alp-` naming is historical:
-   the skin was cut from the ALP1NE design study, which no longer lives here.
-   Written to survive the Shopify theme editor: the editor re-renders section
-   HTML in place, so everything here either re-initialises on
-   shopify:section:load or works via delegation/polling that doesn't care
-   when the DOM is swapped out. */
+/* Bush Riding storefront — behaviour for the October 2026 redesign.
+
+   Written for the Shopify theme editor: the editor re-renders section HTML in
+   place, so everything here is either delegated from `document` (and so
+   doesn't care when the DOM is swapped) or re-run on shopify:section:load.
+
+   Nothing on the page depends on this file to work. Without it, Quick add and
+   Add to cart post to /cart/add, Buy now posts with return_to=/checkout, the
+   cart steppers are /cart/change links, and filters are a plain GET form.
+   This file makes those steps happen in place — that is what keeps checkout
+   to three taps. */
 (function () {
   'use strict';
 
-  var DESIGN_MODE = window.Shopify && window.Shopify.designMode;
+  var DESIGN_MODE = !!(window.Shopify && window.Shopify.designMode);
+  var REDUCE = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var DESKTOP = window.matchMedia('(min-width: 750px)');
+  var ROOT = (window.Shopify && window.Shopify.routes && window.Shopify.routes.root) || '/';
 
-  /* ── Deferred video ──
-     Nothing with a `data-alp-video` src is fetched until it is actually wanted.
-     The src goes on the element rather than a <source type="...">: the type
-     attribute is a promise about the container, and a .mov labelled video/mp4
-     is one some browsers refuse outright. Let the browser sniff it. */
+  function $(sel, ctx) { return (ctx || document).querySelector(sel); }
+  function $$(sel, ctx) { return [].slice.call((ctx || document).querySelectorAll(sel)); }
+  function header() { return $('[data-alp-header]'); }
+  function cfg(name) { var h = header(); return h ? h.getAttribute('data-alp-' + name) || '' : ''; }
+
+  /* ── Toast — one polite live region for anything that goes wrong ── */
+  function toast(msg) {
+    var t = $('#alp-toast');
+    if (!t) {
+      t = document.createElement('div');
+      t.id = 'alp-toast';
+      t.className = 'alp alp-toast';
+      t.setAttribute('role', 'status');
+      t.setAttribute('aria-live', 'polite');
+      document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.classList.add('is-on');
+    clearTimeout(t._h);
+    t._h = setTimeout(function () { t.classList.remove('is-on'); }, 4200);
+  }
+
+  /* ── Panels: header panels, drawer, sheets, filters ──────────────────────
+     One open at a time. Header panels (Bush Map, the phone menu) drop under
+     the bar with the page dimmed beneath; the drawer and sheets dim the bar
+     too. Escape, the scrim and any [data-alp-close] close them. */
+  var openId = null;
+  var lastFocus = null;
+
+  function isModal(el) { return el.hasAttribute('data-alp-drawer') || el.hasAttribute('data-alp-sheet'); }
+  function isSheetNow(el) {
+    /* The filters panel is a sheet on a phone and an in-page panel on desktop. */
+    if (el.id === 'alp-filters') return !DESKTOP.matches;
+    return isModal(el);
+  }
+
+  function lock() {
+    document.body.classList.add('alp-locked');
+  }
+  function unlock() {
+    document.body.classList.remove('alp-locked');
+  }
+
+  function scrim(on, over) {
+    var s = $('[data-alp-scrim]');
+    if (!s) return;
+    if (on) {
+      s.hidden = false;
+      s.classList.toggle('is-over', !!over);
+      void s.offsetWidth;
+      s.classList.add('is-open');
+    } else {
+      s.classList.remove('is-open');
+      setTimeout(function () { if (!openId) { s.hidden = true; s.classList.remove('is-over'); } }, REDUCE ? 0 : 250);
+    }
+  }
+
+  function setExpanded(id, on) {
+    $$('[data-alp-toggle="' + id + '"]').forEach(function (b) { b.setAttribute('aria-expanded', on ? 'true' : 'false'); });
+  }
+
+  function openPanel(id, opts) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    if (openId === id) return;
+    if (openId) closePanel(true);
+    openId = id;
+    lastFocus = (opts && opts.focusFrom) || document.activeElement;
+
+    el.hidden = false;
+    void el.offsetWidth;
+    el.classList.add('is-open');
+    setExpanded(id, true);
+
+    var inPage = id === 'alp-filters' && DESKTOP.matches;
+    if (!inPage) {
+      /* Sheets dim the header too (M05, M06a/b); the desktop drawer leaves it
+         lit (D07), as do the header's own panels. */
+      scrim(true, el.hasAttribute('data-alp-sheet'));
+      if (isSheetNow(el) || id === 'alp-menu') lock();
+    }
+
+    if (isModal(el) || (id === 'alp-filters' && !DESKTOP.matches)) {
+      var f = el.querySelector('[data-alp-close], button, a[href], input');
+      if (f) setTimeout(function () { f.focus({ preventScroll: true }); }, 30);
+    }
+    if (id === 'alp-mapmenu') fillNearList();
+  }
+
+  function closePanel(quiet) {
+    if (!openId) return;
+    var el = document.getElementById(openId);
+    var id = openId;
+    openId = null;
+    setExpanded(id, false);
+    if (el) {
+      el.classList.remove('is-open');
+      setTimeout(function () { if (openId !== id) el.hidden = true; }, REDUCE ? 0 : 250);
+    }
+    unlock();
+    scrim(false);
+    if (!quiet && lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
+  }
+
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    var toggle = t.closest('[data-alp-toggle]');
+    if (toggle) {
+      e.preventDefault();
+      var id = toggle.getAttribute('data-alp-toggle');
+      /* A hover that has just opened the panel shouldn't be undone by the
+         click that usually follows it. */
+      if (openId === id && Date.now() - hoverOpenedAt < 700) return;
+      if (openId === id) closePanel(); else openPanel(id, { focusFrom: toggle });
+      return;
+    }
+    if (t.closest('[data-alp-scrim]')) { closePanel(); return; }
+    var closer = t.closest('[data-alp-close]');
+    if (closer) {
+      /* Links that close (menu items) still navigate. */
+      if (closer.tagName !== 'A') e.preventDefault();
+      closePanel(closer.tagName === 'A');
+      return;
+    }
+    if (t.closest('[data-alp-open-cart]')) {
+      if (!$('#alp-cart')) return;
+      e.preventDefault();
+      openPanel('alp-cart', { focusFrom: t.closest('[data-alp-open-cart]') });
+    }
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (!openId) return;
+    if (e.key === 'Escape') { closePanel(); return; }
+    if (e.key !== 'Tab') return;
+    var el = document.getElementById(openId);
+    if (!el || !(isModal(el) || (openId === 'alp-filters' && !DESKTOP.matches))) return;
+    var list = $$('a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select, summary', el)
+      .filter(function (n) { return n.getClientRects().length; });
+    if (!list.length) return;
+    var first = list[0], last = list[list.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    else if (!el.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+  });
+
+  /* Bush Map ▾ also opens on hover, as the design has it; it closes when the
+     pointer leaves the header and its panel. */
+  var hoverT = null;
+  var hoverOpenedAt = 0;
+  document.addEventListener('mouseover', function (e) {
+    if (!DESKTOP.matches) return;
+    var btn = e.target.closest('[data-alp-toggle="alp-mapmenu"]');
+    if (btn) { clearTimeout(hoverT); hoverT = setTimeout(function () {
+      if (openId !== 'alp-mapmenu') { hoverOpenedAt = Date.now(); openPanel('alp-mapmenu', { focusFrom: btn }); }
+    }, 120); return; }
+    if (openId === 'alp-mapmenu') {
+      if (e.target.closest('[data-alp-header]')) { clearTimeout(hoverT); }
+      else { clearTimeout(hoverT); hoverT = setTimeout(function () { if (openId === 'alp-mapmenu') closePanel(true); }, 280); }
+    }
+  });
+
+  DESKTOP.addEventListener && DESKTOP.addEventListener('change', function () { closePanel(true); openFilterGroups(); });
+
+  /* ── Local time and weather ── */
+  function tickClock() {
+    var tz = cfg('tz') || 'Australia/Brisbane';
+    var txt;
+    try {
+      txt = new Date().toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, timeZone: tz });
+    } catch (err) {
+      txt = new Date().toLocaleTimeString('en-AU', { hour12: false });
+    }
+    $$('[data-alp-clock]').forEach(function (el) { if (el.textContent !== txt) el.textContent = txt; });
+  }
+
+  /* WMO weather codes → a word or two, in the design's lower-case style. */
+  function wxWord(code) {
+    if (code === 0) return 'clear';
+    if (code <= 2) return 'some cloud';
+    if (code === 3) return 'cloud';
+    if (code === 45 || code === 48) return 'fog';
+    if (code >= 51 && code <= 57) return 'drizzle';
+    if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82)) return 'rain';
+    if ((code >= 71 && code <= 77) || code === 85 || code === 86) return 'snow';
+    if (code >= 95) return 'storms';
+    return '';
+  }
+
+  function paintWx(w) {
+    if (!w) return;
+    $$('[data-alp-wx-text]').forEach(function (el) {
+      el.textContent = el.getAttribute('data-alp-wx-format') === 'dot'
+        ? w.t + '° · ' + w.word
+        : w.t + '° ' + w.word;
+    });
+    $$('[data-alp-wx-wrap]').forEach(function (el) { el.hidden = false; });
+  }
+
+  var wx = null;
+  function initWeather() {
+    var at = cfg('wx');
+    if (!at) return;
+    if (wx) { paintWx(wx); return; }
+    var key = 'alp-wx:' + at;
+    try {
+      var c = JSON.parse(sessionStorage.getItem(key) || 'null');
+      if (c && Date.now() - c.at < 20 * 60 * 1000) { wx = c.w; paintWx(wx); return; }
+    } catch (err) {}
+    var ll = at.split(',');
+    fetch('https://api.open-meteo.com/v1/forecast?latitude=' + encodeURIComponent(ll[0]) + '&longitude=' + encodeURIComponent(ll[1]) + '&current=temperature_2m,weather_code&timezone=auto')
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        if (!d || !d.current) return;
+        var word = wxWord(d.current.weather_code);
+        if (!word) return;
+        wx = { t: Math.round(d.current.temperature_2m), word: word };
+        try { sessionStorage.setItem(key, JSON.stringify({ at: Date.now(), w: wx })); } catch (err) {}
+        paintWx(wx);
+      })
+      .catch(function () { /* no weather is shown */ });
+  }
+
+  /* ── Deferred video ── */
+  var videoIo = null;
   function playVideo(el) {
     if (!el.getAttribute('src')) {
       var src = el.getAttribute('data-alp-video');
@@ -21,419 +249,582 @@
       el.setAttribute('src', src);
       el.load();
     }
-    var played = el.play();
-    /* Autoplay refusal is a normal outcome, not an error worth surfacing. */
-    if (played && played.catch) played.catch(function () {});
+    var p = el.play();
+    if (p && p.catch) p.catch(function () {});
   }
-
-  var videoIo = null;
-
   function initVideos() {
-    var targets = document.querySelectorAll('[data-alp-video]');
-    if (!targets.length) return;
-
-    if (!('IntersectionObserver' in window)) {
-      targets.forEach(playVideo);
-      return;
-    }
+    var vids = $$('[data-alp-video]');
+    if (!vids.length) return;
+    if (!('IntersectionObserver' in window)) { vids.forEach(playVideo); return; }
     if (!videoIo) {
       videoIo = new IntersectionObserver(function (entries) {
-        entries.forEach(function (entry) {
-          if (!entry.isIntersecting) return;
-          playVideo(entry.target);
-          videoIo.unobserve(entry.target);
-        });
+        entries.forEach(function (en) { if (en.isIntersecting) { playVideo(en.target); videoIo.unobserve(en.target); } });
       }, { rootMargin: '200px' });
     }
-    targets.forEach(function (el) { videoIo.observe(el); });
+    vids.forEach(function (v) { videoIo.observe(v); });
   }
 
-  /* ── Menu sheet (mobile) ──
-     Rises from the bottom, because the chip that opens it is at the bottom.
-     Delegated so a re-rendered header keeps working. */
-
-  /* overflow:hidden alone does not hold on iOS Safari — the page behind a sheet
-     still scrolls under your thumb, and worse, it has silently scrolled to the
-     top by the time you close it. Pinning the body and restoring the offset is
-     the only thing that reliably works there. */
-  var sheetScrollY = 0;
-
-  function lockScroll() {
-    sheetScrollY = window.scrollY || window.pageYOffset || 0;
-    document.body.style.top = -sheetScrollY + 'px';
-    document.body.classList.add('alp-menu-open');
+  /* ── Cart ─────────────────────────────────────────────────────────────────
+     Adds and changes go through Shopify's AJAX cart with the Section
+     Rendering API, so the drawer comes back already rendered by Liquid —
+     prices, currency and line properties are never formatted in JS. */
+  function cartSections() {
+    var ids = ['alpine-cart'];
+    var page = $('[data-alp-cart-page]');
+    if (page) {
+      var sec = page.closest('.shopify-section');
+      if (sec && sec.id) ids.push(sec.id.replace(/^shopify-section-/, ''));
+    }
+    return ids;
   }
 
-  function unlockScroll() {
-    document.body.classList.remove('alp-menu-open');
-    document.body.style.top = '';
-    window.scrollTo(0, sheetScrollY);
-  }
-
-  /* Everything focusable and actually visible inside the sheet. */
-  function sheetFocusables(sheet) {
-    var sel = 'a[href], button:not([disabled]), input:not([disabled]), ' +
-              'select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
-    return [].slice.call(sheet.querySelectorAll(sel)).filter(function (el) {
-      return el.getClientRects().length > 0;
+  function applySections(sections) {
+    if (!sections) return;
+    var doc = new DOMParser();
+    Object.keys(sections).forEach(function (id) {
+      var html = sections[id];
+      if (!html) return;
+      var fresh = doc.parseFromString(html, 'text/html');
+      if (id === 'alpine-cart') {
+        var nb = $('[data-alp-cart-root] [data-alp-cart-body]', fresh);
+        var ob = $('[data-alp-cart-root] [data-alp-cart-body]');
+        if (nb && ob) ob.innerHTML = nb.innerHTML;
+        var nt = $('#alp-cart-title', fresh), ot = $('#alp-cart-title');
+        if (nt && ot) ot.textContent = nt.textContent;
+        var ns = $('[data-alp-subtotal]', fresh), os = $('[data-alp-subtotal]');
+        if (ns && os) os.textContent = ns.textContent;
+        var root = $('[data-alp-cart-root]', fresh);
+        if (root) {
+          var n = root.getAttribute('data-alp-cart-count-value');
+          $$('[data-alp-cart-count]').forEach(function (el) { el.textContent = n; });
+        }
+      } else {
+        var target = document.getElementById('shopify-section-' + id);
+        var src = fresh.getElementById('shopify-section-' + id);
+        if (target && src) target.innerHTML = src.innerHTML;
+      }
     });
   }
 
-  function closeMenu(focusBtn) {
-    var sheet = document.querySelector('[data-alp-menu]');
-    var openBtn = document.querySelector('[data-alp-menu-open]');
-    if (!sheet) return;
-    sheet.classList.remove('is-open');
-    sheet.setAttribute('aria-hidden', 'true');
-    unlockScroll();
-    if (openBtn) {
-      openBtn.setAttribute('aria-expanded', 'false');
-      if (focusBtn) openBtn.focus();
+  function post(url, body) {
+    return fetch(ROOT.replace(/\/$/, '') + url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify(body)
+    }).then(function (r) {
+      return r.json().then(function (d) {
+        if (!r.ok) throw new Error((d && (d.description || d.message)) || 'That didn’t work. Try again?');
+        return d;
+      });
+    });
+  }
+
+  function addToCart(id) {
+    return post('/cart/add.js', {
+      items: [{ id: Number(id), quantity: 1 }],
+      sections: cartSections().join(','),
+      sections_url: window.location.pathname
+    }).then(function (d) {
+      applySections(d.sections);
+      document.dispatchEvent(new CustomEvent('alp:cart-added', { detail: d }));
+      return d;
+    });
+  }
+
+  /* After an add: the drawer on desktop (D07), the Added sheet on a phone (M06b). */
+  function showAdded(info) {
+    if (DESKTOP.matches) { openPanel('alp-cart'); return; }
+    var sheet = $('#alp-added');
+    if (!sheet) { openPanel('alp-cart'); return; }
+    var img = $('[data-alp-a-img]', sheet);
+    if (img) {
+      if (info.image) { img.src = info.image; img.hidden = false; } else { img.hidden = true; }
     }
+    var t = $('[data-alp-a-title]', sheet); if (t) t.textContent = info.title || '';
+    var m = $('[data-alp-a-meta]', sheet);
+    if (m) m.textContent = [info.size ? 'Size ' + info.size : '', info.price || ''].filter(Boolean).join(' · ');
+    openPanel('alp-added');
   }
 
   document.addEventListener('click', function (e) {
-    var sheet = document.querySelector('[data-alp-menu]');
-    if (!sheet) return;
-
-    if (e.target.closest('[data-alp-menu-open]')) {
-      var openBtn = document.querySelector('[data-alp-menu-open]');
-      sheet.classList.add('is-open');
-      sheet.setAttribute('aria-hidden', 'false');
-      lockScroll();
-      if (openBtn) openBtn.setAttribute('aria-expanded', 'true');
-      var closeBtn = sheet.querySelector('[data-alp-menu-close]');
-      if (closeBtn) closeBtn.focus();
-    } else if (e.target.closest('[data-alp-menu-close]')) {
-      closeMenu(true);
-    } else if (e.target.closest('[data-alp-menu-link]')) {
-      closeMenu(false); /* let the link navigate */
-    }
+    var a = e.target.closest('[data-alp-line]');
+    if (!a) return;
+    e.preventDefault();
+    var body = a.closest('[data-alp-cart-body]');
+    if (body) body.classList.add('is-busy');
+    post('/cart/change.js', {
+      id: a.getAttribute('data-alp-line'),
+      quantity: Number(a.getAttribute('data-alp-qty')),
+      sections: cartSections().join(','),
+      sections_url: window.location.pathname
+    }).then(function (d) { applySections(d.sections); })
+      .catch(function (err) { toast(err.message); })
+      .then(function () { $$('[data-alp-cart-body]').forEach(function (b) { b.classList.remove('is-busy'); }); });
   });
 
-  document.addEventListener('keydown', function (e) {
-    var sheet = document.querySelector('[data-alp-menu]');
-    if (!sheet || !sheet.classList.contains('is-open')) return;
+  /* ── Quick add ───────────────────────────────────────────────────────────
+     Desktop: a size in the card's hover strip adds it (tap 2), the drawer
+     opens with Checkout (tap 3). Phone: Quick add + opens the size sheet
+     (tap 1), a size adds it (tap 2), the Added sheet has Checkout (tap 3). */
+  function cardData(card) {
+    var s = card && $('[data-alp-card-data]', card);
+    if (!s) return null;
+    try { return JSON.parse(s.textContent); } catch (err) { return null; }
+  }
 
-    if (e.key === 'Escape') { closeMenu(true); return; }
-
-    /* Keep focus inside the sheet. Without this, tabbing walks straight out of
-       an open dialog and into the page behind it, which for anyone not using a
-       mouse means the sheet is open and they are somewhere else. */
-    if (e.key !== 'Tab') return;
-    var list = sheetFocusables(sheet);
-    if (!list.length) return;
-    var first = list[0];
-    var last = list[list.length - 1];
-
-    if (e.shiftKey && document.activeElement === first) {
-      e.preventDefault();
-      last.focus();
-    } else if (!e.shiftKey && document.activeElement === last) {
-      e.preventDefault();
-      first.focus();
-    } else if (!sheet.contains(document.activeElement)) {
-      e.preventDefault();
-      first.focus();
-    }
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-alp-add]');
+    if (!btn || btn.disabled) return;
+    e.preventDefault();
+    var card = btn.closest('[data-alp-card]');
+    var data = cardData(card) || {};
+    btn.classList.add('is-busy');
+    addToCart(btn.getAttribute('data-alp-add'))
+      .then(function () {
+        var size = btn.getAttribute('data-alp-size') || (btn.textContent || '').trim();
+        if (size === 'Add +' || size === 'Add') size = '';
+        if (openId === 'alp-quick') closePanel(true);
+        showAdded({ title: data.title, image: data.image, price: data.price, size: size });
+      })
+      .catch(function (err) { toast(err.message); })
+      .then(function () { btn.classList.remove('is-busy'); });
   });
 
-  /* ── Next ride ──
-     The date appears in up to four places at once (rail foot, home card, menu
-     sheet, journal foot) and nobody should have to remember to update it before
-     a ride, so it comes from the routes worker's public /events feed — the same
-     feed the map draws its Bush Event pins from.
+  document.addEventListener('click', function (e) {
+    var chip = e.target.closest('[data-alp-quick]');
+    if (!chip) return;
+    e.preventDefault();
+    var data = cardData(chip.closest('[data-alp-card]'));
+    var sheet = $('#alp-quick');
+    if (!data || !sheet) return;
+    var img = $('[data-alp-q-img]', sheet);
+    if (data.image) { img.src = data.image; img.hidden = false; } else { img.hidden = true; }
+    $('[data-alp-q-title]', sheet).textContent = data.title;
+    $('[data-alp-q-price]', sheet).textContent = data.price;
+    var sizes = $('[data-alp-q-sizes]', sheet);
+    sizes.innerHTML = '';
+    data.variants.forEach(function (v) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'alp-sheet__size';
+      b.textContent = v.title;
+      b.setAttribute('data-alp-add', v.id);
+      b.setAttribute('data-alp-size', v.title === 'Add' ? '' : v.title);
+      b.setAttribute('aria-label', 'Add ' + data.title + (v.title === 'Add' ? '' : ', size ' + v.title));
+      if (!v.available) { b.disabled = true; b.setAttribute('aria-label', v.title + ', sold out'); }
+      sizes.appendChild(b);
+    });
+    /* The sheet's buttons live outside the card, so give it the card's data. */
+    sheet.setAttribute('data-alp-card', '');
+    var holder = $('[data-alp-card-data]', sheet);
+    if (!holder) { holder = document.createElement('script'); holder.type = 'application/json'; holder.setAttribute('data-alp-card-data', ''); sheet.appendChild(holder); }
+    holder.textContent = JSON.stringify(data);
+    openPanel('alp-quick', { focusFrom: chip });
+  });
 
-     The blocks ship `hidden` and are only revealed once a ride resolves. That
-     is the whole failure strategy: no feed, no upcoming ride, no network — the
-     page reads as though the block was never there, which is strictly better
-     than a stale November date sitting on the site in December.
-
-     The answer is cached in `ride` so the editor's re-renders re-fill the new
-     DOM without hitting the network again. */
-  var ride = null;
-  var rideAsked = false;
-
-  function rideConfig() {
-    var el = document.querySelector('[data-alp-rail]');
-    if (!el) return null;
-    return {
-      api: el.getAttribute('data-alp-events-api') || '',
-      eventsUrl: el.getAttribute('data-alp-events-url') || '',
-      mapUrl: el.getAttribute('data-alp-map-url') || ''
-    };
+  /* ── Product page buy block ──────────────────────────────────────────────
+     Size tiles are radios; the variant id is resolved from all chosen
+     options. Nothing is pre-chosen (size is a real decision) unless the URL
+     names a variant. */
+  function pdpState(form) {
+    var variants = [];
+    try { variants = JSON.parse($('[data-alp-variants]', form).textContent); } catch (err) {}
+    var opts = $$('[data-alp-option]', form);
+    var chosen = opts.map(function (fs) {
+      var r = $('input:checked', fs);
+      return r ? r.value : null;
+    });
+    var match = null;
+    if (chosen.every(function (c) { return c !== null; })) {
+      match = variants.filter(function (v) {
+        return v.options.every(function (o, i) { return String(o) === String(chosen[i]); });
+      })[0] || null;
+    }
+    return { variants: variants, opts: opts, chosen: chosen, match: match };
   }
 
-  function fill(el, sel, value) {
-    var target = el.querySelector(sel);
-    if (target) target.textContent = value || '';
+  function syncPdp(form) {
+    var s = pdpState(form);
+    if (!s.opts.length) return s;
+    var idInput = $('[data-alp-variant]', form);
+    idInput.value = s.match && s.match.available ? s.match.id : '';
+
+    /* Strike values that can't be bought with the other choices as they are. */
+    s.opts.forEach(function (fs, i) {
+      $$('input', fs).forEach(function (r) {
+        var can = s.variants.some(function (v) {
+          if (!v.available || String(v.options[i]) !== String(r.value)) return false;
+          return s.chosen.every(function (c, j) { return j === i || c === null || String(v.options[j]) === String(c); });
+        });
+        r.disabled = !can;
+        r.closest('.alp-tile').classList.toggle('is-out', !can);
+        if (!can && r.checked) r.checked = false;
+      });
+      var picked = $('input:checked', fs);
+      var wrap = $('[data-alp-chosen-wrap]', fs);
+      if (wrap) { wrap.hidden = !picked; $('[data-alp-chosen]', fs).textContent = picked ? picked.value : ''; }
+    });
+
+    var label = s.chosen.filter(Boolean).join(' / ');
+    var addSize = $('[data-alp-add-size]', form);
+    if (addSize) addSize.textContent = s.match ? ' · ' + label : '';
+    var price = $('[data-alp-price]', form.closest('[data-alp-pdp]'));
+    if (price && s.match) price.textContent = s.match.price;
+    if (s.match) {
+      form.classList.remove('is-need');
+      var need = $('[data-alp-need]', form); if (need) need.hidden = true;
+      if (window.history && history.replaceState && !DESIGN_MODE) {
+        var u = new URL(window.location.href);
+        u.searchParams.set('variant', s.match.id);
+        history.replaceState(history.state, '', u.toString());
+      }
+    }
+    return s;
   }
 
-  function applyRide() {
-    if (!ride) return;
-    var blocks = document.querySelectorAll('[data-alp-next-ride]');
-    if (!blocks.length) return;
-
-    blocks.forEach(function (el) {
-      fill(el, '[data-nr-date]', ride.when);
-      fill(el, '[data-nr-place]', ride.place);
-      fill(el, '[data-nr-note]', ride.note);
-      /* On the card and the panel the block itself is the link; in the rail the
-         link is a row inside it. */
-      var link = el.hasAttribute('data-nr-link') ? el : el.querySelector('[data-nr-link]');
-      if (link && ride.href) link.setAttribute('href', ride.href);
-      el.hidden = false;
+  function initPdp() {
+    $$('[data-alp-buy]').forEach(function (form) {
+      if (form._alp) return;
+      form._alp = true;
+      $('[data-alp-variant]', form).setAttribute('name', 'id');
+      var want = new URLSearchParams(window.location.search).get('variant');
+      if (want) {
+        var s = pdpState(form);
+        var v = s.variants.filter(function (x) { return String(x.id) === want; })[0];
+        if (v && v.available) {
+          s.opts.forEach(function (fs, i) {
+            $$('input', fs).forEach(function (r) { if (String(r.value) === String(v.options[i])) r.checked = true; });
+          });
+        }
+      }
+      syncPdp(form);
     });
   }
 
-  function pickRide(features, cfg) {
-    /* date_iso sorts correctly as a string — comparing the ISO prefix avoids
-       parsing a date in the visitor's timezone and landing a day out. */
-    var today = new Date().toISOString().slice(0, 10);
+  document.addEventListener('change', function (e) {
+    var form = e.target.closest('[data-alp-buy]');
+    if (form) syncPdp(form);
+  });
 
-    var upcoming = features.filter(function (f) {
-      var p = (f && f.properties) || {};
+  document.addEventListener('submit', function (e) {
+    var form = e.target.closest('[data-alp-buy]');
+    if (!form) return;
+    e.preventDefault();
+    var submitter = e.submitter || document.activeElement;
+    var buyNow = !!(submitter && submitter.hasAttribute && submitter.hasAttribute('data-alp-buy-now'));
+    var s = syncPdp(form);
+    var id = $('[data-alp-variant]', form).value;
+    if (!id) {
+      form.classList.remove('is-need'); void form.offsetWidth; form.classList.add('is-need');
+      var need = $('[data-alp-need]', form); if (need) need.hidden = false;
+      var tiles = $('.alp-buy__tiles', form);
+      if (tiles && DESKTOP.matches) tiles.scrollIntoView({ behavior: REDUCE ? 'auto' : 'smooth', block: 'center' });
+      var first = $('.alp-tile input:not(:disabled)', form); if (first) first.focus({ preventScroll: true });
+      return;
+    }
+    var btn = buyNow ? $('[data-alp-buy-now]', form) : $('[data-alp-add-btn]', form);
+    if (btn) btn.classList.add('is-busy');
+    addToCart(id)
+      .then(function () {
+        if (buyNow) { window.location.href = ROOT.replace(/\/$/, '') + '/checkout'; return; }
+        var pdp = form.closest('[data-alp-pdp]');
+        var title = pdp && $('.alp-pdp__title', pdp);
+        var img = pdp && $('.alp-pdp__img img', pdp);
+        showAdded({
+          title: title ? title.textContent.trim() : '',
+          image: img ? (img.currentSrc || img.src) : '',
+          price: s.match ? s.match.price : '',
+          size: s.chosen.filter(Boolean).join(' / ')
+        });
+      })
+      .catch(function (err) { toast(err.message); })
+      .then(function () { if (btn && !buyNow) btn.classList.remove('is-busy'); });
+  });
+
+  /* ── Filters: live "Show N results", autosubmit selects ── */
+  function openFilterGroups() {
+    $$('.alp-filters__group').forEach(function (d) { if (DESKTOP.matches) d.open = true; });
+  }
+
+  var countT = null;
+  document.addEventListener('change', function (e) {
+    var auto = e.target.closest('[data-alp-autosubmit]');
+    if (auto) {
+      var f = auto.form || auto.closest('form');
+      if (f) { if (f.requestSubmit) f.requestSubmit(); else f.submit(); }
+      return;
+    }
+    var form = e.target.closest('[data-alp-filter-form]');
+    if (!form) return;
+    clearTimeout(countT);
+    countT = setTimeout(function () {
+      var cat = form.closest('[data-alp-cat]');
+      var btn = $('[data-alp-filter-submit]', form);
+      if (!cat || !btn) return;
+      var params = new URLSearchParams(new FormData(form));
+      params.set('section_id', cat.getAttribute('data-alp-section'));
+      fetch(form.action + '?' + params.toString(), { headers: { Accept: 'text/html' } })
+        .then(function (r) { return r.ok ? r.text() : null; })
+        .then(function (html) {
+          if (!html) return;
+          var m = html.match(/data-alp-count="(\d+)"/);
+          if (!m) return;
+          var n = Number(m[1]);
+          btn.textContent = 'Show ' + n + ' ' + (n === 1 ? 'result' : 'results');
+        })
+        .catch(function () {});
+    }, 250);
+  });
+
+  /* ── Routes and rides (the routes worker) ────────────────────────────────
+     /routes and /events are public JSON with open CORS. Routes carry their
+     full geometry, which nothing here needs, so it is dropped before the
+     answer is cached for the session. */
+  var feeds = {};
+  function feed(name) {
+    if (feeds[name]) return feeds[name];
+    var api = (cfg('api') || 'https://map-api.bushriding.cc').replace(/\/$/, '');
+    var key = 'alp-feed:' + api + '/' + name;
+    try {
+      var c = JSON.parse(sessionStorage.getItem(key) || 'null');
+      if (c && Date.now() - c.at < 10 * 60 * 1000) { feeds[name] = Promise.resolve(c.list); return feeds[name]; }
+    } catch (err) {}
+    feeds[name] = fetch(api + '/' + name, { headers: { Accept: 'application/json' } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        var list = ((d && d.features) || []).map(function (f) { return f.properties || {}; });
+        try { sessionStorage.setItem(key, JSON.stringify({ at: Date.now(), list: list })); } catch (err) {}
+        return list;
+      })
+      .catch(function () { feeds[name] = null; return []; });
+    return feeds[name];
+  }
+
+  function mapUrl() { return (cfg('map') || 'https://map.bushriding.cc').replace(/\/$/, ''); }
+  function routeHref(id) { return mapUrl() + '/#' + encodeURIComponent(id); }
+  function routeStats(p) {
+    var bits = [];
+    if (p.distance_km != null && p.distance_km !== '') bits.push(Math.round(Number(p.distance_km)).toLocaleString('en-AU') + ' km');
+    if (p.elevation_gain_m != null && p.elevation_gain_m !== '') bits.push(Math.round(Number(p.elevation_gain_m)).toLocaleString('en-AU') + ' m');
+    return bits.join(' · ');
+  }
+  function regionFirst(list) {
+    var want = (cfg('region') || '').toLowerCase();
+    if (!want) return list.slice();
+    var near = [], rest = [];
+    list.forEach(function (p) { ((p.region || '').toLowerCase().indexOf(want) > -1 ? near : rest).push(p); });
+    return near.concat(rest);
+  }
+  function upcoming(list) {
+    var today = new Date().toISOString().slice(0, 10);
+    return list.filter(function (p) {
       if (!p.date_iso) return false;
       if (p.status && p.status !== 'upcoming') return false;
       return String(p.date_iso).slice(0, 10) >= today;
-    }).sort(function (a, b) {
-      return String(a.properties.date_iso).localeCompare(String(b.properties.date_iso));
-    });
-
-    if (!upcoming.length) return null;
-    var p = upcoming[0].properties;
-
-    /* The map selects by hash for ROUTES only (map.js selectFromHash), so an
-       event reaches the map through the route it runs on. Without one, the
-       events index is the closest honest destination. */
-    var href = p.route_id && cfg.mapUrl
-      ? cfg.mapUrl.replace(/\/$/, '') + '/#' + encodeURIComponent(p.route_id)
-      : cfg.eventsUrl;
-
-    return {
-      when: p.date_display ? (p.time ? p.date_display + ', ' + p.time : p.date_display) : p.time,
-      place: p.meeting_point || p.name,
-      note: p.subtitle || '',
-      href: href
-    };
+    }).sort(function (a, b) { return String(a.date_iso).localeCompare(String(b.date_iso)); });
+  }
+  function shortDate(iso) {
+    /* Parse the date as a calendar day, not an instant, or it lands a day out
+       west of UTC. */
+    var d = String(iso).slice(0, 10).split('-');
+    var dt = new Date(Date.UTC(+d[0], +d[1] - 1, +d[2], 12));
+    return dt.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }).replace(/,/g, '');
+  }
+  function rideHref(p) {
+    return p.strava_url || (p.route_id ? routeHref(p.route_id) : mapUrl() + '/events/');
+  }
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
   }
 
-  function initNextRide() {
-    if (!document.querySelector('[data-alp-next-ride]')) return;
-    if (rideAsked) { applyRide(); return; }
-
-    var cfg = rideConfig();
-    if (!cfg || !cfg.api) return;
-    rideAsked = true;
-
-    fetch(cfg.api.replace(/\/$/, '') + '/events', { headers: { Accept: 'application/json' } })
-      .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (data) {
-        if (!data || !data.features) return;
-        ride = pickRide(data.features, cfg);
-        applyRide();
-      })
-      .catch(function () { /* no ride shown; the block stays hidden */ });
-  }
-
-  /* ── The rail's buy block (desktop product page) ──
-     It owns no state. The size buttons click the REAL radio inside
-     <variant-selects> — exactly what a visitor clicking the on-page picker
-     does — and Add to cart submits Dawn's own form, so the drawer and
-     notification behave like a native add. Everything the rail shows is then
-     re-read from the page.
-
-     This is deliberately the same mechanism sticky-atc already uses. A second
-     form, or a second copy of the variant state, is how a buy button ends up
-     adding the wrong variant. */
-  function rpPicker() { return document.querySelector('variant-selects'); }
-  function rpNative() { return document.querySelector('.product-form__submit'); }
-  function rpForm() {
-    return document.querySelector('product-form form[data-type="add-to-cart-form"], form[action*="/cart/add"]');
-  }
-
-  function rpFieldset(row) {
-    var picker = rpPicker();
-    if (!row || !picker) return null;
-    var pos = parseInt(row.getAttribute('data-alp-rp-position'), 10) || 1;
-    return picker.querySelectorAll('fieldset')[pos - 1] || null;
-  }
-
-  /* The page's own buy block only steps aside once we have actually found
-     Dawn's form AND its button. Adding this class from script rather than
-     Liquid is the whole safety property: no JS, or a form we cannot reach, and
-     the page keeps the controls it has always had. */
-  function claimBuyBlock(ok) {
-    document.body.classList.toggle('alp-rail-buy', !!ok);
-  }
-
-  function syncRailProduct() {
-    var btn = document.querySelector('[data-alp-rp-submit]');
-    if (!btn) return;
-    claimBuyBlock(rpForm() && rpNative());
-
-    var priceEl = document.querySelector('[data-alp-rp-price]');
-    if (priceEl) {
-      var src = document.querySelector(
-        '.product__info-container .price__container .price-item--sale, ' +
-        '.product__info-container .price__container .price-item--regular, ' +
-        '.price .price-item--regular'
-      );
-      if (src) priceEl.textContent = src.textContent.trim();
-    }
-
-    var native = rpNative();
-    if (native) {
-      var soldOut = native.disabled || native.getAttribute('aria-disabled') === 'true';
-      btn.disabled = soldOut;
-      /* Take the wording from the native button so this follows the store's
-         own locale rather than hard-coding English here. */
-      var label = native.querySelector('span');
-      btn.textContent = label ? label.textContent.trim() : (soldOut ? 'Sold out' : 'Add to cart');
-    }
-
-    /* Mark whichever size the PAGE has selected, not the one last clicked. */
-    var row = document.querySelector('[data-alp-rp-options]');
-    var fieldset = rpFieldset(row);
-    var checked = fieldset && fieldset.querySelector('input[type="radio"]:checked');
-    if (row) {
-      row.querySelectorAll('[data-alp-rp-value]').forEach(function (b) {
-        var on = !!checked && b.getAttribute('data-alp-rp-value') === checked.value;
-        b.classList.toggle('is-on', on);
-        if (on) b.setAttribute('aria-current', 'true');
-        else b.removeAttribute('aria-current');
+  /* D08 · NEAR YOU */
+  var nearFilled = false;
+  function fillNearList() {
+    var ul = $('[data-alp-near-list]');
+    if (!ul || nearFilled) return;
+    nearFilled = true;
+    Promise.all([feed('routes'), feed('events')]).then(function (res) {
+      var routes = regionFirst(res[0] || []).slice(0, 2);
+      var next = upcoming(res[1] || [])[0];
+      ul.innerHTML = '';
+      routes.forEach(function (p) {
+        var li = el('li');
+        var a = el('a', 'alp-list__row');
+        a.href = routeHref(p.id);
+        a.appendChild(el('span', '', p.name));
+        a.appendChild(el('span', '', routeStats(p)));
+        li.appendChild(a); ul.appendChild(li);
       });
+      if (next) {
+        var li = el('li');
+        var a = el('a', 'alp-list__row');
+        a.href = rideHref(next);
+        a.appendChild(el('span', '', (next.name || 'Bush event') + ' · ' + shortDate(next.date_iso)));
+        a.appendChild(el('span', '', 'RSVP'));
+        li.appendChild(a); ul.appendChild(li);
+      }
+      if (!routes.length && !next) {
+        ul.innerHTML = '';
+        ul.appendChild(el('li', 'alp-list__row alp-list__row--quiet', 'Open the map to see every route.'));
+        nearFilled = false;
+      }
+    });
+  }
+
+  /* D09 · M10 upcoming rides */
+  function initRides() {
+    $$('[data-alp-rides]').forEach(function (sec) {
+      var list = $('[data-alp-ride-list]', sec);
+      var tpl = $('[data-alp-ride-template]', sec);
+      if (!list || !tpl || list.getAttribute('data-done')) return;
+      list.setAttribute('data-done', '1');
+      var photos = [];
+      try { photos = JSON.parse($('[data-alp-ride-photos]', sec).textContent).filter(Boolean); } catch (err) {}
+      var limit = Number(sec.getAttribute('data-alp-limit')) || 3;
+      feed('events').then(function (all) {
+        var rides = upcoming(all || []).slice(0, limit);
+        if (!rides.length) { $('[data-alp-ride-none]', sec).hidden = false; return; }
+        rides.forEach(function (p, i) {
+          var card = tpl.content.firstElementChild.cloneNode(true);
+          if (i === 0) card.classList.add('is-next');
+          var link = $('[data-r-link]', card);
+          link.href = p.route_id ? routeHref(p.route_id) : rideHref(p);
+          var img = $('[data-r-img]', card);
+          var src = p.hero_image || photos[i % (photos.length || 1)];
+          if (src) { img.src = src; img.hidden = false; }
+          $('[data-r-date]', card).textContent = shortDate(p.date_iso);
+          $('[data-r-title]', card).textContent = p.name || p.subtitle || 'Bush ride';
+          $('[data-r-meta]', card).textContent = [p.subtitle || p.route_name, p.time].filter(Boolean).join(' · ');
+          var rsvp = $('[data-r-rsvp]', card);
+          rsvp.href = rideHref(p);
+          list.appendChild(card);
+        });
+      });
+    });
+  }
+
+  /* M09 · route cards */
+  function routeCard(tpl, p) {
+    var card = tpl.content.firstElementChild.cloneNode(true);
+    card.href = routeHref(p.id);
+    var img = $('[data-r-img]', card);
+    if (p.photo_url) { img.src = p.photo_url; img.hidden = false; }
+    var region = $('[data-r-region]', card);
+    if (p.region) region.textContent = p.region; else region.remove();
+    $('[data-r-name]', card).textContent = p.name;
+    $('[data-r-stats]', card).textContent = routeStats(p);
+    return card;
+  }
+  function initRoutesPage() {
+    $$('[data-alp-routes-page]').forEach(function (sec) {
+      var list = $('[data-alp-route-list]', sec);
+      var tpl = $('[data-alp-route-template]', sec);
+      if (!list || !tpl || list.getAttribute('data-done')) return;
+      list.setAttribute('data-done', '1');
+      var limit = Number(sec.getAttribute('data-alp-limit')) || 6;
+      feed('routes').then(function (all) {
+        var routes = regionFirst(all || []).slice(0, limit);
+        if (!routes.length) { $('[data-alp-route-none]', sec).hidden = false; return; }
+        routes.forEach(function (p) { list.appendChild(routeCard(tpl, p)); });
+      });
+    });
+  }
+
+  /* D06 · M07 search: routes and rides alongside Shopify's products */
+  function hitRow(href, name, aside, asideLink) {
+    var a = el('a', 'alp-hit');
+    a.href = href;
+    a.appendChild(el('span', 'alp-hit__name', name));
+    a.appendChild(el('span', asideLink ? 'alp-hit__aside alp-hit__aside--link' : 'alp-hit__aside', aside));
+    return a;
+  }
+  function popularCard(href, tag, flare, name, stats, img, mist) {
+    var wrap = el('div', 'alp-card');
+    var media = el('a', 'alp-card__media' + (mist ? ' alp-card__media--mist' : ''));
+    media.href = href;
+    if (img) { var i = el('img', 'alp-fill'); i.src = img; i.alt = ''; i.loading = 'lazy'; media.appendChild(i); }
+    media.appendChild(el('span', 'alp-card__tag' + (flare ? ' alp-card__tag--flare' : ''), tag));
+    var cap = el('p', 'alp-card__cap');
+    var n = el('a', '', name); n.href = href; cap.appendChild(n);
+    cap.appendChild(el('span', 'alp-card__stats', stats));
+    wrap.appendChild(media); wrap.appendChild(cap);
+    return wrap;
+  }
+  function initSearch() {
+    var sec = $('[data-alp-search]');
+    if (!sec || sec.getAttribute('data-done')) return;
+    sec.setAttribute('data-done', '1');
+    var q = (sec.getAttribute('data-alp-q') || '').trim().toLowerCase();
+
+    if (!q) {
+      var grid = $('[data-alp-popular]', sec);
+      if (!grid) return;
+      Promise.all([feed('routes'), feed('events')]).then(function (res) {
+        regionFirst(res[0] || []).slice(0, 2).forEach(function (p) {
+          grid.appendChild(popularCard(routeHref(p.id), 'Route', false, p.name, routeStats(p), p.photo_url, true));
+        });
+        var r = upcoming(res[1] || [])[0];
+        if (r) grid.appendChild(popularCard(rideHref(r), 'Ride', true, r.name || r.subtitle, shortDate(r.date_iso) + ' · RSVP', r.hero_image, false));
+      });
+      return;
     }
+
+    function has(p, keys) {
+      return keys.some(function (k) { return String(p[k] || '').toLowerCase().indexOf(q) > -1; });
+    }
+    Promise.all([feed('routes'), feed('events')]).then(function (res) {
+      var routes = (res[0] || []).filter(function (p) { return has(p, ['name', 'region', 'state', 'description', 'series']); }).slice(0, 8);
+      var rides = upcoming(res[1] || []).filter(function (p) { return has(p, ['name', 'subtitle', 'route_name', 'meeting_point', 'description']); }).slice(0, 6);
+      var rh = $('[data-alp-route-hits]', sec), dh = $('[data-alp-ride-hits]', sec);
+      routes.forEach(function (p) { rh.appendChild(hitRow(routeHref(p.id), p.name, routeStats(p))); });
+      rides.forEach(function (p) { dh.appendChild(hitRow(rideHref(p), shortDate(p.date_iso) + ' · ' + (p.subtitle || p.name), 'RSVP', true)); });
+      $('[data-alp-count-routes]', sec).textContent = routes.length;
+      $('[data-alp-count-rides]', sec).textContent = rides.length;
+      $('[data-alp-group="routes"]', sec).hidden = !routes.length;
+      $('[data-alp-group="rides"]', sec).hidden = !rides.length;
+      sec.setAttribute('data-alp-routes-n', routes.length);
+      sec.setAttribute('data-alp-rides-n', rides.length);
+    });
   }
 
   document.addEventListener('click', function (e) {
-    var size = e.target.closest('[data-alp-rp-value]');
-    if (size) {
-      var fieldset = rpFieldset(size.closest('[data-alp-rp-options]'));
-      if (fieldset) {
-        var want = size.getAttribute('data-alp-rp-value');
-        var hit = null;
-        fieldset.querySelectorAll('input[type="radio"]').forEach(function (r) {
-          if (r.value === want) hit = r;
-        });
-        if (hit && !hit.disabled) hit.click();
-      }
-      /* Dawn swaps price and button state asynchronously after the change. */
-      setTimeout(syncRailProduct, 400);
-      return;
-    }
-
-    if (e.target.closest('[data-alp-rp-submit]')) {
-      var form = rpForm();
-      if (!form) return;
-      if (form.requestSubmit) form.requestSubmit();
-      else form.submit();
-    }
+    var chip = e.target.closest('[data-alp-filter]');
+    if (!chip) return;
+    var sec = chip.closest('[data-alp-search]');
+    var want = chip.getAttribute('data-alp-filter');
+    $$('[data-alp-filter]', sec).forEach(function (c) {
+      var on = c === chip;
+      c.classList.toggle('is-on', on);
+      c.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    $$('[data-alp-group]', sec).forEach(function (g) {
+      var name = g.getAttribute('data-alp-group');
+      var n = name === 'products' ? 1 : Number(sec.getAttribute('data-alp-' + name + '-n') || 0);
+      g.hidden = want === 'all' ? (name !== 'products' && !n) : name !== want;
+    });
   });
 
-  document.addEventListener('change', function (e) {
-    if (e.target.closest('variant-selects, variant-radios, .product-form__input, [name="id"]')) {
-      setTimeout(syncRailProduct, 400);
-    }
-  });
-
-  /* ── Back to the top (phones) ──
-     The nav is at the bottom of the screen on a phone, so a long page has no
-     way home except a long drag. Shown only once there is a real distance to
-     come back from — appearing immediately would just be another thing in the
-     way of the hero. */
-  function initBackToTop() {
-    var btn = document.querySelector('[data-alp-top]');
-    if (!btn || btn.dataset.alpTopBound) return;
-    btn.dataset.alpTopBound = '1';
-
-    function render() {
-      var past = (window.scrollY || window.pageYOffset || 0) > window.innerHeight * 2;
-      btn.classList.toggle('is-in', past);
-    }
-    render();
-    window.addEventListener('scroll', render, { passive: true });
-
-    btn.addEventListener('click', function () {
-      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
-    });
-  }
-
-  /* ── Section index in the rail ──
-     The rail renders before the template's own sections, so Liquid cannot tell
-     it what is on the page. This collects the passages afterwards and fills the
-     rail's empty slot with links to them — the About page's section index in
-     8e, and anything else built out of passages.
-
-     Only ever an index of what is already on screen, so if this never runs the
-     page is exactly as complete as it was. */
-  function initRailIndex() {
-    /* Pages only. The home page is built out of passages too, so without this
-       it grew a "Sections / The country / Bush Map" index nobody asked for —
-       an index is for a long single-subject page like About, not for the front
-       door, where the nav above it is already the index. */
-    if (!document.body.classList.contains('template-page')) return;
-
-    var slot = document.querySelector('[data-alp-rail-slot]');
-    if (!slot || slot.children.length) return; /* a template filled it already */
-
-    var marks = document.querySelectorAll('[data-alp-index]');
-    if (marks.length < 2) return; /* one section is not an index */
-
-    var head = document.createElement('p');
-    head.className = 'alp-rail__eyebrow';
-    head.textContent = slot.getAttribute('data-alp-index-label') || 'Sections';
-    slot.appendChild(head);
-
-    marks.forEach(function (el) {
-      if (!el.id) return;
-      var a = document.createElement('a');
-      a.className = 'alp-rail__detail';
-      a.href = '#' + el.id;
-      a.textContent = el.getAttribute('data-alp-index');
-      slot.appendChild(a);
-    });
-  }
-
-  /* ── Scroll reveal ──
-     Skipped entirely in the theme editor (sections are re-rendered on every
-     tweak and would come back opacity-0); alpine.css also forces visibility
-     under .shopify-design-mode as a belt-and-suspenders. */
-  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var io = null;
-
-  function initReveals() {
-    var targets = document.querySelectorAll('.alp-reveal:not(.is-in)');
-    if (DESIGN_MODE || reduceMotion || !('IntersectionObserver' in window)) {
-      targets.forEach(function (el) { el.classList.add('is-in'); });
-      return;
-    }
-    if (!io) {
-      io = new IntersectionObserver(function (entries) {
-        entries.forEach(function (entry) {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('is-in');
-            io.unobserve(entry.target);
-          }
-        });
-      }, { threshold: 0.15 });
-    }
-    targets.forEach(function (el) { io.observe(el); });
-  }
-
-  initReveals();
-  initVideos();
-  initNextRide();
-  syncRailProduct();
-  initRailIndex();
-  initBackToTop();
-
-  /* Editor hooks: re-run setup whenever a section is (re)loaded. */
-  document.addEventListener('shopify:section:load', function () {
-    initReveals();
+  /* ── Boot ── */
+  function init() {
+    tickClock();
+    initWeather();
     initVideos();
-    initNextRide();
-    syncRailProduct();
+    initPdp();
+    openFilterGroups();
+    initRides();
+    initRoutesPage();
+    initSearch();
+  }
+
+  init();
+  setInterval(tickClock, 1000);
+
+  document.addEventListener('shopify:section:load', function () {
+    nearFilled = false;
+    closePanel(true);
+    init();
   });
 })();

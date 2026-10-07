@@ -1,171 +1,67 @@
 {%- comment -%}
-  Bush Riding hero — full-bleed photograph or clip under an olive veil, with
-  the wordmark and tagline centred and a caption row naming the country.
+  Home hero (D01 / M02) — full-bleed clip or photo under a flat olive scrim
+  (.38), the bone wordmark centred with "Made for the detour." beneath.
+  720px tall on desktop; on a phone it fills the screen below the header.
 
-  Nothing else lives here. The chips went when the rail replaced the top bar,
-  and the next ride moved to its own section (alpine-next-ride) so it could
-  be placed and coloured rather than being stuck under the hero with no
-  background of its own.
+  The clip is deferred through alpine.js (data-alp-video) and the photo is its
+  poster. A separate phone image lets the portrait crop differ.
 {%- endcomment -%}
-
+{%- liquid
+  assign img = section.settings.image
+  assign img_m = section.settings.image_mobile | default: img
+-%}
 <section class="alp alp-hero">
   <div class="alp-hero__media">
-    {%- comment -%}
-      Clip first, image second. It used to be the other way round, which meant
-      setting a poster image silently disabled the video — the opposite of what
-      anyone filling in both fields expects. The image is now the poster.
-
-      The src is deferred (data-alp-video, see alpine.js) rather than autoplay:
-      the hero is above the fold so it starts immediately anyway, but going
-      through the same path as every other clip means one place decides when
-      video loads. No `type` on a source element either — a .mov declared as
-      video/mp4 is rejected outright by the browser, which is exactly how the
-      home page's clip went missing once already.
-    {%- endcomment -%}
     {%- if section.settings.video_url != blank -%}
-      {%- assign hero_poster = section.settings.poster | default: section.settings.image -%}
       <video
+        class="alp-fill"
         data-alp-video="{{ section.settings.video_url }}"
         muted
         loop
         playsinline
         preload="none"
         aria-hidden="true"
-        {% if hero_poster != blank %}poster="{{ hero_poster | image_url: width: 1800 }}"{% endif %}
+        {% if img != blank %}poster="{{ img | image_url: width: 1800 }}"{% endif %}
       ></video>
-    {%- elsif section.settings.image != blank -%}
-      {{ section.settings.image | image_url: width: 3200 | image_tag: loading: 'eager', fetchpriority: 'high', alt: section.settings.image.alt | default: '' }}
-    {%- else -%}
-      <img src="{{ 'alpine-ph-hero.svg' | asset_url }}" alt="" width="800" height="1000" loading="eager"
-        data-asset-note="Full-bleed hero: hiker on mossy terrain against a pale blown-out sky, as in frame f_01">
+    {%- elsif img != blank -%}
+      <picture>
+        {%- if section.settings.image_mobile != blank -%}
+          <source media="(max-width: 749px)" srcset="{{ img_m | image_url: width: 800 }} 800w, {{ img_m | image_url: width: 1200 }} 1200w" sizes="100vw">
+        {%- endif -%}
+        {{ img | image_url: width: 3000 | image_tag: class: 'alp-fill', loading: 'eager', fetchpriority: 'high', widths: '800, 1200, 1800, 2400, 3000', sizes: '100vw', alt: img.alt | default: '' }}
+      </picture>
     {%- endif -%}
   </div>
-
-  {%- comment -%}
-    The veil is what makes the hero readable and what makes it olive. It runs
-    0.70 → 0.92 down the frame rather than a flat fill, so the photograph still
-    has somewhere to breathe at the top while the caption row at the foot sits
-    on the darkest ground.
-  {%- endcomment -%}
-  <div class="alp-hero__veil" aria-hidden="true"></div>
-
+  <div class="alp-hero__scrim" aria-hidden="true"></div>
   <div class="alp-hero__centre">
     {%- if section.settings.show_wordmark -%}
-      {%- comment -%}
-        Decorative — the rail's wordmark link already carries "Bush Riding" as
-        the accessible name for the home route, so this stays aria-hidden with
-        an empty alt to avoid announcing the wordmark twice.
-      {%- endcomment -%}
-      {%- if section.settings.wordmark_image != blank -%}
-        {{ section.settings.wordmark_image | image_url: width: 900 | image_tag: class: 'alp-hero__mark', loading: 'eager', alt: '' }}
-      {%- else -%}
-        <img class="alp-hero__mark" src="{{ 'wordmark-' | append: section.settings.wordmark_tone | append: '.svg' | asset_url }}" alt="" loading="eager" width="1273" height="543">
-      {%- endif -%}
+      <img class="alp-hero__mark" src="{{ 'wordmark-' | append: section.settings.wordmark_tone | append: '.svg' | asset_url }}" alt="" width="1273" height="543" loading="eager">
     {%- endif -%}
-
     {%- if section.settings.tagline != blank -%}
       <p class="alp-hero__tagline">{{ section.settings.tagline | escape }}</p>
     {%- endif -%}
   </div>
-
-  {%- comment -%}
-    The caption row. Naming the country in the frame is the documentary habit
-    the brand is built on — and it is also what tells you the page keeps going,
-    now that the scroll cue has gone.
-  {%- endcomment -%}
-  {%- if section.settings.place != blank or section.settings.frame != blank -%}
-    <div class="alp-hero__caption">
-      <p class="alp-hero__place">{{ section.settings.place | escape }}</p>
-      <p class="alp-hero__place">{{ section.settings.frame | escape }}</p>
-    </div>
-  {%- endif -%}
 </section>
-
-
 
 {% schema %}
 {
-  "name": "Bush Riding hero",
+  "name": "Home hero",
   "tag": "div",
   "settings": [
+    { "type": "url", "id": "video_url", "label": "Clip URL", "info": "A direct mp4 file. Takes priority over the image, which becomes its poster." },
+    { "type": "image_picker", "id": "image", "label": "Image" },
+    { "type": "image_picker", "id": "image_mobile", "label": "Phone image", "info": "Optional portrait crop. Leave empty to use the image above." },
+    { "type": "checkbox", "id": "show_wordmark", "label": "Show the wordmark", "default": true },
     {
-      "type": "url",
-      "id": "video_url",
-      "label": "Background clip URL",
-      "info": "A direct mp4/mov file URL. Takes priority over the image, which becomes its poster."
-    },
-    {
-      "type": "image_picker",
-      "id": "image",
-      "label": "Hero image",
-      "info": "Used on its own when there is no clip, and as the clip's poster when there is."
-    },
-    {
-      "type": "image_picker",
-      "id": "poster",
-      "label": "Separate poster image",
-      "info": "Only needed when the clip should show a different still to the hero image."
-    },
-    {
-      "type": "header",
-      "content": "Over the photograph"
-    },
-    {
-      "type": "text",
-      "id": "tagline",
-      "label": "Tagline",
-      "default": "Made for the detour",
-      "info": "Sits under the wordmark, letterspaced."
-    },
-    {
-      "type": "text",
-      "id": "place",
-      "label": "Caption — place",
-      "default": "Mount Beerwah, Glass House Mountains",
-      "info": "Bottom left. Naming the country in the frame."
-    },
-    {
-      "type": "text",
-      "id": "frame",
-      "label": "Caption — frame number",
-      "default": "01",
-      "info": "Bottom right."
-    },
-    {
-      "type": "header",
-      "content": "Wordmark"
-    },
-    {
-      "type": "checkbox",
-      "id": "show_wordmark",
-      "label": "Show the wordmark over the photo",
-      "default": true
-    },
-    {
-      "type": "select",
-      "id": "wordmark_tone",
-      "label": "Wordmark tone",
+      "type": "select", "id": "wordmark_tone", "label": "Wordmark tone", "default": "bone",
       "options": [
-        { "value": "bone", "label": "Bone (default over photography)" },
+        { "value": "bone", "label": "Bone" },
         { "value": "olive", "label": "Olive" },
-        { "value": "sage", "label": "Sage" },
-        { "value": "khaki", "label": "Khaki" },
-        { "value": "mist", "label": "Mist" },
-        { "value": "flare", "label": "Flare" },
-        { "value": "white", "label": "White" },
-        { "value": "black", "label": "Black" }
-      ],
-      "default": "bone"
+        { "value": "white", "label": "White" }
+      ]
     },
-    {
-      "type": "image_picker",
-      "id": "wordmark_image",
-      "label": "Wordmark image override",
-      "info": "Leave blank to use the shipped wordmark artwork above."
-    }
+    { "type": "text", "id": "tagline", "label": "Tagline", "default": "Made for the detour." }
   ],
-  "presets": [
-    { "name": "Bush Riding hero" }
-  ]
+  "presets": [{ "name": "Home hero" }]
 }
 {% endschema %}

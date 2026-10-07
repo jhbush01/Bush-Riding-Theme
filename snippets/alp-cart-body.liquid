@@ -1,0 +1,57 @@
+{%- comment -%}
+  Cart contents — lines, subtotal and Checkout. Shared by the drawer (D07 /
+  M08) and the /cart page so they can't drift apart.
+
+  Quantity steppers and Remove are links to Shopify's /cart/change, so they
+  work with no script at all; alpine.js turns them into in-place updates
+  that re-render this section.
+
+  where – 'drawer' | 'page'
+{%- endcomment -%}
+<div class="alp-cart__lines">
+  {%- for item in cart.items -%}
+    <div class="alp-line">
+      <a class="alp-line__thumb" href="{{ item.url }}" tabindex="-1" aria-hidden="true">
+        {%- if item.image != blank -%}
+          {{ item.image | image_url: width: 300 | image_tag: class: 'alp-fill', loading: 'lazy', alt: '' }}
+        {%- endif -%}
+      </a>
+      <div class="alp-line__main">
+        <a class="alp-line__name" href="{{ item.url }}">{{ item.product.title | escape }}</a>
+        {%- unless item.product.has_only_default_variant -%}
+          <span class="alp-line__meta">{% if item.options_with_values.size == 1 %}{{ item.options_with_values[0].name | escape }} {{ item.options_with_values[0].value | escape }}{% else %}{{ item.variant.title | escape }}{% endif %}</span>
+        {%- endunless -%}
+        <div class="alp-qty" role="group" aria-label="Quantity">
+          <a class="alp-qty__btn" href="{{ routes.cart_change_url }}?line={{ forloop.index }}&quantity={{ item.quantity | minus: 1 }}" data-alp-line="{{ item.key }}" data-alp-qty="{{ item.quantity | minus: 1 }}" aria-label="One fewer">−</a>
+          <span class="alp-qty__n">{{ item.quantity }}</span>
+          <a class="alp-qty__btn" href="{{ routes.cart_change_url }}?line={{ forloop.index }}&quantity={{ item.quantity | plus: 1 }}" data-alp-line="{{ item.key }}" data-alp-qty="{{ item.quantity | plus: 1 }}" aria-label="One more">+</a>
+        </div>
+        <a class="alp-line__remove" href="{{ item.url_to_remove }}" data-alp-line="{{ item.key }}" data-alp-qty="0">Remove</a>
+      </div>
+      <span class="alp-line__price">{{ item.final_line_price | money_without_trailing_zeros }}</span>
+    </div>
+  {%- else -%}
+    <p class="alp-cart__empty">Nothing in here yet. <a href="{{ routes.collections_url }}">Have a look around</a>.</p>
+  {%- endfor -%}
+
+  {%- if where == 'drawer' and cart.item_count > 0 -%}
+    {%- capture soon -%}{%- render 'alp-shop-links', variant: 'soon' -%}{%- endcapture -%}
+    {%- assign soon = soon | strip | split: '|' -%}
+    {%- if soon.size > 0 -%}
+      <details class="alp-cart__drop alp-notify alp-d">
+        <summary><span>{{ soon | join: ' and ' | escape }} land in the next drop.</span><span class="alp-notify__link">Notify me</span></summary>
+        <div class="alp-notify__panel">
+          {%- render 'alp-signup', id: 'CartNextDrop', tags: 'next-drop', label: 'Notify me', size: 'sm', thanks: "Noted. You'll hear when they land." -%}
+        </div>
+      </details>
+    {%- endif -%}
+  {%- endif -%}
+</div>
+
+{%- if cart.item_count > 0 -%}
+  <form class="alp-cart__foot" action="{{ routes.cart_url }}" method="post">
+    <p class="alp-cart__total"><span>Subtotal</span><span>{{ cart.total_price | money_without_trailing_zeros }}</span></p>
+    <p class="alp-cart__note">Shipping and taxes calculated at checkout · {{ cart.currency.iso_code }}</p>
+    <button class="alp-btn alp-btn--flare alp-btn--block" type="submit" name="checkout">Checkout</button>
+  </form>
+{%- endif -%}

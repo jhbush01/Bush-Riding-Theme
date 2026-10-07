@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="_ds/bush-riding-design-system-e1a4add7-9c80-4356-9e4f-0696f3fb404c/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/bush-riding-design-system-e1a4add7-9c80-4356-9e4f-0696f3fb404c/tokens/colors.css">
+<link rel="stylesheet" href="_ds/bush-riding-design-system-e1a4add7-9c80-4356-9e4f-0696f3fb404c/tokens/typography.css">
+<link rel="stylesheet" href="_ds/bush-riding-design-system-e1a4add7-9c80-4356-9e4f-0696f3fb404c/tokens/space.css">
+<link rel="stylesheet" href="_ds/bush-riding-design-system-e1a4add7-9c80-4356-9e4f-0696f3fb404c/tokens/storefront.css">
+<link rel="stylesheet" href="_ds/bush-riding-design-system-e1a4add7-9c80-4356-9e4f-0696f3fb404c/tokens/map.css">
+<link rel="stylesheet" href="_ds/bush-riding-design-system-e1a4add7-9c80-4356-9e4f-0696f3fb404c/tokens/base.css">
+<link rel="stylesheet" href="_ds/bush-riding-design-system-e1a4add7-9c80-4356-9e4f-0696f3fb404c/styles.css">
+<script src="_ds/bush-riding-design-system-e1a4add7-9c80-4356-9e4f-0696f3fb404c/_ds_bundle.js"></script>
+<script src="image-slot.js"></script>
+<style>body{margin:0;background:#b8bca1;color:#4c4b3b;font-family:var(--font-body),Inter,sans-serif}a{color:#4c4b3b}a:hover{color:#817f57}</style>
+</helmet>
+<section style="padding:56px 64px 80px;display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;flex-direction:column;gap:6px;max-width:900px">
+<div style="font:600 13px var(--font-heading);letter-spacing:.1em;text-transform:uppercase">Bush Riding · Desktop hi-fi · 1280px</div>
+<div style="font:600 32px/1.1 var(--font-heading)">Confirmed desktop set</div>
+<div style="font:15px/1.5 var(--font-body);max-width:760px">The repo has no ride or product photography yet. The home hero uses the watercolour from the Bush Map share image. Every other picture is a drop slot: drag a photo onto it and it stays there. The only product is the Bush Riding Shorts, $260. T-Shirts and Caps show as "Next drop" everywhere.</div>
+</div>
+
+<div style="display:flex;flex-wrap:wrap;gap:56px;align-items:flex-start;margin-top:24px">
+
+<div style="display:flex;flex-direction:column;gap:10px"><div style="font:600 14px var(--font-heading)">D01 · Home</div>
+<div data-screen-label="D01 Home" style="width:1280px;background:#edecc5;box-shadow:0 20px 50px rgba(76,75,59,.25)">
+<div style="display:flex;align-items:center;gap:44px;height:84px;padding:0 40px;border-bottom:1px solid rgba(76,75,59,.24);font:600 16px var(--font-heading)"><img src="assets/wordmark-olive.svg" style="height:26px;margin-right:20px"><span>Shop</span><span>Bush Map</span><span>Rides</span><span style="flex:1"></span><span style="font:400 13px var(--font-body);color:#817f57">{{ clock }} AEST · 24° cloud</span><span>Search</span><span>Cart (0)</span></div>
+<div style="position:relative;height:720px"><image-slot id="d01-hero" shape="rect" src="assets/hero-watercolour.jpg" placeholder="Hero video loop: landscape, riders small in frame"></image-slot>
+<div style="position:absolute;inset:0;background:rgba(76,75,59,.38);pointer-events:none"></div>
+<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;pointer-events:none"><img src="assets/wordmark-bone.svg" style="height:150px"><div style="font:600 20px var(--font-heading);color:#edecc5">Made for the detour.</div></div>
+</div>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);height:640px">
+<div style="position:relative"><image-slot id="d01-life-1" shape="rect" placeholder="Lifestyle: riding in the shorts"></image-slot><div style="position:absolute;left:24px;bottom:24px;font:600 16px var(--font-heading);color:#edecc5;pointer-events:none">On the long way home</div></div>
+<div style="position:relative;background:#eceada"><image-slot id="d01-prod-1" shape="rect" placeholder="Bush Riding Shorts, plain ground"></image-slot><div style="position:absolute;left:24px;bottom:24px;display:flex;gap:8px;pointer-events:none"><span style="background:#fff;border:1px solid rgba(76,75,59,.24);border-radius:3px;padding:8px 14px;font:600 14px var(--font-body)">Bush Riding Shorts</span><span style="background:#fff;border:1px solid rgba(76,75,59,.24);border-radius:3px;padding:8px 14px;font:500 14px var(--font-body)">$260</span></div></div></div>
+<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding:12px 12px 48px">
+<div><div style="position:relative;aspect-ratio:3/4;background:#eceada"><image-slot id="d01-card-1" shape="rect" placeholder="Shorts, front"></image-slot><div style="position:absolute;left:16px;right:16px;bottom:16px;background:#fff;text-align:center;padding:12px;font:500 15px var(--font-body);pointer-events:none;text-align:left;padding:12px 16px"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-weight:600">Quick add</span><span style="display:flex;gap:14px"><span>XS</span><span>S</span><span style="text-decoration:underline;text-underline-offset:3px">M</span><span>L</span><span>XL</span></span></div></div></div><div style="padding:14px 12px 0;font:15px/1.5 var(--font-body)"><span style="text-decoration:underline;text-underline-offset:3px">Bush Riding Shorts</span><br>$260</div></div>
+<div><div style="position:relative;aspect-ratio:3/4;background:#eceada"><image-slot id="d01-card-2" shape="rect" placeholder="Shorts, rear zip pocket"></image-slot></div><div style="padding:14px 12px 0;font:15px/1.5 var(--font-body)">Bush Riding Shorts, rear<br>$260</div></div>
+<div><div style="aspect-ratio:3/4;background:#eceada;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px"><span style="background:#ece26a;border-radius:3px;padding:6px 10px;font:600 12px var(--font-body)">Next drop</span><span style="font:600 22px var(--font-heading)">T-Shirts</span></div><div style="padding:14px 12px 0;font:15px/1.5 var(--font-body)">T-Shirts<br><span style="text-decoration:underline;text-underline-offset:3px">Notify me</span></div></div>
+<div><div style="aspect-ratio:3/4;background:#eceada;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px"><span style="border:1px solid #4c4b3b;border-radius:3px;padding:6px 10px;font:600 12px var(--font-body)">Next drop</span><span style="font:600 22px var(--font-heading)">Caps</span></div><div style="padding:14px 12px 0;font:15px/1.5 var(--font-body)">Caps<br><span style="text-decoration:underline;text-underline-offset:3px">Notify me</span></div></div></div>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);height:560px">
+<div style="position:relative"><image-slot id="d01-rides" shape="rect" placeholder="Ride recap photo"></image-slot><div style="position:absolute;left:24px;bottom:24px;display:flex;flex-direction:column;gap:10px;align-items:flex-start;pointer-events:none"><span style="font:600 28px var(--font-heading);color:#edecc5">Ride with us</span><span style="background:#fff;border:1px solid rgba(76,75,59,.24);border-radius:3px;padding:8px 14px;font:600 14px var(--font-body)">Rides</span></div></div>
+<div style="position:relative;background:#a7b8b4"><image-slot id="d01-map" shape="rect" placeholder="Bush Map still"></image-slot><div style="position:absolute;left:24px;bottom:24px;display:flex;flex-direction:column;gap:10px;align-items:flex-start;pointer-events:none"><span style="font:600 28px var(--font-heading);color:#edecc5">Get the route. Join the bush.</span><span style="background:#fff;border:1px solid rgba(76,75,59,.24);border-radius:3px;padding:8px 14px;font:600 14px var(--font-body)">BUSH MAP™</span></div></div></div>
+<div style="border-top:1px solid rgba(76,75,59,.24)">
+<div style="display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:80px;padding:56px 64px;border-bottom:1px solid rgba(76,75,59,.24)"><div><div style="font:600 18px var(--font-heading)">Newsletter</div><div style="font:15px var(--font-body);margin:10px 0 18px">We send the occasional route, nothing else.</div><div style="display:flex"><div style="flex:1;border:1px solid #4c4b3b;padding:16px;font:15px var(--font-body);color:#817f57;background:#fff">Email address</div><div style="background:#4c4b3b;color:#fff;padding:16px 24px;font:600 15px var(--font-body)">Subscribe</div></div></div><div style="align-self:end"><div style="font:14px var(--font-body);color:#817f57">Country / Region</div><div style="font:15px var(--font-body);margin-top:8px">AU / (AUD) ▾</div></div></div>
+<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;padding:44px 64px"><div style="display:flex;flex-direction:column;gap:14px;font:15px var(--font-body)"><span style="font:600 12px var(--font-body);letter-spacing:.12em">HELP</span><span>Shipping &amp; delivery</span><span>Returns &amp; exchanges</span><span>Size guide</span></div><div style="display:flex;flex-direction:column;gap:14px;font:15px var(--font-body)"><span style="font:600 12px var(--font-body);letter-spacing:.12em">BUSH RIDING</span><span>About</span><span>Rides</span><span>Bush Map™</span></div><div style="display:flex;flex-direction:column;gap:14px;font:15px var(--font-body)"><span style="font:600 12px var(--font-body);letter-spacing:.12em">CONTACT</span><span>Customer service</span><span>Instagram</span><span>Strava</span></div><div style="display:flex;flex-direction:column;gap:14px;font:15px var(--font-body)"><span style="font:600 12px var(--font-body);letter-spacing:.12em">LEGAL</span><span>Privacy policy</span><span>Terms of service</span><span>Accessibility</span></div></div>
+<div style="padding:0 64px 24px"><img src="assets/wordmark-olive.svg" style="width:100%;display:block"></div>
+<div style="border-top:1px solid rgba(76,75,59,.24);padding:20px 64px;font:14px var(--font-body)">© Bush Riding™ 2026 · Designed in Australia</div></div>
+</div></div>
+
+<div style="display:flex;flex-direction:column;gap:56px">
+
+<div style="display:flex;flex-direction:column;gap:10px"><div style="font:600 14px var(--font-heading)">D02 · Shop landing</div>
+<div data-screen-label="D02 Shop landing" style="width:1280px;background:#edecc5;box-shadow:0 20px 50px rgba(76,75,59,.25)">
+<div style="display:flex;align-items:center;gap:44px;height:84px;padding:0 40px;border-bottom:1px solid rgba(76,75,59,.24);font:600 16px var(--font-heading)"><img src="assets/wordmark-olive.svg" style="height:26px;margin-right:20px"><span style="text-decoration:underline;text-underline-offset:5px">Shop</span><span>Bush Map</span><span>Rides</span><span style="flex:1"></span><span style="font:400 13px var(--font-body);color:#817f57">{{ clock }} AEST · 24° cloud</span><span>Search</span><span>Cart (0)</span></div>
+<div style="display:grid;grid-template-columns:320px minmax(0,1fr) minmax(0,1fr);height:800px">
+<div style="padding:40px;display:flex;flex-direction:column;gap:16px;font:600 20px var(--font-heading)"><span>View all</span><span>Bottoms</span><span style="color:#817f57">T-Shirts <span style="font:400 13px var(--font-body)">· next drop</span></span><span style="color:#817f57">Caps <span style="font:400 13px var(--font-body)">· next drop</span></span><span style="flex:1"></span>
+<div style="font:15px/1.5 var(--font-body)">Local time {{ clock }}<br>Gold Coast, Queensland<br>24° · cloud</div>
+<div style="display:flex"><div style="flex:1;border:1px solid #4c4b3b;padding:12px;font:13px var(--font-body);color:#817f57;background:#fff">Email address</div><div style="background:#4c4b3b;color:#fff;padding:12px 14px;font:600 13px var(--font-body)">Subscribe</div></div>
+<div style="font:12px var(--font-body)">We send the occasional route, nothing else.</div></div>
+<div style="position:relative;background:#eceada"><image-slot id="d02-prod" shape="rect" placeholder="Bush Riding Shorts, plain ground"></image-slot><div style="position:absolute;left:24px;bottom:24px;font:600 18px var(--font-heading);pointer-events:none">Bush Riding Shorts</div></div>
+<div style="position:relative"><image-slot id="d02-life" shape="rect" placeholder="Bottoms, out riding"></image-slot><div style="position:absolute;left:24px;bottom:24px;font:600 18px var(--font-heading);color:#edecc5;pointer-events:none">Bottoms</div></div>
+</div></div></div>
+
+<div style="display:flex;flex-direction:column;gap:10px"><div style="font:600 14px var(--font-heading)">D03 · Collection</div>
+<div data-screen-label="D03 Collection" style="width:1280px;background:#edecc5;box-shadow:0 20px 50px rgba(76,75,59,.25)">
+<div style="display:flex;align-items:center;gap:44px;height:84px;padding:0 40px;border-bottom:1px solid rgba(76,75,59,.24);font:600 16px var(--font-heading)"><img src="assets/wordmark-olive.svg" style="height:26px;margin-right:20px"><span style="text-decoration:underline;text-underline-offset:5px">Shop</span><span>Bush Map</span><span>Rides</span><span style="flex:1"></span><span style="font:400 13px var(--font-body);color:#817f57">{{ clock }} AEST · 24° cloud</span><span>Search</span><span>Cart (0)</span></div>
+<div style="display:flex;align-items:center;gap:40px;height:64px;padding:0 40px;border-bottom:1px solid rgba(76,75,59,.24);font:16px var(--font-body)"><span style="font-weight:600">View all</span><span style="color:#817f57">New in</span><span style="color:#817f57">Bottoms</span><span style="color:#817f57">T-Shirts <span style="font-size:12px">soon</span></span><span style="color:#817f57">Caps <span style="font-size:12px">soon</span></span><span style="flex:1"></span><span style="font-size:14px;color:#817f57">1 product</span></div>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,2fr);gap:12px;padding:12px">
+<div><div style="position:relative;aspect-ratio:3/4;background:#eceada"><image-slot id="d03-card-1" shape="rect" placeholder="Shorts, front"></image-slot><div style="position:absolute;left:14px;right:14px;bottom:14px;background:#fff;text-align:center;padding:12px;font:500 15px var(--font-body);pointer-events:none;text-align:left;padding:12px 16px"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-weight:600">Quick add</span><span style="display:flex;gap:14px"><span>XS</span><span>S</span><span style="text-decoration:underline;text-underline-offset:3px">M</span><span>L</span><span>XL</span></span></div></div></div><div style="padding:14px 10px 20px;font:15px/1.5 var(--font-body)"><span style="text-decoration:underline;text-underline-offset:3px">Bush Riding Shorts</span><br>$260</div></div>
+<div><div style="aspect-ratio:3/4;background:#eceada;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px"><span style="background:#ece26a;border-radius:3px;padding:6px 10px;font:600 12px var(--font-body)">Next drop</span><span style="font:600 22px var(--font-heading)">T-Shirts</span></div><div style="padding:14px 10px 20px;font:15px/1.5 var(--font-body)">T-Shirts<br><span style="text-decoration:underline;text-underline-offset:3px">Notify me</span></div></div>
+<div style="grid-row:span 2;position:relative;min-height:900px"><image-slot id="d03-life" shape="rect" placeholder="Lifestyle: riders in the shorts"></image-slot></div>
+<div><div style="aspect-ratio:3/4;background:#eceada;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px"><span style="border:1px solid #4c4b3b;border-radius:3px;padding:6px 10px;font:600 12px var(--font-body)">Next drop</span><span style="font:600 22px var(--font-heading)">Caps</span></div><div style="padding:14px 10px 20px;font:15px/1.5 var(--font-body)">Caps<br><span style="text-decoration:underline;text-underline-offset:3px">Notify me</span></div></div>
+<div><div style="aspect-ratio:3/4;background:#4c4b3b;color:#edecc5;display:flex;flex-direction:column;justify-content:flex-end;gap:12px;padding:24px;box-sizing:border-box"><span style="font:600 22px/1.2 var(--font-heading)">Hear about the next drop first.</span><div style="display:flex"><div style="flex:1;border:1px solid #edecc5;padding:11px;font:13px var(--font-body);color:#b8bca1">Email address</div><div style="background:#edecc5;color:#4c4b3b;padding:11px 12px;font:600 13px var(--font-body)">Notify me</div></div></div></div>
+</div></div></div>
+
+</div>
+
+<div style="display:flex;flex-direction:column;gap:10px"><div style="font:600 14px var(--font-heading)">D04 · Filters <span style="font:400 13px var(--font-body)">· turns on at 6+ products</span></div>
+<div data-screen-label="D04 Filters" style="width:1280px;background:#edecc5;box-shadow:0 20px 50px rgba(76,75,59,.25)">
+<div style="display:flex;align-items:center;gap:44px;height:84px;padding:0 40px;border-bottom:1px solid rgba(76,75,59,.24);font:600 16px var(--font-heading)"><img src="assets/wordmark-olive.svg" style="height:26px;margin-right:20px"><span style="text-decoration:underline;text-underline-offset:5px">Shop</span><span>Bush Map</span><span>Rides</span><span style="flex:1"></span><span style="font:400 13px var(--font-body);color:#817f57">{{ clock }} AEST · 24° cloud</span><span>Search</span><span>Cart (0)</span></div>
+<div style="display:flex;align-items:center;gap:40px;height:64px;padding:0 40px;border-bottom:1px solid rgba(76,75,59,.24);font:16px var(--font-body)"><span style="font-weight:600">View all</span><span style="color:#817f57">New in</span><span style="color:#817f57">Bottoms</span><span style="color:#817f57">T-Shirts</span><span style="color:#817f57">Caps</span><span style="flex:1"></span><span style="text-decoration:underline;text-underline-offset:4px">Filters</span><span>Sort by</span></div>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1.4fr);gap:48px;padding:40px 40px 32px">
+<div><div style="font:600 18px var(--font-heading);margin-bottom:20px">Category</div><div style="display:flex;flex-direction:column;gap:8px">
+<div style="display:flex;border:1.5px solid #4c4b3b;background:#fff"><span style="width:44px;background:#4c4b3b;color:#edecc5;font:600 13px/44px var(--font-heading);text-align:center">✓</span><span style="padding:12px 14px;font:15px var(--font-body)">Bottoms</span></div>
+<div style="display:flex;border:1px solid rgba(76,75,59,.24);opacity:.55"><span style="width:44px;border-right:1px solid rgba(76,75,59,.24)"></span><span style="padding:12px 14px;font:15px var(--font-body)">T-Shirts · next drop</span></div>
+<div style="display:flex;border:1px solid rgba(76,75,59,.24);opacity:.55"><span style="width:44px;border-right:1px solid rgba(76,75,59,.24)"></span><span style="padding:12px 14px;font:15px var(--font-body)">Caps · next drop</span></div></div></div>
+<div><div style="font:600 18px var(--font-heading);margin-bottom:20px">Size</div><div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
+<span style="border:1px solid #4c4b3b;padding:13px 0;text-align:center;font:15px var(--font-body);background:#fff">XS</span><span style="border:1px solid #4c4b3b;padding:13px 0;text-align:center;font:15px var(--font-body);background:#fff">S</span><span style="border:1px solid #4c4b3b;padding:13px 0;text-align:center;font:15px var(--font-body);background:#4c4b3b;color:#edecc5">M</span><span style="border:1px solid #4c4b3b;padding:13px 0;text-align:center;font:15px var(--font-body);background:#fff">L</span><span style="border:1px solid #4c4b3b;padding:13px 0;text-align:center;font:15px var(--font-body);background:#fff">XL</span><span style="border:1px solid #4c4b3b;padding:13px 0;text-align:center;font:15px var(--font-body);background:#fff">XXL</span></div></div>
+<div><div style="font:600 18px var(--font-heading);margin-bottom:20px">Fabric &amp; features</div><div style="display:flex;flex-direction:column;gap:8px">
+<div style="display:flex;border:1px solid #4c4b3b;background:#fff"><span style="width:52px;border-right:1px solid #4c4b3b;font:20px/46px 'DX Burst Smooth';text-align:center">LW</span><span style="padding:13px 14px;font:15px var(--font-body)">Ultra-lightweight nylon shell</span></div>
+<div style="display:flex;border:1px solid #4c4b3b;background:#fff"><span style="width:52px;border-right:1px solid #4c4b3b;font:20px/46px 'DX Burst Smooth';text-align:center">MW</span><span style="padding:13px 14px;font:15px var(--font-body)">Moisture-wicking lining</span></div>
+<div style="display:flex;border:1px solid #4c4b3b;background:#fff"><span style="width:52px;border-right:1px solid #4c4b3b;font:20px/46px 'DX Burst Smooth';text-align:center">ZP</span><span style="padding:13px 14px;font:15px var(--font-body)">Rear zip pocket</span></div></div></div></div>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;padding:0 260px 40px"><div style="background:#4c4b3b;color:#fff;padding:16px;text-align:center;font:600 15px var(--font-body)">Show 1 result</div><div style="border:1px solid #4c4b3b;padding:16px;text-align:center;font:600 15px var(--font-body)">Cancel</div></div>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,2fr);gap:12px;padding:12px;border-top:1px solid rgba(76,75,59,.24);height:160px;overflow:hidden;opacity:.6"><div style="background:#eceada"></div><div style="background:#eceada"></div><div style="background:#b8bca1"></div></div>
+</div></div>
+
+<div style="display:flex;flex-direction:column;gap:10px"><div style="font:600 14px var(--font-heading)">D05 · Product</div>
+<div data-screen-label="D05 Product" style="width:1280px;background:#edecc5;box-shadow:0 20px 50px rgba(76,75,59,.25)">
+<div style="display:flex;align-items:center;gap:44px;height:84px;padding:0 40px;border-bottom:1px solid rgba(76,75,59,.24);font:600 16px var(--font-heading)"><img src="assets/wordmark-olive.svg" style="height:26px;margin-right:20px"><span style="text-decoration:underline;text-underline-offset:5px">Shop</span><span>Bush Map</span><span>Rides</span><span style="flex:1"></span><span style="font:400 13px var(--font-body);color:#817f57">{{ clock }} AEST · 24° cloud</span><span>Search</span><span>Cart (0)</span></div>
+<div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr)">
+<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;padding:8px">
+<div style="position:relative;aspect-ratio:3/4;background:#eceada"><image-slot id="d05-1" shape="rect" placeholder="Front"></image-slot></div>
+<div style="position:relative;aspect-ratio:3/4;background:#eceada"><image-slot id="d05-2" shape="rect" placeholder="Back"></image-slot></div>
+<div style="position:relative;aspect-ratio:3/4"><image-slot id="d05-3" shape="rect" placeholder="On the bike"></image-slot></div>
+<div style="position:relative;aspect-ratio:3/4;background:#eceada"><image-slot id="d05-4" shape="rect" placeholder="Detail: rear zip pocket"></image-slot></div></div>
+<div style="padding:48px 40px;display:flex;flex-direction:column;gap:22px;border-left:1px solid rgba(76,75,59,.24)">
+<div style="font:600 12px var(--font-body);letter-spacing:.12em;color:#817f57">BOTTOMS</div>
+<div style="font:600 34px/1.05 var(--font-heading);margin-top:-10px">Bush Riding Shorts</div>
+<div style="font:18px var(--font-body)">$260 <span style="font-size:13px;color:#817f57">AUD</span></div>
+<div style="display:flex;justify-content:space-between;font:14px var(--font-body)"><span>Size</span><span style="text-decoration:underline;text-underline-offset:3px">Size guide</span></div>
+<div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin-top:-12px"><span style="border:1px solid #4c4b3b;padding:12px 0;text-align:center;font:14px var(--font-body);background:#fff">XS</span><span style="border:1px solid #4c4b3b;padding:12px 0;text-align:center;font:14px var(--font-body);background:#fff">S</span><span style="border:1px solid #4c4b3b;padding:12px 0;text-align:center;font:14px var(--font-body);background:#4c4b3b;color:#edecc5">M</span><span style="border:1px solid #4c4b3b;padding:12px 0;text-align:center;font:14px var(--font-body);background:#fff">L</span><span style="border:1px solid #4c4b3b;padding:12px 0;text-align:center;font:14px var(--font-body);background:#fff">XL</span><span style="border:1px solid rgba(76,75,59,.24);padding:12px 0;text-align:center;font:14px var(--font-body);color:#817f57;text-decoration:line-through">XXL</span></div>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px"><div style="background:#4c4b3b;color:#fff;border-radius:3px;padding:18px;text-align:center;font:600 16px var(--font-body)">Add to cart · M</div><div style="background:#ece26a;border:1px solid #4c4b3b;border-radius:3px;padding:18px;text-align:center;font:600 16px var(--font-body)">Buy now</div></div>
+<div style="font:15px/1.6 var(--font-body)">Made for long days when the road turns to dirt and you're not sure where you'll end up. Light enough to forget about, tough enough for the gravel.</div>
+<div style="border-top:1px solid rgba(76,75,59,.24)">
+<div style="display:flex;justify-content:space-between;padding:16px 0;font:600 15px var(--font-heading)"><span>Fabric &amp; features</span><span>−</span></div>
+<div style="display:flex;flex-direction:column;gap:8px;padding:0 0 18px;font:14px/1.5 var(--font-body)"><span>Ultra-lightweight, durable nylon outer shell</span><span>Moisture-wicking nylon inner lining</span><span>Rear zipper pocket</span></div>
+<div style="display:flex;justify-content:space-between;padding:16px 0;border-top:1px solid rgba(76,75,59,.24);font:600 15px var(--font-heading)"><span>Fit</span><span>+</span></div>
+<div style="display:flex;justify-content:space-between;padding:16px 0;border-top:1px solid rgba(76,75,59,.24);font:600 15px var(--font-heading)"><span>Care</span><span>+</span></div>
+<div style="display:flex;justify-content:space-between;padding:16px 0;border-top:1px solid rgba(76,75,59,.24);border-bottom:1px solid rgba(76,75,59,.24);font:600 15px var(--font-heading)"><span>Shipping &amp; returns</span><span>+</span></div></div>
+</div></div>
+<div style="padding:40px 40px 16px;font:600 20px var(--font-heading)">Coming in the next drop</div>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;padding:0 12px 40px">
+<div style="height:220px;background:#eceada;display:flex;align-items:center;justify-content:space-between;padding:0 32px"><span style="font:600 24px var(--font-heading)">T-Shirts</span><span style="background:#ece26a;border-radius:3px;padding:8px 14px;font:600 14px var(--font-body)">Notify me</span></div>
+<div style="height:220px;background:#eceada;display:flex;align-items:center;justify-content:space-between;padding:0 32px"><span style="font:600 24px var(--font-heading)">Caps</span><span style="border:1px solid #4c4b3b;border-radius:3px;padding:8px 14px;font:600 14px var(--font-body)">Notify me</span></div></div>
+</div></div>
+
+<div style="display:flex;flex-direction:column;gap:56px">
+<div style="display:flex;flex-direction:column;gap:10px"><div style="font:600 14px var(--font-heading)">D06 · Search</div>
+<div data-screen-label="D06 Search" style="width:1280px;background:#edecc5;box-shadow:0 20px 50px rgba(76,75,59,.25)">
+<div style="display:flex;align-items:center;gap:44px;height:84px;padding:0 40px;border-bottom:1px solid rgba(76,75,59,.24);font:600 16px var(--font-heading)"><img src="assets/wordmark-olive.svg" style="height:26px;margin-right:20px"><span>Shop</span><span>Bush Map</span><span>Rides</span><span style="flex:1"></span><span style="font:400 13px var(--font-body);color:#817f57">{{ clock }} AEST · 24° cloud</span><span style="text-decoration:underline;text-underline-offset:5px">Search</span><span>Cart (0)</span></div>
+<div style="display:flex;padding:32px 180px 24px"><div style="flex:1;border:1px solid #4c4b3b;padding:18px 20px;font:17px var(--font-body);color:#817f57;background:#fff">Search shorts, routes and rides</div><div style="background:#4c4b3b;color:#fff;padding:18px 32px;font:600 16px var(--font-body)">Search</div></div>
+<div style="padding:8px 40px 16px;font:600 18px var(--font-heading)">Most popular</div>
+<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding:0 12px 40px">
+<div><div style="position:relative;aspect-ratio:3/4;background:#eceada"><image-slot id="d06-1" shape="rect" placeholder="Shorts, front"></image-slot></div><div style="padding:14px 10px 0;font:15px/1.5 var(--font-body)">Bush Riding Shorts<br>$260</div></div>
+<div><div style="position:relative;aspect-ratio:3/4;background:#a7b8b4"><image-slot id="d06-2" shape="rect" placeholder="Route photo"></image-slot><span style="position:absolute;left:14px;top:14px;background:#fff;border-radius:3px;padding:5px 9px;font:600 12px var(--font-body);pointer-events:none">Route</span></div><div style="padding:14px 10px 0;font:15px/1.5 var(--font-body)">Ferny Grove to Wulkuraka<br><span style="color:#817f57">76 km · 2,140 m</span></div></div>
+<div><div style="position:relative;aspect-ratio:3/4;background:#a7b8b4"><image-slot id="d06-3" shape="rect" placeholder="Route photo"></image-slot><span style="position:absolute;left:14px;top:14px;background:#fff;border-radius:3px;padding:5px 9px;font:600 12px var(--font-body);pointer-events:none">Route</span></div><div style="padding:14px 10px 0;font:15px/1.5 var(--font-body)">Goat Track Loop<br><span style="color:#817f57">46 km · 890 m</span></div></div>
+<div><div style="position:relative;aspect-ratio:3/4"><image-slot id="d06-4" shape="rect" placeholder="Ride photo"></image-slot><span style="position:absolute;left:14px;top:14px;background:#ece26a;border-radius:3px;padding:5px 9px;font:600 12px var(--font-body);pointer-events:none">Ride</span></div><div style="padding:14px 10px 0;font:15px/1.5 var(--font-body)">Monthly community ride<br><span style="color:#817f57">Sat 18 Oct · RSVP</span></div></div>
+</div></div></div>
+
+<div style="display:flex;flex-direction:column;gap:10px"><div style="font:600 14px var(--font-heading)">D07 · Cart <span style="font:400 13px var(--font-body)">· opens automatically after Quick add or Add to cart</span></div>
+<div data-screen-label="D07 Cart" style="width:1280px;height:820px;background:#edecc5;box-shadow:0 20px 50px rgba(76,75,59,.25);position:relative;overflow:hidden">
+<div style="display:flex;align-items:center;gap:44px;height:84px;padding:0 40px;border-bottom:1px solid rgba(76,75,59,.24);font:600 16px var(--font-heading)"><img src="assets/wordmark-olive.svg" style="height:26px;margin-right:20px"><span>Shop</span><span>Bush Map</span><span>Rides</span></div>
+<div style="position:absolute;top:85px;left:0;width:640px;bottom:0"><image-slot id="d07-bg" shape="rect" placeholder="Page behind"></image-slot></div>
+<div style="position:absolute;top:85px;left:0;width:640px;bottom:0;background:rgba(76,75,59,.5);pointer-events:none"></div>
+<div style="position:absolute;top:0;right:0;bottom:0;width:640px;background:#edecc5;border-left:1px solid #4c4b3b;padding:32px 48px 40px;box-sizing:border-box;display:flex;flex-direction:column;gap:22px">
+<div style="display:flex;justify-content:space-between;align-items:center;font:600 22px var(--font-heading)"><span>Cart (1)</span><span style="font:300 30px var(--font-body)">×</span></div>
+<div style="display:flex;gap:20px;padding-top:12px"><div style="position:relative;width:132px;height:176px;background:#eceada;flex:none"><image-slot id="d07-item" shape="rect" placeholder="Shorts"></image-slot></div>
+<div style="flex:1;display:flex;flex-direction:column;gap:6px;font:15px var(--font-body)"><span style="font:600 17px var(--font-heading)">Bush Riding Shorts</span><span style="color:#817f57">Size M</span><div style="display:flex;border:1px solid #4c4b3b;width:120px;justify-content:space-between;padding:10px 14px;margin-top:10px;background:#fff"><span>−</span><span>1</span><span>+</span></div><span style="text-decoration:underline;text-underline-offset:3px;font-size:13px;margin-top:8px">Remove</span></div>
+<span style="font:15px var(--font-body)">$260</span></div>
+<div style="border-top:1px solid rgba(76,75,59,.24);padding-top:18px;display:flex;align-items:center;justify-content:space-between;font:14px var(--font-body)"><span>T-Shirts and Caps land in the next drop.</span><span style="text-decoration:underline;text-underline-offset:3px">Notify me</span></div>
+<div style="flex:1"></div>
+<div style="border-top:1px solid rgba(76,75,59,.24);padding-top:20px;display:flex;justify-content:space-between;font:600 18px var(--font-heading)"><span>Subtotal</span><span>$260</span></div>
+<div style="font:13px var(--font-body);color:#817f57;margin-top:-12px">Shipping and taxes calculated at checkout · AUD</div>
+<div style="background:#ece26a;border:1px solid #4c4b3b;padding:18px;text-align:center;font:600 16px var(--font-body)">Checkout</div>
+</div></div></div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:56px">
+<div style="display:flex;flex-direction:column;gap:10px"><div style="font:600 14px var(--font-heading)">D08 · Bush Map menu</div>
+<div data-screen-label="D08 Bush Map menu" style="width:1280px;height:760px;background:#edecc5;box-shadow:0 20px 50px rgba(76,75,59,.25);position:relative;overflow:hidden">
+<div style="display:flex;align-items:center;gap:44px;height:84px;padding:0 40px;border-bottom:1px solid rgba(76,75,59,.24);font:600 16px var(--font-heading);position:relative;z-index:3;background:#edecc5"><img src="assets/wordmark-olive.svg" style="height:26px;margin-right:20px"><span>Shop</span><span style="text-decoration:underline;text-underline-offset:5px">Bush Map ▾</span><span>Rides</span><span style="flex:1"></span><span style="font:400 13px var(--font-body);color:#817f57">{{ clock }} AEST · 24° cloud</span><span>Search</span><span>Cart (0)</span></div>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);height:460px;position:relative;z-index:3;background:#edecc5;border-bottom:1px solid #4c4b3b">
+<div style="position:relative;background:#a7b8b4"><image-slot id="d08-map" shape="rect" placeholder="Mini-map: nearest routes"></image-slot></div>
+<div style="padding:40px 48px;display:flex;flex-direction:column">
+<div style="font:600 24px var(--font-heading)">BUSH MAP™</div><div style="font:15px var(--font-body);margin:8px 0 24px">Explore more with our curated gravel routes and events</div>
+<div style="font:600 12px var(--font-body);letter-spacing:.12em;margin-bottom:6px">NEAR YOU · BRISBANE METRO</div>
+<div style="display:flex;justify-content:space-between;padding:14px 0;border-top:1px solid rgba(76,75,59,.24);font:15px var(--font-body)"><span>Ferny Grove to Wulkuraka</span><span style="color:#817f57">76 km · 2,140 m</span></div>
+<div style="display:flex;justify-content:space-between;padding:14px 0;border-top:1px solid rgba(76,75,59,.24);font:15px var(--font-body)"><span>Goat Track Loop</span><span style="color:#817f57">46 km · 890 m</span></div>
+<div style="display:flex;justify-content:space-between;padding:14px 0;border-top:1px solid rgba(76,75,59,.24);border-bottom:1px solid rgba(76,75,59,.24);font:15px var(--font-body)"><span>Bush event · Sat 18 Oct</span><span style="color:#817f57">RSVP</span></div>
+<div style="flex:1"></div>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px"><div style="background:#4c4b3b;color:#fff;padding:15px;text-align:center;font:600 15px var(--font-body)">Open the map</div><div style="border:1px solid #4c4b3b;padding:15px;text-align:center;font:600 15px var(--font-body)">Submit a route</div></div></div></div>
+<div style="position:absolute;top:545px;left:0;right:0;bottom:0"><image-slot id="d08-bg" shape="rect" placeholder="Page behind"></image-slot></div>
+<div style="position:absolute;top:545px;left:0;right:0;bottom:0;background:rgba(76,75,59,.5);pointer-events:none"></div>
+</div></div>
+
+<div style="display:flex;flex-direction:column;gap:10px"><div style="font:600 14px var(--font-heading)">D11 · Footer</div>
+<div data-screen-label="D11 Footer" style="width:1280px;background:#edecc5;box-shadow:0 20px 50px rgba(76,75,59,.25)">
+<div style="display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:80px;padding:56px 64px;border-bottom:1px solid rgba(76,75,59,.24)"><div><div style="font:600 18px var(--font-heading)">Newsletter</div><div style="font:15px var(--font-body);margin:10px 0 18px">We send the occasional route, nothing else.</div><div style="display:flex"><div style="flex:1;border:1px solid #4c4b3b;padding:16px;font:15px var(--font-body);color:#817f57;background:#fff">Email address</div><div style="background:#4c4b3b;color:#fff;padding:16px 24px;font:600 15px var(--font-body)">Subscribe</div></div></div><div style="align-self:end"><div style="font:14px var(--font-body);color:#817f57">Country / Region</div><div style="font:15px var(--font-body);margin-top:8px">AU / (AUD) ▾</div></div></div>
+<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;padding:44px 64px"><div style="display:flex;flex-direction:column;gap:14px;font:15px var(--font-body)"><span style="font:600 12px var(--font-body);letter-spacing:.12em">HELP</span><span>Shipping &amp; delivery</span><span>Returns &amp; exchanges</span><span>Size guide</span></div><div style="display:flex;flex-direction:column;gap:14px;font:15px var(--font-body)"><span style="font:600 12px var(--font-body);letter-spacing:.12em">BUSH RIDING</span><span>About</span><span>Rides</span><span>Bush Map™</span></div><div style="display:flex;flex-direction:column;gap:14px;font:15px var(--font-body)"><span style="font:600 12px var(--font-body);letter-spacing:.12em">CONTACT</span><span>Customer service</span><span>Instagram</span><span>Strava</span></div><div style="display:flex;flex-direction:column;gap:14px;font:15px var(--font-body)"><span style="font:600 12px var(--font-body);letter-spacing:.12em">LEGAL</span><span>Privacy policy</span><span>Terms of service</span><span>Accessibility</span></div></div>
+<div style="padding:0 64px 24px"><img src="assets/wordmark-olive.svg" style="width:100%;display:block"></div>
+<div style="border-top:1px solid rgba(76,75,59,.24);padding:20px 64px;font:14px var(--font-body)">© Bush Riding™ 2026 · Designed in Australia</div></div></div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:10px"><div style="font:600 14px var(--font-heading)">D09 · Rides</div>
+<div data-screen-label="D09 Rides" style="width:1280px;background:#edecc5;box-shadow:0 20px 50px rgba(76,75,59,.25)">
+<div style="display:flex;align-items:center;gap:44px;height:84px;padding:0 40px;border-bottom:1px solid rgba(76,75,59,.24);font:600 16px var(--font-heading)"><img src="assets/wordmark-olive.svg" style="height:26px;margin-right:20px"><span>Shop</span><span>Bush Map</span><span style="text-decoration:underline;text-underline-offset:5px">Rides</span><span style="flex:1"></span><span style="font:400 13px var(--font-body);color:#817f57">{{ clock }} AEST · 24° cloud</span><span>Search</span><span>Cart (0)</span></div>
+<div style="text-align:center;padding:64px 0 12px"><div style="font:600 40px var(--font-heading)">Upcoming rides</div><div style="font:16px var(--font-body);margin-top:10px">Ride with us. Share your stories. Let's explore together.</div></div>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;padding:36px 40px 72px">
+<div style="background:#fff;border:1px solid rgba(76,75,59,.24)"><div style="position:relative;height:260px"><image-slot id="d09-r1" shape="rect" placeholder="Ride photo"></image-slot><span style="position:absolute;left:16px;top:16px;background:#ece26a;border-radius:3px;padding:6px 10px;font:600 13px var(--font-body);pointer-events:none">Sat 18 Oct</span></div><div style="padding:22px;text-align:center;display:flex;flex-direction:column;gap:6px;align-items:center"><span style="font:600 20px var(--font-heading)">Monthly community ride</span><span style="font:14px var(--font-body);color:#817f57">92 km · café stop at the halfway</span><span style="border:1px solid #4c4b3b;border-radius:3px;padding:8px 18px;font:600 14px var(--font-body);margin-top:10px">RSVP</span></div></div>
+<div style="background:#fff;border:1px solid rgba(76,75,59,.24)"><div style="position:relative;height:260px"><image-slot id="d09-r2" shape="rect" placeholder="Ride photo"></image-slot><span style="position:absolute;left:16px;top:16px;background:#fff;border-radius:3px;padding:6px 10px;font:600 13px var(--font-body);pointer-events:none">Sun 2 Nov</span></div><div style="padding:22px;text-align:center;display:flex;flex-direction:column;gap:6px;align-items:center"><span style="font:600 20px var(--font-heading)">Goat Track Loop</span><span style="font:14px var(--font-body);color:#817f57">46 km · 890 m · all welcome</span><span style="border:1px solid #4c4b3b;border-radius:3px;padding:8px 18px;font:600 14px var(--font-body);margin-top:10px">RSVP</span></div></div>
+<div style="background:#fff;border:1px solid rgba(76,75,59,.24)"><div style="position:relative;height:260px"><image-slot id="d09-r3" shape="rect" placeholder="Ride photo"></image-slot><span style="position:absolute;left:16px;top:16px;background:#fff;border-radius:3px;padding:6px 10px;font:600 13px var(--font-body);pointer-events:none">Sat 15 Nov</span></div><div style="padding:22px;text-align:center;display:flex;flex-direction:column;gap:6px;align-items:center"><span style="font:600 20px var(--font-heading)">Ferny Grove to Wulkuraka</span><span style="font:14px var(--font-body);color:#817f57">76 km · 2,140 m · big day out</span><span style="border:1px solid #4c4b3b;border-radius:3px;padding:8px 18px;font:600 14px var(--font-body);margin-top:10px">RSVP</span></div></div></div>
+<div style="text-align:center;padding:0 0 36px;font:600 40px var(--font-heading)">Recaps</div>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);height:520px"><div style="position:relative"><image-slot id="d09-c1" shape="rect" placeholder="Recap photo"></image-slot></div><div style="padding:64px;display:flex;flex-direction:column;justify-content:center;gap:14px"><span style="font:14px var(--font-body);color:#817f57">September 2026</span><span style="font:600 30px/1.15 var(--font-heading)">Recap title from the ride</span><span style="font:16px/1.6 var(--font-body);max-width:420px">A line or two from the day, in our words: where we went, who turned up, where we stopped for coffee.</span><span style="font:600 15px var(--font-body);text-decoration:underline;text-underline-offset:4px">Read</span></div></div>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);height:520px"><div style="padding:64px;display:flex;flex-direction:column;justify-content:center;align-items:flex-end;text-align:right;gap:14px"><span style="font:14px var(--font-body);color:#817f57">August 2026</span><span style="font:600 30px/1.15 var(--font-heading)">Recap title from the ride</span><span style="font:16px/1.6 var(--font-body);max-width:420px">A line or two from the day, in our words.</span><span style="font:600 15px var(--font-body);text-decoration:underline;text-underline-offset:4px">Read</span></div><div style="position:relative"><image-slot id="d09-c2" shape="rect" placeholder="Recap photo"></image-slot></div></div>
+</div></div>
+
+<div style="display:flex;flex-direction:column;gap:10px"><div style="font:600 14px var(--font-heading)">D10 · About</div>
+<div data-screen-label="D10 About" style="width:1280px;background:#edecc5;box-shadow:0 20px 50px rgba(76,75,59,.25)">
+<div style="display:flex;align-items:center;gap:44px;height:84px;padding:0 40px;border-bottom:1px solid rgba(76,75,59,.24);font:600 16px var(--font-heading)"><img src="assets/wordmark-olive.svg" style="height:26px;margin-right:20px"><span>Shop</span><span>Bush Map</span><span>Rides</span><span style="flex:1"></span><span style="font:400 13px var(--font-body);color:#817f57">{{ clock }} AEST · 24° cloud</span><span>Search</span><span>Cart (0)</span></div>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);height:720px"><div style="position:relative"><image-slot id="d10-main" shape="rect" placeholder="Documentary ride photo"></image-slot></div>
+<div style="padding:72px 64px;display:flex;flex-direction:column;gap:20px"><div style="font:600 40px var(--font-heading)">About Bush Riding</div>
+<div style="font:17px/1.65 var(--font-body)">We make technical gravel kit for riders who care more about the detour than the podium. The journey matters more than the pace, and the café stop is part of the ride.</div>
+<div style="font:17px/1.65 var(--font-body)">Everything is designed in Australia, gender-neutral, and priced so more of us can ride in it.</div>
+<div style="flex:1"></div>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;border-top:1px solid rgba(76,75,59,.24);padding-top:24px"><div><div style="font:600 16px var(--font-heading)">Designed in</div><div style="font:15px var(--font-body);margin-top:4px">Australia</div></div><div><div style="font:600 16px var(--font-heading)">Ride with us</div><div style="font:15px var(--font-body);margin-top:4px;text-decoration:underline;text-underline-offset:3px">Strava group</div></div></div></div></div>
+<div style="padding:96px 120px;text-align:center;font:600 56px/1.1 var(--font-heading)">Made for the detour.</div>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:0 12px 12px;height:420px"><div style="position:relative"><image-slot id="d10-a" shape="rect" placeholder="Photo"></image-slot></div><div style="position:relative"><image-slot id="d10-b" shape="rect" placeholder="Photo"></image-slot></div><div style="position:relative"><image-slot id="d10-c" shape="rect" placeholder="Photo"></image-slot></div></div>
+</div></div>
+
+</div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { clock: '' };
+  componentDidMount() {
+    const tick = () => this.setState({ clock: new Date().toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, timeZone: 'Australia/Brisbane' }) });
+    tick(); this._t = setInterval(tick, 1000);
+  }
+  componentWillUnmount() { clearInterval(this._t); }
+  renderVals() { return { clock: this.state.clock }; }
+}
+</script>
+</body>
+</html>

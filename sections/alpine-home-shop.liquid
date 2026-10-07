@@ -1,0 +1,98 @@
+{%- comment -%}
+  The home page's shop band. One product, drawn two deliberately different
+  ways (CLAUDE.md rule 6):
+
+  Desktop (D01): a 640px 2-up — lifestyle photo with a caption | the product
+  on its plain ground with name and price chips — then a 4-up 3:4 row: the
+  product with Quick add, a second angle, and a Next drop tile per category
+  that hasn't landed.
+
+  Phone (M02): "The shorts" with a Shop link, one 500px product card with
+  Quick add +, the lifestyle photo at 480px, then the Next drop band.
+{%- endcomment -%}
+{%- liquid
+  assign p = section.settings.product
+  if p == blank
+    assign p = collections['bush-riding-launch'].products.first | default: collections.all.products.first
+  endif
+  assign life = section.settings.lifestyle
+  assign panel = section.settings.panel_image | default: p.featured_media.preview_image
+  assign second = section.settings.second_image
+  if second == blank and p.media.size > 1
+    assign second = p.media[1].preview_image
+  endif
+  assign second_caption = p.title | append: section.settings.second_suffix
+-%}
+<section class="alp alp-homeshop">
+  {%- comment -%} ── Desktop ── {%- endcomment -%}
+  <div class="alp-d">
+    <div class="alp-duo alp-duo--640">
+      <div class="alp-duo__panel">
+        {%- if life != blank -%}
+          {{ life | image_url: width: 1600 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '800, 1200, 1600', sizes: '50vw', alt: life.alt | default: '' }}
+        {%- endif -%}
+        {%- if section.settings.lifestyle_caption != blank -%}
+          <span class="alp-duo__caption">{{ section.settings.lifestyle_caption | escape }}</span>
+        {%- endif -%}
+      </div>
+      <a class="alp-duo__panel alp-duo__panel--ground" href="{{ p.url | default: routes.all_products_collection_url }}">
+        {%- if panel != blank -%}
+          {{ panel | image_url: width: 1600 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '800, 1200, 1600', sizes: '50vw', alt: p.title | default: '' }}
+        {%- endif -%}
+        {%- if p != blank -%}
+          <span class="alp-duo__chips">
+            <span class="alp-chip alp-chip--strong">{{ p.title | escape }}</span>
+            <span class="alp-chip">{{ p.price | money_without_trailing_zeros }}</span>
+          </span>
+        {%- endif -%}
+      </a>
+    </div>
+
+    <div class="alp-grid4">
+      {%- if p != blank -%}
+        {%- render 'alp-card', product: p -%}
+        {%- if second != blank -%}
+          {%- render 'alp-card', product: p, image: second, caption: second_caption, quick: false -%}
+        {%- endif -%}
+      {%- endif -%}
+      {%- render 'alp-next-drop', variant: 'tiles', key: 'home' -%}
+    </div>
+  </div>
+
+  {%- comment -%} ── Phone ── {%- endcomment -%}
+  <div class="alp-m">
+    <div class="alp-headrow">
+      <h2 class="alp-headrow__title">{{ section.settings.mobile_heading | escape }}</h2>
+      <a class="alp-headrow__link" href="{{ routes.collections_url }}">Shop</a>
+    </div>
+    {%- if p != blank -%}
+      {%- render 'alp-card', product: p -%}
+    {%- endif -%}
+    {%- if life != blank -%}
+      <div class="alp-photo alp-photo--480">
+        {{ life | image_url: width: 1200 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '600, 900, 1200', sizes: '100vw', alt: life.alt | default: '' }}
+        {%- if section.settings.lifestyle_caption != blank -%}
+          <span class="alp-duo__caption">{{ section.settings.lifestyle_caption | escape }}</span>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+    {%- render 'alp-next-drop', variant: 'band', key: 'home' -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Home shop band",
+  "tag": "div",
+  "settings": [
+    { "type": "product", "id": "product", "label": "Product", "info": "Leave empty to use the first product in the store." },
+    { "type": "image_picker", "id": "panel_image", "label": "Product panel image (desktop)", "info": "The product on a plain ground. Defaults to the product's first photo." },
+    { "type": "image_picker", "id": "second_image", "label": "Second angle (desktop row)", "info": "Defaults to the product's second photo." },
+    { "type": "text", "id": "second_suffix", "label": "Second angle caption suffix", "default": ", rear" },
+    { "type": "image_picker", "id": "lifestyle", "label": "Lifestyle photo" },
+    { "type": "text", "id": "lifestyle_caption", "label": "Lifestyle caption", "default": "On the long way home" },
+    { "type": "text", "id": "mobile_heading", "label": "Phone heading", "default": "The shorts" }
+  ],
+  "presets": [{ "name": "Home shop band" }]
+}
+{% endschema %}
