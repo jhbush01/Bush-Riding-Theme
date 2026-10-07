@@ -34,6 +34,9 @@
   capture submit_url
     render 'alp-link', to: 'submit'
   endcapture
+  capture api_url
+    render 'alp-link', to: 'api'
+  endcapture
   assign shop_url = routes.collections_url
 
   assign here = ''
@@ -63,7 +66,7 @@
 <header
   class="alp alp-hd"
   data-alp-header
-  data-alp-api="{{ settings.alp_map_api | escape }}"
+  data-alp-api="{{ api_url | escape }}"
   data-alp-map="{{ map_url | escape }}"
   data-alp-region="{{ settings.alp_near_region | escape }}"
   data-alp-tz="{{ settings.alp_timezone | default: 'Australia/Brisbane' | escape }}"
