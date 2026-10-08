@@ -646,7 +646,22 @@
     return s;
   }
 
+  /* Phone product page: the buy bar is fixed to the bottom, so the page
+     needs that much room under the footer. Measured, not guessed — the bar's
+     height depends on the product's options. */
+  var barObserved = null;
+  function trackBuyBar() {
+    var bar = $('.template-product [data-alp-buy]');
+    if (!bar || bar === barObserved || !window.ResizeObserver) return;
+    barObserved = bar;
+    new ResizeObserver(function () {
+      var h = DESKTOP.matches ? 0 : bar.offsetHeight;
+      document.body.style.setProperty('--alp-bar', (h ? h + 16 : 0) + 'px');
+    }).observe(bar);
+  }
+
   function initPdp() {
+    trackBuyBar();
     $$('[data-alp-buy]').forEach(function (form) {
       if (form._alp) return;
       form._alp = true;

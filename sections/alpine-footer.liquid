@@ -37,9 +37,8 @@
 
   <div class="alp-ft__cols">
     {%- for block in section.blocks -%}
-      <div class="alp-ft__col" {{ block.shopify_attributes }}>
-        <p class="alp-ft__colhead">{{ block.settings.heading | escape }}</p>
-        <ul role="list">
+      {%- comment -%} A column with no links (say, no policies set yet) isn't shown at all. {%- endcomment -%}
+      {%- capture col_links -%}
           {%- if block.settings.menu != blank -%}
             {%- for link in block.settings.menu.links -%}
               <li><a href="{{ link.url }}">{{ link.title | escape }}</a></li>
@@ -65,8 +64,13 @@
                 {%- if pages['accessibility'] != blank -%}<li><a href="{{ pages['accessibility'].url }}">Accessibility</a></li>{%- endif -%}
             {%- endcase -%}
           {%- endif -%}
-        </ul>
-      </div>
+      {%- endcapture -%}
+      {%- if col_links != blank -%}
+        <div class="alp-ft__col" {{ block.shopify_attributes }}>
+          <p class="alp-ft__colhead">{{ block.settings.heading | escape }}</p>
+          <ul role="list">{{ col_links }}</ul>
+        </div>
+      {%- endif -%}
     {%- endfor -%}
   </div>
 
