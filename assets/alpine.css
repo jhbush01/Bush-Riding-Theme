@@ -229,25 +229,32 @@ a:hover > .alp-duo__stack .alp-chip, summary:hover > .alp-chip {
 }
 
 /* Panels under the bar: they slide down from behind it. */
-.alp-mapmenu, .alp-shopmenu, .alp-searchmenu, .alp-menu {
+.alp-dd, .alp-searchmenu, .alp-menu {
   position: absolute; left: 0; right: 0; top: 100%;
   background: var(--alp-bg);
   border-bottom: 1px solid var(--alp-ink);
   transform: translateY(-12px); opacity: 0;
   transition: transform 0.25s ease-out, opacity 0.25s ease-out;
 }
-.alp-mapmenu.is-open, .alp-shopmenu.is-open, .alp-searchmenu.is-open, .alp-menu.is-open { transform: none; opacity: 1; }
+.alp-dd.is-open, .alp-searchmenu.is-open, .alp-menu.is-open { transform: none; opacity: 1; }
 
-/* Shop panel — a small dropdown under the bar: links left, one photo right. */
-.alp-shopmenu {
-  right: auto; width: min(560px, 100%);
-  display: grid; grid-template-columns: minmax(0, 1fr) 220px;
-  border-right: 1px solid var(--alp-ink);
+/* Nav dropdowns — Shop, Bush Map, Rides share one pattern: a small panel
+   under its link (alpine.js places it), links left, one photo right. */
+.alp-dd {
+  right: auto; width: 340px; max-width: 100%;
+  display: grid; grid-template-columns: minmax(0, 1fr);
+  border: 1px solid var(--alp-ink); border-top: 0;
 }
-.alp-shopmenu__links { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 28px 32px 32px; font: 600 17px/1.25 var(--alp-font-display); max-height: calc(100vh - var(--alp-hd)); overflow-y: auto; }
-.alp-shopmenu__links .alp-cats__head { margin-top: 0; }
-.alp-shopmenu__links .alp-cats__head ~ .alp-cats__head { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--alp-line); align-self: stretch; }
-.alp-shopmenu__photo { position: relative; display: block; min-height: 260px; overflow: hidden; background: var(--alp-haze); }
+.alp-dd--photo { width: 560px; grid-template-columns: minmax(0, 1fr) 220px; }
+.alp-dd__links { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 28px 32px 32px; font: 600 17px/1.25 var(--alp-font-display); max-height: calc(100vh - var(--alp-hd)); overflow-y: auto; }
+.alp-dd__links .alp-cats__head { margin-top: 0; }
+.alp-dd__links .alp-cats__head ~ .alp-cats__head { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--alp-line); align-self: stretch; }
+.alp-dd__list { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.alp-dd__list a { display: flex; flex-direction: column; gap: 2px; }
+.alp-dd__list small { font: 400 13px/1.3 var(--alp-font-ui); color: var(--alp-accent); }
+.alp-dd__quiet { font: 400 14px/1.3 var(--alp-font-ui); color: var(--alp-accent); }
+.alp-dd__photo { position: relative; display: block; min-height: 280px; overflow: hidden; background: var(--alp-haze); }
+.alp-dd a.alp-cats__item:hover, .alp-dd__list a:hover { text-decoration: underline; text-underline-offset: 4px; }
 
 /* Search panel — D06 as an overlay */
 .alp-searchmenu { max-height: calc(100vh - var(--alp-hd)); overflow-y: auto; }
@@ -270,14 +277,6 @@ a:hover > .alp-duo__stack .alp-chip, summary:hover > .alp-chip {
   .alp-searchmenu__col .alp-over { padding: 12px 0 4px; }
 }
 
-/* D08 · Bush Map panel */
-.alp-mapmenu { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); height: 460px; }
-.alp-mapmenu__map { position: relative; background: var(--alp-mist); overflow: hidden; }
-.alp-mapmenu__body { display: flex; flex-direction: column; padding: 40px 48px; }
-.alp-mapmenu__title { font: 600 24px/1.2 var(--alp-font-display); }
-.alp-mapmenu__tag { margin: 8px 0 24px !important; font-size: 15px; }
-.alp-mapmenu__body .alp-over { color: var(--alp-ink); margin-bottom: 6px; }
-.alp-mapmenu__fill { flex: 1; }
 .alp-list__row {
   display: flex; justify-content: space-between; gap: 16px;
   padding: 14px 0; border-top: 1px solid var(--alp-line); font-size: 15px;
@@ -285,7 +284,6 @@ a:hover > .alp-duo__stack .alp-chip, summary:hover > .alp-chip {
 .alp-list__row:last-child { border-bottom: 1px solid var(--alp-line); }
 .alp-list__row span:last-child { color: var(--alp-accent); white-space: nowrap; }
 .alp-list__row--quiet { color: var(--alp-accent); }
-.alp-mapmenu .alp-btn { padding: 15px; }
 
 /* M01 · Phone menu sheet */
 .alp-menu {
@@ -796,6 +794,9 @@ div.alp-scrim[hidden] { display: none; }
   /* Stack: carousel, details, story, accordions — each full width (stretch:
      the desktop grid's align-items: start would shrink them to content). */
   .alp-pdp__grid { display: flex; flex-direction: column; align-items: stretch; }
+  /* …and each block itself: the desktop buy column's align-self: start
+     would otherwise still shrink it to its content and push it left. */
+  .alp-pdp__grid > *, .alp-pdp__left > * { align-self: stretch; min-width: 0; }
   .alp-pdp__left { display: contents; }
   .alp-gal { order: 1; }
   .alp-pdp__info { order: 2; }

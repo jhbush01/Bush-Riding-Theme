@@ -100,7 +100,16 @@
         aria-expanded="false"
         aria-controls="alp-mapmenu"
       >Bush Map</a>
-      <a class="alp-hd__link{% if here == 'rides' %} is-on{% endif %}" href="{{ rides_url }}"{% if here == 'rides' %} aria-current="page"{% endif %}>Rides</a>
+      <a
+        class="alp-hd__link{% if here == 'rides' %} is-on{% endif %}"
+        href="{{ rides_url }}"
+        data-alp-toggle="alp-ridesmenu"
+        data-alp-hover
+        data-alp-follow
+        aria-expanded="false"
+        aria-controls="alp-ridesmenu"
+        {% if here == 'rides' %}aria-current="page"{% endif %}
+      >Rides</a>
     </nav>
 
     <span class="alp-hd__spacer"></span>
@@ -126,10 +135,12 @@
   </div>
 
   {%- comment -%}
-    ── Shop panel (desktop) ──────────────────────────────────────────────
-    A small dropdown, not a page: the collections, then the product types
-    (each a page of its own), and one photo. Clicking Shop itself opens the
-    whole shop. Phones get the same links in the menu sheet.
+    ── Nav dropdowns (desktop): Shop, Bush Map, Rides ─────────────────────
+    One pattern for all three, opened on hover under their link: a short list
+    of links on the left, one photo on the right (when set in the header
+    settings). Clicking the nav link itself goes to the page.
+    Shop: collections, then product types. Phones get these links in the
+    menu sheet.
   {%- endcomment -%}
   {%- liquid
     assign sp = section.settings.shop_product
@@ -138,18 +149,18 @@
     endif
     assign life_url = section.settings.shop_image_link.url | default: shop_url
   -%}
-  <div class="alp-shopmenu alp-d" id="alp-shopmenu" data-alp-panel hidden>
-    <nav class="alp-shopmenu__links" aria-label="Shop">
+  <div class="alp-dd alp-d{% if section.settings.shop_image != blank %} alp-dd--photo{% endif %}" id="alp-shopmenu" data-alp-panel hidden>
+    <nav class="alp-dd__links" aria-label="Shop">
       {%- render 'alp-shop-links', variant: 'drop' -%}
     </nav>
-    <a class="alp-shopmenu__photo" href="{{ life_url }}">
-      {%- if section.settings.shop_image != blank -%}
-        {{ section.settings.shop_image | image_url: width: 800 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '400, 600, 800', sizes: '240px', alt: '' }}
-      {%- endif -%}
-      {%- if section.settings.shop_image_label != blank -%}
-        <span class="alp-shop__label alp-shop__label--bone">{{ section.settings.shop_image_label | escape }}</span>
-      {%- endif -%}
-    </a>
+    {%- if section.settings.shop_image != blank -%}
+      <a class="alp-dd__photo" href="{{ life_url }}" tabindex="-1">
+        {{ section.settings.shop_image | image_url: width: 800 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '400, 600, 800', sizes: '220px', alt: '' }}
+        {%- if section.settings.shop_image_label != blank -%}
+          <span class="alp-shop__label alp-shop__label--bone">{{ section.settings.shop_image_label | escape }}</span>
+        {%- endif -%}
+      </a>
+    {%- endif -%}
   </div>
 
   {%- comment -%}
@@ -198,26 +209,38 @@
     </div>
   </div>
 
-  {%- comment -%} ── D08 · Bush Map panel (desktop) ───────────────────────── {%- endcomment -%}
-  <div class="alp-mapmenu alp-d" id="alp-mapmenu" data-alp-panel hidden>
-    <div class="alp-mapmenu__map">
-      {%- if section.settings.map_image != blank -%}
-        {{ section.settings.map_image | image_url: width: 1400 | image_tag: class: 'alp-fill', loading: 'lazy', sizes: '50vw', alt: '' }}
+  {%- comment -%} Bush Map: the map, submitting a route, two routes near you (alpine.js). {%- endcomment -%}
+  <div class="alp-dd alp-d{% if section.settings.map_image != blank %} alp-dd--photo{% endif %}" id="alp-mapmenu" data-alp-panel hidden>
+    <nav class="alp-dd__links" aria-label="Bush Map">
+      <p class="alp-cats__head">Bush Map™</p>
+      <a class="alp-cats__item" href="{{ map_url }}">Open the map</a>
+      <a class="alp-cats__item" href="{{ submit_url }}">Submit a route</a>
+      <p class="alp-cats__head">Near you{% if settings.alp_near_region != blank %} · {{ settings.alp_near_region | escape }}{% endif %}</p>
+      <div class="alp-dd__list" data-alp-near-list><span class="alp-dd__quiet">Finding routes…</span></div>
+    </nav>
+    {%- if section.settings.map_image != blank -%}
+      <a class="alp-dd__photo" href="{{ map_url }}" tabindex="-1">
+        {{ section.settings.map_image | image_url: width: 800 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '400, 600, 800', sizes: '220px', alt: '' }}
+      </a>
+    {%- endif -%}
+  </div>
+
+  {%- comment -%} Rides: the rides page, Strava, the next three rides (alpine.js). {%- endcomment -%}
+  <div class="alp-dd alp-d{% if section.settings.rides_image != blank %} alp-dd--photo{% endif %}" id="alp-ridesmenu" data-alp-panel hidden>
+    <nav class="alp-dd__links" aria-label="Rides">
+      <p class="alp-cats__head">Rides</p>
+      <a class="alp-cats__item" href="{{ rides_url }}">All rides</a>
+      {%- if settings.alp_strava_url != blank -%}
+        <a class="alp-cats__item" href="{{ settings.alp_strava_url }}" target="_blank" rel="noopener">Ride with us on Strava</a>
       {%- endif -%}
-    </div>
-    <div class="alp-mapmenu__body">
-      <p class="alp-mapmenu__title">BUSH MAP™</p>
-      <p class="alp-mapmenu__tag">{{ section.settings.map_tagline | escape }}</p>
-      <p class="alp-over" data-alp-near-label>Near you · {{ settings.alp_near_region | escape }}</p>
-      <ul class="alp-list" role="list" data-alp-near-list>
-        <li class="alp-list__row alp-list__row--quiet">Finding routes…</li>
-      </ul>
-      <span class="alp-mapmenu__fill"></span>
-      <div class="alp-pair">
-        <a class="alp-btn" href="{{ map_url }}">Open the map</a>
-        <a class="alp-btn alp-btn--line" href="{{ submit_url }}">Submit a route</a>
-      </div>
-    </div>
+      <p class="alp-cats__head">Coming up</p>
+      <div class="alp-dd__list" data-alp-rides-list><span class="alp-dd__quiet">Finding rides…</span></div>
+    </nav>
+    {%- if section.settings.rides_image != blank -%}
+      <a class="alp-dd__photo" href="{{ rides_url }}" tabindex="-1">
+        {{ section.settings.rides_image | image_url: width: 800 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '400, 600, 800', sizes: '220px', alt: '' }}
+      </a>
+    {%- endif -%}
   </div>
 
   {%- comment -%} ── M01 · Menu sheet (phones) ────────────────────────────── {%- endcomment -%}
@@ -255,14 +278,15 @@
   "settings": [
     { "type": "image_picker", "id": "logo", "label": "Logo", "info": "Leave empty to use the olive wordmark that ships with the theme." },
     { "type": "text", "id": "wordmark", "label": "Logo alt text", "default": "Bush Riding™" },
-    { "type": "header", "content": "Shop panel (desktop)" },
+    { "type": "header", "content": "Shop dropdown (desktop)" },
     { "type": "product", "id": "shop_product", "label": "Product", "info": "Leads Most popular in the search panel. Leave empty to use the first product in the store." },
-    { "type": "image_picker", "id": "shop_image", "label": "Lifestyle photo" },
+    { "type": "image_picker", "id": "shop_image", "label": "Photo", "info": "Portrait works best. Leave empty for a links-only dropdown." },
     { "type": "text", "id": "shop_image_label", "label": "Lifestyle caption", "default": "Shorts" },
     { "type": "collection", "id": "shop_image_link", "label": "Lifestyle photo links to", "info": "Leave empty to go to all products." },
-    { "type": "header", "content": "Bush Map panel (desktop)" },
-    { "type": "image_picker", "id": "map_image", "label": "Mini-map image", "info": "A still of the map around the near-you region." },
-    { "type": "text", "id": "map_tagline", "label": "Tagline", "default": "Explore more with our curated gravel routes and events" },
+    { "type": "header", "content": "Bush Map dropdown (desktop)" },
+    { "type": "image_picker", "id": "map_image", "label": "Photo", "info": "Portrait works best. Leave empty for a links-only dropdown." },
+    { "type": "header", "content": "Rides dropdown (desktop)" },
+    { "type": "image_picker", "id": "rides_image", "label": "Photo", "info": "Portrait works best. Leave empty for a links-only dropdown." },
     { "type": "paragraph", "content": "Pages, map links, time zone and weather are set in Theme settings → Bush Riding." }
   ]
 }
