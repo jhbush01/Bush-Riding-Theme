@@ -78,6 +78,18 @@
     $$('[data-alp-toggle="' + id + '"]').forEach(function (b) { b.setAttribute('aria-expanded', on ? 'true' : 'false'); });
   }
 
+  /* A nav dropdown sits under its own link: the panel's text lines up with
+     the link's, and it never runs off the right edge. */
+  function placeDropdown(el, id) {
+    var link = $('[data-alp-toggle="' + id + '"]');
+    var hd = el.closest('[data-alp-header]');
+    if (!link || !hd) return;
+    var pad = 32;
+    var left = link.getBoundingClientRect().left - hd.getBoundingClientRect().left - pad;
+    left = Math.max(0, Math.min(left, hd.clientWidth - el.offsetWidth));
+    el.style.left = left + 'px';
+  }
+
   function openPanel(id, opts) {
     var el = document.getElementById(id);
     if (!el) return;
@@ -103,7 +115,9 @@
       var f = el.querySelector('[data-alp-close], button, a[href], input');
       if (f) setTimeout(function () { f.focus({ preventScroll: true }); }, 30);
     }
+    if (el.classList.contains('alp-dd')) placeDropdown(el, id);
     if (id === 'alp-mapmenu') fillNearList();
+    if (id === 'alp-ridesmenu') fillRidesList();
     if (id === 'alp-searchmenu') {
       fillPopular($('[data-alp-popular]', el));
       var field = $('[data-alp-live-search]', el);
@@ -170,7 +184,7 @@
     else if (!el.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
   });
 
-  /* Shop, Bush Map and Search open on hover (desktop) and stay open while the
+  /* Shop, Bush Map, Rides and Search open on hover (desktop) and stay open while the
      pointer is anywhere over the header or the open panel; leaving both
      closes it. Search is the exception once it's in use — with the field
      focused or holding text it stays until Escape, the scrim, or a click
@@ -621,7 +635,9 @@
           return s.chosen.every(function (c, j) { return j === i || c === null || String(v.options[j]) === String(c); });
         });
         r.disabled = !can;
-        r.closest('.alp-tile').classList.toggle('is-out', !can);
+        /* Sizes are .alp-tile, colours .alp-swatch — both get struck. */
+        var box = r.closest('.alp-tile, .alp-swatch');
+        if (box) box.classList.toggle('is-out', !can);
         if (!can && r.checked) r.checked = false;
       });
       var picked = $('input:checked', fs);
@@ -667,14 +683,23 @@
       form._alp = true;
       $('[data-alp-variant]', form).setAttribute('name', 'id');
       var want = new URLSearchParams(window.location.search).get('variant');
+      var s = pdpState(form);
       if (want) {
-        var s = pdpState(form);
         var v = s.variants.filter(function (x) { return String(x.id) === want; })[0];
         if (v && v.available) {
           s.opts.forEach(function (fs, i) {
             $$('input', fs).forEach(function (r) { if (String(r.value) === String(v.options[i])) r.checked = true; });
           });
         }
+      }
+      /* Colour starts on the first one in stock, so a shopper only has to
+         pick a size — the size is the choice that matters. */
+      var first = s.variants.filter(function (x) { return x.available; })[0];
+      if (first) {
+        s.opts.forEach(function (fs, i) {
+          if (!fs.classList.contains('alp-buy__opt--colour') || $('input:checked', fs)) return;
+          $$('input', fs).forEach(function (r) { if (String(r.value) === String(first.options[i])) r.checked = true; });
+        });
       }
       syncPdp(form);
     });
@@ -685,17 +710,32 @@
     if (form) syncPdp(form);
   });
 
+  /* Which button sent the form. e.submitter is missing on older iOS Safari
+     and a tapped button isn't focused there, so note it on the tap itself. */
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-alp-buy] button[type="submit"]');
+    if (b) b.form._alpBuyNow = b.hasAttribute('data-alp-buy-now');
+  }, true);
+
   document.addEventListener('submit', function (e) {
     var form = e.target.closest('[data-alp-buy]');
     if (!form) return;
     e.preventDefault();
-    var submitter = e.submitter || document.activeElement;
-    var buyNow = !!(submitter && submitter.hasAttribute && submitter.hasAttribute('data-alp-buy-now'));
+    var submitter = e.submitter;
+    var buyNow = submitter && submitter.hasAttribute ? submitter.hasAttribute('data-alp-buy-now') : !!form._alpBuyNow;
+    form._alpBuyNow = false;
     var s = syncPdp(form);
     var id = $('[data-alp-variant]', form).value;
     if (!id) {
       form.classList.remove('is-need'); void form.offsetWidth; form.classList.add('is-need');
-      var need = $('[data-alp-need]', form); if (need) need.hidden = false;
+      var need = $('[data-alp-need]', form);
+      if (need) {
+        /* Name the option still missing: "Choose a size first." */
+        var missing = s.opts.filter(function (fs) { return !$('input:checked', fs); })[0];
+        var nm = missing && $('.alp-buy__optname', missing);
+        need.textContent = 'Choose a ' + (nm ? nm.textContent.trim().toLowerCase() : 'size') + ' first.';
+        need.hidden = false;
+      }
       var tiles = $('.alp-buy__tiles', form);
       if (tiles && DESKTOP.matches) tiles.scrollIntoView({ behavior: REDUCE ? 'auto' : 'smooth', block: 'center' });
       var first = $('.alp-tile input:not(:disabled)', form); if (first) first.focus({ preventScroll: true });
@@ -708,7 +748,7 @@
         if (buyNow) { window.location.href = ROOT.replace(/\/$/, '') + '/checkout'; return; }
         var pdp = form.closest('[data-alp-pdp]');
         var title = pdp && $('.alp-pdp__title', pdp);
-        var img = pdp && $('.alp-pdp__img img', pdp);
+        var img = pdp && $('.alp-gal__slide:not([data-alp-clone]) img', pdp);
         showAdded({
           title: title ? title.textContent.trim() : '',
           image: img ? (img.currentSrc || img.src) : '',
@@ -819,37 +859,37 @@
     return n;
   }
 
-  /* D08 · NEAR YOU */
+  /* Dropdown lists: two routes near you (Bush Map), the next three rides
+     (Rides). Each fills once per page, from the cached feeds. */
+  function ddRow(href, title, meta) {
+    var a = el('a');
+    a.href = href;
+    a.appendChild(el('span', '', title));
+    if (meta) a.appendChild(el('small', '', meta));
+    return a;
+  }
   var nearFilled = false;
   function fillNearList() {
-    var ul = $('[data-alp-near-list]');
-    if (!ul || nearFilled) return;
+    var box = $('[data-alp-near-list]');
+    if (!box || nearFilled) return;
     nearFilled = true;
-    Promise.all([feed('routes'), feed('events')]).then(function (res) {
-      var routes = regionFirst(res[0] || []).slice(0, 2);
-      var next = upcoming(res[1] || [])[0];
-      ul.innerHTML = '';
-      routes.forEach(function (p) {
-        var li = el('li');
-        var a = el('a', 'alp-list__row');
-        a.href = routeHref(p.id);
-        a.appendChild(el('span', '', p.name));
-        a.appendChild(el('span', '', routeStats(p)));
-        li.appendChild(a); ul.appendChild(li);
-      });
-      if (next) {
-        var li = el('li');
-        var a = el('a', 'alp-list__row');
-        a.href = rideHref(next);
-        a.appendChild(el('span', '', (next.name || 'Bush event') + ' · ' + shortDate(next.date_iso)));
-        a.appendChild(el('span', '', 'RSVP'));
-        li.appendChild(a); ul.appendChild(li);
-      }
-      if (!routes.length && !next) {
-        ul.innerHTML = '';
-        ul.appendChild(el('li', 'alp-list__row alp-list__row--quiet', 'Open the map to see every route.'));
-        nearFilled = false;
-      }
+    feed('routes').then(function (list) {
+      var routes = regionFirst(list || []).slice(0, 2);
+      box.innerHTML = '';
+      routes.forEach(function (p) { box.appendChild(ddRow(routeHref(p.id), p.name, routeStats(p))); });
+      if (!routes.length) { box.appendChild(el('span', 'alp-dd__quiet', 'Open the map to see every route.')); nearFilled = false; }
+    });
+  }
+  var ridesFilled = false;
+  function fillRidesList() {
+    var box = $('[data-alp-rides-list]');
+    if (!box || ridesFilled) return;
+    ridesFilled = true;
+    feed('events').then(function (list) {
+      var rides = upcoming(list || []).slice(0, 3);
+      box.innerHTML = '';
+      rides.forEach(function (p) { box.appendChild(ddRow(rideHref(p), p.name || p.subtitle || 'Bush ride', shortDate(p.date_iso))); });
+      if (!rides.length) { box.appendChild(el('span', 'alp-dd__quiet', 'Nothing on the calendar yet.')); ridesFilled = false; }
     });
   }
 
@@ -1032,9 +1072,56 @@
   });
 
   /* ── Product page: carousels, units, complementary row ── */
+  /* The product carousel loops: a copy of the last photo sits before the
+     first and a copy of the first after the last. Landing on a copy jumps,
+     without animation, to the real photo it copies — so right from the last
+     photo carries on to the first, and left from the first to the last. */
+  function galLoop(sc) {
+    var track = $('[data-alp-track]', sc);
+    var slides = $$('.alp-gal__slide', track);
+    if (slides.length < 2) return;
+    var head = slides[slides.length - 1].cloneNode(true), tail = slides[0].cloneNode(true);
+    [head, tail].forEach(function (c) { c.setAttribute('aria-hidden', 'true'); c.setAttribute('data-alp-clone', ''); $$('img', c).forEach(function (i) { i.loading = 'eager'; }); });
+    track.insertBefore(head, slides[0]);
+    track.appendChild(tail);
+    sc._loop = slides.length;
+    jumpTo(track, 1);
+    var settle = null;
+    track.addEventListener('scroll', function () {
+      clearTimeout(settle);
+      settle = setTimeout(function () { loopSettle(sc); }, 120);
+    }, { passive: true });
+    window.addEventListener('resize', function () { jumpTo(track, sc._at || 1); });
+  }
+  function jumpTo(track, i) {
+    var keep = track.style.scrollBehavior, keepSnap = track.style.scrollSnapType;
+    track.style.scrollBehavior = 'auto';
+    track.style.scrollSnapType = 'none';
+    track.scrollLeft = i * track.clientWidth;
+    void track.offsetWidth;
+    track.style.scrollSnapType = keepSnap;
+    track.style.scrollBehavior = keep;
+  }
+  function loopSettle(sc) {
+    var track = $('[data-alp-track]', sc), n = sc._loop;
+    if (!track || !n || !track.clientWidth) return;
+    var i = Math.round(track.scrollLeft / track.clientWidth);
+    if (i <= 0) jumpTo(track, n);
+    else if (i >= n + 1) jumpTo(track, 1);
+  }
+
   function scrollerState(sc) {
     var track = $('[data-alp-track]', sc);
     if (!track) return;
+    if (sc._loop) {
+      var n0 = sc._loop, w = track.clientWidth || 1;
+      var at = Math.round(track.scrollLeft / w);
+      sc._at = Math.min(Math.max(at, 1), n0);
+      var real = ((at - 1) % n0 + n0) % n0 + 1;
+      var cn = $('[data-alp-slide-n]', sc);
+      if (cn) cn.textContent = real;
+      return; // looping: the arrows never run out
+    }
     var max = track.scrollWidth - track.clientWidth - 2;
     var prev = $('[data-alp-scroll="-1"]', sc), next = $('[data-alp-scroll="1"]', sc);
     if (prev) prev.disabled = track.scrollLeft <= 2;
@@ -1047,6 +1134,7 @@
       var track = $('[data-alp-track]', sc);
       if (!track || track._alp) return;
       track._alp = true;
+      if (sc.classList.contains('alp-gal')) galLoop(sc);
       track.addEventListener('scroll', function () { scrollerState(sc); }, { passive: true });
       scrollerState(sc);
     });
@@ -1059,12 +1147,22 @@
     if (!track) return;
     /* A gallery moves one photo; a product row moves a screenful less one card. */
     var step = sc.classList.contains('alp-row') ? track.clientWidth * 0.75 : track.clientWidth;
+    if (sc._loop) {
+      /* Sitting on a copy (a fast second click before the jump)? Hop to the
+         real photo first so the loop never hits the end of the track. */
+      loopSettle(sc);
+      var at = Math.round(track.scrollLeft / track.clientWidth) + Number(b.getAttribute('data-alp-scroll'));
+      track.scrollTo({ left: at * track.clientWidth, behavior: REDUCE ? 'auto' : 'smooth' });
+      return;
+    }
     track.scrollBy({ left: Number(b.getAttribute('data-alp-scroll')) * step, behavior: REDUCE ? 'auto' : 'smooth' });
   });
   document.addEventListener('keydown', function (e) {
     if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
     var track = e.target.closest && e.target.closest('.alp-gal [data-alp-track]');
     if (!track) return;
+    var gsc = track.closest('[data-alp-scroller]');
+    if (gsc && gsc._loop) loopSettle(gsc);
     track.scrollBy({ left: (e.key === 'ArrowRight' ? 1 : -1) * track.clientWidth, behavior: REDUCE ? 'auto' : 'smooth' });
   });
 
@@ -1237,6 +1335,7 @@
 
   document.addEventListener('shopify:section:load', function () {
     nearFilled = false;
+    ridesFilled = false;
     closePanel(true);
     init();
   });
