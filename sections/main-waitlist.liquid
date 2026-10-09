@@ -5,10 +5,11 @@
   It is a waitlist for the shorts, not an early-access list: nobody gets in
   early, we email you when the first run lands. The copy says exactly that.
 
-  Brand: the storefront's own tokens (alpine.css is linked in
-  layout/password.liquid), so bone, olive, mist and flare here are the same
-  values the shop uses. The mark is the brush artwork, never typeset. Flare is
-  spent once, on the button — the one thing to press.
+  Layout: the clip with the mark over it, and a bone panel with the signup —
+  stacked on a phone (clip on top), side by side on desktop (clip left).
+  Brand: the storefront's tokens (assets/waitlist.css), bone, olive and
+  flare, the brand faces. The mark is the brush artwork, never typeset. Flare
+  is spent once, on the button — the one thing to press.
 
   Signups land in Admin → Customers tagged so the shorts list can be segmented
   out of the general newsletter.
@@ -20,119 +21,135 @@
 -%}
 
 <section class="wl">
-  {%- if section.settings.video_url != blank -%}
-    {%- comment -%}
-      This one keeps autoplay — it is the page, above the fold, with nothing
-      else competing for the connection. The src sits on the element rather
-      than a <source type="video/mp4">: that attribute is a promise about the
-      container, and a .mov pasted into the setting would be a promise some
-      browsers refuse rather than sniff.
-    {%- endcomment -%}
-    <video
-      class="wl__media"
-      src="{{ section.settings.video_url }}"
-      autoplay
-      muted
-      loop
-      playsinline
-      aria-hidden="true"
-      {% if section.settings.poster != blank %}poster="{{ section.settings.poster | image_url: width: 1600 }}"{% endif %}
-    ></video>
-  {%- elsif section.settings.poster != blank -%}
-    {{ section.settings.poster | image_url: width: 2400 | image_tag: class: 'wl__media', loading: 'eager', fetchpriority: 'high', alt: '' }}
-  {%- endif -%}
-
-  {%- comment -%} Type over photography always sits on a scrim. {%- endcomment -%}
-  <div class="wl__scrim" aria-hidden="true"></div>
-
-  <div class="wl__inner">
-    <h1 class="wl__mark">
-      {%- if section.settings.wordmark_image != blank -%}
-        {{ section.settings.wordmark_image | image_url: width: 1400 | image_tag: loading: 'eager', fetchpriority: 'high', alt: shop.name }}
-      {%- else -%}
-        <img
-          src="{{ 'wordmark-' | append: tone | append: '.svg' | asset_url }}"
-          alt="{{ shop.name | escape }}"
-          width="1273"
-          height="543"
-          loading="eager"
-          fetchpriority="high"
-        >
-      {%- endif -%}
-    </h1>
-
-    {%- if section.settings.tagline != blank -%}
-      <p class="wl__tagline">{{ section.settings.tagline | escape }}</p>
+  {%- comment -%}
+    The visual: the clip (or photo) with the mark over it. Phone: the top of
+    the screen. Desktop: the left half, full height. Type over footage always
+    sits on a scrim.
+  {%- endcomment -%}
+  <div class="wl__visual">
+    {%- if section.settings.video_url != blank -%}
+      {%- comment -%}
+        Autoplay stays — it is the page, above the fold, with nothing else
+        competing for the connection. src on the element, not a typed
+        <source>: a pasted .mov shouldn't be refused for its label.
+      {%- endcomment -%}
+      <video
+        class="wl__media"
+        src="{{ section.settings.video_url }}"
+        autoplay
+        muted
+        loop
+        playsinline
+        aria-hidden="true"
+        {% if section.settings.poster != blank %}poster="{{ section.settings.poster | image_url: width: 1600 }}"{% endif %}
+      ></video>
+    {%- elsif section.settings.poster != blank -%}
+      {{ section.settings.poster | image_url: width: 2400 | image_tag: class: 'wl__media', loading: 'eager', fetchpriority: 'high', widths: '800, 1200, 1800, 2400', sizes: '(min-width: 750px) 50vw, 100vw', alt: '' }}
     {%- endif -%}
+    <div class="wl__scrim" aria-hidden="true"></div>
 
-    {%- form 'customer', id: 'WaitlistForm', class: 'wl__form-wrap' -%}
-      {%- if form.posted_successfully? -%}
-        <p class="wl__done" role="status">{{ section.settings.success_text | escape }}</p>
-      {%- else -%}
-        {%- if section.settings.heading != blank -%}
-          <h2 class="wl__heading">{{ section.settings.heading | escape }}</h2>
+    <div class="wl__brand">
+      {%- comment -%} The mark is artwork and the page's h1, so its name is the shop. {%- endcomment -%}
+      <h1 class="wl__mark">
+        {%- if section.settings.wordmark_image != blank -%}
+          {{ section.settings.wordmark_image | image_url: width: 1400 | image_tag: loading: 'eager', fetchpriority: 'high', alt: shop.name }}
+        {%- else -%}
+          <img src="{{ 'wordmark-' | append: tone | append: '.svg' | asset_url }}" alt="{{ shop.name | escape }}" width="1273" height="543" loading="eager" fetchpriority="high">
         {%- endif -%}
-        {%- if section.settings.body != blank -%}
-          <p class="wl__body">{{ section.settings.body | escape }}</p>
+      </h1>
+      {%- if section.settings.tagline != blank -%}
+        <p class="wl__tagline">{{ section.settings.tagline | escape }}</p>
+      {%- endif -%}
+    </div>
+  </div>
+
+  {%- comment -%} The panel: bone, olive type, the one flare button. {%- endcomment -%}
+  <div class="wl__panel">
+    <div class="wl__inner">
+      {%- if section.settings.eyebrow != blank -%}
+        <p class="wl__eyebrow">{{ section.settings.eyebrow | escape }}</p>
+      {%- endif -%}
+
+      {%- form 'customer', id: 'WaitlistForm', class: 'wl__form-wrap' -%}
+        {%- if form.posted_successfully? -%}
+          <p class="wl__done" role="status">{{ section.settings.success_text | escape }}</p>
+        {%- else -%}
+          {%- if section.settings.heading != blank -%}
+            <h2 class="wl__heading">{{ section.settings.heading | escape }}</h2>
+          {%- endif -%}
+          {%- if section.settings.body != blank -%}
+            <p class="wl__body">{{ section.settings.body | escape }}</p>
+          {%- endif -%}
+
+          <input type="hidden" name="contact[tags]" value="{{ tags | escape }}">
+          <input type="hidden" name="contact[note]" value="{{ section.settings.signup_note | escape }}">
+
+          <div class="wl__form">
+            <label class="wl__label" for="WaitlistEmail">Email address</label>
+            <input class="wl__input" id="WaitlistEmail" type="email" name="contact[email]" placeholder="Email address" autocomplete="email" required>
+            <button class="wl__submit" type="submit">{{- section.settings.button_label | escape -}}</button>
+          </div>
+
+          {%- if form.errors -%}
+            <p class="wl__error" role="alert">
+              {%- if form.errors contains 'email' -%}
+                That email address doesn't look right. Try again.
+              {%- else -%}
+                Something went wrong at our end. Try again.
+              {%- endif -%}
+            </p>
+          {%- endif -%}
+
+          {%- if section.settings.microcopy != blank -%}
+            <p class="wl__micro">{{ section.settings.microcopy | escape }}</p>
+          {%- endif -%}
         {%- endif -%}
+      {%- endform -%}
 
-        <input type="hidden" name="contact[tags]" value="{{ tags | escape }}">
-        <input type="hidden" name="contact[note]" value="{{ section.settings.signup_note | escape }}">
-
-        <div class="wl__form">
-          <label class="wl__label" for="WaitlistEmail">Email address</label>
-          <input
-            class="wl__input"
-            id="WaitlistEmail"
-            type="email"
-            name="contact[email]"
-            placeholder="Email address"
-            autocomplete="email"
-            required
-          >
-          <button class="alp-chip alp-chip--flare wl__submit" type="submit">
-            {{- section.settings.button_label | escape -}}
-          </button>
-        </div>
-
-        {%- if section.settings.microcopy != blank -%}
-          <p class="wl__micro">{{ section.settings.microcopy | escape }}</p>
-        {%- endif -%}
-
-        {%- if form.errors -%}
-          <p class="wl__error" role="alert">
-            {%- if form.errors contains 'email' -%}
-              That email address doesn't look right. Try again.
-            {%- else -%}
-              Something went wrong at our end. Try again.
+      <div class="wl__foot">
+        {%- if section.settings.instagram_url != blank
+            or section.settings.youtube_url != blank
+            or section.settings.strava_url != blank
+        -%}
+          <div class="wl__social">
+            {%- if section.settings.instagram_url != blank -%}
+              <a class="wl__social-link" href="{{ section.settings.instagram_url }}" target="_blank" rel="noopener" aria-label="Bush Riding on Instagram">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="4.5"/><circle cx="12" cy="12" r="3.6"/><circle cx="17.2" cy="6.8" r="1" fill="currentColor" stroke="none"/></svg>
+              </a>
             {%- endif -%}
-          </p>
+            {%- if section.settings.strava_url != blank -%}
+              <a class="wl__social-link" href="{{ section.settings.strava_url }}" target="_blank" rel="noopener" aria-label="Bush Riding on Strava">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.8 2 7.3 14.6h3.9L13.8 9l2.6 5.6h3.8L13.8 2zM16.4 14.6 14.6 18l-1.8-3.4H10l4.6 8.4L19 14.6h-2.6z"/></svg>
+              </a>
+            {%- endif -%}
+            {%- if section.settings.youtube_url != blank -%}
+              <a class="wl__social-link" href="{{ section.settings.youtube_url }}" target="_blank" rel="noopener" aria-label="Bush Riding on YouTube">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23 12s0-3.2-.4-4.7a2.5 2.5 0 0 0-1.7-1.7C19.4 5.2 12 5.2 12 5.2s-7.4 0-8.9.4A2.5 2.5 0 0 0 1.4 7.3C1 8.8 1 12 1 12s0 3.2.4 4.7a2.5 2.5 0 0 0 1.7 1.7c1.5.4 8.9.4 8.9.4s7.4 0 8.9-.4a2.5 2.5 0 0 0 1.7-1.7C23 15.2 23 12 23 12zM9.8 15.3V8.7l5.7 3.3-5.7 3.3z"/></svg>
+              </a>
+            {%- endif -%}
+          </div>
         {%- endif -%}
-      {%- endif -%}
-    {%- endform -%}
 
-    {%- if section.settings.instagram_url != blank
-        or section.settings.youtube_url != blank
-        or section.settings.strava_url != blank
-    -%}
-      <div class="wl__social">
-        {%- if section.settings.instagram_url != blank -%}
-          <a class="wl__social-link" href="{{ section.settings.instagram_url }}" target="_blank" rel="noopener" aria-label="Bush Riding on Instagram">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="4.5"/><circle cx="12" cy="12" r="3.6"/><circle cx="17.2" cy="6.8" r="1" fill="currentColor" stroke="none"/></svg>
-          </a>
-        {%- endif -%}
-        {%- if section.settings.strava_url != blank -%}
-          <a class="wl__social-link" href="{{ section.settings.strava_url }}" target="_blank" rel="noopener" aria-label="Bush Riding on Strava">
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.8 2 7.3 14.6h3.9L13.8 9l2.6 5.6h3.8L13.8 2zM16.4 14.6 14.6 18l-1.8-3.4H10l4.6 8.4L19 14.6h-2.6z"/></svg>
-          </a>
-        {%- endif -%}
-        {%- if section.settings.youtube_url != blank -%}
-          <a class="wl__social-link" href="{{ section.settings.youtube_url }}" target="_blank" rel="noopener" aria-label="Bush Riding on YouTube">
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23 12s0-3.2-.4-4.7a2.5 2.5 0 0 0-1.7-1.7C19.4 5.2 12 5.2 12 5.2s-7.4 0-8.9.4A2.5 2.5 0 0 0 1.4 7.3C1 8.8 1 12 1 12s0 3.2.4 4.7a2.5 2.5 0 0 0 1.7 1.7c1.5.4 8.9.4 8.9.4s7.4 0 8.9-.4a2.5 2.5 0 0 0 1.7-1.7C23 15.2 23 12 23 12zM9.8 15.3V8.7l5.7 3.3-5.7 3.3z"/></svg>
-          </a>
-        {%- endif -%}
+        {%- comment -%}
+          For people who've been given the store password (friends, the
+          photographer). Shopify's own form; tucked away so it never competes
+          with the waitlist.
+        {%- endcomment -%}
+        <details class="wl__pass"{% if form.errors %} open{% endif %}>
+          <summary>Have the password?</summary>
+          {%- form 'storefront_password', class: 'wl__pass-form' -%}
+            <label class="wl__label" for="WaitlistPassword">Password</label>
+            <input class="wl__input" id="WaitlistPassword" type="password" name="password" placeholder="Password" autocomplete="current-password" required>
+            <button class="wl__pass-go" type="submit">Enter</button>
+            {%- if form.errors -%}<p class="wl__error" role="alert">That password isn't right.</p>{%- endif -%}
+          {%- endform -%}
+        </details>
       </div>
-    {%- endif -%}
+
+      {%- if section.settings.signoff != blank -%}
+        <p class="wl__signoff">{{ section.settings.signoff | escape }}</p>
+      {%- endif -%}
+    </div>
   </div>
 </section>
 
@@ -165,6 +182,7 @@
     { "type": "image_picker", "id": "wordmark_image", "label": "Wordmark image override" },
     { "type": "text", "id": "tagline", "label": "Tagline", "default": "Made for the detour" },
     { "type": "header", "content": "Waitlist" },
+    { "type": "text", "id": "eyebrow", "label": "Small line above the heading", "default": "First run · Gravel shorts" },
     { "type": "text", "id": "heading", "label": "Heading", "default": "The shorts are coming." },
     {
       "type": "textarea",
@@ -187,6 +205,7 @@
     },
     { "type": "text", "id": "signup_tags", "label": "Customer tags", "default": "waitlist, bush-riding-shorts" },
     { "type": "text", "id": "signup_note", "label": "Customer note", "default": "Shorts waitlist — pre-launch" },
+    { "type": "text", "id": "signoff", "label": "Sign-off", "default": "Designed in Australia. Made for the detour." },
     { "type": "header", "content": "Social" },
     { "type": "url", "id": "instagram_url", "label": "Instagram URL" },
     { "type": "url", "id": "strava_url", "label": "Strava URL" },
