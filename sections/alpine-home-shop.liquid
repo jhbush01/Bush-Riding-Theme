@@ -8,8 +8,9 @@
   there are fewer than four — more angles of the featured product. Only real
   products; coming-soon categories live on their own collection pages.
 
-  Phone (M02): "The shorts" with a Shop link, one 500px product card with
-  Quick add +, then the lifestyle photo at 480px.
+  Phone: a big centred heading, the store's products as a swipe row (centred
+  name, price and colour dots, Quick add +), View all, then the lifestyle
+  photo full bleed.
 {%- endcomment -%}
 {%- liquid
   assign p = section.settings.product
@@ -89,18 +90,32 @@
     </div>
   </div>
 
-  {%- comment -%} ── Phone ── {%- endcomment -%}
-  <div class="alp-m">
-    <div class="alp-headrow">
-      <h2 class="alp-headrow__title">{{ section.settings.mobile_heading | escape }}</h2>
-      <a class="alp-headrow__link" href="{{ routes.all_products_collection_url }}">Shop</a>
+  {%- comment -%}
+    ── Phone ── a big centred heading, the products as a swipe row (one card
+    centred while there's only one), View all, then the lifestyle photo full
+    bleed. Each card keeps Quick add + (tap one of the three-tap checkout).
+  {%- endcomment -%}
+  <div class="alp-m alp-mhome">
+    <h2 class="alp-mhome__title">{{ section.settings.mobile_heading | escape }}</h2>
+    <div class="alp-hrow" data-alp-scroller>
+      <div class="alp-hrow__track" data-alp-track>
+        {%- liquid
+          if p != blank
+            render 'alp-card', product: p, look: 'centre', dots: true
+          endif
+          for other in collections.all.products limit: 9
+            if other.id == p.id
+              continue
+            endif
+            render 'alp-card', product: other, look: 'centre', dots: true
+          endfor
+        -%}
+      </div>
     </div>
-    {%- if p != blank -%}
-      {%- render 'alp-card', product: p -%}
-    {%- endif -%}
+    <p class="alp-mhome__cta"><a class="alp-btn" href="{{ routes.all_products_collection_url }}">{{ section.settings.mobile_button | escape }}</a></p>
     {%- if life != blank -%}
-      <div class="alp-photo alp-photo--480">
-        {{ life | image_url: width: 1200 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '600, 900, 1200', sizes: '100vw', alt: life.alt | default: '' }}
+      <div class="alp-mhome__photo">
+        {{ life | image_url: width: 1400 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '600, 900, 1400', sizes: '100vw', alt: life.alt | default: '' }}
         {%- if section.settings.lifestyle_caption != blank -%}
           <span class="alp-duo__caption">{{ section.settings.lifestyle_caption | escape }}</span>
         {%- endif -%}
@@ -120,7 +135,8 @@
     { "type": "text", "id": "second_suffix", "label": "Second angle caption suffix", "default": ", rear" },
     { "type": "image_picker", "id": "lifestyle", "label": "Lifestyle photo" },
     { "type": "text", "id": "lifestyle_caption", "label": "Lifestyle caption", "default": "On the long way home" },
-    { "type": "text", "id": "mobile_heading", "label": "Phone heading", "default": "The shorts" }
+    { "type": "text", "id": "mobile_heading", "label": "Phone heading", "default": "The shorts" },
+    { "type": "text", "id": "mobile_button", "label": "Phone button", "default": "View all" }
   ],
   "presets": [{ "name": "Home shop band" }]
 }

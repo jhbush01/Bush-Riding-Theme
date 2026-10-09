@@ -15,6 +15,8 @@
   caption  – optional title override
   quick    – false to drop Quick add (e.g. the second angle of the same item)
   loading  – 'eager' above the fold
+  look     – 'centre' for a centred caption (phone home row)
+  dots     – true to show the colour swatches under the price
 {%- endcomment -%}
 {%- liquid
   assign photo = image | default: product.featured_media.preview_image
@@ -54,7 +56,7 @@
     endif
   endif
 -%}
-<div class="alp-card" data-alp-card>
+<div class="alp-card{% if look == 'centre' %} alp-card--centre{% endif %}" data-alp-card>
   <div class="alp-card__media">
     <a href="{{ product.url }}" class="alp-card__link" tabindex="-1" aria-hidden="true">
       {%- if photo != blank -%}
@@ -111,5 +113,17 @@
   <p class="alp-card__cap">
     <a href="{{ product.url }}" class="alp-card__name">{{ name | escape }}</a>
     <span class="alp-card__price">{% if product.available %}{{ price }}{% else %}Sold out{% endif %}</span>
+    {%- if dots -%}
+      {%- for o in product.options_with_values -%}
+        {%- assign oname = o.name | downcase -%}
+        {%- if oname contains 'colour' or oname contains 'color' -%}
+          <span class="alp-card__dots" aria-label="{{ o.values.size }} colours">
+            {%- for value in o.values -%}
+              <span class="alp-card__dot" title="{{ value | escape }}"{% if value.swatch.color != blank %} style="--sw: {{ value.swatch.color }}"{% elsif value.swatch.image != blank %} style="--sw-img: url({{ value.swatch.image | image_url: width: 40 }})"{% endif %}></span>
+            {%- endfor -%}
+          </span>
+        {%- endif -%}
+      {%- endfor -%}
+    {%- endif -%}
   </p>
 </div>

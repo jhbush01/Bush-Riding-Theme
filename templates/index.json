@@ -16,7 +16,8 @@
         "image": "shopify://shop_images/IMG_8186.jpg",
         "show_wordmark": true,
         "wordmark_tone": "bone",
-        "tagline": "Made for the detour."
+        "tagline": "Made for the detour.",
+        "button_label": "Shop the kit"
       }
     },
     "shop": {
@@ -25,7 +26,8 @@
         "lifestyle": "shopify://shop_images/IMG_2124.jpg",
         "lifestyle_caption": "On the long way home",
         "second_suffix": ", rear",
-        "mobile_heading": "The shorts"
+        "mobile_heading": "The shorts",
+        "mobile_button": "View all"
       }
     },
     "pair": {
@@ -56,11 +58,53 @@
         "map"
       ],
       "settings": {}
+    },
+    "help": {
+      "type": "alpine-help",
+      "blocks": {
+        "questions": {
+          "type": "row",
+          "settings": {
+            "icon": "question",
+            "title": "Questions about the kit?",
+            "text": "Ask us anything. We ride in it every week.",
+            "link": "contact",
+            "link_label": "Get in touch"
+          }
+        },
+        "shipping": {
+          "type": "row",
+          "settings": {
+            "icon": "box",
+            "title": "Shipping",
+            "text": "Where it goes and how long it takes.",
+            "link": "shipping",
+            "link_label": "Shipping details"
+          }
+        },
+        "returns": {
+          "type": "row",
+          "settings": {
+            "icon": "return",
+            "title": "Returns",
+            "text": "Wrong size? Here's how we sort it.",
+            "link": "returns",
+            "link_label": "Returns"
+          }
+        }
+      },
+      "block_order": [
+        "questions",
+        "shipping",
+        "returns"
+      ],
+      "settings": {}
     }
   },
   "order": [
     "hero",
     "shop",
-    "pair"
+    "pair",
+    "help"
   ]
 }

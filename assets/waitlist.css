@@ -15,7 +15,7 @@
   --alp-mist: #a7b8b4;        /* mist — the home page ground (option 2a) */
   --alp-line: rgba(76, 75, 59, 0.24);
 
-  --alp-font-display: 'Archivo', 'Helvetica Neue', sans-serif;
+  --alp-font-display: 'Aktiv Grotesk', 'aktiv-grotesk', 'Archivo', 'Helvetica Neue', Arial, sans-serif;
   --alp-font-ui: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 
 }
@@ -29,7 +29,7 @@
   border: 1px solid var(--alp-line);
   border-radius: 3px;
   padding: 8px 14px;
-  font-family: var(--alp-font-ui);
+  font-family: var(--alp-font-display);
   font-size: 0.875rem;
   font-weight: 600;
   line-height: 1.2;
@@ -40,7 +40,7 @@
 a.alp-chip:hover, button.alp-chip:hover { background: var(--alp-ink); color: var(--alp-surface); }
 button.alp-chip { cursor: pointer; }
 
-.alp-chip--price { font-weight: 500; }
+.alp-chip--price { font-weight: 400; }
 
 /* Compact chip — the catalogue's controls and card labels, where the full-size
    chip would crowd a three-up grid. */
@@ -130,7 +130,7 @@ body.waitlist #MainContent { padding-top: 0; }
 .wl__tagline {
   margin: clamp(12px, 2vw, 18px) 0 0;
   font-size: clamp(0.6rem, 0.3vw + 0.55rem, 0.75rem);
-  font-weight: 600;
+  font-family: var(--alp-font-display); font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--alp-haze);
@@ -207,7 +207,7 @@ body.waitlist #MainContent { padding-top: 0; }
 .wl__error {
   margin: 12px 0 0;
   font-size: 0.85rem;
-  font-weight: 600;
+  font-family: var(--alp-font-display); font-weight: 600;
   color: var(--alp-citrus);
 }
 

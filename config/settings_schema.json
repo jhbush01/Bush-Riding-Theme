@@ -139,6 +139,26 @@
         "id": "alp_instagram_url",
         "label": "Instagram",
         "default": "https://www.instagram.com/bushriding"
+      },
+      {
+        "type": "header",
+        "content": "Brand fonts"
+      },
+      {
+        "type": "paragraph",
+        "content": "Headings are Aktiv Grotesk Semibold, a licensed font. Until it's connected below, Archivo stands in. Body copy is Inter (loaded automatically)."
+      },
+      {
+        "type": "text",
+        "id": "alp_font_kit",
+        "label": "Adobe Fonts project ID",
+        "info": "From fonts.adobe.com → Web Projects, a project containing Aktiv Grotesk. Add bushriding.cc to the project's domains."
+      },
+      {
+        "type": "text",
+        "id": "alp_font_aktiv",
+        "label": "Aktiv Grotesk Semibold .woff2 URL",
+        "info": "Or upload the licensed .woff2 to Content → Files and paste its URL here."
       }
     ]
   },

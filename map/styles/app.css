@@ -33,7 +33,18 @@
 html,
 body {
   margin: 0;
-  height: 100%;
+  /* `100%` here behaves exactly like `100vh`: on iOS/Android it's pinned to
+     the LARGE viewport (chrome collapsed) and does not shrink while the
+     browser's own toolbar is actually on screen — which it mostly is, since
+     this page never scrolls to trigger auto-hide. #map fills `body` via
+     `inset: 0`, so a body shorter in pixels than its 100%-tall box left a
+     strip of body's own cream background showing beneath the map, right
+     above the address bar. `100dvh` is the real, LIVE visible viewport —
+     it shrinks and grows with the toolbar instead of ignoring it. Kept as a
+     second declaration (not a replacement) so engines that don't know `dvh`
+     fall back to the old `%` value rather than getting no height at all. */
+  height: 100vh;
+  height: 100dvh;
   font-family: var(--ui-font);
   color: var(--ink);
   background: var(--cream);
@@ -470,9 +481,16 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  /* Full = the tallest snap. JS translates it down to reveal peek/half. */
+  /* Full = the tallest snap. JS translates it down to reveal peek/half.
+     dvh after vh for the same reason as html/body above: this is `position:
+     fixed; bottom: 0`, so a height pinned to the large (chrome-collapsed)
+     viewport can run taller than what's actually visible above Safari's
+     toolbar, pushing "full" past the real bottom edge instead of stopping
+     at it. */
   height: 90vh;
+  height: 90dvh;
   max-height: 90vh;
+  max-height: 90dvh;
   background: var(--cream-panel);
   border: 1px solid var(--line);
   border-bottom: none;
@@ -575,8 +593,11 @@ body {
     height: auto;
     /* Stops short of the map tools AND the zoom buttons that now sit under
        them: 24px bottom inset + this height puts the panel's top edge at
-       136px, just clear of the zoom group's lower edge (126px). */
+       136px, just clear of the zoom group's lower edge (126px). dvh matters
+       here too — this rule's own min-width (1025px) is landscape iPad
+       territory, not just desktop. */
     max-height: calc(100vh - 160px);
+    max-height: calc(100dvh - 160px);
     border: 1px solid var(--line);
     border-radius: 18px;
     box-shadow: 0 16px 44px rgba(28, 26, 21, 0.2);
@@ -937,6 +958,7 @@ textarea.field-input {
   width: 380px;
   max-width: 92vw;
   max-height: 90vh;
+  max-height: 90dvh;
   overflow-y: auto;
   padding: 26px 24px 24px;
 }
