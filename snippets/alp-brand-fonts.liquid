@@ -1,0 +1,33 @@
+{%- comment -%}
+  The brand's three faces (brand board / docs/design-system "Type — the three
+  tiers"): DX Burst for the logo (artwork) and print display, Aktiv Grotesk
+  Semibold for every website heading and every bit of emphasis, Inter Regular
+  for body copy. Rendered by both layouts.
+
+  Aktiv Grotesk is a licensed face, so it can't come from Google Fonts. It
+  loads from whichever of these is set in Theme settings → Bush Riding:
+    • an Adobe Fonts web project id (family "aktiv-grotesk"), or
+    • the URL of a licensed .woff2 uploaded to Content → Files.
+  Until one is set, Archivo 600 stands in (the documented substitute).
+
+  inter_only – true on the password page, which needs no Archivo request
+               when Aktiv is supplied
+{%- endcomment -%}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600&family=Inter:wght@400&display=swap" rel="stylesheet">
+{%- if settings.alp_font_kit != blank -%}
+  <link rel="stylesheet" href="https://use.typekit.net/{{ settings.alp_font_kit | strip | escape }}.css">
+{%- endif -%}
+{%- if settings.alp_font_aktiv != blank -%}
+  <link rel="preload" href="{{ settings.alp_font_aktiv | strip }}" as="font" type="font/woff2" crossorigin>
+  <style>
+    @font-face {
+      font-family: 'Aktiv Grotesk';
+      src: url('{{ settings.alp_font_aktiv | strip }}') format('woff2');
+      font-weight: 600;
+      font-style: normal;
+      font-display: swap;
+    }
+  </style>
+{%- endif -%}

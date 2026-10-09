@@ -3,13 +3,13 @@
   route. Join the bush.", M02 Rides | BUSH MAP™).
 
   Desktop: 560px tall, the line in bone over the photo with a white chip
-  beneath. Phone: 240px, the chip alone — the line doesn't fit a half-width
-  panel and the chip already says where it goes.
+  beneath. Phone: tall rounded cards in a swipe row (the next one peeks in),
+  the line centred in bone with an outlined button carrying the chip text.
 
   A panel's link can be a URL, or one of the site's own destinations so it
   follows Theme settings when a page moves.
 {%- endcomment -%}
-<section class="alp alp-duo alp-duo--links">
+{%- capture urls -%}
   {%- for block in section.blocks -%}
     {%- liquid
       assign url = block.settings.url
@@ -32,6 +32,14 @@
           endcapture
       endcase
     -%}
+    {{ url | default: '#' }}|
+  {%- endfor -%}
+{%- endcapture -%}
+{%- assign url_list = urls | strip | split: '|' -%}
+
+<section class="alp alp-duo alp-duo--links alp-d">
+  {%- for block in section.blocks -%}
+    {%- assign url = url_list[forloop.index0] | strip -%}
     <a class="alp-duo__panel alp-duo__panel--{{ block.settings.ground }}" href="{{ url | default: '#' }}" {{ block.shopify_attributes }}>
       {%- if block.settings.image != blank -%}
         {{ block.settings.image | image_url: width: 1600 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '400, 800, 1200, 1600', sizes: '50vw', alt: '' }}
@@ -44,6 +52,24 @@
       </span>
     </a>
   {%- endfor -%}
+</section>
+
+<section class="alp alp-m alp-mcards" data-alp-scroller>
+  <div class="alp-mcards__track" data-alp-track>
+    {%- for block in section.blocks -%}
+      {%- assign url = url_list[forloop.index0] | strip -%}
+      <a class="alp-mcard alp-duo__panel--{{ block.settings.ground }}" href="{{ url }}" {{ block.shopify_attributes }}>
+        {%- if block.settings.image != blank -%}
+          {{ block.settings.image | image_url: width: 1200 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '600, 900, 1200', sizes: '84vw', alt: '' }}
+        {%- endif -%}
+        <span class="alp-mcard__scrim" aria-hidden="true"></span>
+        <span class="alp-mcard__body">
+          {%- if block.settings.title != blank -%}<span class="alp-mcard__title">{{ block.settings.title | escape }}</span>{%- endif -%}
+          <span class="alp-mcard__btn">{{ block.settings.chip | escape }}</span>
+        </span>
+      </a>
+    {%- endfor -%}
+  </div>
 </section>
 
 {% schema %}

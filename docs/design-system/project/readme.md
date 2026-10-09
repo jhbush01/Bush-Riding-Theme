@@ -38,6 +38,8 @@ White (`--paper`) is paper for card surfaces, not a brand colour — never a lar
 
 **Substitutions flagged:** no font binaries were supplied. Caveat Brush and Archivo are the nearest free matches; Inter is exact. **Send the licensed `.woff2` files** (DX Burst + Aktiv Grotesk) and swap the `@import` in `tokens/fonts.css` for `@font-face` rules — nothing else needs to change.
 
+**Live theme (Oct 2026):** Aktiv Grotesk is connected in Theme settings → Bush Riding → Brand fonts — an Adobe Fonts project ID or the URL of a licensed `.woff2` (see `snippets/alp-brand-fonts.liquid`); Archivo 600 shows until one is set. Inter is used at Regular only: anything heavier (labels, buttons, bold) is set in the heading face. Dawn's own pages (account, policies, contact) inherit the same two faces.
+
 ### The logo is artwork, not a font
 
 "Bush Riding" is a **hand-painted brush wordmark** in DX Burst — a cream-on-transparent **PNG** at `assets/logo-wordmark.png`, shown via `<img>` and sized by height. The board presents it in **three brush-edge treatments — rough, in between, smooth** — differing only in edge fidelity; one of the three is official and that file replaces the shared asset. No typeface reproduces it; never typeset it, and never substitute Caveat Brush for the mark itself. The header text around it (Shop, Explore, the clock) is the heading font.

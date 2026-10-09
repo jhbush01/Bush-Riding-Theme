@@ -1,7 +1,8 @@
 {%- comment -%}
   Home hero (D01 / M02) — full-bleed clip or photo under a flat olive scrim
   (.38), the bone wordmark centred with "Made for the detour." beneath.
-  720px tall on desktop; on a phone it fills the screen below the header.
+  720px tall on desktop; on a phone it fills the screen below the header and
+  adds an outlined Shop button under the tagline.
 
   The clip is deferred through alpine.js (data-alp-video) and the photo is its
   poster. A separate phone image lets the portrait crop differ.
@@ -40,6 +41,9 @@
     {%- if section.settings.tagline != blank -%}
       <p class="alp-hero__tagline">{{ section.settings.tagline | escape }}</p>
     {%- endif -%}
+    {%- if section.settings.button_label != blank -%}
+      <a class="alp-hero__btn alp-m" href="{{ section.settings.button_link | default: routes.all_products_collection_url }}">{{ section.settings.button_label | escape }}</a>
+    {%- endif -%}
   </div>
 </section>
 
@@ -60,7 +64,10 @@
         { "value": "white", "label": "White" }
       ]
     },
-    { "type": "text", "id": "tagline", "label": "Tagline", "default": "Made for the detour." }
+    { "type": "text", "id": "tagline", "label": "Tagline", "default": "Made for the detour." },
+    { "type": "header", "content": "Phone" },
+    { "type": "text", "id": "button_label", "label": "Button", "default": "Shop the kit", "info": "Phones only. Leave empty for no button." },
+    { "type": "url", "id": "button_link", "label": "Button link", "info": "Leave empty for all products." }
   ],
   "presets": [{ "name": "Home hero" }]
 }
