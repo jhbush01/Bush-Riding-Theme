@@ -157,8 +157,8 @@
       {
         "type": "text",
         "id": "alp_font_aktiv",
-        "label": "Aktiv Grotesk Semibold .woff2 URL",
-        "info": "Or upload the licensed .woff2 to Content → Files and paste its URL here."
+        "label": "Aktiv Grotesk Semibold font URL",
+        "info": "https://map-api.bushriding.cc/font/aktiv-grotesk-semibold.woff2 once the licensed .woff2 is uploaded to Cloudflare R2 (bucket bush-riding-map-routes, name fonts/aktiv-grotesk-semibold.woff2). Never upload it to the theme or Shopify Files: the licence requires that other sites can't use it."
       }
     ]
   },
