@@ -9,6 +9,10 @@
   "vars": {
     // Origins allowed to call /submit and /routes from the browser.
     "ALLOWED_ORIGINS": "https://map.bushriding.cc",
+    // Extra origins allowed to load the licensed fonts from /font/ (comma
+    // list). bushriding.cc and www are built in; add the store's
+    // https://<name>.myshopify.com so the theme editor preview gets them.
+    "FONT_ORIGINS": "",
     // Public base URL of THIS worker (used to build gpx_url/photo_url).
     // The worker's own public URL (used to build gpx_url/photo_url).
     "PUBLIC_URL": "https://map-api.bushriding.cc",

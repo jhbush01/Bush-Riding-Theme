@@ -3,6 +3,7 @@
 //   POST /submit        public: accept a GPX submission (status=pending)
 //   GET  /routes        public: approved community routes as GeoJSON (for the map)
 //   GET  /file/<key>    public: serve a stored GPX/photo from R2
+//   GET  /font/<name>   licensed web fonts, served only to the store's own pages
 //   GET  /events        public: Community Bush Ride events as GeoJSON
 //   GET  /admin         private: Basic-auth admin page (routes + events)
 //   POST /admin/action  private: approve / reject / remove a submission
@@ -62,6 +63,7 @@ export default {
       if (url.pathname === "/routes" && request.method === "GET") return routes(env, cors);
       if (url.pathname === "/events" && request.method === "GET") return eventsEndpoint(env, cors);
       if (url.pathname.startsWith("/file/") && request.method === "GET") return serveFile(url, env, cors);
+      if (url.pathname.startsWith("/font/") && request.method === "GET") return serveFont(url, request, env);
       if (url.pathname === "/admin" && request.method === "GET") return adminPage(request, env);
       if (url.pathname === "/admin/action" && request.method === "POST") return adminAction(request, env);
       if (url.pathname === "/admin/edit" && request.method === "POST") return adminEdit(request, env);
@@ -843,12 +845,57 @@ async function adminRouteCreate(request, env) {
 /* ---------------- Public: serve a stored file ---------------- */
 async function serveFile(url, env, cors) {
   const key = decodeURIComponent(url.pathname.replace(/^\/file\//, ""));
+  // Licensed fonts live under fonts/ and only ever leave through /font/.
+  if (key.startsWith("fonts/") || key.includes("..")) return json({ error: "Not found" }, 404, cors);
   const obj = await env.BUCKET.get(key);
   if (!obj) return json({ error: "Not found" }, 404, cors);
   const headers = new Headers(cors);
   obj.writeHttpMetadata(headers);
   headers.set("Cache-Control", "public, max-age=3600");
   return new Response(obj.body, { headers });
+}
+
+/* ---------------- Licensed web fonts ----------------
+   Aktiv Grotesk is licensed (Dalton Maag "Host & Link"), and the licence
+   requires that no other website can reference our copy. So it is NOT in the
+   theme (the repo is public) and NOT on Shopify's CDN: it sits in R2 under
+   fonts/ and comes out only here, and only to the store's own origins.
+
+   Browsers fetch @font-face files in CORS mode and refuse a font from another
+   origin unless the response names their origin — so answering only our own
+   origins, and refusing everyone else outright, is the cross-origin blocking
+   the licence asks for. FONT_ORIGINS (comma list) adds origins, e.g. the
+   store's .myshopify.com domain so the theme editor preview gets the face.
+
+   Upload: Cloudflare → R2 → bush-riding-map-routes → Upload, object name
+   fonts/aktiv-grotesk-semibold.woff2 (any fonts/<name>.woff2 works). */
+const FONT_ORIGINS = ["https://bushriding.cc", "https://www.bushriding.cc"];
+function fontOriginAllowed(origin, env) {
+  if (!origin) return false;
+  const extra = ((env && env.FONT_ORIGINS) || "").split(",").map((o) => o.trim()).filter(Boolean);
+  return FONT_ORIGINS.concat(extra).includes(origin);
+}
+async function serveFont(url, request, env) {
+  const name = decodeURIComponent(url.pathname.replace(/^\/font\//, ""));
+  if (!/^[a-z0-9-]+\.woff2$/.test(name)) return new Response("Not found", { status: 404 });
+  const origin = request.headers.get("Origin");
+  // No Origin (a direct download, curl) or someone else's site: refuse.
+  if (!fontOriginAllowed(origin, env)) {
+    return new Response("Forbidden", { status: 403, headers: { Vary: "Origin", "Cache-Control": "no-store" } });
+  }
+  const obj = await env.BUCKET.get("fonts/" + name);
+  if (!obj) return new Response("Not found", { status: 404, headers: { "Access-Control-Allow-Origin": origin, Vary: "Origin" } });
+  return new Response(obj.body, {
+    headers: {
+      "Content-Type": "font/woff2",
+      "Access-Control-Allow-Origin": origin,
+      Vary: "Origin",
+      // Per-origin answers must not be shared across origins by a cache.
+      "Cache-Control": "private, max-age=31536000, immutable",
+      "Cross-Origin-Resource-Policy": "cross-origin",
+      "X-Content-Type-Options": "nosniff",
+    },
+  });
 }
 
 /* ---------------- Admin: moderation ---------------- */
