@@ -209,6 +209,45 @@ body {
   border-radius: 2px;
 }
 
+/* Search — filters the results list AND the map pins through the same
+   applyFilters() pipeline every other control uses, so typing a name narrows
+   both at once rather than just the list. Own clear (×) button rather than
+   relying on the native type="search" cancel icon: that icon is Chrome/Edge
+   only, styled by the browser not by us, and a route name is the one filter
+   value that's slower to clear by hand (a slider/select resets in one click;
+   deleting typed text is not). The native icon is suppressed below so the
+   two never show up stacked. */
+.filter__search-wrap {
+  position: relative;
+}
+.filter__search {
+  width: 100%;
+  font-family: var(--ui-font);
+  font-size: 13px;
+  padding: 7px 28px 7px 8px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  border-radius: 2px;
+}
+.filter__search::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
+.filter__search-clear {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  font-size: 17px;
+  line-height: 1;
+  color: var(--ink-soft);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.filter__search-clear:hover { color: var(--ink); }
+
 /* Two selects (State + Region) side by side under Location. */
 .filter__row {
   display: flex;
