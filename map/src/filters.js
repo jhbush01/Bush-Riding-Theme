@@ -32,16 +32,52 @@ export function applyFilters(features) {
     if (state.usState && (p.state || "") !== state.usState) return false;
     if (state.region && p.region !== state.region) return false;
     if (state.difficulty && terrainSlug(p.terrain_difficulty) !== state.difficulty) return false;
-    if (state.query && !String(p.name || "").toLowerCase().includes(state.query)) return false;
+    if (state.query) {
+      // Every word must land somewhere, in any field: "rail qld" finds the
+      // Brisbane Valley Rail Trail, "snowy" finds routes by name or region.
+      const text = searchText(p);
+      if (!state.query.split(/\s+/).every((w) => text.includes(w))) return false;
+    }
     return true;
   });
+}
+
+// What the search box matches against: the route name, its region, and its
+// state as both the code on the data ("QLD") and the name people actually
+// type ("Queensland").
+const STATE_NAMES = {
+  ACT: "australian capital territory", NSW: "new south wales", NT: "northern territory",
+  QLD: "queensland", SA: "south australia", TAS: "tasmania", VIC: "victoria", WA: "western australia",
+};
+function searchText(p) {
+  const st = String(p.state || "");
+  return [p.name, p.region, st, STATE_NAMES[st.toUpperCase()]].filter(Boolean).join(" ").toLowerCase();
 }
 
 export function getState() {
   return { ...state };
 }
 
-export function setupFilters(features, onChange) {
+// How many panel filters are on (search excluded — it's always on screen).
+function activeCount() {
+  return (state.maxDistance < SLIDER_MAX) + !!state.usState + !!state.region + !!state.difficulty;
+}
+
+export function setupFilters(features, onChangeOuter) {
+  // Every control change also refreshes the count pill on the folded
+  // "Filters" row, so a narrowed list is never mistaken for a short one.
+  const badge = document.getElementById("filters-active");
+  const renderActive = () => {
+    if (!badge) return;
+    const n = activeCount();
+    badge.hidden = !n;
+    badge.textContent = String(n);
+    badge.setAttribute("aria-label", `${n} filter${n === 1 ? "" : "s"} on`);
+  };
+  const onChange = () => {
+    renderActive();
+    onChangeOuter();
+  };
   const stateSel = document.getElementById("f-state");
   const regionSel = document.getElementById("f-region");
 

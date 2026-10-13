@@ -83,54 +83,66 @@
         </div>
       </header>
 
+      <!-- Filters fold away by default so the search and the route list get
+           the drawer; the summary carries a count of active filters so a
+           narrowed list never looks like a short one. -->
       <form id="filters" class="filters" aria-label="Filter routes">
-        <div class="filter" style="display:none">
-          <span class="filter__label">Show on map</span>
-          <div id="f-categories" class="cat-group" role="group" aria-label="Pin categories">
-            <button type="button" class="cat is-active" data-cat="routes" aria-pressed="true"><span class="cat__dot cat__dot--routes" aria-hidden="true"></span>Community Routes</button>
-            <button type="button" class="cat is-active" data-cat="bush" aria-pressed="true"><span class="cat__dot cat__dot--bush" aria-hidden="true"></span>Bush Events</button>
-            <button type="button" class="cat is-active" data-cat="famous" aria-pressed="true"><span class="cat__dot cat__dot--famous" aria-hidden="true"></span>Famous Events</button>
+        <details id="filters-panel" class="filters__panel">
+          <summary class="filters__toggle">
+            <span class="filters__toggle-label">Filters</span>
+            <span id="filters-active" class="filters__active" hidden></span>
+            <svg class="filters__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+          </summary>
+          <div class="filters__body">
+            <div class="filter" style="display:none">
+              <span class="filter__label">Show on map</span>
+              <div id="f-categories" class="cat-group" role="group" aria-label="Pin categories">
+                <button type="button" class="cat is-active" data-cat="routes" aria-pressed="true"><span class="cat__dot cat__dot--routes" aria-hidden="true"></span>Community Routes</button>
+                <button type="button" class="cat is-active" data-cat="bush" aria-pressed="true"><span class="cat__dot cat__dot--bush" aria-hidden="true"></span>Bush Events</button>
+                <button type="button" class="cat is-active" data-cat="famous" aria-pressed="true"><span class="cat__dot cat__dot--famous" aria-hidden="true"></span>Famous Events</button>
+              </div>
+            </div>
+
+            <div class="filter">
+              <span class="filter__label">What the pins mean</span>
+              <ul class="legend">
+                <li><span class="legend__dot legend__dot--routes" aria-hidden="true"></span>Community Routes</li>
+                <li><span class="legend__dot legend__dot--famous" aria-hidden="true"></span>Famous Events</li>
+                <li><span class="legend__dot legend__dot--bush" aria-hidden="true"></span>Bush Events</li>
+              </ul>
+            </div>
+
+            <div class="filter">
+              <label class="filter__label" for="f-distance">
+                Distance <span id="f-distance-val" class="filter__val">any</span>
+              </label>
+              <input id="f-distance" class="filter__range" type="range" min="0" max="200" step="10" value="200" />
+            </div>
+
+            <div class="filter">
+              <span class="filter__label">Location</span>
+              <div class="filter__row">
+                <select id="f-state" class="filter__select" aria-label="State">
+                  <option value="">All states</option>
+                </select>
+                <select id="f-region" class="filter__select" aria-label="Region">
+                  <option value="">All regions</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="filter">
+              <span class="filter__label">Terrain</span>
+              <div id="f-difficulty" class="toggle-group" role="group" aria-label="Terrain type">
+                <button type="button" class="toggle" data-value="groomed">Groomed</button>
+                <button type="button" class="toggle" data-value="rocky">Rocky</button>
+                <button type="button" class="toggle" data-value="proper-mud">Proper Mud</button>
+              </div>
+            </div>
+
+            <button type="button" id="f-reset" class="filter__reset">Reset filters</button>
           </div>
-        </div>
-
-        <div class="filter">
-          <span class="filter__label">What the pins mean</span>
-          <ul class="legend">
-            <li><span class="legend__dot legend__dot--routes" aria-hidden="true"></span>Community Routes</li>
-            <li><span class="legend__dot legend__dot--famous" aria-hidden="true"></span>Famous Events</li>
-            <li><span class="legend__dot legend__dot--bush" aria-hidden="true"></span>Bush Events</li>
-          </ul>
-        </div>
-
-        <div class="filter">
-          <label class="filter__label" for="f-distance">
-            Distance <span id="f-distance-val" class="filter__val">any</span>
-          </label>
-          <input id="f-distance" class="filter__range" type="range" min="0" max="200" step="10" value="200" />
-        </div>
-
-        <div class="filter">
-          <span class="filter__label">Location</span>
-          <div class="filter__row">
-            <select id="f-state" class="filter__select" aria-label="State">
-              <option value="">All states</option>
-            </select>
-            <select id="f-region" class="filter__select" aria-label="Region">
-              <option value="">All regions</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="filter">
-          <span class="filter__label">Terrain</span>
-          <div id="f-difficulty" class="toggle-group" role="group" aria-label="Terrain type">
-            <button type="button" class="toggle" data-value="groomed">Groomed</button>
-            <button type="button" class="toggle" data-value="rocky">Rocky</button>
-            <button type="button" class="toggle" data-value="proper-mud">Proper Mud</button>
-          </div>
-        </div>
-
-        <button type="button" id="f-reset" class="filter__reset">Reset filters</button>
+        </details>
       </form>
 
       <div class="results">
@@ -139,7 +151,7 @@
              Enter submitted the form and reloaded the page. -->
         <div class="results__search" role="search">
           <svg class="results__search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
-          <input id="f-search" class="results__search-input" type="search" placeholder="Search routes" autocomplete="off" enterkeyhint="search" aria-label="Search routes by name" />
+          <input id="f-search" class="results__search-input" type="search" placeholder="Route, region or state" autocomplete="off" enterkeyhint="search" aria-label="Search routes by name, region or state" />
           <button type="button" id="f-search-clear" class="results__search-clear" aria-label="Clear search" hidden>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
           </button>
