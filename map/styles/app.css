@@ -209,45 +209,6 @@ body {
   border-radius: 2px;
 }
 
-/* Search — filters the results list AND the map pins through the same
-   applyFilters() pipeline every other control uses, so typing a name narrows
-   both at once rather than just the list. Own clear (×) button rather than
-   relying on the native type="search" cancel icon: that icon is Chrome/Edge
-   only, styled by the browser not by us, and a route name is the one filter
-   value that's slower to clear by hand (a slider/select resets in one click;
-   deleting typed text is not). The native icon is suppressed below so the
-   two never show up stacked. */
-.filter__search-wrap {
-  position: relative;
-}
-.filter__search {
-  width: 100%;
-  font-family: var(--ui-font);
-  font-size: 13px;
-  padding: 7px 28px 7px 8px;
-  border: 1px solid var(--line);
-  background: #fff;
-  color: var(--ink);
-  border-radius: 2px;
-}
-.filter__search::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
-.filter__search-clear {
-  position: absolute;
-  top: 50%;
-  right: 4px;
-  transform: translateY(-50%);
-  width: 22px;
-  height: 22px;
-  padding: 0;
-  font-size: 17px;
-  line-height: 1;
-  color: var(--ink-soft);
-  background: none;
-  border: none;
-  cursor: pointer;
-}
-.filter__search-clear:hover { color: var(--ink); }
-
 /* Two selects (State + Region) side by side under Location. */
 .filter__row {
   display: flex;
@@ -346,6 +307,84 @@ body {
   overflow-y: auto;
   padding: 12px 0;
 }
+
+/* Search — sits on top of the list it filters, so the routes visibly narrow
+   as you type (filters.js feeds both the list and the map pins through
+   applyFilters). Same build as the map's other text fields (.field-input,
+   .gate__input): white ground, hairline, 2px corners, 14px type — with an
+   icon and a roomier 42px height so it reads as THE search, not a stray
+   form field.
+
+   Sticky, because .results is the scroll container: scroll down the list
+   and the field stays put rather than scrolling away from what it filters.
+
+   Focus is an olive edge, not the global 2px lemon ring. That ring is right
+   for buttons and links, but on a text field it sat outside a hairline box
+   and read as a yellow smear. Olive border + a 1px olive inner ring is still
+   a clearly visible focus state (7:1 on white), just in the field's own
+   language. */
+.results__search {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin: -12px 0 10px; /* cancel .results' top padding so it pins flush */
+  padding: 14px 20px 10px;
+  background: var(--cream-panel);
+}
+.results__search-icon {
+  position: absolute;
+  left: 32px;
+  top: 50%;
+  margin-top: 2px; /* centre on the input, not the padded wrapper */
+  transform: translateY(-50%);
+  color: var(--ink-soft);
+  pointer-events: none;
+}
+.results__search-input {
+  display: block;
+  width: 100%;
+  height: 42px;
+  padding: 0 38px 0 36px;
+  font-family: var(--ui-font);
+  font-size: 14px;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.results__search-input::placeholder { color: var(--ink-soft); opacity: 0.6; }
+.results__search-input::-webkit-search-cancel-button,
+.results__search-input::-webkit-search-decoration { -webkit-appearance: none; appearance: none; }
+.results__search-input:focus,
+.results__search-input:focus-visible {
+  outline: none;
+  border-color: var(--olive);
+  box-shadow: 0 0 0 1px var(--olive) inset;
+  border-radius: 2px;
+}
+.results__search-clear {
+  position: absolute;
+  right: 26px;
+  top: 50%;
+  margin-top: 2px;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  color: var(--ink-soft);
+  background: none;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.results__search-clear:hover { color: var(--ink); background: rgba(76, 75, 59, 0.08); }
+.results__search-clear:focus-visible { outline: 2px solid var(--olive); outline-offset: 0; border-radius: 50%; }
+.results__search-clear[hidden] { display: none; }
 
 .results__count {
   margin: 0 20px 8px;
@@ -2070,6 +2109,10 @@ textarea.field-input {
   }
   .map-brand__mark {
     height: 16px;
+  }
+  /* iOS zooms the whole page into a focused field under 16px. */
+  .results__search-input {
+    font-size: 16px;
   }
   .stage {
     gap: 7px;
