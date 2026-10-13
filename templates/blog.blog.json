@@ -12,10 +12,16 @@
     "main": {
       "type": "alpine-rides",
       "settings": {
+        "only_handle": "",
+        "heading": "UPCOMING GROUP RIDES",
+        "subheading": "Ride with us. Share your stories. Let's explore together.",
+        "subheading_mobile": "Ride with us. Share your stories.",
+        "limit": 3,
+        "empty": "Nothing on the calendar just yet. The next one goes up on our",
         "photo_1": "shopify://shop_images/IMG_2419.jpg",
         "photo_2": "shopify://shop_images/IMG_2124.jpg",
         "photo_3": "shopify://shop_images/IMG_8186.jpg",
-        "limit": 3,
+        "blog": "",
         "recaps": 8
       }
     }
