@@ -1,19 +1,17 @@
 {%- comment -%}
   Bush Riding header — two deliberately different layouts (CLAUDE.md rule 6).
 
-  Desktop (D01–D10): an 84px bone bar. Wordmark · Shop · Bush Map · Rides,
-  then local time and weather, Search, Cart (n). Shop, Bush Map and Search
-  each open a panel under the bar on hover or focus (Shop and Search on click
-  too), which stays while the pointer is over the header or the panel.
-  Clicking Bush Map goes to the map itself. Bush Map (D08): mini-map, the
-  routes near us from the routes worker, the next ride, Open the map and
-  Submit a route. Without script they are plain links to /collections, the
-  map and /search.
+  Desktop and tablet: an 84px bone bar. Wordmark · Shop · Bush Map · Rides,
+  then local time and weather, Search, Cart (n). Shop, Bush Map and Rides
+  open full-width menus under the bar on click or tap (iPads have no hover)
+  and, with a mouse, on hover; Search opens its overlay the same way. A menu
+  stays while the pointer is over the header or the panel. Without script
+  the nav links are plain links to /collections, the map and the rides page.
 
   Phone (M01): a 56px bar. Wordmark, then Search · Cart (n) · menu. The menu
   drops as a sheet under the bar with the page dimmed: Shop expanded with its
-  categories, Bush Map / Rides / About, and local time, weather and currency
-  at its foot.
+  categories, Bush Map and Rides expanding the same way, About, and local
+  time, weather and currency at its foot.
 
   Time, weather, routes and the ride are filled by alpine.js; each piece stays
   hidden until it has something true to say.
@@ -87,7 +85,6 @@
         href="{{ shop_url }}"
         data-alp-toggle="alp-shopmenu"
         data-alp-hover
-        data-alp-follow
         aria-expanded="false"
         aria-controls="alp-shopmenu"
       >Shop</a>
@@ -96,7 +93,6 @@
         href="{{ map_url }}"
         data-alp-toggle="alp-mapmenu"
         data-alp-hover
-        data-alp-follow
         aria-expanded="false"
         aria-controls="alp-mapmenu"
       >Bush Map</a>
@@ -105,7 +101,6 @@
         href="{{ rides_url }}"
         data-alp-toggle="alp-ridesmenu"
         data-alp-hover
-        data-alp-follow
         aria-expanded="false"
         aria-controls="alp-ridesmenu"
         {% if here == 'rides' %}aria-current="page"{% endif %}
@@ -135,12 +130,12 @@
   </div>
 
   {%- comment -%}
-    ── Nav dropdowns (desktop): Shop, Bush Map, Rides ─────────────────────
-    One pattern for all three, opened on hover under their link: a short list
-    of links on the left, one photo on the right (when set in the header
-    settings). Clicking the nav link itself goes to the page.
-    Shop: collections, then product types. Phones get these links in the
-    menu sheet.
+    ── Nav menus (desktop and tablet): Shop, Bush Map, Rides ─────────────
+    Full-width panels under the bar, one pattern for all three: bold main
+    links, then labelled columns, one photo at the right (header settings).
+    Tapping or clicking a nav link opens its panel — it doesn't navigate —
+    so iPads, which have no hover, get the menu too; a mouse also opens it
+    on hover. The pages themselves are the first link in each panel.
   {%- endcomment -%}
   {%- liquid
     assign sp = section.settings.shop_product
@@ -148,16 +143,40 @@
       assign sp = collections['bush-riding-launch'].products.first | default: collections.all.products.first
     endif
     assign life_url = section.settings.shop_image_link.url | default: shop_url
+    capture size_url
+      render 'alp-link', to: 'size_guide'
+    endcapture
+    capture mega_collections
+      render 'alp-shop-links', variant: 'collections'
+    endcapture
   -%}
-  <div class="alp-dd alp-d{% if section.settings.shop_image != blank %} alp-dd--photo{% endif %}" id="alp-shopmenu" data-alp-panel hidden>
-    <nav class="alp-dd__links" aria-label="Shop">
-      {%- render 'alp-shop-links', variant: 'drop' -%}
+  <div class="alp-mega alp-d" id="alp-shopmenu" data-alp-panel hidden>
+    <nav class="alp-mega__cols" aria-label="Shop">
+      <div class="alp-mega__col alp-mega__col--lead">
+        <a class="alp-mega__lead" href="{{ shop_url }}">Shop all</a>
+        {{ mega_collections }}
+      </div>
+      <div class="alp-mega__col">
+        <p class="alp-mega__head">Kit</p>
+        {%- render 'alp-shop-links', variant: 'types' -%}
+      </div>
+      <div class="alp-mega__col">
+        <p class="alp-mega__head">Help</p>
+        {%- if size_url != blank -%}<a class="alp-cats__item" href="{{ size_url }}">Size guide</a>{%- endif -%}
+        {%- if shop.shipping_policy != blank -%}<a class="alp-cats__item" href="{{ shop.shipping_policy.url }}">Shipping</a>{%- endif -%}
+        {%- if shop.refund_policy != blank -%}<a class="alp-cats__item" href="{{ shop.refund_policy.url }}">Returns</a>{%- endif -%}
+        {%- if pages['contact'] != blank -%}
+          <a class="alp-cats__item" href="{{ pages['contact'].url }}">Contact us</a>
+        {%- elsif shop.email != blank -%}
+          <a class="alp-cats__item" href="mailto:{{ shop.email }}">Contact us</a>
+        {%- endif -%}
+      </div>
     </nav>
     {%- if section.settings.shop_image != blank -%}
-      <a class="alp-dd__photo" href="{{ life_url }}" tabindex="-1">
-        {{ section.settings.shop_image | image_url: width: 800 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '400, 600, 800', sizes: '220px', alt: '' }}
+      <a class="alp-mega__photo" href="{{ life_url }}" tabindex="-1">
+        {{ section.settings.shop_image | image_url: width: 800 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '400, 600, 800', sizes: '280px', alt: '' }}
         {%- if section.settings.shop_image_label != blank -%}
-          <span class="alp-shop__label alp-shop__label--bone">{{ section.settings.shop_image_label | escape }}</span>
+          <span class="alp-mega__label">{{ section.settings.shop_image_label | escape }}</span>
         {%- endif -%}
       </a>
     {%- endif -%}
@@ -209,36 +228,46 @@
     </div>
   </div>
 
-  {%- comment -%} Bush Map: the map, submitting a route, two routes near you (alpine.js). {%- endcomment -%}
-  <div class="alp-dd alp-d{% if section.settings.map_image != blank %} alp-dd--photo{% endif %}" id="alp-mapmenu" data-alp-panel hidden>
-    <nav class="alp-dd__links" aria-label="Bush Map">
-      <p class="alp-cats__head">Bush Map™</p>
-      <a class="alp-cats__item" href="{{ map_url }}">Open the map</a>
-      <a class="alp-cats__item" href="{{ submit_url }}">Submit a route</a>
-      <p class="alp-cats__head">Near you{% if settings.alp_near_region != blank %} · {{ settings.alp_near_region | escape }}{% endif %}</p>
-      <div class="alp-dd__list" data-alp-near-list><span class="alp-dd__quiet">Finding routes…</span></div>
+  {%- comment -%} Bush Map: the map and its pages, then routes near us (alpine.js). {%- endcomment -%}
+  <div class="alp-mega alp-d" id="alp-mapmenu" data-alp-panel hidden>
+    <nav class="alp-mega__cols" aria-label="Bush Map">
+      <div class="alp-mega__col alp-mega__col--lead">
+        <a class="alp-mega__lead" href="{{ map_url }}">Open the map</a>
+        <a class="alp-cats__item" href="{{ map_url }}/routes/">Every route</a>
+        <a class="alp-cats__item" href="{{ map_url }}/events/">Events</a>
+        <a class="alp-cats__item" href="{{ submit_url }}">Submit a route</a>
+        {%- if bush_map_url != blank and bush_map_url != map_url -%}<a class="alp-cats__item" href="{{ bush_map_url }}">About Bush Map™</a>{%- endif -%}
+      </div>
+      <div class="alp-mega__col alp-mega__col--wide">
+        <p class="alp-mega__head">Near you{% if settings.alp_near_region != blank %} · {{ settings.alp_near_region | escape }}{% endif %}</p>
+        <div class="alp-dd__list" data-alp-near-list><span class="alp-dd__quiet">Finding routes…</span></div>
+      </div>
     </nav>
     {%- if section.settings.map_image != blank -%}
-      <a class="alp-dd__photo" href="{{ map_url }}" tabindex="-1">
-        {{ section.settings.map_image | image_url: width: 800 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '400, 600, 800', sizes: '220px', alt: '' }}
+      <a class="alp-mega__photo" href="{{ map_url }}" tabindex="-1">
+        {{ section.settings.map_image | image_url: width: 800 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '400, 600, 800', sizes: '280px', alt: '' }}
       </a>
     {%- endif -%}
   </div>
 
-  {%- comment -%} Rides: the rides page, Strava, the next three rides (alpine.js). {%- endcomment -%}
-  <div class="alp-dd alp-d{% if section.settings.rides_image != blank %} alp-dd--photo{% endif %}" id="alp-ridesmenu" data-alp-panel hidden>
-    <nav class="alp-dd__links" aria-label="Rides">
-      <p class="alp-cats__head">Rides</p>
-      <a class="alp-cats__item" href="{{ rides_url }}">All rides</a>
-      {%- if settings.alp_strava_url != blank -%}
-        <a class="alp-cats__item" href="{{ settings.alp_strava_url }}" target="_blank" rel="noopener">Ride with us on Strava</a>
-      {%- endif -%}
-      <p class="alp-cats__head">Coming up</p>
-      <div class="alp-dd__list" data-alp-rides-list><span class="alp-dd__quiet">Finding rides…</span></div>
+  {%- comment -%} Rides: the rides page and Strava, then the next three rides (alpine.js). {%- endcomment -%}
+  <div class="alp-mega alp-d" id="alp-ridesmenu" data-alp-panel hidden>
+    <nav class="alp-mega__cols" aria-label="Rides">
+      <div class="alp-mega__col alp-mega__col--lead">
+        <a class="alp-mega__lead" href="{{ rides_url }}">All rides</a>
+        {%- if settings.alp_strava_url != blank -%}
+          <a class="alp-cats__item" href="{{ settings.alp_strava_url }}" target="_blank" rel="noopener">Ride with us on Strava</a>
+        {%- endif -%}
+        <a class="alp-cats__item" href="{{ map_url }}/events/">Events on the map</a>
+      </div>
+      <div class="alp-mega__col alp-mega__col--wide">
+        <p class="alp-mega__head">Coming up</p>
+        <div class="alp-dd__list" data-alp-rides-list><span class="alp-dd__quiet">Finding rides…</span></div>
+      </div>
     </nav>
     {%- if section.settings.rides_image != blank -%}
-      <a class="alp-dd__photo" href="{{ rides_url }}" tabindex="-1">
-        {{ section.settings.rides_image | image_url: width: 800 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '400, 600, 800', sizes: '220px', alt: '' }}
+      <a class="alp-mega__photo" href="{{ rides_url }}" tabindex="-1">
+        {{ section.settings.rides_image | image_url: width: 800 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '400, 600, 800', sizes: '280px', alt: '' }}
       </a>
     {%- endif -%}
   </div>
@@ -252,8 +281,26 @@
           {%- render 'alp-shop-links', variant: 'list', menu_link: true -%}
         </div>
       </details>
-      <a class="alp-menu__row" href="{{ bush_map_url }}" data-alp-close>Bush Map <span aria-hidden="true">→</span></a>
-      <a class="alp-menu__row" href="{{ rides_url }}" data-alp-close>Rides <span aria-hidden="true">→</span></a>
+      <details class="alp-menu__group">
+        <summary class="alp-menu__row">Bush Map <span class="alp-menu__pm" aria-hidden="true"></span></summary>
+        <div class="alp-menu__sub alp-cats">
+          <a class="alp-cats__item" href="{{ map_url }}" data-alp-close>Open the map</a>
+          <a class="alp-cats__item" href="{{ map_url }}/routes/" data-alp-close>Every route</a>
+          <a class="alp-cats__item" href="{{ map_url }}/events/" data-alp-close>Events</a>
+          <a class="alp-cats__item" href="{{ submit_url }}" data-alp-close>Submit a route</a>
+          {%- if bush_map_url != blank and bush_map_url != map_url -%}<a class="alp-cats__item" href="{{ bush_map_url }}" data-alp-close>About Bush Map™</a>{%- endif -%}
+        </div>
+      </details>
+      <details class="alp-menu__group">
+        <summary class="alp-menu__row">Rides <span class="alp-menu__pm" aria-hidden="true"></span></summary>
+        <div class="alp-menu__sub alp-cats">
+          <a class="alp-cats__item" href="{{ rides_url }}" data-alp-close>All rides</a>
+          {%- if settings.alp_strava_url != blank -%}
+            <a class="alp-cats__item" href="{{ settings.alp_strava_url }}" target="_blank" rel="noopener" data-alp-close>Ride with us on Strava</a>
+          {%- endif -%}
+          <a class="alp-cats__item" href="{{ map_url }}/events/" data-alp-close>Events on the map</a>
+        </div>
+      </details>
       {%- if about_url != blank -%}
         <a class="alp-menu__row" href="{{ about_url }}" data-alp-close>About <span aria-hidden="true">→</span></a>
       {%- endif -%}
