@@ -11,6 +11,7 @@ const state = {
   usState: "", // AU state/territory (e.g. "QLD")
   region: "",
   difficulty: null, // "groomed" | "rocky" | "proper-mud"
+  query: "", // route-name search, already lowercased
 };
 
 const SLIDER_MAX = 200;
@@ -31,6 +32,7 @@ export function applyFilters(features) {
     if (state.usState && (p.state || "") !== state.usState) return false;
     if (state.region && p.region !== state.region) return false;
     if (state.difficulty && terrainSlug(p.terrain_difficulty) !== state.difficulty) return false;
+    if (state.query && !String(p.name || "").toLowerCase().includes(state.query)) return false;
     return true;
   });
 }
@@ -69,6 +71,25 @@ export function setupFilters(features, onChange) {
   };
   fillRegions();
 
+  // Search — route name, case-insensitive substring. Filters the map pins
+  // too (applyFilters feeds both), so a typed name narrows the whole view,
+  // not just the list underneath it.
+  const search = document.getElementById("f-search");
+  const searchClear = document.getElementById("f-search-clear");
+  const renderSearchClear = () => { searchClear.hidden = !search.value; };
+  search.addEventListener("input", () => {
+    state.query = search.value.trim().toLowerCase();
+    renderSearchClear();
+    onChange();
+  });
+  searchClear.addEventListener("click", () => {
+    search.value = "";
+    state.query = "";
+    renderSearchClear();
+    search.focus();
+    onChange();
+  });
+
   // Distance slider
   const dist = document.getElementById("f-distance");
   const distVal = document.getElementById("f-distance-val");
@@ -105,8 +126,11 @@ export function setupFilters(features, onChange) {
     state.usState = "";
     state.region = "";
     state.difficulty = null;
+    state.query = "";
     dist.value = String(SLIDER_MAX);
     stateSel.value = "";
+    search.value = "";
+    renderSearchClear();
     fillRegions();
     renderDist();
     // Scoped to the terrain group on purpose. This used to be a document-wide
