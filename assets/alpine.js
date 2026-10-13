@@ -964,7 +964,9 @@
     var wrap = el('div', 'alp-card');
     var media = el('a', 'alp-card__media' + (mist ? ' alp-card__media--mist' : ''));
     media.href = href;
-    if (img) { var i = el('img', 'alp-fill'); i.src = img; i.alt = ''; i.loading = 'lazy'; media.appendChild(i); }
+    /* Width/height give the browser the photo's 3:4 shape before it loads (the
+       card already reserves it; this keeps Chrome's layout-shift check happy). */
+    if (img) { var i = el('img', 'alp-fill'); i.src = img; i.alt = ''; i.width = 600; i.height = 800; i.loading = 'lazy'; i.decoding = 'async'; media.appendChild(i); }
     media.appendChild(el('span', 'alp-card__tag' + (flare ? ' alp-card__tag--flare' : ''), tag));
     var cap = el('p', 'alp-card__cap');
     var n = el('a', '', name); n.href = href; cap.appendChild(n);
