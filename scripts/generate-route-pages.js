@@ -237,8 +237,10 @@ ${siteHeader()}
 <main class="wrap">`;
 }
 function foot() {
+  // trademark.js adds ™ to Bush Riding / Bush Map / DustGrid (map/src/trademark.js).
   return `</main>
 ${siteFooter()}
+<script src="/src/trademark.js" defer></script>
 </body>
 </html>
 `;

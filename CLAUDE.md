@@ -96,8 +96,10 @@ most of the work — text and icon as support. Show, don't tell.
   accordion fields usage/technology/features/composition_care/warranty —
   and hides each block while its field is empty. The list is in the
   section's header comment.
-  The three-tap checkout (card → size → Checkout; product → size → Buy now)
-  is a hard requirement: don't add a step to it. Dawn's own sections remain
+  Checkout stays short: product → size → Buy now (phones) or Add to cart →
+  Checkout in the drawer (desktop). Quick add on product cards was removed
+  in Oct 2026 at the owner's request (too glitchy) — cards link to the
+  product page. Don't add steps to the product-page path. Dawn's own sections remain
   only for accounts, policies, contact and the password page (`main-waitlist`
   + `assets/waitlist.css`).
 - **`map/`** — bushridingmap.com… now **map.bushriding.cc**: static MapLibre

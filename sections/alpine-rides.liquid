@@ -1,5 +1,5 @@
 {%- comment -%}
-  Rides (D09 / M10) — upcoming at the top, recaps below.
+  Rides (D09 / M10) — upcoming at the top, the Ride Journal below.
 
   Upcoming rides come live from the routes worker's /events feed (the same
   one the map's Bush Event pins use), so a ride appears here the moment it's
@@ -8,7 +8,7 @@
   badge is the screen's one flare. A ride's own hero image wins; otherwise
   the photos set here are used in turn.
 
-  Recaps are the journal's articles.
+  The Ride Journal is the blog's articles (ride recaps).
 {%- endcomment -%}
 {%- liquid
   assign show = true
@@ -37,7 +37,7 @@
 -%}
 <section class="alp alp-rides" data-alp-rides data-alp-limit="{{ section.settings.limit }}">
   <header class="alp-pagehead">
-    <h1 class="alp-pagehead__title">{{ section.settings.heading | escape }}</h1>
+    <h1 class="alp-pagehead__title alp-pagehead__title--caps">{{ section.settings.heading | escape }}</h1>
     <p class="alp-pagehead__sub"><span class="alp-d">{{ section.settings.subheading | escape }}</span><span class="alp-m">{{ section.settings.subheading_mobile | escape }}</span></p>
   </header>
 
@@ -74,10 +74,10 @@
   <span hidden data-alp-ride-fallback="{{ map_url | append: '/events/' | escape }}"></span>
 
   {%- if rblog != blank and rblog.articles_count > 0 -%}
-    <h2 class="alp-pagehead__title alp-rides__recaps">Recaps</h2>
+    <h2 class="alp-pagehead__title alp-pagehead__title--caps alp-rides__recaps">Ride Journal</h2>
     {%- render 'alp-recaps', articles: rblog.articles, limit: section.settings.recaps -%}
     {%- if template.name != 'blog' and rblog.articles_count > section.settings.recaps -%}
-      <p class="alp-more"><a href="{{ rblog.url }}">All recaps</a></p>
+      <p class="alp-more"><a href="{{ rblog.url }}">Read the Ride Journal</a></p>
     {%- endif -%}
   {%- endif -%}
 </section>
@@ -98,9 +98,9 @@
     { "type": "image_picker", "id": "photo_1", "label": "Ride photo 1", "info": "Used when a ride has no photo of its own." },
     { "type": "image_picker", "id": "photo_2", "label": "Ride photo 2" },
     { "type": "image_picker", "id": "photo_3", "label": "Ride photo 3" },
-    { "type": "header", "content": "Recaps" },
-    { "type": "blog", "id": "blog", "label": "Recaps from", "info": "Leave empty to use the store's first blog." },
-    { "type": "range", "id": "recaps", "label": "Recaps shown", "min": 1, "max": 8, "step": 1, "default": 2 }
+    { "type": "header", "content": "Ride Journal" },
+    { "type": "blog", "id": "blog", "label": "Ride Journal posts from", "info": "Leave empty to use the store's first blog." },
+    { "type": "range", "id": "recaps", "label": "Ride Journal posts shown", "min": 1, "max": 8, "step": 1, "default": 2 }
   ],
   "presets": [{ "name": "Rides" }]
 }

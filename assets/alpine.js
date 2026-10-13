@@ -408,100 +408,6 @@
       .then(function () { $$('[data-alp-cart-body]').forEach(function (b) { b.classList.remove('is-busy'); }); });
   });
 
-  /* ── Quick add ───────────────────────────────────────────────────────────
-     Desktop: a size in the card's hover strip adds it (tap 2), the drawer
-     opens with Checkout (tap 3). Phone: Quick add + opens the size sheet
-     (tap 1), a size adds it (tap 2), the Added sheet has Checkout (tap 3). */
-  function cardData(card) {
-    var s = card && $('[data-alp-card-data]', card);
-    if (!s) return null;
-    try { return JSON.parse(s.textContent); } catch (err) { return null; }
-  }
-
-  /* Quick add: pick a colour, see that colour's sizes. */
-  document.addEventListener('click', function (e) {
-    var c = e.target.closest('[data-alp-qcolour]');
-    if (!c) return;
-    e.preventDefault();
-    var strip = c.closest('.alp-card__quick'), name = c.getAttribute('data-alp-qcolour');
-    $$('[data-alp-qcolour]', strip).forEach(function (b) { b.setAttribute('aria-pressed', b === c ? 'true' : 'false'); });
-    $$('[data-alp-qgroup]', strip).forEach(function (g) { g.hidden = g.getAttribute('data-alp-qgroup') !== name; });
-  });
-
-  document.addEventListener('click', function (e) {
-    var btn = e.target.closest('[data-alp-add]');
-    if (!btn || btn.disabled) return;
-    e.preventDefault();
-    var card = btn.closest('[data-alp-card]');
-    var data = cardData(card) || {};
-    btn.classList.add('is-busy');
-    addToCart(btn.getAttribute('data-alp-add'))
-      .then(function () {
-        var size = btn.getAttribute('data-alp-size') || (btn.textContent || '').trim();
-        if (size === 'Add +' || size === 'Add') size = '';
-        if (openId === 'alp-quick') closePanel(true);
-        showAdded({ title: data.title, image: data.image, price: data.price, size: size });
-      })
-      .catch(function (err) { toast(err.message); })
-      .then(function () { btn.classList.remove('is-busy'); });
-  });
-
-  document.addEventListener('click', function (e) {
-    var chip = e.target.closest('[data-alp-quick]');
-    if (!chip) return;
-    e.preventDefault();
-    var data = cardData(chip.closest('[data-alp-card]'));
-    var sheet = $('#alp-quick');
-    if (!data || !sheet) return;
-    var img = $('[data-alp-q-img]', sheet);
-    if (data.image) { img.src = data.image; img.hidden = false; } else { img.hidden = true; }
-    $('[data-alp-q-title]', sheet).textContent = data.title;
-    $('[data-alp-q-price]', sheet).textContent = data.price;
-    var sizes = $('[data-alp-q-sizes]', sheet), colours = $('[data-alp-q-colours]', sheet);
-    function sizeButton(v, label) {
-      var b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'alp-sheet__size';
-      b.textContent = label;
-      b.setAttribute('data-alp-add', v.id);
-      b.setAttribute('data-alp-size', v.title === 'Add' ? '' : v.title);
-      b.setAttribute('aria-label', 'Add ' + data.title + (v.title === 'Add' ? '' : ', ' + v.title));
-      if (!v.available) { b.disabled = true; b.setAttribute('aria-label', v.title + ', sold out'); }
-      return b;
-    }
-    sizes.innerHTML = '';
-    colours.innerHTML = '';
-    if (data.colour >= 0) {
-      /* Colour x Size: pick a colour, then that colour's sizes. */
-      var names = [];
-      data.variants.forEach(function (v) { if (names.indexOf(v.o[data.colour]) < 0) names.push(v.o[data.colour]); });
-      var showSizes = function (name) {
-        sizes.innerHTML = '';
-        $$('.alp-sheet__colour', colours).forEach(function (c) { c.setAttribute('aria-pressed', c.textContent === name ? 'true' : 'false'); });
-        data.variants.forEach(function (v) { if (v.o[data.colour] === name) sizes.appendChild(sizeButton(v, v.o[1 - data.colour])); });
-      };
-      names.forEach(function (name) {
-        var c = document.createElement('button');
-        c.type = 'button';
-        c.className = 'alp-sheet__colour';
-        c.textContent = name;
-        c.addEventListener('click', function () { showSizes(name); });
-        colours.appendChild(c);
-      });
-      colours.hidden = false;
-      showSizes(data.active || names[0]);
-    } else {
-      colours.hidden = true;
-      data.variants.forEach(function (v) { sizes.appendChild(sizeButton(v, v.title)); });
-    }
-    /* The sheet's buttons live outside the card, so give it the card's data. */
-    sheet.setAttribute('data-alp-card', '');
-    var holder = $('[data-alp-card-data]', sheet);
-    if (!holder) { holder = document.createElement('script'); holder.type = 'application/json'; holder.setAttribute('data-alp-card-data', ''); sheet.appendChild(holder); }
-    holder.textContent = JSON.stringify(data);
-    openPanel('alp-quick', { focusFrom: chip });
-  });
-
   /* ── Email signups (newsletter, Notify me) ───────────────────────────────
      Every signup form posts into one hidden iframe, so the page itself never
      reloads or moves. That matters because Shopify injects its own bot-
@@ -1315,9 +1221,46 @@
   window.addEventListener('scroll', headerScroll, { passive: true });
 
   /* ── Boot ── */
+  /* ── Trademarks ──────────────────────────────────────────────────────────
+     Bush Riding, Bush Map and DustGrid always carry ™ — in the theme's own
+     words and in anything typed into Shopify (product titles, descriptions,
+     journal posts, collection names). A name already followed by ™ or ® is
+     left alone, so nothing doubles. Lower-case "bush riding" is the
+     activity, not the brand, so it's left as written. Text only: not attributes, form fields,
+     scripts, or the editable bits of the theme editor's own UI. */
+  var TM_RE = /\b(Bush Riding|BUSH RIDING|Bush Map|BUSH MAP|DustGrid|DUSTGRID)(?![™®A-Za-z])/g;
+  var TM_TEST = /\b(Bush Riding|BUSH RIDING|Bush Map|BUSH MAP|DustGrid|DUSTGRID)(?![™®A-Za-z])/;
+  var TM_SKIP = { SCRIPT: 1, STYLE: 1, TEXTAREA: 1, INPUT: 1, SELECT: 1, OPTION: 1, NOSCRIPT: 1, TITLE: 1, CODE: 1, PRE: 1 };
+  function trademark(root) {
+    if (!root || !document.createTreeWalker) return;
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode: function (n) {
+        var p = n.parentNode;
+        if (!p || TM_SKIP[p.nodeName] || (p.closest && p.closest('[contenteditable], [data-alp-no-tm]'))) return NodeFilter.FILTER_REJECT;
+        return TM_TEST.test(n.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+      }
+    });
+    var hits = [];
+    while (walker.nextNode()) hits.push(walker.currentNode);
+    hits.forEach(function (n) { n.nodeValue = n.nodeValue.replace(TM_RE, '$1™'); });
+  }
+  /* Menus, search results and the cart fill in after load; catch those too.
+     Rewriting a text node is a characterData change, which this doesn't
+     watch, so it can't loop. */
+  if (window.MutationObserver) {
+    new MutationObserver(function (list) {
+      list.forEach(function (m) {
+        m.addedNodes.forEach(function (n) {
+          if (n.nodeType === 1) trademark(n);
+          else if (n.nodeType === 3 && n.parentNode) trademark(n.parentNode);
+        });
+      });
+    }).observe(document.body, { childList: true, subtree: true });
+  }
+
   function init() {
     /* One failing block mustn't stop the rest of the page's script. */
-    [initSignups, initScrollers, initRecs, tickClock, initWeather, initVideos, initPdp, initRideTiles,
+    [function () { trademark(document.body); }, initSignups, initScrollers, initRecs, tickClock, initWeather, initVideos, initPdp, initRideTiles,
      openFilterGroups, initRides, initRoutesPage, initSearch].forEach(function (fn) {
       try { fn(); } catch (err) { if (window.console) console.error('[alp] ' + (fn.name || 'init') + ' failed:', err); }
     });

@@ -232,7 +232,7 @@
   <div class="alp-mega alp-d" id="alp-mapmenu" data-alp-panel hidden>
     <nav class="alp-mega__cols" aria-label="Bush Map">
       <div class="alp-mega__col alp-mega__col--lead">
-        <a class="alp-mega__lead" href="{{ map_url }}">Open the map</a>
+        <a class="alp-pill" href="{{ map_url }}">Open the map <span aria-hidden="true">→</span></a>
         <a class="alp-cats__item" href="{{ map_url }}/routes/">Every route</a>
         <a class="alp-cats__item" href="{{ map_url }}/events/">Events</a>
         <a class="alp-cats__item" href="{{ submit_url }}">Submit a route</a>
@@ -250,8 +250,27 @@
     {%- endif -%}
   </div>
 
-  {%- comment -%} Rides: the rides page and Strava, then the next three rides (alpine.js). {%- endcomment -%}
-  <div class="alp-mega alp-d" id="alp-ridesmenu" data-alp-panel hidden>
+  {%- comment -%}
+    Rides — taller than the other two, to pull the eye: the rides page and
+    Strava, the next rides (alpine.js), and at the right the three newest
+    Ride Journal posts with their cover photos. The journal is the blog the
+    Rides page reads (journal, else the store's first blog). With no posts
+    yet, the Rides photo from the header settings shows instead.
+  {%- endcomment -%}
+  {%- liquid
+    assign jblog = blogs['journal']
+    if jblog == blank or jblog.handle == blank
+      for b in blogs
+        assign jblog = b
+        break
+      endfor
+    endif
+    assign jcount = 0
+    if jblog != blank and jblog.handle != blank
+      assign jcount = jblog.articles_count
+    endif
+  -%}
+  <div class="alp-mega alp-mega--rides alp-d" id="alp-ridesmenu" data-alp-panel hidden>
     <nav class="alp-mega__cols" aria-label="Rides">
       <div class="alp-mega__col alp-mega__col--lead">
         <a class="alp-mega__lead" href="{{ rides_url }}">All rides</a>
@@ -259,13 +278,31 @@
           <a class="alp-cats__item" href="{{ settings.alp_strava_url }}" target="_blank" rel="noopener">Ride with us on Strava</a>
         {%- endif -%}
         <a class="alp-cats__item" href="{{ map_url }}/events/">Events on the map</a>
+        {%- if jcount > 0 -%}<a class="alp-cats__item" href="{{ jblog.url }}">Ride Journal</a>{%- endif -%}
       </div>
-      <div class="alp-mega__col alp-mega__col--wide">
-        <p class="alp-mega__head">Coming up</p>
+      <div class="alp-mega__col">
+        <p class="alp-mega__head">Upcoming rides</p>
         <div class="alp-dd__list" data-alp-rides-list><span class="alp-dd__quiet">Finding rides…</span></div>
       </div>
     </nav>
-    {%- if section.settings.rides_image != blank -%}
+    {%- if jcount > 0 -%}
+      <div class="alp-mega__journal">
+        <p class="alp-mega__head"><a href="{{ jblog.url }}">Ride Journal</a></p>
+        <div class="alp-mega__posts">
+          {%- for a in jblog.articles limit: 3 -%}
+            <a class="alp-mega__post" href="{{ a.url }}">
+              <span class="alp-mega__postimg">
+                {%- if a.image != blank -%}
+                  {{ a.image | image_url: width: 600 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '300, 450, 600', sizes: '240px', alt: '' }}
+                {%- endif -%}
+              </span>
+              <span class="alp-mega__postdate">{{ a.published_at | date: '%-d %B %Y' }}</span>
+              <span class="alp-mega__posttitle">{{ a.title | escape }}</span>
+            </a>
+          {%- endfor -%}
+        </div>
+      </div>
+    {%- elsif section.settings.rides_image != blank -%}
       <a class="alp-mega__photo" href="{{ rides_url }}" tabindex="-1">
         {{ section.settings.rides_image | image_url: width: 800 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '400, 600, 800', sizes: '280px', alt: '' }}
       </a>
@@ -284,7 +321,7 @@
       <details class="alp-menu__group">
         <summary class="alp-menu__row">Bush Map <span class="alp-menu__pm" aria-hidden="true"></span></summary>
         <div class="alp-menu__sub alp-cats">
-          <a class="alp-cats__item" href="{{ map_url }}" data-alp-close>Open the map</a>
+          <a class="alp-pill" href="{{ map_url }}" data-alp-close>Open the map <span aria-hidden="true">→</span></a>
           <a class="alp-cats__item" href="{{ map_url }}/routes/" data-alp-close>Every route</a>
           <a class="alp-cats__item" href="{{ map_url }}/events/" data-alp-close>Events</a>
           <a class="alp-cats__item" href="{{ submit_url }}" data-alp-close>Submit a route</a>
@@ -333,7 +370,7 @@
     { "type": "header", "content": "Bush Map dropdown (desktop)" },
     { "type": "image_picker", "id": "map_image", "label": "Photo", "info": "Portrait works best. Leave empty for a links-only dropdown." },
     { "type": "header", "content": "Rides dropdown (desktop)" },
-    { "type": "image_picker", "id": "rides_image", "label": "Photo", "info": "Portrait works best. Leave empty for a links-only dropdown." },
+    { "type": "image_picker", "id": "rides_image", "label": "Photo", "info": "Shown only until the Ride Journal has a post — then its three newest posts take this spot." },
     { "type": "paragraph", "content": "Pages, map links, time zone and weather are set in Theme settings → Bush Riding." }
   ]
 }
