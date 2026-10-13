@@ -154,12 +154,61 @@ body {
 }
 
 /* ---------- Filters ---------- */
+/* Filters fold away under one "Filters" row (a native <details>, so it
+   opens with a tap, Enter or Space and announces its state with no JS),
+   leaving the drawer to the search and the route list. The olive count pill
+   says how many are on while it's shut, so a filtered list is never mistaken
+   for a short one. */
 .filters {
-  padding: 16px 20px;
+  padding: 0 20px;
   border-bottom: 1px solid var(--line);
+  flex: 0 1 auto;
+  /* Open, it scrolls within itself rather than shoving the route list off
+     the bottom of a short phone — the list keeps at least ~half the drawer. */
+  max-height: 55%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.filters__toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  list-style: none;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  -webkit-tap-highlight-color: transparent;
+}
+.filters__toggle::-webkit-details-marker { display: none; }
+.filters__toggle:hover { color: var(--ink); }
+.filters__toggle:focus-visible { outline: 2px solid var(--olive); outline-offset: -2px; border-radius: 2px; }
+.filters__active {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 9px;
+  background: var(--olive);
+  color: var(--cream);
+  font-size: 11px;
+  line-height: 18px;
+  letter-spacing: 0;
+  text-align: center;
+}
+.filters__active[hidden] { display: none; }
+.filters__chevron {
+  margin-left: auto;
+  transition: transform 0.2s ease;
+}
+.filters__panel[open] .filters__chevron { transform: rotate(180deg); }
+.filters__body {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  padding: 4px 0 18px;
 }
 
 .filter {
@@ -355,6 +404,10 @@ body {
   appearance: none;
 }
 .results__search-input::placeholder { color: var(--ink-soft); opacity: 0.6; }
+/* The clear button only exists once there's text, i.e. never while the
+   placeholder shows, so the empty field gives its room back to the
+   placeholder — that's what lets it fit untruncated on a 320px phone. */
+.results__search-input:placeholder-shown { padding-right: 12px; }
 .results__search-input::-webkit-search-cancel-button,
 .results__search-input::-webkit-search-decoration { -webkit-appearance: none; appearance: none; }
 .results__search-input:focus,
