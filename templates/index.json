@@ -17,15 +17,17 @@
         "show_wordmark": true,
         "wordmark_tone": "bone",
         "tagline": "Made for the detour.",
-        "button_label": "Shop the kit"
+        "button_label": "Shop the kit",
+        "button_link": ""
       }
     },
     "shop": {
       "type": "alpine-home-shop",
       "settings": {
-        "lifestyle": "shopify://shop_images/IMG_2124.jpg",
-        "lifestyle_caption": "On the long way home",
+        "product": "bush-riding-shorts",
         "second_suffix": ", rear",
+        "lifestyle": "shopify://shop_images/IMG_4812.jpg",
+        "lifestyle_caption": "Mount Beerwah, QLD",
         "mobile_heading": "The shorts",
         "mobile_button": "View all"
       }
@@ -40,7 +42,8 @@
             "ground": "bone",
             "title": "Ride with us",
             "chip": "Rides",
-            "to": "rides"
+            "to": "rides",
+            "url": ""
           }
         },
         "map": {
@@ -49,7 +52,8 @@
             "ground": "mist",
             "title": "Get the route. Join the bush.",
             "chip": "BUSH MAP™",
-            "to": "map"
+            "to": "map",
+            "url": ""
           }
         }
       },
@@ -69,6 +73,7 @@
             "title": "Questions about the kit?",
             "text": "Ask us anything. We ride in it every week.",
             "link": "contact",
+            "url": "",
             "link_label": "Get in touch"
           }
         },
@@ -79,6 +84,7 @@
             "title": "Shipping",
             "text": "Where it goes and how long it takes.",
             "link": "shipping",
+            "url": "",
             "link_label": "Shipping details"
           }
         },
@@ -89,6 +95,7 @@
             "title": "Returns",
             "text": "Wrong size? Here's how we sort it.",
             "link": "returns",
+            "url": "",
             "link_label": "Returns"
           }
         }
