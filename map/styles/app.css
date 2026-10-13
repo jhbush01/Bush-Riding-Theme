@@ -56,6 +56,24 @@ body {
   overflow: clip;
 }
 
+/* Trademark (src/trademark.js wraps every brand name in .tm-name with the
+   ™ in .tm). Set small and raised so its top sits at cap height, the way it
+   would be in print: at full size the glyph is nearly as tall as the
+   capitals and read as a second word on the "Bush Map" heading. In em, so it
+   scales with whatever it's attached to — heading, card or footnote.
+   line-height 0 stops the raised mark from pushing the line box taller. */
+.tm-name {
+  white-space: nowrap; /* never strand the mark at the start of a line */
+}
+.tm {
+  font-size: max(0.42em, 7px); /* a floor so it stays a mark, not a speck, on 13px card text */
+  font-weight: 400;
+  line-height: 0;
+  vertical-align: 0.9em;
+  margin-left: 0.06em;
+  letter-spacing: 0;
+}
+
 #map {
   position: absolute;
   inset: 0;
