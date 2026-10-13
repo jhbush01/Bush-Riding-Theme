@@ -78,18 +78,6 @@
     $$('[data-alp-toggle="' + id + '"]').forEach(function (b) { b.setAttribute('aria-expanded', on ? 'true' : 'false'); });
   }
 
-  /* A nav dropdown sits under its own link: the panel's text lines up with
-     the link's, and it never runs off the right edge. */
-  function placeDropdown(el, id) {
-    var link = $('[data-alp-toggle="' + id + '"]');
-    var hd = el.closest('[data-alp-header]');
-    if (!link || !hd) return;
-    var pad = 32;
-    var left = link.getBoundingClientRect().left - hd.getBoundingClientRect().left - pad;
-    left = Math.max(0, Math.min(left, hd.clientWidth - el.offsetWidth));
-    el.style.left = left + 'px';
-  }
-
   function openPanel(id, opts) {
     var el = document.getElementById(id);
     if (!el) return;
@@ -115,7 +103,6 @@
       var f = el.querySelector('[data-alp-close], button, a[href], input');
       if (f) setTimeout(function () { f.focus({ preventScroll: true }); }, 30);
     }
-    if (el.classList.contains('alp-dd')) placeDropdown(el, id);
     if (id === 'alp-mapmenu') fillNearList();
     if (id === 'alp-ridesmenu') fillRidesList();
     if (id === 'alp-searchmenu') {
@@ -143,10 +130,14 @@
   document.addEventListener('click', function (e) {
     var t = e.target;
     var toggle = t.closest('[data-alp-toggle]');
-    /* Bush Map opens its panel on hover, but a click goes to the map. */
+    /* A toggle marked data-alp-follow navigates on click (desktop) instead of
+       opening its panel; the nav menus don't use it, so iPads get them. */
     if (toggle && toggle.hasAttribute('data-alp-follow') && DESKTOP.matches) { closePanel(true); return; }
     if (toggle) {
       e.preventDefault();
+      /* A tap fires a synthetic mouseover first; its pending hover-open must
+         not reopen a menu this tap is closing (iPad, no real hover). */
+      clearTimeout(hoverT);
       var id = toggle.getAttribute('data-alp-toggle');
       /* A hover that has just opened the panel shouldn't be undone by the
          click that usually follows it. */

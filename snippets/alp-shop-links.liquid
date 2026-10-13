@@ -12,7 +12,8 @@
 
   variant:
     list – the phone menu: Types, then Collections
-    drop – the desktop Shop dropdown: Collections, then Types
+    drop – Collections, then Types, in one list
+    collections / types – one column each, for the desktop mega menu
     bar  – the collection page's category bar; marks where you are
 {%- endcomment -%}
 {%- liquid
@@ -55,6 +56,15 @@
     <span class="alp-cats__rule" aria-hidden="true"></span>
     {{ collection_links }}
   {%- endif -%}
+{%- elsif variant == 'collections' -%}
+  {{ collection_links }}
+{%- elsif variant == 'types' -%}
+  {%- for t in shop.types -%}
+    {%- if t != blank -%}
+      <a class="alp-cats__item" href="{{ t | url_for_type }}">{{ t | escape }}</a>
+    {%- endif -%}
+  {%- endfor -%}
+  {{ soon_links }}
 {%- elsif variant == 'drop' -%}
   {%- if collection_links != blank -%}
     <p class="alp-cats__head">Collections</p>
