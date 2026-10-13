@@ -1225,10 +1225,11 @@
      Bush Riding, Bush Map and DustGrid always carry ™ — in the theme's own
      words and in anything typed into Shopify (product titles, descriptions,
      journal posts, collection names). A name already followed by ™ or ® is
-     left alone, so nothing doubles. Text only: not attributes, form fields,
+     left alone, so nothing doubles. Lower-case "bush riding" is the
+     activity, not the brand, so it's left as written. Text only: not attributes, form fields,
      scripts, or the editable bits of the theme editor's own UI. */
-  var TM_RE = /\b(Bush Riding|Bush Map|DustGrid)(?![™®A-Za-z])/g;
-  var TM_TEST = /\b(Bush Riding|Bush Map|DustGrid)(?![™®A-Za-z])/;
+  var TM_RE = /\b(Bush Riding|BUSH RIDING|Bush Map|BUSH MAP|DustGrid|DUSTGRID)(?![™®A-Za-z])/g;
+  var TM_TEST = /\b(Bush Riding|BUSH RIDING|Bush Map|BUSH MAP|DustGrid|DUSTGRID)(?![™®A-Za-z])/;
   var TM_SKIP = { SCRIPT: 1, STYLE: 1, TEXTAREA: 1, INPUT: 1, SELECT: 1, OPTION: 1, NOSCRIPT: 1, TITLE: 1, CODE: 1, PRE: 1 };
   function trademark(root) {
     if (!root || !document.createTreeWalker) return;
