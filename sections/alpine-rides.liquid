@@ -37,7 +37,7 @@
 -%}
 <section class="alp alp-rides" data-alp-rides data-alp-limit="{{ section.settings.limit }}">
   <header class="alp-pagehead">
-    <h1 class="alp-pagehead__title">{{ section.settings.heading | escape }}</h1>
+    <h1 class="alp-pagehead__title alp-pagehead__title--caps">{{ section.settings.heading | escape }}</h1>
     <p class="alp-pagehead__sub"><span class="alp-d">{{ section.settings.subheading | escape }}</span><span class="alp-m">{{ section.settings.subheading_mobile | escape }}</span></p>
   </header>
 
@@ -74,7 +74,7 @@
   <span hidden data-alp-ride-fallback="{{ map_url | append: '/events/' | escape }}"></span>
 
   {%- if rblog != blank and rblog.articles_count > 0 -%}
-    <h2 class="alp-pagehead__title alp-rides__recaps">Ride Journal</h2>
+    <h2 class="alp-pagehead__title alp-pagehead__title--caps alp-rides__recaps">Ride Journal</h2>
     {%- render 'alp-recaps', articles: rblog.articles, limit: section.settings.recaps -%}
     {%- if template.name != 'blog' and rblog.articles_count > section.settings.recaps -%}
       <p class="alp-more"><a href="{{ rblog.url }}">Read the Ride Journal</a></p>

@@ -232,7 +232,7 @@
   <div class="alp-mega alp-d" id="alp-mapmenu" data-alp-panel hidden>
     <nav class="alp-mega__cols" aria-label="Bush Map">
       <div class="alp-mega__col alp-mega__col--lead">
-        <a class="alp-mega__lead" href="{{ map_url }}">Open the map</a>
+        <a class="alp-pill" href="{{ map_url }}">Open the map <span aria-hidden="true">→</span></a>
         <a class="alp-cats__item" href="{{ map_url }}/routes/">Every route</a>
         <a class="alp-cats__item" href="{{ map_url }}/events/">Events</a>
         <a class="alp-cats__item" href="{{ submit_url }}">Submit a route</a>
@@ -281,7 +281,7 @@
         {%- if jcount > 0 -%}<a class="alp-cats__item" href="{{ jblog.url }}">Ride Journal</a>{%- endif -%}
       </div>
       <div class="alp-mega__col">
-        <p class="alp-mega__head">Coming up</p>
+        <p class="alp-mega__head">Upcoming rides</p>
         <div class="alp-dd__list" data-alp-rides-list><span class="alp-dd__quiet">Finding rides…</span></div>
       </div>
     </nav>
@@ -321,7 +321,7 @@
       <details class="alp-menu__group">
         <summary class="alp-menu__row">Bush Map <span class="alp-menu__pm" aria-hidden="true"></span></summary>
         <div class="alp-menu__sub alp-cats">
-          <a class="alp-cats__item" href="{{ map_url }}" data-alp-close>Open the map</a>
+          <a class="alp-pill" href="{{ map_url }}" data-alp-close>Open the map <span aria-hidden="true">→</span></a>
           <a class="alp-cats__item" href="{{ map_url }}/routes/" data-alp-close>Every route</a>
           <a class="alp-cats__item" href="{{ map_url }}/events/" data-alp-close>Events</a>
           <a class="alp-cats__item" href="{{ submit_url }}" data-alp-close>Submit a route</a>

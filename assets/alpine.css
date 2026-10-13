@@ -286,6 +286,14 @@ a:hover > .alp-duo__stack .alp-chip, summary:hover > .alp-chip {
 .alp-mega__posttitle { font: 600 17px/1.25 var(--alp-font-display); }
 .alp-mega a.alp-mega__post:hover { text-decoration: none; }
 .alp-mega__post:hover .alp-mega__posttitle { text-decoration: underline; text-underline-offset: 4px; }
+/* A flare pill: the one place to press (Open the map). */
+.alp-pill {
+  display: inline-flex; align-items: center; gap: 8px; margin-bottom: 6px; padding: 11px 18px;
+  background: var(--alp-flare); color: var(--alp-ink); border: 1px solid var(--alp-ink); border-radius: 999px;
+  font: 600 16px/1 var(--alp-font-display);
+}
+.alp a.alp-pill:hover, .alp-mega a.alp-pill:hover { background: var(--alp-ink); color: var(--alp-flare); text-decoration: none; }
+.alp-menu__sub .alp-pill { align-self: flex-start; margin: 4px 0 8px; }
 .alp-dd__list { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
 .alp-dd__list a { display: flex; flex-direction: column; gap: 2px; font: 600 16px/1.25 var(--alp-font-display); }
 .alp-dd__list small { font: 400 13px/1.3 var(--alp-font-ui); color: var(--alp-accent); }
@@ -999,6 +1007,7 @@ div.alp-scrim[hidden] { display: none; }
 .alp-pagehead { text-align: center; padding: 64px 24px 12px; }
 .alp-pagehead__title { font: 600 40px/1.1 var(--alp-font-display); }
 .alp-pagehead__sub { margin-top: 10px !important; font-size: 16px; }
+.alp-pagehead__title--caps { text-transform: uppercase; letter-spacing: 0.02em; }
 .alp-more { text-align: center; padding: 24px 0 56px; }
 .alp-more a { font-family: var(--alp-font-display); font-weight: 600; text-decoration: underline; text-underline-offset: 4px; }
 .alp-pages { display: flex; justify-content: center; gap: 24px; padding: 32px 18px; font-size: 15px; }

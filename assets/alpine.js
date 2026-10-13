@@ -1221,9 +1221,45 @@
   window.addEventListener('scroll', headerScroll, { passive: true });
 
   /* ── Boot ── */
+  /* ── Trademarks ──────────────────────────────────────────────────────────
+     Bush Riding, Bush Map and DustGrid always carry ™ — in the theme's own
+     words and in anything typed into Shopify (product titles, descriptions,
+     journal posts, collection names). A name already followed by ™ or ® is
+     left alone, so nothing doubles. Text only: not attributes, form fields,
+     scripts, or the editable bits of the theme editor's own UI. */
+  var TM_RE = /\b(Bush Riding|Bush Map|DustGrid)(?![™®A-Za-z])/g;
+  var TM_TEST = /\b(Bush Riding|Bush Map|DustGrid)(?![™®A-Za-z])/;
+  var TM_SKIP = { SCRIPT: 1, STYLE: 1, TEXTAREA: 1, INPUT: 1, SELECT: 1, OPTION: 1, NOSCRIPT: 1, TITLE: 1, CODE: 1, PRE: 1 };
+  function trademark(root) {
+    if (!root || !document.createTreeWalker) return;
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode: function (n) {
+        var p = n.parentNode;
+        if (!p || TM_SKIP[p.nodeName] || (p.closest && p.closest('[contenteditable], [data-alp-no-tm]'))) return NodeFilter.FILTER_REJECT;
+        return TM_TEST.test(n.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+      }
+    });
+    var hits = [];
+    while (walker.nextNode()) hits.push(walker.currentNode);
+    hits.forEach(function (n) { n.nodeValue = n.nodeValue.replace(TM_RE, '$1™'); });
+  }
+  /* Menus, search results and the cart fill in after load; catch those too.
+     Rewriting a text node is a characterData change, which this doesn't
+     watch, so it can't loop. */
+  if (window.MutationObserver) {
+    new MutationObserver(function (list) {
+      list.forEach(function (m) {
+        m.addedNodes.forEach(function (n) {
+          if (n.nodeType === 1) trademark(n);
+          else if (n.nodeType === 3 && n.parentNode) trademark(n.parentNode);
+        });
+      });
+    }).observe(document.body, { childList: true, subtree: true });
+  }
+
   function init() {
     /* One failing block mustn't stop the rest of the page's script. */
-    [initSignups, initScrollers, initRecs, tickClock, initWeather, initVideos, initPdp, initRideTiles,
+    [function () { trademark(document.body); }, initSignups, initScrollers, initRecs, tickClock, initWeather, initVideos, initPdp, initRideTiles,
      openFilterGroups, initRides, initRoutesPage, initSearch].forEach(function (fn) {
       try { fn(); } catch (err) { if (window.console) console.error('[alp] ' + (fn.name || 'init') + ' failed:', err); }
     });
