@@ -103,14 +103,6 @@
         </div>
 
         <div class="filter">
-          <label class="filter__label" for="f-search">Search</label>
-          <div class="filter__search-wrap">
-            <input id="f-search" class="filter__search" type="search" placeholder="Route name…" autocomplete="off" />
-            <button type="button" id="f-search-clear" class="filter__search-clear" aria-label="Clear search" hidden>&times;</button>
-          </div>
-        </div>
-
-        <div class="filter">
           <label class="filter__label" for="f-distance">
             Distance <span id="f-distance-val" class="filter__val">any</span>
           </label>
@@ -142,6 +134,16 @@
       </form>
 
       <div class="results">
+        <!-- Search sits on the list it filters, so the routes visibly narrow
+             as you type. Deliberately NOT inside <form id="filters">: there,
+             Enter submitted the form and reloaded the page. -->
+        <div class="results__search" role="search">
+          <svg class="results__search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+          <input id="f-search" class="results__search-input" type="search" placeholder="Search routes" autocomplete="off" enterkeyhint="search" aria-label="Search routes by name" />
+          <button type="button" id="f-search-clear" class="results__search-clear" aria-label="Clear search" hidden>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        </div>
         <p id="results-count" class="results__count"></p>
         <ul id="results-list" class="results__list"></ul>
       </div>
