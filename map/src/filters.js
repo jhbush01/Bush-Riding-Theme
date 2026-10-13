@@ -77,18 +77,38 @@ export function setupFilters(features, onChange) {
   const search = document.getElementById("f-search");
   const searchClear = document.getElementById("f-search-clear");
   const renderSearchClear = () => { searchClear.hidden = !search.value; };
-  search.addEventListener("input", () => {
+  // One refresh per frame, however fast the typing: each refresh rewrites the
+  // list and the map's pin source, so coalescing keystrokes keeps it instant.
+  let searchFrame = 0;
+  const applySearch = () => {
     state.query = search.value.trim().toLowerCase();
     renderSearchClear();
-    onChange();
+    cancelAnimationFrame(searchFrame);
+    searchFrame = requestAnimationFrame(onChange);
+  };
+  search.addEventListener("input", applySearch);
+  search.addEventListener("keydown", (e) => {
+    // Results are already live, so Enter has nothing left to do except get
+    // the phone keyboard out of the way of them.
+    if (e.key === "Enter") {
+      e.preventDefault();
+      search.blur();
+    } else if (e.key === "Escape" && search.value) {
+      e.preventDefault();
+      search.value = "";
+      applySearch();
+    }
   });
   searchClear.addEventListener("click", () => {
     search.value = "";
-    state.query = "";
-    renderSearchClear();
+    applySearch();
     search.focus();
-    onChange();
   });
+
+  // Nothing in the filter panel is a real form submission. Without this,
+  // Enter in any field submitted it and reloaded the whole page.
+  const form = document.getElementById("filters");
+  if (form) form.addEventListener("submit", (e) => e.preventDefault());
 
   // Distance slider
   const dist = document.getElementById("f-distance");
