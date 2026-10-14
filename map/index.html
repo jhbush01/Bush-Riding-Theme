@@ -45,6 +45,11 @@
 
     <link rel="stylesheet" href="styles/app.css" />
 
+    <!-- Loading animation (<bush-map-loader>, a self-contained web component).
+         Loaded synchronously — it's small and local — so it's drawing before
+         the map scripts have even started. -->
+    <script src="src/bush-map-loader.js"></script>
+
     <!-- Deployment config — the only place to set per-environment values. -->
     <script>
       window.BRM_CONFIG = {
@@ -68,6 +73,25 @@
     <a class="skip-link" href="#sidebar">Skip to routes and filters</a>
 
     <div id="map" aria-label="Map of curated gravel routes"></div>
+
+    <!-- Loading screen. Covers the page until the map has actually drawn;
+         map.js lifts it (window.brmHideLoader). It removes itself after the
+         fade rather than waiting for transitionend, which never fires when
+         reduced motion has switched the transition off. -->
+    <div id="map-loader" class="map-loader" role="status">
+      <bush-map-loader></bush-map-loader>
+    </div>
+    <script>
+      window.brmHideLoader = function () {
+        var el = document.getElementById("map-loader");
+        if (!el || el.classList.contains("is-done")) return;
+        el.classList.add("is-done");
+        setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 450);
+      };
+      // Never outstay the page: if anything upstream stalls or fails, lift it
+      // anyway — the route list works without the map.
+      setTimeout(window.brmHideLoader, 15000);
+    </script>
 
 
 

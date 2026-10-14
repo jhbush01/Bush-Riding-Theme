@@ -346,6 +346,7 @@ async function init() {
     routeFeatures.forEach((f) => routeById.set(f.properties.id, f));
   } catch (e) {
     console.error("Could not load routes.geojson:", e);
+    liftLoader();
     return;
   }
 
@@ -365,7 +366,17 @@ async function init() {
     await initMap();
   } catch (e) {
     console.error("Map failed to initialise; routes are still browsable.", e);
+    liftLoader();
   }
+}
+
+/* The loading screen (index.html #map-loader) lifts once the map has actually
+   drawn: the first `idle` after load, i.e. every visible tile painted, so it
+   fades onto a finished map rather than a blank one. 4 s after load at the
+   latest, so one slow tile can't hold the whole page behind it; index.html
+   also lifts it at 15 s from page start whatever happens. */
+function liftLoader() {
+  if (window.brmHideLoader) window.brmHideLoader();
 }
 
 async function loadCommunityRoutes() {
@@ -595,6 +606,10 @@ async function initMap() {
   map.touchZoomRotate.disableRotation();
 
   map.on("load", onLoad);
+  map.once("load", () => {
+    map.once("idle", liftLoader);
+    setTimeout(liftLoader, 4000);
+  });
 }
 
 function onLoad() {
