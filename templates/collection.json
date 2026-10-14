@@ -11,8 +11,26 @@
   "sections": {
     "main": {
       "type": "alpine-catalogue",
+      "blocks": {
+        "intro_YeTmpW": {
+          "type": "intro",
+          "settings": {
+            "match": "Shorts",
+            "image": "shopify://shop_images/pine-tree-texture-dark-greens.jpg",
+            "title": "",
+            "tagline": "The most critical component in a riders kit",
+            "text": "We want you to want you to want us to want you to look good. \n\nConfused? Yeah, we were too when we tried to find cycling shorts that somewhat resembled our identity as riders that aren't aiming for the podium without sacrificing comfort and performance.\n\nNo one else was doing it, so we did. Hope you don't mind getting checked out as you fly past, for a good reason this time not because your whole package is on show."
+          }
+        }
+      },
+      "block_order": [
+        "intro_YeTmpW"
+      ],
       "settings": {
-        "lifestyle": "shopify://shop_images/IMG_2124.jpg"
+        "lifestyle": "shopify://shop_images/IMG_2124.jpg",
+        "group_by_type": true,
+        "soon_line": "Coming in the next drop. Leave your email and we'll let you know the day they land.",
+        "codes": "Ultra-lightweight nylon shell: LW\nMoisture-wicking lining: MW\nRear zip pocket: ZP"
       }
     }
   },
