@@ -90,7 +90,17 @@ body.waitlist #MainContent { padding-top: 0; }
   background: linear-gradient(180deg, rgba(47, 47, 38, 0.15) 0%, rgba(47, 47, 38, 0) 40%, rgba(47, 47, 38, 0.55) 100%);
 }
 .wl__brand { position: relative; padding: 0 56px 56px; }
-.wl__mark { margin: 0; }
+.wl__mark { position: relative; display: inline-block; margin: 0; }
+/* The wordmark is artwork; its ™ sits at the top right, small. */
+.wl__mark-tm { position: absolute; top: 0.2em; right: -1.1em; font: 600 18px/1 var(--alp-font-display); color: var(--alp-bg); }
+.wl__mark--mist .wl__mark-tm { color: var(--alp-mist); }
+.wl__mark--sage .wl__mark-tm { color: var(--alp-haze); }
+.wl__mark--flare .wl__mark-tm { color: var(--alp-citrus); }
+.wl__mark--olive .wl__mark-tm { color: var(--alp-olive); }
+.wl__mark--khaki .wl__mark-tm { color: var(--alp-accent); }
+.wl__mark--white .wl__mark-tm { color: #fff; }
+.wl__mark--black .wl__mark-tm { color: #000; }
+.wl__tm { font-size: max(0.42em, 9px); font-weight: 400; line-height: 0; vertical-align: 0.95em; margin-left: 0.06em; }
 .wl__mark img { display: block; width: min(440px, 80%); height: auto; }
 .wl__tagline {
   margin: 14px 0 0;
@@ -171,9 +181,11 @@ body.waitlist #MainContent { padding-top: 0; }
 
 @media (max-width: 749px) {
   .wl { display: block; }
-  .wl__visual { position: relative; height: 62svh; min-height: 400px; }
-  .wl__brand { padding: 0 22px 28px; }
-  .wl__mark img { width: min(300px, 78vw); }
+  /* Half the height it was: the photo sets the scene, the signup is the page. */
+  .wl__visual { position: relative; height: 30svh; min-height: 220px; max-height: 300px; }
+  .wl__brand { padding: 0 22px 20px; }
+  .wl__mark img { width: min(220px, 58vw); }
+  .wl__mark-tm { font-size: 13px; right: -0.9em; }
   .wl__tagline { font-size: 11px; margin-top: 10px; }
   .wl__panel { padding: 36px 22px 44px; }
   .wl__heading { font-size: 34px; }
