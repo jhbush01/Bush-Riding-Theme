@@ -50,13 +50,12 @@
 
     <div class="wl__brand">
       {%- comment -%} The mark is artwork and the page's h1, so its name is the shop. {%- endcomment -%}
-      <h1 class="wl__mark wl__mark--{{ tone }}">
+      <h1 class="wl__mark">
         {%- if section.settings.wordmark_image != blank -%}
           {{ section.settings.wordmark_image | image_url: width: 1400 | image_tag: loading: 'eager', fetchpriority: 'high', alt: shop.name }}
         {%- else -%}
           <img src="{{ 'wordmark-' | append: tone | append: '.svg' | asset_url }}" alt="{{ shop.name | escape }}" width="1273" height="543" loading="eager" fetchpriority="high">
         {%- endif -%}
-        <span class="wl__mark-tm" aria-hidden="true">™</span>
       </h1>
       {%- if section.settings.tagline != blank -%}
         <p class="wl__tagline">{{ section.settings.tagline | escape | replace: '™', '<span class="wl__tm">™</span>' }}</p>
@@ -189,15 +188,15 @@
       "type": "textarea",
       "id": "body",
       "label": "Body",
-      "default": "The first run of Bush Riding™ DustGrid™ Shorts lands soon. Join the waitlist and we'll email you the day they drop."
+      "default": "The first run of Bush Riding DustGrid Shorts lands soon. Join the waitlist and we'll email you the day they drop."
     },
     { "type": "text", "id": "button_label", "label": "Button", "default": "Join the waitlist" },
-    { "type": "text", "id": "microcopy", "label": "Microcopy", "default": "One email when DustGrid™ Shorts land. Nothing else." },
+    { "type": "text", "id": "microcopy", "label": "Microcopy", "default": "One email when DustGrid Shorts land. Nothing else." },
     {
       "type": "textarea",
       "id": "success_text",
       "label": "Success message",
-      "default": "You're on the list. We'll email you when DustGrid™ Shorts land."
+      "default": "You're on the list. We'll email you when DustGrid Shorts land."
     },
     { "type": "header", "content": "Where signups land" },
     {
@@ -206,7 +205,7 @@
     },
     { "type": "text", "id": "signup_tags", "label": "Customer tags", "default": "waitlist, bush-riding-shorts" },
     { "type": "text", "id": "signup_note", "label": "Customer note", "default": "Shorts waitlist — pre-launch" },
-    { "type": "text", "id": "signoff", "label": "Sign-off", "default": "Bush Riding™. Designed in Australia, made for the detour." },
+    { "type": "text", "id": "signoff", "label": "Sign-off", "default": "Bush Riding. Designed in Australia, made for the detour." },
     { "type": "header", "content": "Social" },
     { "type": "url", "id": "instagram_url", "label": "Instagram URL" },
     { "type": "url", "id": "strava_url", "label": "Strava URL" },
