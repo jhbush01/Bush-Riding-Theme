@@ -96,8 +96,18 @@ body {
   width: min(320px, 70vw);
   --font-heading: var(--head-font);
 }
+/* The map fades up once the loading screen has gone (index.html removes
+   .is-waiting after the loader's own 0.4 s fade). Ease-out, so it arrives
+   quickly and settles rather than dragging in. */
+#map {
+  transition: opacity 0.7s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+#map.is-waiting {
+  opacity: 0;
+}
 @media (prefers-reduced-motion: reduce) {
-  .map-loader { transition: none; }
+  .map-loader,
+  #map { transition: none; }
 }
 
 #map {

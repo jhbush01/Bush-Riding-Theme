@@ -129,6 +129,9 @@ const HIDE = [
   }
 
   await page.addStyleTag({ content: HIDE.join(",") + "{display:none !important}" });
+  // The loading screen and the map's fade-in are for people, not for the
+  // card: force both out of the way so a slow run can never capture either.
+  await page.addStyleTag({ content: "#map-loader{display:none !important} #map{opacity:1 !important;transition:none !important}" });
   await page.waitForTimeout(600);
 
   const png = await page.screenshot({ type: "png" });

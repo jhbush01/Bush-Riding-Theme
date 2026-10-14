@@ -72,7 +72,7 @@
          so keyboard users need a way past it to the route list. -->
     <a class="skip-link" href="#sidebar">Skip to routes and filters</a>
 
-    <div id="map" aria-label="Map of curated gravel routes"></div>
+    <div id="map" class="is-waiting" aria-label="Map of curated gravel routes"></div>
 
     <!-- Loading screen. Covers the page until the map has actually drawn;
          map.js lifts it (window.brmHideLoader). It removes itself after the
@@ -82,11 +82,21 @@
       <bush-map-loader></bush-map-loader>
     </div>
     <script>
+      // Two steps: the loading screen fades away to plain bone, then the map
+      // fades up out of it (#map.is-waiting holds it invisible until then).
+      // Timers rather than transitionend, which never fires once reduced
+      // motion has switched the transitions off.
       window.brmHideLoader = function () {
         var el = document.getElementById("map-loader");
         if (!el || el.classList.contains("is-done")) return;
         el.classList.add("is-done");
-        setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 450);
+        // Nothing to wait for when reduced motion has turned the fade off.
+        var still = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+        setTimeout(function () {
+          if (el.parentNode) el.parentNode.removeChild(el);
+          var map = document.getElementById("map");
+          if (map) map.classList.remove("is-waiting");
+        }, still ? 0 : 400);
       };
       // Never outstay the page: if anything upstream stalls or fails, lift it
       // anyway — the route list works without the map.
