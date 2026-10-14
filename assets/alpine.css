@@ -340,6 +340,34 @@ a:hover > .alp-duo__stack .alp-chip, summary:hover > .alp-chip {
 .alp-list__row--quiet { color: var(--alp-accent); }
 
 /* M01 · Phone menu sheet */
+/* Trial (Oct 2026): on phones the menu opens from a round button at the
+   bottom left and rises from the bottom, so one thumb reaches everything. */
+.alp-fab {
+  position: fixed; left: 16px; bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 3; width: 58px; height: 58px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--alp-ink); color: var(--alp-bg); border: 1px solid var(--alp-ink);
+  box-shadow: 0 6px 18px rgba(47, 47, 38, 0.28);
+  transition: bottom 0.25s ease-out, background 0.2s;
+}
+.alp-fab[aria-expanded='true'] { background: var(--alp-bg); color: var(--alp-ink); }
+/* Product pages: float just above the fixed buy bar (its height is measured). */
+body.template-product .alp-fab { bottom: calc(var(--alp-bar, 150px) + 2px); }
+@media (max-width: 749px) {
+  /* Room at the end of every page so the button never covers the last line. */
+  body:not(.template-product) { padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
+  .alp-hd .alp-menu {
+    position: fixed; top: auto; left: 0; right: 0; bottom: 0;
+    max-height: 82svh; padding-bottom: calc(96px + env(safe-area-inset-bottom));
+    border-radius: 18px 18px 0 0; border: 1px solid var(--alp-ink); border-bottom: 0;
+    transform: translateY(100%); opacity: 1;
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .alp-hd .alp-menu.is-open { transform: none; }
+  .alp-hd .alp-menu.is-dragging { transition: none; }
+}
+.alp-menu__grab { display: block; width: 40px; height: 4px; margin: 6px auto 4px; border-radius: 2px; background: var(--alp-line); }
+
 .alp-menu {
   padding: 6px 22px 24px;
   max-height: calc(100svh - 56px); overflow-y: auto;

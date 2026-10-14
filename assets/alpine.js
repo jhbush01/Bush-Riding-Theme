@@ -1258,6 +1258,28 @@
     }).observe(document.body, { childList: true, subtree: true });
   }
 
+  /* Bottom sheets that close on a downward swipe (the phone menu). Only from
+     the top of the sheet's scroll, so scrolling its list still works. */
+  (function () {
+    var y0 = null, dy = 0, sheet = null;
+    document.addEventListener('touchstart', function (e) {
+      sheet = e.target.closest && e.target.closest('[data-alp-swipe-close].is-open');
+      if (!sheet || sheet.scrollTop > 0) { sheet = null; return; }
+      y0 = e.touches[0].clientY; dy = 0;
+    }, { passive: true });
+    document.addEventListener('touchmove', function (e) {
+      if (!sheet || y0 === null) return;
+      dy = Math.max(0, e.touches[0].clientY - y0);
+      if (dy > 0) { sheet.classList.add('is-dragging'); sheet.style.transform = 'translateY(' + dy + 'px)'; }
+    }, { passive: true });
+    document.addEventListener('touchend', function () {
+      if (!sheet) return;
+      sheet.classList.remove('is-dragging'); sheet.style.transform = '';
+      if (dy > 90) closePanel();
+      sheet = null; y0 = null; dy = 0;
+    });
+  })();
+
   function init() {
     /* One failing block mustn't stop the rest of the page's script. */
     [function () { trademark(document.body); }, initSignups, initScrollers, initRecs, tickClock, initWeather, initVideos, initPdp, initRideTiles,

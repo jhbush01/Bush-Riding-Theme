@@ -8,8 +8,10 @@
   stays while the pointer is over the header or the panel. Without script
   the nav links are plain links to /collections, the map and the rides page.
 
-  Phone (M01): a 56px bar. Wordmark, then Search · Cart (n) · menu. The menu
-  drops as a sheet under the bar with the page dimmed: Shop expanded with its
+  Phone (M01): a 56px bar. Wordmark, then Search · Cart (n). The menu opens
+  from a round button at the bottom left (thumb reach) and rises as a sheet
+  from the bottom with the page dimmed; swipe it down or tap the page to
+  close: Shop expanded with its
   categories, Bush Map and Rides expanding the same way, About, and local
   time, weather and currency at its foot.
 
@@ -123,7 +125,12 @@
     >Search</a>
     <a class="alp-hd__link{% if here == 'cart' %} is-on{% endif %}" href="{{ routes.cart_url }}" data-alp-open-cart>Cart (<span data-alp-cart-count>{{ cart.item_count }}</span>)</a>
 
-    <button class="alp-hd__burger alp-m" type="button" data-alp-toggle="alp-menu" aria-expanded="false" aria-controls="alp-menu" aria-label="Menu">
+    {%- comment -%}
+      Phones: the menu button is a round button fixed at the bottom left, in
+      thumb reach, and the menu rises from the bottom (trial, Oct 2026). It
+      sits above the product page's buy bar when there is one.
+    {%- endcomment -%}
+    <button class="alp-hd__burger alp-fab alp-m" type="button" data-alp-toggle="alp-menu" aria-expanded="false" aria-controls="alp-menu" aria-label="Menu">
       <svg class="alp-hd__icon-open" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
       <svg class="alp-hd__icon-close" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
     </button>
@@ -310,7 +317,8 @@
   </div>
 
   {%- comment -%} ── M01 · Menu sheet (phones) ────────────────────────────── {%- endcomment -%}
-  <div class="alp-menu alp-m" id="alp-menu" data-alp-panel hidden>
+  <div class="alp-menu alp-m" id="alp-menu" data-alp-panel data-alp-swipe-close hidden>
+    <span class="alp-menu__grab" aria-hidden="true"></span>
     <nav class="alp-menu__nav" aria-label="Menu">
       <details class="alp-menu__group" open>
         <summary class="alp-menu__row">Shop <span class="alp-menu__pm" aria-hidden="true"></span></summary>
