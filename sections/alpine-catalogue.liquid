@@ -8,12 +8,11 @@
   products, so they aren't drawn until they would.
 
   Intros: each product Type (and any collection) can have an Intro block —
-  a full-bleed photo with the name, a short line and a few sentences. A
-  Type's intro sits above its products on the grouped pages and at the top
-  of its own page; a collection's sits at the top of the collection. A
-  collection with no Intro block uses its own image and description. No
-  block and nothing to show means a plain heading, so a new Type works the
-  day it's added.
+  a full-bleed photo with the name, a short line and a few sentences — shown
+  only at the top of that Type's or collection's own page. View all and the
+  collections group their products under plain Type headings, never another
+  page's intro. A collection with no Intro block uses its own image and
+  description; a Type with none just starts with its products.
   Products: small cards, four across on desktop, two on phones, centred
   caption with the colour dots.
 
@@ -78,7 +77,6 @@
         endif
       endfor
     endif
-    assign first_loading = 'eager'
     assign has_intro = false
   -%}
   {%- if coming_soon -%}
@@ -86,11 +84,11 @@
   {%- elsif page_block != nil -%}
     {%- assign intro_title = page_block.settings.title | default: collection.current_type | default: collection.title -%}
     {%- render 'alp-cat-intro', heading: 'h1', title: intro_title, tagline: page_block.settings.tagline, text: page_block.settings.text, image: page_block.settings.image, attrs: page_block.shopify_attributes, loading: 'eager' -%}
-    {%- assign first_loading = 'lazy' -%}{%- assign has_intro = true -%}
+    {%- assign has_intro = true -%}
   {%- elsif collection.current_type == blank and collection.handle != 'all' and collection.image != blank -%}
     {%- assign intro_text = collection.description | strip_html | strip -%}
     {%- render 'alp-cat-intro', heading: 'h1', title: collection.title, text: intro_text, image: collection.image, loading: 'eager' -%}
-    {%- assign first_loading = 'lazy' -%}{%- assign has_intro = true -%}
+    {%- assign has_intro = true -%}
   {%- endif -%}
 
   {%- unless has_intro -%}<h1 class="alp-vh">{{ collection.title | escape }}</h1>{%- endunless -%}
@@ -253,28 +251,10 @@
         {%- if t == blank -%}{%- continue -%}{%- endif -%}
         {%- assign in_type = collection.products | where: 'type', t -%}
         {%- if in_type.size == 0 -%}{%- continue -%}{%- endif -%}
-        {%- liquid
-          assign tk = t | downcase | strip
-          assign tb = nil
-          for b in section.blocks
-            assign bk = b.settings.match | downcase | strip
-            if bk == tk
-              assign tb = b
-              break
-            endif
-          endfor
-        -%}
-        {%- if tb != nil -%}
-          {%- assign intro_title = tb.settings.title | default: t -%}
-          {%- assign type_url = t | url_for_type -%}
-          {%- render 'alp-cat-intro', title: intro_title, tagline: tb.settings.tagline, text: tb.settings.text, image: tb.settings.image, link: type_url, attrs: tb.shopify_attributes, loading: first_loading -%}
-          {%- assign first_loading = 'lazy' -%}
-        {%- else -%}
-          <h2 class="alp-cat__group">
-            <span>{{ t | escape }}</span>
-            <a href="{{ t | url_for_type }}">See all</a>
-          </h2>
-        {%- endif -%}
+        <h2 class="alp-cat__group">
+          <span>{{ t | escape }}</span>
+          <a href="{{ t | url_for_type }}">See all</a>
+        </h2>
         {%- for product in in_type -%}
           {%- assign i = i | plus: 1 -%}
           {%- if i <= 4 -%}{%- assign ld = 'eager' -%}{%- else -%}{%- assign ld = 'lazy' -%}{%- endif -%}

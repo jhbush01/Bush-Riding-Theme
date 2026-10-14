@@ -265,7 +265,7 @@ a:hover > .alp-duo__stack .alp-chip, summary:hover > .alp-chip {
   flex: 1; display: grid; align-content: start;
   grid-template-columns: repeat(4, minmax(160px, 240px)); gap: 28px 48px;
 }
-.alp-mega__col { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; font: 400 16px/1.3 var(--alp-font-ui); }
+.alp-mega__col { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; font: 600 16px/1.3 var(--alp-font-display); }
 .alp-mega__col--wide { grid-column: span 2; }
 .alp-mega__col--lead { gap: 12px; }
 .alp-mega__col--lead .alp-cats__item, .alp-mega__lead { font: 600 18px/1.2 var(--alp-font-display); }
@@ -402,7 +402,7 @@ body.template-product .alp-menu__grab, body.template-cart .alp-menu__grab { disp
 .alp-menu__sub {
   display: flex; flex-direction: column; gap: 14px;
   padding: 16px 0 18px 16px; border-bottom: 1px solid var(--alp-line);
-  font: 16px/1.3 var(--alp-font-ui);
+  font: 600 16px/1.3 var(--alp-font-display);
 }
 .alp-menu__pm::after { content: '+'; font-family: var(--alp-font-ui); font-weight: 400; }
 details[open] > summary .alp-menu__pm::after { content: '−'; }
@@ -649,7 +649,6 @@ div.alp-scrim[hidden] { display: none; }
 .alp-intro__title { margin: 0; font: 600 clamp(44px, 6vw, 84px)/1 var(--alp-font-display) !important; letter-spacing: -0.02em; }
 .alp-intro__tag { margin: 0; font: 600 13px/1.3 var(--alp-font-display); letter-spacing: 0.16em; text-transform: uppercase; }
 .alp-intro__body { margin: 6px 0 0; font: 17px/1.5 var(--alp-font-ui); }
-.alp-intro__link { margin-top: 6px; font: 600 14px/1 var(--alp-font-display); text-decoration: underline; text-underline-offset: 4px; }
 .alp-intro--plain { color: var(--alp-ink); background: var(--alp-card); }
 .alp-intro--plain .alp-intro__text { padding: 56px 24px; }
 .alp-cat__group {
@@ -856,16 +855,19 @@ div.alp-scrim[hidden] { display: none; }
 .alp-buy__tiles { display: grid; grid-template-columns: repeat(var(--n, 5), minmax(0, 1fr)); gap: 7px; }
 .alp-tile { position: relative; display: block; cursor: pointer; }
 .alp-tile input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+/* Sizes: olive tiles; the chosen one turns flare, the same yellow as
+   Buy now, so the eye goes straight from size to button. */
 .alp-tile span {
   display: flex; align-items: center; justify-content: center; aspect-ratio: 1;
-  border: 1px solid var(--alp-line); border-radius: 3px; background: var(--alp-surface);
-  font: 400 13px/1 var(--alp-font-ui);
+  border: 1px solid var(--alp-ink); border-radius: 3px; background: var(--alp-ink); color: var(--alp-bg);
+  font: 600 13px/1 var(--alp-font-display);
+  transition: background 0.15s, color 0.15s;
 }
-.alp-tile:hover span { border-color: var(--alp-ink); }
-.alp-tile input:checked + span { background: var(--alp-ink); border-color: var(--alp-ink); color: var(--alp-bg); }
-.alp-tile input:focus-visible + span { outline: 2px solid var(--alp-flare); outline-offset: 2px; }
+.alp-tile:hover span { background: #3d3c2f; }
+.alp-tile input:checked + span { background: var(--alp-flare); border-color: var(--alp-ink); color: var(--alp-ink); }
+.alp-tile input:focus-visible + span { outline: 2px solid var(--alp-ink); outline-offset: 2px; }
 .alp-tile.is-out { cursor: default; }
-.alp-tile.is-out span { color: var(--alp-accent); text-decoration: line-through; background: transparent; }
+.alp-tile.is-out span { color: var(--alp-accent); text-decoration: line-through; background: transparent; border-color: var(--alp-line); }
 
 .alp-swatches { display: flex; flex-wrap: wrap; gap: 14px; }
 .alp-swatch { position: relative; cursor: pointer; }
