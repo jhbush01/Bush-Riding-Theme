@@ -17,8 +17,8 @@
    observer below re-marking its own output. */
 (function () {
   var NAMES = "Bush Riding|BUSH RIDING|Bush Map|BUSH MAP|DustGrid|DUSTGRID";
-  var RE = new RegExp("\\b(" + NAMES + ")(™?)(?![™®A-Za-z])", "g");
-  var TEST = new RegExp("\\b(" + NAMES + ")(™?)(?![™®A-Za-z])");
+  var RE = new RegExp("\\b(" + NAMES + ")(\u2122?)(?![\u2122\u00AEA-Za-z])", "g");
+  var TEST = new RegExp("\\b(" + NAMES + ")(\u2122?)(?![\u2122\u00AEA-Za-z])");
   var SKIP = { SCRIPT: 1, STYLE: 1, TEXTAREA: 1, INPUT: 1, SELECT: 1, OPTION: 1, NOSCRIPT: 1, TITLE: 1, CODE: 1, PRE: 1 };
 
   function wrap(node) {
@@ -34,7 +34,7 @@
       name.appendChild(document.createTextNode(m[1]));
       var tm = document.createElement("span");
       tm.className = "tm";
-      tm.textContent = "™";
+      tm.textContent = "\u2122";
       name.appendChild(tm);
       frag.appendChild(name);
       last = m.index + m[0].length;
