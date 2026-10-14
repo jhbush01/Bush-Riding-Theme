@@ -7,11 +7,15 @@
   (6) up — Filters and Sort by. Filters and Sort do nothing for a handful of
   products, so they aren't drawn until they would.
 
-  Desktop: product tiles two-up in the left half, the lifestyle photo holding
-  the right half, then a Next drop tile per category that hasn't landed and
-  the olive "Hear about the next drop first." tile.
-  Phone: one column, a full-width lifestyle photo after every two products,
-  then the Next drop band.
+  Intros: each product Type (and any collection) can have an Intro block —
+  a full-bleed photo with the name, a short line and a few sentences. A
+  Type's intro sits above its products on the grouped pages and at the top
+  of its own page; a collection's sits at the top of the collection. A
+  collection with no Intro block uses its own image and description. No
+  block and nothing to show means a plain heading, so a new Type works the
+  day it's added.
+  Products: small cards, four across on desktop, two on phones, centred
+  caption with the colour dots.
 
   Filters are Shopify's (Search & Discovery). Desktop drops them under the
   bar; on a phone the same form is a bottom sheet with accordions. "Show N
@@ -52,7 +56,44 @@
   data-alp-section="{{ section.id }}"
   data-alp-count="{{ count }}"
 >
-  <h1 class="alp-vh">{{ collection.title | escape }}</h1>
+  {%- liquid
+    comment
+      The page's own intro: a Type page looks up its Type, a collection its
+      handle; a collection without a block falls back to its image and
+      description. The all-products page has none (its Types do).
+    endcomment
+    assign page_key = ''
+    if collection.current_type != blank
+      assign page_key = collection.current_type | downcase | strip
+    elsif collection.handle != 'all'
+      assign page_key = collection.handle | downcase
+    endif
+    assign page_block = nil
+    if page_key != ''
+      for b in section.blocks
+        assign bk = b.settings.match | downcase | strip
+        if bk == page_key
+          assign page_block = b
+          break
+        endif
+      endfor
+    endif
+    assign first_loading = 'eager'
+    assign has_intro = false
+  -%}
+  {%- if coming_soon -%}
+    {%- comment -%} Its Notify me page already carries the name and photo. {%- endcomment -%}
+  {%- elsif page_block != nil -%}
+    {%- assign intro_title = page_block.settings.title | default: collection.current_type | default: collection.title -%}
+    {%- render 'alp-cat-intro', heading: 'h1', title: intro_title, tagline: page_block.settings.tagline, text: page_block.settings.text, image: page_block.settings.image, attrs: page_block.shopify_attributes, loading: 'eager' -%}
+    {%- assign first_loading = 'lazy' -%}{%- assign has_intro = true -%}
+  {%- elsif collection.current_type == blank and collection.handle != 'all' and collection.image != blank -%}
+    {%- assign intro_text = collection.description | strip_html | strip -%}
+    {%- render 'alp-cat-intro', heading: 'h1', title: collection.title, text: intro_text, image: collection.image, loading: 'eager' -%}
+    {%- assign first_loading = 'lazy' -%}{%- assign has_intro = true -%}
+  {%- endif -%}
+
+  {%- unless has_intro -%}<h1 class="alp-vh">{{ collection.title | escape }}</h1>{%- endunless -%}
 
   <div class="alp-cat__bar">
     <nav class="alp-cats alp-cats--bar" aria-label="Categories">
@@ -192,64 +233,74 @@
       </div>
     </div>
   {%- else -%}
-  <div class="alp-cat__layout">
-    <div class="alp-cat__tiles">
-      {%- liquid
-        assign n = collection.products.size
-        assign life = section.settings.lifestyle
-        comment
-          Grouped by product Type (Shorts, …) — the store's own categories —
-          unless someone has filtered, sorted, or is already on one type's
-          page, where headings would only repeat what they chose.
-        endcomment
-        assign grouped = false
-        if section.settings.group_by_type and active == 0 and collection.current_type == blank and collection.sort_by == blank and n > 0
-          assign grouped = true
-        endif
-        assign i = 0
-      -%}
-      {%- if grouped -%}
-        {%- for t in collection.all_types -%}
-          {%- if t == blank -%}{%- continue -%}{%- endif -%}
-          {%- assign in_type = collection.products | where: 'type', t -%}
-          {%- if in_type.size == 0 -%}{%- continue -%}{%- endif -%}
+  <div class="alp-cat__tiles">
+    {%- liquid
+      comment
+        Grouped by product Type (Shorts, …) — the store's own categories —
+        unless someone has filtered, sorted, or is already on one type's
+        page, where headings would only repeat what they chose.
+      endcomment
+      assign n = collection.products.size
+      assign grouped = false
+      if section.settings.group_by_type and active == 0 and collection.current_type == blank and collection.sort_by == blank and n > 0
+        assign grouped = true
+      endif
+      assign card_sizes = '(min-width: 750px) 25vw, 50vw'
+      assign i = 0
+    -%}
+    {%- if grouped -%}
+      {%- for t in collection.all_types -%}
+        {%- if t == blank -%}{%- continue -%}{%- endif -%}
+        {%- assign in_type = collection.products | where: 'type', t -%}
+        {%- if in_type.size == 0 -%}{%- continue -%}{%- endif -%}
+        {%- liquid
+          assign tk = t | downcase | strip
+          assign tb = nil
+          for b in section.blocks
+            assign bk = b.settings.match | downcase | strip
+            if bk == tk
+              assign tb = b
+              break
+            endif
+          endfor
+        -%}
+        {%- if tb != nil -%}
+          {%- assign intro_title = tb.settings.title | default: t -%}
+          {%- assign type_url = t | url_for_type -%}
+          {%- render 'alp-cat-intro', title: intro_title, tagline: tb.settings.tagline, text: tb.settings.text, image: tb.settings.image, link: type_url, attrs: tb.shopify_attributes, loading: first_loading -%}
+          {%- assign first_loading = 'lazy' -%}
+        {%- else -%}
           <h2 class="alp-cat__group">
             <span>{{ t | escape }}</span>
             <a href="{{ t | url_for_type }}">See all</a>
           </h2>
-          {%- for product in in_type -%}
-            {%- assign i = i | plus: 1 -%}
-            {%- render 'alp-cat-tile', product: product, i: i, n: n, lifestyle: life -%}
-          {%- endfor -%}
-        {%- endfor -%}
-        {%- capture untyped -%}
-          {%- for product in collection.products -%}
-            {%- if product.type == blank -%}x{%- endif -%}
-          {%- endfor -%}
-        {%- endcapture -%}
-        {%- if untyped != blank -%}
-          <h2 class="alp-cat__group"><span>More</span></h2>
-          {%- for product in collection.products -%}
-            {%- if product.type != blank -%}{%- continue -%}{%- endif -%}
-            {%- assign i = i | plus: 1 -%}
-            {%- render 'alp-cat-tile', product: product, i: i, n: n, lifestyle: life -%}
-          {%- endfor -%}
         {%- endif -%}
-      {%- else -%}
+        {%- for product in in_type -%}
+          {%- assign i = i | plus: 1 -%}
+          {%- if i <= 4 -%}{%- assign ld = 'eager' -%}{%- else -%}{%- assign ld = 'lazy' -%}{%- endif -%}
+          {%- render 'alp-card', product: product, loading: ld, look: 'centre', dots: true, sizes: card_sizes -%}
+        {%- endfor -%}
+      {%- endfor -%}
+      {%- capture untyped -%}
         {%- for product in collection.products -%}
-          {%- render 'alp-cat-tile', product: product, i: forloop.index, n: n, lifestyle: life -%}
-        {%- else -%}
-          <p class="alp-cat__empty">Nothing here yet. {% if active > 0 %}<a href="{{ collection.url }}">Clear the filters</a>{% else %}<a href="{{ routes.all_products_collection_url }}">See everything</a>{% endif %}</p>
+          {%- if product.type == blank -%}x{%- endif -%}
+        {%- endfor -%}
+      {%- endcapture -%}
+      {%- if untyped != blank -%}
+        <h2 class="alp-cat__group"><span>More</span></h2>
+        {%- for product in collection.products -%}
+          {%- if product.type != blank -%}{%- continue -%}{%- endif -%}
+          {%- render 'alp-card', product: product, loading: 'lazy', look: 'centre', dots: true, sizes: card_sizes -%}
         {%- endfor -%}
       {%- endif -%}
-
-    </div>
-
-    <div class="alp-cat__feature alp-d">
-      {%- if section.settings.lifestyle != blank -%}
-        {{ section.settings.lifestyle | image_url: width: 1600 | image_tag: class: 'alp-fill', loading: 'eager', widths: '800, 1200, 1600', sizes: '50vw', alt: '' }}
-      {%- endif -%}
-    </div>
+    {%- else -%}
+      {%- for product in collection.products -%}
+        {%- if forloop.index <= 4 -%}{%- assign ld = 'eager' -%}{%- else -%}{%- assign ld = 'lazy' -%}{%- endif -%}
+        {%- render 'alp-card', product: product, loading: ld, look: 'centre', dots: true, sizes: card_sizes -%}
+      {%- else -%}
+        <p class="alp-cat__empty">Nothing here yet. {% if active > 0 %}<a href="{{ collection.url }}">Clear the filters</a>{% else %}<a href="{{ routes.all_products_collection_url }}">See everything</a>{% endif %}</p>
+      {%- endfor -%}
+    {%- endif -%}
   </div>
 
   {%- endif -%}
@@ -269,7 +320,7 @@
   "name": "Collection",
   "tag": "div",
   "settings": [
-    { "type": "image_picker", "id": "lifestyle", "label": "Lifestyle photo", "info": "Holds the right half on desktop; repeats after every two products on phones." },
+    { "type": "image_picker", "id": "lifestyle", "label": "Coming-soon photo", "info": "Shown on an empty (coming-soon) collection's page when the collection has no image of its own." },
     { "type": "checkbox", "id": "group_by_type", "label": "Group products by Type", "default": true, "info": "Headings per product Type (Shorts, …) on all products and on collections. Off while a filter or sort is applied." },
     { "type": "text", "id": "soon_line", "label": "Coming-soon line", "default": "Coming in the next drop. Leave your email and we'll let you know the day they land.", "info": "Shown on an empty collection's page, above Notify me. A collection's own description replaces it." },
     {
@@ -278,6 +329,19 @@
       "info": "One per line, \"Filter value: CODE\". Shown as the two-letter code tile in Filters."
     },
     { "type": "paragraph", "content": "Filters and Sort appear once a collection reaches the count set in Theme settings → Bush Riding." }
+  ],
+  "blocks": [
+    {
+      "type": "intro",
+      "name": "Intro",
+      "settings": [
+        { "type": "text", "id": "match", "label": "Product type or collection handle", "info": "Exactly as in Shopify, e.g. Shorts (a product Type) or bush-riding-launch (a collection's handle). Capitals don't matter." },
+        { "type": "image_picker", "id": "image", "label": "Photo", "info": "Full width. Leave empty for words only." },
+        { "type": "text", "id": "title", "label": "Title", "info": "Defaults to the type or collection name." },
+        { "type": "text", "id": "tagline", "label": "Short line", "info": "Set in capitals under the title, e.g. Made for the long way round." },
+        { "type": "textarea", "id": "text", "label": "Text", "info": "Two or three sentences." }
+      ]
+    }
   ]
 }
 {% endschema %}

@@ -10,6 +10,7 @@
   loading  – 'eager' above the fold
   look     – 'centre' for a centred caption (phone home row)
   dots     – true to show the colour swatches under the price
+  sizes    – optional image sizes (default: a quarter on desktop, full width on phones)
 {%- endcomment -%}
 {%- liquid
   assign photo = image | default: product.featured_media.preview_image
@@ -20,7 +21,7 @@
   <div class="alp-card__media">
     <a href="{{ product.url }}" class="alp-card__link" tabindex="-1" aria-hidden="true">
       {%- if photo != blank -%}
-        {{ photo | image_url: width: 1200 | image_tag: class: 'alp-fill', loading: loading | default: 'lazy', widths: '400, 600, 800, 1200', sizes: '(min-width: 750px) 25vw, 100vw', alt: '' }}
+        {{ photo | image_url: width: 1200 | image_tag: class: 'alp-fill', loading: loading | default: 'lazy', widths: '400, 600, 800, 1200', sizes: sizes | default: '(min-width: 750px) 25vw, 100vw', alt: '' }}
       {%- endif -%}
     </a>
   </div>
