@@ -271,6 +271,8 @@ a:hover > .alp-duo__stack .alp-chip, summary:hover > .alp-chip {
 .alp-mega__col--lead .alp-cats__item, .alp-mega__lead { font: 600 18px/1.2 var(--alp-font-display); }
 .alp-mega__head { margin-bottom: 4px !important; font: 600 13px/1.2 var(--alp-font-display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--alp-ink); }
 .alp-mega a:hover { text-decoration: underline; text-underline-offset: 4px; }
+/* All menu text in capitals (desktop menus and the phone menu). */
+.alp-mega, .alp-menu { text-transform: uppercase; letter-spacing: 0.03em; }
 .alp-mega__photo { position: relative; flex: none; display: block; width: 280px; aspect-ratio: 1; overflow: hidden; background: var(--alp-haze); }
 .alp-mega__label { position: absolute; left: 20px; bottom: 18px; font: 600 24px/1.1 var(--alp-font-display); color: var(--alp-bg); }
 /* Rides is taller, and carries the Ride Journal's three newest posts. */
@@ -544,6 +546,7 @@ div.alp-scrim[hidden] { display: none; }
 .alp-hero__btn { pointer-events: auto; }
 /* ™ set small and raised (alpine.js wraps every ™ in .alp-tm); the font's own
    ™ is cap-height and heavy beside Aktiv Grotesk headings. */
+.alp-tmw { display: inline; }
 .alp-tm { font-size: max(0.42em, 9px); font-weight: 400; line-height: 0; vertical-align: 0.95em; margin-left: 0.06em; letter-spacing: 0; }
 .alp a.alp-hero__btn:hover { background: var(--alp-bg); color: var(--alp-ink); }
 
@@ -649,6 +652,9 @@ div.alp-scrim[hidden] { display: none; }
   .alp-cat__layout { display: block; padding: 0; }
   .alp-cat__tiles { display: block; }
   .alp-cat__tiles .alp-card__cap { padding: 12px 18px 24px; }
+  /* Each product a framed card, so it reads as something to tap. */
+  .alp-cat__tiles .alp-card { margin: 12px 12px 4px; border: 1px solid var(--alp-line); border-radius: 8px; overflow: hidden; background: var(--alp-bg); }
+  .alp-cat__tiles .alp-card__cap { padding: 12px 14px 16px; }
   .alp-cat__group, .alp-cat__group ~ .alp-cat__group { padding: 20px 18px 12px; }
 }
 
@@ -819,6 +825,7 @@ div.alp-scrim[hidden] { display: none; }
 }
 
 .alp-buy { display: flex; flex-direction: column; gap: 18px; }
+.alp-buy__slot { display: none; }
 .alp-buy__opt { display: flex; flex-direction: column; gap: 10px; }
 .alp-buy__opthead { display: flex; justify-content: space-between; align-items: baseline; width: 100%; padding: 0; font: 13px/1.3 var(--alp-font-ui); }
 .alp-buy__optname { font: 600 15px/1.2 var(--alp-font-display); }
@@ -931,7 +938,7 @@ div.alp-scrim[hidden] { display: none; }
 
 @media (max-width: 749px) {
   /* Room under the footer for the fixed buy bar — alpine.js measures it. */
-  body.template-product { padding-bottom: var(--alp-bar, 150px); }
+  body.template-product { padding-bottom: var(--alp-bar, 0px); }
   /* Stack: carousel, details, story, accordions — each full width (stretch:
      the desktop grid's align-items: start would shrink them to content). */
   .alp-pdp__grid { display: flex; flex-direction: column; align-items: stretch; }
@@ -944,14 +951,6 @@ div.alp-scrim[hidden] { display: none; }
   .alp-pdp__story { order: 3; }
   .alp-pdp__details { order: 4; }
   .alp-gal__slide { height: 520px; min-height: 0; }
-  /* An inset frame says "this is a thing you can touch"; a tap opens the
-     photos full screen (alpine.js). */
-  .alp-gal { margin: 12px 12px 0; border: 1px solid var(--alp-line); border-radius: 8px; overflow: hidden; }
-  .alp-gal__slide img { cursor: zoom-in; }
-  .alp-gal__zoomhint {
-    position: absolute; right: 12px; bottom: 12px; display: flex; align-items: center; justify-content: center;
-    width: 34px; height: 34px; border-radius: 50%; background: rgba(237, 236, 197, 0.9); color: var(--alp-ink); pointer-events: none;
-  }
   .alp-gal__arrow { padding: 12px 6px; }
   .alp-gal__arrow svg { height: 40px; }
   .alp-pdp__info { position: static; max-width: none; padding: 28px 18px; gap: 18px; }
@@ -970,12 +969,17 @@ div.alp-scrim[hidden] { display: none; }
   .alp-row__track { grid-auto-columns: 72%; padding-right: 18px; }
   .alp-row__arrow { display: none; }
 
-  /* The buy block becomes the sticky bottom bar. */
-  .alp-buy {
+  /* The buy block sits in the page under the spec pills; once the info
+     column (down to Need help?) has scrolled away it docks to the bottom
+     (alpine.js adds .is-docked and keeps its place with a spacer). */
+  .alp-buy { gap: 10px; }
+  .alp-buy.is-docked {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
-    gap: 10px; padding: 12px 18px calc(12px + env(safe-area-inset-bottom));
+    padding: 12px 18px calc(12px + env(safe-area-inset-bottom));
     background: var(--alp-bg); border-top: 1px solid var(--alp-ink);
+    animation: alp-dock 0.25s ease-out;
   }
+  @keyframes alp-dock { from { transform: translateY(100%); } to { transform: none; } }
   .alp-buy__opt { gap: 8px; min-width: 0; }
   /* Colour and size share one row — colour dots left, sizes right — so the
      bar is two rows (options, buttons) instead of four. */

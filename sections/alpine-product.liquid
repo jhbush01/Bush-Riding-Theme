@@ -73,7 +73,6 @@
           <button class="alp-gal__arrow alp-gal__arrow--next" type="button" data-alp-scroll="1" aria-label="Next photo">
             <svg width="18" height="64" viewBox="0 0 18 64" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M2 2l14 30L2 62"/></svg>
           </button>
-          <span class="alp-gal__zoomhint alp-m" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></span>
           <p class="alp-gal__count" aria-live="polite"><span data-alp-slide-n>1</span> / {{ shown }}</p>
         {%- endif -%}
       </div>
@@ -144,6 +143,7 @@
         </ul>
       {%- endif -%}
 
+      <div class="alp-buy__slot" data-alp-buy-slot aria-hidden="true"></div>
       {%- form 'product', product, class: 'alp-buy', data-alp-buy: '', novalidate: 'novalidate' -%}
         {%- comment -%}
           The variant id. With script, alpine.js names this input and fills it
@@ -316,6 +316,8 @@
       {%- if side_acc != blank -%}
         <div class="alp-acc">{{ side_acc }}</div>
       {%- endif -%}
+      {%- comment -%} Phones: once this scrolls off the top, the buy block docks to the bottom. {%- endcomment -%}
+      <span data-alp-buy-dock aria-hidden="true"></span>
     </div>
   </div>
 

@@ -280,15 +280,14 @@
   <div class="alp-mega alp-mega--rides alp-d" id="alp-ridesmenu" data-alp-panel hidden>
     <nav class="alp-mega__cols" aria-label="Rides">
       <div class="alp-mega__col alp-mega__col--lead">
-        <a class="alp-mega__lead" href="{{ rides_url }}">All rides</a>
+        <a class="alp-mega__lead" href="{{ rides_url }}">Upcoming Bush Rides</a>
+        <a class="alp-mega__lead" href="{% if jcount > 0 %}{{ jblog.url }}{% else %}{{ rides_url }}{% endif %}">Ride Journal</a>
         {%- if settings.alp_strava_url != blank -%}
-          <a class="alp-cats__item" href="{{ settings.alp_strava_url }}" target="_blank" rel="noopener">Ride with us on Strava</a>
+          <a class="alp-mega__lead" href="{{ settings.alp_strava_url }}" target="_blank" rel="noopener">Bush Riding Strava Club</a>
         {%- endif -%}
-        <a class="alp-cats__item" href="{{ map_url }}/events/">Events on the map</a>
-        {%- if jcount > 0 -%}<a class="alp-cats__item" href="{{ jblog.url }}">Ride Journal</a>{%- endif -%}
       </div>
       <div class="alp-mega__col">
-        <p class="alp-mega__head">Upcoming rides</p>
+        <p class="alp-mega__head">Upcoming Bush Rides</p>
         <div class="alp-dd__list" data-alp-rides-list><span class="alp-dd__quiet">Finding rides…</span></div>
       </div>
     </nav>
@@ -339,11 +338,11 @@
       <details class="alp-menu__group">
         <summary class="alp-menu__row">Rides <span class="alp-menu__pm" aria-hidden="true"></span></summary>
         <div class="alp-menu__sub alp-cats">
-          <a class="alp-cats__item" href="{{ rides_url }}" data-alp-close>All rides</a>
+          <a class="alp-cats__item" href="{{ rides_url }}" data-alp-close>Upcoming Bush Rides</a>
+          <a class="alp-cats__item" href="{% if jcount > 0 %}{{ jblog.url }}{% else %}{{ rides_url }}{% endif %}" data-alp-close>Ride Journal</a>
           {%- if settings.alp_strava_url != blank -%}
-            <a class="alp-cats__item" href="{{ settings.alp_strava_url }}" target="_blank" rel="noopener" data-alp-close>Ride with us on Strava</a>
+            <a class="alp-cats__item" href="{{ settings.alp_strava_url }}" target="_blank" rel="noopener" data-alp-close>Bush Riding Strava Club</a>
           {%- endif -%}
-          <a class="alp-cats__item" href="{{ map_url }}/events/" data-alp-close>Events on the map</a>
         </div>
       </details>
       {%- if about_url != blank -%}

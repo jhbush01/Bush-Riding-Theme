@@ -559,18 +559,36 @@
     return s;
   }
 
-  /* Phone product page: the buy bar is fixed to the bottom, so the page
-     needs that much room under the footer. Measured, not guessed — the bar's
-     height depends on the product's options. */
+  /* Phone product page: the buy block sits in the page under the spec pills
+     and docks to the bottom once the info column (down to Need help?) has
+     scrolled off the top. A spacer holds its place so nothing jumps, and the
+     page gets room under the footer only while it's docked. */
   var barObserved = null;
   function trackBuyBar() {
     var bar = $('.template-product [data-alp-buy]');
-    if (!bar || bar === barObserved || !window.ResizeObserver) return;
+    var mark = $('.template-product [data-alp-buy-dock]');
+    var slot = $('.template-product [data-alp-buy-slot]');
+    if (!bar || !mark || bar === barObserved) return;
     barObserved = bar;
-    new ResizeObserver(function () {
-      var h = DESKTOP.matches ? 0 : bar.offsetHeight;
-      document.body.style.setProperty('--alp-bar', (h ? h + 16 : 0) + 'px');
-    }).observe(bar);
+    var ticking = false;
+    function room() {
+      var on = bar.classList.contains('is-docked');
+      document.body.style.setProperty('--alp-bar', on ? (bar.offsetHeight + 16) + 'px' : '0px');
+    }
+    function check() {
+      ticking = false;
+      if (!bar.isConnected) return;
+      var dock = !DESKTOP.matches && mark.getBoundingClientRect().bottom < 0;
+      if (dock === bar.classList.contains('is-docked')) return;
+      if (slot) { slot.style.height = dock ? bar.offsetHeight + 'px' : ''; slot.style.display = dock ? 'block' : ''; }
+      bar.classList.toggle('is-docked', dock);
+      room();
+    }
+    function onScroll() { if (!ticking) { ticking = true; requestAnimationFrame(check); } }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    if (window.ResizeObserver) new ResizeObserver(room).observe(bar);
+    check();
   }
 
   function initPdp() {
@@ -1255,9 +1273,12 @@
     }
     if (!changed) return false;
     out.push(text.slice(last));
-    var frag = document.createDocumentFragment();
-    out.forEach(function (x) { if (typeof x === 'string') { if (x) frag.appendChild(document.createTextNode(x)); } else frag.appendChild(x); });
-    n.parentNode.replaceChild(frag, n);
+    /* One wrapper for the lot, so a flex row (the phone menu) can't push the
+       name and its ™ apart as separate items. */
+    var wrap = document.createElement('span');
+    wrap.className = 'alp-tmw';
+    out.forEach(function (x) { if (typeof x === 'string') { if (x) wrap.appendChild(document.createTextNode(x)); } else wrap.appendChild(x); });
+    n.parentNode.replaceChild(wrap, n);
     return true;
   }
   function trademark(root) {
