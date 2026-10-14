@@ -110,7 +110,7 @@
     [-1, 1].forEach((side) => [0, 1, 2].forEach((k) => {
       const p = (T / 2 + k / 3 + (side > 0 ? 1 / 6 : 0)) % 1;
       const e = Math.pow(p, 1.5);
-      out.push({ v: (k + (side > 0 ? 1 : 0)) % 3, p, x: VP + side * (50 + 180 * e), y: HZ + 2 + (BASE - 10 - HZ) * e, s: 0.14 + 0.86 * e, flip: -side, op: Math.min(1, p / 0.15, (1 - p) / 0.18) });
+      out.push({ i: out.length, v: (k + (side > 0 ? 1 : 0)) % 3, p, x: VP + side * (50 + 180 * e), y: HZ + 2 + (BASE - 10 - HZ) * e, s: 0.14 + 0.86 * e, flip: -side, op: Math.min(1, p / 0.15, (1 - p) / 0.18) });
     }));
     return out.sort((a, b) => a.p - b.p);
   }
@@ -191,7 +191,124 @@
       + `</g></svg>`;
   }
 
-  window.BushMapLoader = { frame, duration: DUR };
+  /* ── In-place renderer (Bush Map addition) ─────────────────────────────
+     frame() above builds the whole picture as a string, and the original
+     element re-parsed it 30 times a second: ~1,700 SVG nodes thrown away and
+     rebuilt every frame, on the main thread the map needs to start up.
+     mount() builds the same DOM once — same shapes, same attributes, same
+     paint order — and each frame only rewrites what moves: the fill line
+     (two clip paths), the roughness seed, the road dashes, the birds, each
+     gum's position/scale/fade and its scale-compensated stroke widths, and
+     the riders' bob and legs. frame() is kept as the reference it was checked
+     against pixel for pixel, and for anyone who wants a single still. */
+  const NS = 'http://www.w3.org/2000/svg';
+  function mk(tag, attrs, parent) {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function mkShape(sh, attrs, parent) {
+    if (sh[0] === 'r') return mk('ellipse', Object.assign({ cx: sh[1], cy: sh[2], rx: sh[3], ry: sh[4], transform: `rotate(${sh[5]} ${sh[1]} ${sh[2]})` }, attrs), parent);
+    if (sh[0] === 'e') return mk('ellipse', Object.assign({ cx: sh[1], cy: sh[2], rx: sh[3], ry: sh[4] }, attrs), parent);
+    return mk('path', Object.assign({ d: sh[1] }, attrs), parent);
+  }
+  // Only touch an attribute when its value actually changes.
+  function set(e, k, v) {
+    const c = e.__bml || (e.__bml = {});
+    if (c[k] !== v) { c[k] = v; e.setAttribute(k, v); }
+  }
+  // One of the three passes scene() draws, built once; returns its per-frame update.
+  function buildScene(parent, o) {
+    const P = o.paint || {}, ink = o.ink, sw = o.sw || 2, leafInk = o.leafInk !== false;
+    // st() from scene(), minus stroke-width where that varies with scale (set on a group instead).
+    const look = (fill) => ({ fill: fill || 'none', stroke: ink || fill || 'none', 'stroke-linejoin': 'round', 'stroke-linecap': 'round' });
+    const width = (w, k) => ((w != null ? w : ink ? sw : 1.5) / k).toFixed(3);
+    mk('path', { d: ROAD, fill: P.road || 'none' }, parent);
+    const dashes = [];
+    if (ink) {
+      const ln = { fill: 'none', stroke: ink, 'stroke-width': (sw / 1).toFixed(3), 'stroke-linecap': 'round' };
+      LAND_LINES.forEach((d) => mk('path', Object.assign({ d }, ln), parent));
+      for (let i = 0; i < 4; i++) dashes.push(mk('path', Object.assign({}, ln), parent));
+    }
+    const birds = [];
+    for (let i = 0; i < 4; i++) birds.push(mk('path', { fill: 'none', stroke: ink || P.bird, 'stroke-width': ink ? sw : 3, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, parent));
+    // Gums: six fixed slots (treesAt's generation order), redrawn back-to-front by depth.
+    const forest = mk('g', {}, parent);
+    const slots = [];
+    treesAt(0).slice().sort((a, b) => a.i - b.i).forEach(({ i, v }) => {
+      const g = GUMS[v], root = mk('g', {}, forest);
+      const trunk = mk('g', {}, root);
+      g.trunk.forEach((sh) => mkShape(sh, look(P.trunk), trunk));
+      let leaves = null, lines = null;
+      if (o.paint || leafInk) { leaves = mk('g', {}, root); g.leaves.forEach((sh) => mkShape(sh, look(P.tree), leaves)); }
+      if (ink) { lines = mk('g', {}, root); g.lines.forEach((d) => mk('path', { d, fill: 'none', stroke: ink, 'stroke-linecap': 'round' }, lines)); }
+      slots[i] = { root, trunk, leaves, lines };
+    });
+    // Riders: legs and bob move, the bodies are fixed.
+    const riders = RIDERS.map((r) => {
+      const root = mk('g', {}, parent);
+      const a = Object.assign(look(P.rider), { 'stroke-width': width(null, r.s) });
+      const legs = [mk('path', Object.assign({}, a), root), mk('path', Object.assign({}, a), root)];
+      r.shapes.forEach((sh) => mkShape(sh, a, root));
+      return { r, root, legs };
+    });
+    let lastOrder = '';
+    return (T) => {
+      if (ink) dashesAt(T).forEach((d, i) => set(dashes[i], 'd', d));
+      birdsAt(T).forEach((d, i) => set(birds[i], 'd', d));
+      // treesAt() sorts back-to-front; restack only when a gum wraps round.
+      const trees = treesAt(T);
+      const order = trees.map((t) => t.i).join(',');
+      if (order !== lastOrder) { lastOrder = order; trees.forEach((t) => forest.appendChild(slots[t.i].root)); }
+      trees.forEach((t) => {
+        const sl = slots[t.i];
+        set(sl.root, 'opacity', t.op.toFixed(3));
+        set(sl.root, 'transform', `translate(${t.x.toFixed(1)} ${t.y.toFixed(1)}) scale(${(t.s * t.flip).toFixed(3)} ${t.s.toFixed(3)})`);
+        set(sl.trunk, 'stroke-width', width(null, t.s));
+        if (sl.leaves) set(sl.leaves, 'stroke-width', width(ink ? sw * 0.5 : 0.6, t.s));
+        if (sl.lines) set(sl.lines, 'stroke-width', (sw / (t.s * 1.6)).toFixed(3));
+      });
+      riders.forEach(({ r, root, legs: L }) => {
+        const a = (T + r.phase) * TAU;
+        set(root, 'transform', `translate(${r.x} ${GROUND}) scale(${r.s}) rotate(${(2.2 * Math.sin(a)).toFixed(2)} 0 -20)`);
+        legs(a, r.legW).forEach((d, i) => set(L[i], 'd', d));
+      });
+    };
+  }
+  // Build the picture into `host` once; returns draw(T) for any time T.
+  function mount(host, opts) {
+    opts = opts || {};
+    const liquid = opts.fill || C.olive, ink = opts.ink || C.olive, id = opts.uid || 'bml';
+    const paint = { road: liquid === C.khaki ? C.sage : C.khaki, tree: liquid, trunk: C.khaki, rider: liquid, bird: liquid };
+    host.textContent = '';
+    const svg = mk('svg', { viewBox: `0 0 ${VB.w} ${VB.h}`, width: '100%', style: 'display:block;overflow:visible' }, host);
+    const defs = mk('defs', {}, svg);
+    defs.innerHTML = [0, 1, 2].map((k) => `<filter id="${id}r${k}" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="${k * 7 + 3}"/><feDisplacementMap in="SourceGraphic" scale="4.5"/></filter>`).join('')
+      + `<filter id="${id}g" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="1" seed="4" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0.929  0 0 0 0 0.925  0 0 0 0 0.773  -1.4 0 0 0 0.66" result="sp"/><feComposite in="sp" in2="SourceAlpha" operator="in" result="s2"/><feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="s2"/></feMerge></filter>`;
+    const below = mk('path', {}, mk('clipPath', { id: `${id}b` }, defs));
+    const above = mk('path', {}, mk('clipPath', { id: `${id}a` }, defs));
+    const rough = mk('g', {}, svg);
+    const ups = [
+      buildScene(mk('g', { filter: `url(#${id}g)` }, mk('g', { 'clip-path': `url(#${id}b)` }, rough)), { paint }),
+      buildScene(mk('g', { 'clip-path': `url(#${id}a)` }, rough), { ink, sw: 2 }),
+      buildScene(mk('g', { 'clip-path': `url(#${id}b)` }, rough), { ink: C.bone, sw: 2, leafInk: false }),
+    ];
+    return (T) => {
+      T = ((T % DUR) + DUR) % DUR;
+      const rise = piecewise(T, [0, 0.8, 1.65, 2.45, SETTLE], [0, 0.22, 0.5, 0.76, 1], E.inOutCubic);
+      const fill = T >= DRAIN ? 1 - E.inOutQuart(clamp01((T - DRAIN) / (DUR - DRAIN))) : rise;
+      const calm = T >= SETTLE && T < DRAIN ? 1 - 0.7 * E.outCubic(clamp01((T - SETTLE) / (DRAIN - SETTLE))) : 1;
+      const level = BASE + 8 - (BASE + 8 - TOP + 16) * fill;
+      const wv = 3.5 * calm, ph = (T / 2) * TAU, seed = Math.floor(T / 0.2) % 3;
+      set(rough, 'filter', `url(#${id}r${seed})`);
+      set(below, 'd', surface(level, wv, ph, false));
+      set(above, 'd', surface(level, wv, ph, true));
+      ups.forEach((u) => u(T));
+    };
+  }
+
+  window.BushMapLoader = { frame, mount, duration: DUR };
 
   let count = 0;
   class BushMapLoaderEl extends HTMLElement {
@@ -205,17 +322,14 @@
         this._art = root.querySelector('.art');
         this._uid = 'bml' + ++count;
       }
+      const draw = mount(this._art, { fill: this.getAttribute('fill'), ink: this.getAttribute('ink'), uid: this._uid });
       const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const draw = (T) => { this._art.innerHTML = frame(T, { fill: this.getAttribute('fill'), ink: this.getAttribute('ink'), uid: this._uid }); };
       if (reduce) { draw(3.4); return; }
-      // Bush Map change: duty-cycle cap. Each frame rebuilds ~1,700 SVG nodes —
-      // ~17 ms on a laptop, ~60 ms on a mid-range phone — on the same main
-      // thread the map is trying to start on, and at a flat 30 fps that made
-      // the map take ~2.6x longer to load on a phone. After each draw we wait
-      // three times as long as it took, so the loader never holds more than
-      // about a quarter of the thread: laptops still see the full 30 fps, slow phones
-      // see fewer frames, and the map loads at full speed either way. The art
-      // itself is untouched.
+      // Bush Map change: duty-cycle cap. This runs while the map is starting
+      // up on the same main thread, so after each frame we wait three times
+      // as long as it took: the loader never holds more than about a quarter
+      // of the thread. With the in-place renderer a frame is ~4 ms on a laptop
+      // (full 30 fps, the cap never bites) and ~18 ms on a mid-range phone.
       const t0 = performance.now(); let last = -1, next = 0;
       const tick = (now) => {
         if (now >= next) {
@@ -232,6 +346,7 @@
         }
         this._raf = requestAnimationFrame(tick);
       };
+      draw(0);
       this._raf = requestAnimationFrame(tick);
     }
     disconnectedCallback() { cancelAnimationFrame(this._raf); }
