@@ -84,13 +84,13 @@
         "type": "text",
         "id": "alp_place",
         "label": "Place",
-        "default": "Gold Coast, Queensland"
+        "default": "Beerwah, Queensland"
       },
       {
         "type": "text",
         "id": "alp_place_short",
         "label": "Place, short",
-        "default": "Gold Coast, QLD"
+        "default": "Beerwah, QLD"
       },
       {
         "type": "text",
@@ -116,13 +116,13 @@
         "type": "text",
         "id": "alp_lat",
         "label": "Latitude",
-        "default": "-28.0167"
+        "default": "-26.8580"
       },
       {
         "type": "text",
         "id": "alp_lon",
         "label": "Longitude",
-        "default": "153.4000"
+        "default": "152.9600"
       },
       {
         "type": "header",

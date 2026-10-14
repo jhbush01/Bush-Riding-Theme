@@ -143,6 +143,7 @@
         </ul>
       {%- endif -%}
 
+      <div class="alp-buy__slot" data-alp-buy-slot aria-hidden="true"></div>
       {%- form 'product', product, class: 'alp-buy', data-alp-buy: '', novalidate: 'novalidate' -%}
         {%- comment -%}
           The variant id. With script, alpine.js names this input and fills it
@@ -315,6 +316,8 @@
       {%- if side_acc != blank -%}
         <div class="alp-acc">{{ side_acc }}</div>
       {%- endif -%}
+      {%- comment -%} Phones: once this scrolls off the top, the buy block docks to the bottom. {%- endcomment -%}
+      <span data-alp-buy-dock aria-hidden="true"></span>
     </div>
   </div>
 

@@ -1,0 +1,24 @@
+{%- comment -%}
+  Collection intro — a full-bleed photo with the category's name, a short
+  line in capitals and a few sentences over it (or, with no photo, the same
+  words set plainly). Used once, at the top of a Type's or a collection's
+  own page.
+
+  title, tagline, text, image (all optional except title)
+  heading    – 'h1' at the top of a page, else h2
+  attrs      – the block's shopify_attributes, so the theme editor can find it
+  loading    – 'eager' for the first intro on the page
+{%- endcomment -%}
+{%- assign tag = heading | default: 'h2' -%}
+<header class="alp-intro{% if image == blank %} alp-intro--plain{% endif %}" {{ attrs }}>
+  {%- if image != blank -%}
+    <div class="alp-intro__media">
+      {{ image | image_url: width: 2400 | image_tag: class: 'alp-fill', loading: loading | default: 'lazy', widths: '600, 900, 1200, 1800, 2400', sizes: '100vw', alt: '' }}
+    </div>
+  {%- endif -%}
+  <div class="alp-intro__text">
+    <{{ tag }} class="alp-intro__title">{{ title | escape }}</{{ tag }}>
+    {%- if tagline != blank -%}<p class="alp-intro__tag">{{ tagline | escape }}</p>{%- endif -%}
+    {%- if text != blank -%}<p class="alp-intro__body">{{ text | escape | newline_to_br }}</p>{%- endif -%}
+  </div>
+</header>

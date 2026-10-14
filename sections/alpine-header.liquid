@@ -8,8 +8,10 @@
   stays while the pointer is over the header or the panel. Without script
   the nav links are plain links to /collections, the map and the rides page.
 
-  Phone (M01): a 56px bar. Wordmark, then Search · Cart (n) · menu. The menu
-  drops as a sheet under the bar with the page dimmed: Shop expanded with its
+  Phone (M01): a 56px bar. Wordmark, then Search · Cart (n). The menu opens
+  from a round button at the bottom left (thumb reach) and rises as a sheet
+  from the bottom with the page dimmed; swipe it down or tap the page to
+  close: Shop expanded with its
   categories, Bush Map and Rides expanding the same way, About, and local
   time, weather and currency at its foot.
 
@@ -123,7 +125,12 @@
     >Search</a>
     <a class="alp-hd__link{% if here == 'cart' %} is-on{% endif %}" href="{{ routes.cart_url }}" data-alp-open-cart>Cart (<span data-alp-cart-count>{{ cart.item_count }}</span>)</a>
 
-    <button class="alp-hd__burger alp-m" type="button" data-alp-toggle="alp-menu" aria-expanded="false" aria-controls="alp-menu" aria-label="Menu">
+    {%- comment -%}
+      Phones: the menu button is a round button fixed at the bottom left, in
+      thumb reach, and the menu rises from the bottom (trial, Oct 2026). It
+      sits above the product page's buy bar when there is one.
+    {%- endcomment -%}
+    <button class="alp-hd__burger alp-fab alp-m" type="button" data-alp-toggle="alp-menu" aria-expanded="false" aria-controls="alp-menu" aria-label="Menu">
       <svg class="alp-hd__icon-open" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
       <svg class="alp-hd__icon-close" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
     </button>
@@ -273,15 +280,14 @@
   <div class="alp-mega alp-mega--rides alp-d" id="alp-ridesmenu" data-alp-panel hidden>
     <nav class="alp-mega__cols" aria-label="Rides">
       <div class="alp-mega__col alp-mega__col--lead">
-        <a class="alp-mega__lead" href="{{ rides_url }}">All rides</a>
+        <a class="alp-mega__lead" href="{{ rides_url }}">Upcoming Bush Rides</a>
+        <a class="alp-mega__lead" href="{% if jcount > 0 %}{{ jblog.url }}{% else %}{{ rides_url }}{% endif %}">Ride Journal</a>
         {%- if settings.alp_strava_url != blank -%}
-          <a class="alp-cats__item" href="{{ settings.alp_strava_url }}" target="_blank" rel="noopener">Ride with us on Strava</a>
+          <a class="alp-mega__lead" href="{{ settings.alp_strava_url }}" target="_blank" rel="noopener">Bush Riding Strava Club</a>
         {%- endif -%}
-        <a class="alp-cats__item" href="{{ map_url }}/events/">Events on the map</a>
-        {%- if jcount > 0 -%}<a class="alp-cats__item" href="{{ jblog.url }}">Ride Journal</a>{%- endif -%}
       </div>
       <div class="alp-mega__col">
-        <p class="alp-mega__head">Upcoming rides</p>
+        <p class="alp-mega__head">Upcoming Bush Rides</p>
         <div class="alp-dd__list" data-alp-rides-list><span class="alp-dd__quiet">Finding rides…</span></div>
       </div>
     </nav>
@@ -310,7 +316,8 @@
   </div>
 
   {%- comment -%} ── M01 · Menu sheet (phones) ────────────────────────────── {%- endcomment -%}
-  <div class="alp-menu alp-m" id="alp-menu" data-alp-panel hidden>
+  <div class="alp-menu alp-m" id="alp-menu" data-alp-panel data-alp-swipe-close hidden>
+    <span class="alp-menu__grab" aria-hidden="true"></span>
     <nav class="alp-menu__nav" aria-label="Menu">
       <details class="alp-menu__group" open>
         <summary class="alp-menu__row">Shop <span class="alp-menu__pm" aria-hidden="true"></span></summary>
@@ -331,11 +338,11 @@
       <details class="alp-menu__group">
         <summary class="alp-menu__row">Rides <span class="alp-menu__pm" aria-hidden="true"></span></summary>
         <div class="alp-menu__sub alp-cats">
-          <a class="alp-cats__item" href="{{ rides_url }}" data-alp-close>All rides</a>
+          <a class="alp-cats__item" href="{{ rides_url }}" data-alp-close>Upcoming Bush Rides</a>
+          <a class="alp-cats__item" href="{% if jcount > 0 %}{{ jblog.url }}{% else %}{{ rides_url }}{% endif %}" data-alp-close>Ride Journal</a>
           {%- if settings.alp_strava_url != blank -%}
-            <a class="alp-cats__item" href="{{ settings.alp_strava_url }}" target="_blank" rel="noopener" data-alp-close>Ride with us on Strava</a>
+            <a class="alp-cats__item" href="{{ settings.alp_strava_url }}" target="_blank" rel="noopener" data-alp-close>Bush Riding Strava Club</a>
           {%- endif -%}
-          <a class="alp-cats__item" href="{{ map_url }}/events/" data-alp-close>Events on the map</a>
         </div>
       </details>
       {%- if about_url != blank -%}

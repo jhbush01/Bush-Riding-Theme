@@ -559,18 +559,36 @@
     return s;
   }
 
-  /* Phone product page: the buy bar is fixed to the bottom, so the page
-     needs that much room under the footer. Measured, not guessed — the bar's
-     height depends on the product's options. */
+  /* Phone product page: the buy block sits in the page under the spec pills
+     and docks to the bottom once the info column (down to Need help?) has
+     scrolled off the top. A spacer holds its place so nothing jumps, and the
+     page gets room under the footer only while it's docked. */
   var barObserved = null;
   function trackBuyBar() {
     var bar = $('.template-product [data-alp-buy]');
-    if (!bar || bar === barObserved || !window.ResizeObserver) return;
+    var mark = $('.template-product [data-alp-buy-dock]');
+    var slot = $('.template-product [data-alp-buy-slot]');
+    if (!bar || !mark || bar === barObserved) return;
     barObserved = bar;
-    new ResizeObserver(function () {
-      var h = DESKTOP.matches ? 0 : bar.offsetHeight;
-      document.body.style.setProperty('--alp-bar', (h ? h + 16 : 0) + 'px');
-    }).observe(bar);
+    var ticking = false;
+    function room() {
+      var on = bar.classList.contains('is-docked');
+      document.body.style.setProperty('--alp-bar', on ? (bar.offsetHeight + 16) + 'px' : '0px');
+    }
+    function check() {
+      ticking = false;
+      if (!bar.isConnected) return;
+      var dock = !DESKTOP.matches && mark.getBoundingClientRect().bottom < 0;
+      if (dock === bar.classList.contains('is-docked')) return;
+      if (slot) { slot.style.height = dock ? bar.offsetHeight + 'px' : ''; slot.style.display = dock ? 'block' : ''; }
+      bar.classList.toggle('is-docked', dock);
+      room();
+    }
+    function onScroll() { if (!ticking) { ticking = true; requestAnimationFrame(check); } }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    if (window.ResizeObserver) new ResizeObserver(room).observe(bar);
+    check();
   }
 
   function initPdp() {
@@ -1222,31 +1240,65 @@
 
   /* ── Boot ── */
   /* ── Trademarks ──────────────────────────────────────────────────────────
-     Bush Riding, Bush Map and DustGrid always carry ™ — in the theme's own
+     Every ™ is set small and raised (.alp-tm). Bush Riding, Bush Map and
+     DustGrid always carry ™ — in the theme's own
      words and in anything typed into Shopify (product titles, descriptions,
      journal posts, collection names). A name already followed by ™ or ® is
      left alone, so nothing doubles. Lower-case "bush riding" is the
      activity, not the brand, so it's left as written. Text only: not attributes, form fields,
      scripts, or the editable bits of the theme editor's own UI. */
-  var TM_RE = /\b(Bush Riding|BUSH RIDING|Bush Map|BUSH MAP|DustGrid|DUSTGRID)(?![™®A-Za-z])/g;
-  var TM_TEST = /\b(Bush Riding|BUSH RIDING|Bush Map|BUSH MAP|DustGrid|DUSTGRID)(?![™®A-Za-z])/;
+  var TM_NAME = 'Bush Riding|BUSH RIDING|Bush Map|BUSH MAP|DustGrid|DUSTGRID';
+  /* A brand name (maybe with its ™/® already), or a ™ on its own. */
+  var TM_ANY = new RegExp('\\b(' + TM_NAME + ')(?![A-Za-z])([\u2122\u00AE]?)|\u2122', 'g');
   var TM_SKIP = { SCRIPT: 1, STYLE: 1, TEXTAREA: 1, INPUT: 1, SELECT: 1, OPTION: 1, NOSCRIPT: 1, TITLE: 1, CODE: 1, PRE: 1 };
+  function tmSpan() { var t = document.createElement('span'); t.className = 'alp-tm'; t.textContent = '\u2122'; return t; }
+  /* Rewrites one text node into text + small ™ spans. Returns false when the
+     node needs nothing (so it's left untouched — this is what keeps it from
+     looping: a name already followed by its .alp-tm span is skipped). */
+  function tmNode(n) {
+    var text = n.nodeValue, out = [], last = 0, changed = false, m;
+    TM_ANY.lastIndex = 0;
+    while ((m = TM_ANY.exec(text))) {
+      var end = TM_ANY.lastIndex;
+      if (m[1]) {
+        if (m[2] === '\u00AE') continue;
+        var atEnd = end === text.length && !m[2];
+        var next = n.nextSibling;
+        if (!m[2] && atEnd && next && next.nodeType === 1 && next.classList && next.classList.contains('alp-tm')) continue;
+        out.push(text.slice(last, m.index + m[1].length), tmSpan());
+      } else {
+        out.push(text.slice(last, m.index), tmSpan());
+      }
+      last = end; changed = true;
+    }
+    if (!changed) return false;
+    out.push(text.slice(last));
+    /* One wrapper for the lot, so a flex row (the phone menu) can't push the
+       name and its ™ apart as separate items. */
+    var wrap = document.createElement('span');
+    wrap.className = 'alp-tmw';
+    out.forEach(function (x) { if (typeof x === 'string') { if (x) wrap.appendChild(document.createTextNode(x)); } else wrap.appendChild(x); });
+    n.parentNode.replaceChild(wrap, n);
+    return true;
+  }
   function trademark(root) {
     if (!root || !document.createTreeWalker) return;
+    if (root.nodeType === 1 && root.classList && root.classList.contains('alp-tm')) return;
     var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
       acceptNode: function (n) {
         var p = n.parentNode;
-        if (!p || TM_SKIP[p.nodeName] || (p.closest && p.closest('[contenteditable], [data-alp-no-tm]'))) return NodeFilter.FILTER_REJECT;
-        return TM_TEST.test(n.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+        if (!p || TM_SKIP[p.nodeName] || (p.closest && p.closest('[contenteditable], [data-alp-no-tm], .alp-tm'))) return NodeFilter.FILTER_REJECT;
+        TM_ANY.lastIndex = 0;
+        return TM_ANY.test(n.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
       }
     });
     var hits = [];
     while (walker.nextNode()) hits.push(walker.currentNode);
-    hits.forEach(function (n) { n.nodeValue = n.nodeValue.replace(TM_RE, '$1™'); });
+    hits.forEach(tmNode);
   }
   /* Menus, search results and the cart fill in after load; catch those too.
-     Rewriting a text node is a characterData change, which this doesn't
-     watch, so it can't loop. */
+     Our own rewrites add nodes too; they come back here once and are left
+     alone (see tmNode), so it settles after one pass. */
   if (window.MutationObserver) {
     new MutationObserver(function (list) {
       list.forEach(function (m) {
@@ -1258,9 +1310,82 @@
     }).observe(document.body, { childList: true, subtree: true });
   }
 
+  /* Bottom sheets that close on a downward swipe (the phone menu). Only from
+     the top of the sheet's scroll, so scrolling its list still works. */
+  (function () {
+    var y0 = null, dy = 0, sheet = null;
+    document.addEventListener('touchstart', function (e) {
+      sheet = e.target.closest && e.target.closest('[data-alp-swipe-close].is-open');
+      if (!sheet || sheet.scrollTop > 0) { sheet = null; return; }
+      y0 = e.touches[0].clientY; dy = 0;
+    }, { passive: true });
+    document.addEventListener('touchmove', function (e) {
+      if (!sheet || y0 === null) return;
+      dy = Math.max(0, e.touches[0].clientY - y0);
+      if (dy > 0) { sheet.classList.add('is-dragging'); sheet.style.transform = 'translateY(' + dy + 'px)'; }
+    }, { passive: true });
+    document.addEventListener('touchend', function () {
+      if (!sheet) return;
+      sheet.classList.remove('is-dragging'); sheet.style.transform = '';
+      if (dy > 90) closePanel();
+      sheet = null; y0 = null; dy = 0;
+    });
+  })();
+
+  /* ── Product photos full screen (phones) ─────────────────────────────────
+     Tapping a gallery photo opens every photo full screen, swipeable, at the
+     one tapped; ✕, Escape or the back gesture's tap on the page closes. */
+  document.addEventListener('click', function (e) {
+    if (DESKTOP.matches) return;
+    var img = e.target.closest && e.target.closest('.alp-gal__slide img');
+    if (!img) return;
+    var track = img.closest('[data-alp-track]');
+    var imgs = $$('.alp-gal__slide:not([data-alp-clone]) img', track);
+    /* Open at the photo the carousel shows (its counter covers the loop's copies). */
+    var nEl = $('[data-alp-slide-n]', img.closest('[data-alp-scroller]'));
+    var at = Math.min(imgs.length - 1, Math.max(0, (parseInt(nEl && nEl.textContent, 10) || 1) - 1));
+    var box = el('div', 'alp-zoom');
+    box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-label', 'Photos');
+    var t = el('div', 'alp-zoom__track');
+    imgs.forEach(function (src) {
+      var sl = el('div', 'alp-zoom__slide'), i = el('img');
+      i.src = src.currentSrc || src.src; i.alt = src.alt || ''; sl.appendChild(i); t.appendChild(sl);
+    });
+    var count = el('p', 'alp-zoom__count', (at + 1) + ' / ' + imgs.length);
+    var x = el('button', 'alp-zoom__close'); x.type = 'button'; x.setAttribute('aria-label', 'Close');
+    x.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+    box.appendChild(t); box.appendChild(count); box.appendChild(x);
+    document.body.appendChild(box); lock();
+    t.scrollLeft = at * t.clientWidth;
+    t.addEventListener('scroll', function () { count.textContent = (Math.round(t.scrollLeft / (t.clientWidth || 1)) + 1) + ' / ' + imgs.length; }, { passive: true });
+    function shut() { box.remove(); unlock(); document.removeEventListener('keydown', esc); img.focus && img.focus({ preventScroll: true }); }
+    function esc(ev) { if (ev.key === 'Escape') shut(); }
+    x.addEventListener('click', shut);
+    document.addEventListener('keydown', esc);
+    x.focus({ preventScroll: true });
+  });
+
+  /* ── Journal videos: show a still before play ────────────────────────────
+     Videos placed in a blog post show a blank frame with a play button on
+     iPhone until pressed. With no poster set, ask for the first frame: load
+     metadata and point the source a hair past 0s, which makes Safari paint
+     it. */
+  function initArticleVideos() {
+    $$('.alp-article__body video').forEach(function (v) {
+      if (v._alp || v.getAttribute('poster')) return;
+      v._alp = true;
+      v.setAttribute('playsinline', '');
+      v.preload = 'metadata';
+      var bump = function (url) { return url && url.indexOf('#') < 0 ? url + '#t=0.001' : url; };
+      if (v.getAttribute('src')) v.setAttribute('src', bump(v.getAttribute('src')));
+      $$('source', v).forEach(function (so) { if (so.getAttribute('src')) so.setAttribute('src', bump(so.getAttribute('src'))); });
+      try { v.load(); } catch (err) {}
+    });
+  }
+
   function init() {
     /* One failing block mustn't stop the rest of the page's script. */
-    [function () { trademark(document.body); }, initSignups, initScrollers, initRecs, tickClock, initWeather, initVideos, initPdp, initRideTiles,
+    [function () { trademark(document.body); }, initArticleVideos, initSignups, initScrollers, initRecs, tickClock, initWeather, initVideos, initPdp, initRideTiles,
      openFilterGroups, initRides, initRoutesPage, initSearch].forEach(function (fn) {
       try { fn(); } catch (err) { if (window.console) console.error('[alp] ' + (fn.name || 'init') + ' failed:', err); }
     });
