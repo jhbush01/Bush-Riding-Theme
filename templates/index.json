@@ -49,8 +49,9 @@
         "map": {
           "type": "panel",
           "settings": {
+            "image": "shopify://shop_images/IMG_0891.jpg",
             "ground": "mist",
-            "title": "Get the route. Join the bush.",
+            "title": "FIND YOUR NEXT ADVENTURE",
             "chip": "BUSH MAP™",
             "to": "map",
             "url": ""
