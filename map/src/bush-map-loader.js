@@ -325,28 +325,52 @@
       const draw = mount(this._art, { fill: this.getAttribute('fill'), ink: this.getAttribute('ink'), uid: this._uid });
       const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
       if (reduce) { draw(3.4); return; }
-      // Bush Map change: duty-cycle cap. This runs while the map is starting
-      // up on the same main thread, so after each frame we wait three times
-      // as long as it took: the loader never holds more than about a quarter
-      // of the thread. With the in-place renderer a frame is ~4 ms on a laptop
-      // (full 30 fps, the cap never bites) and ~18 ms on a mid-range phone.
-      const t0 = performance.now(); let last = -1, next = 0;
+      // Bush Map change: steady cadence, and stalls pause rather than skip.
+      // This runs while the map starts up on the same main thread. The first
+      // few frames are timed (they land before the map's own work begins)
+      // and from them one fixed rate is chosen for the rest of the run —
+      // 30, 20, 15 or 10 fps, whichever keeps the loader to about a third of
+      // the thread. A fixed rate reads as smooth where a rate re-decided
+      // every frame reads as stutter. And the clock only moves as frames are
+      // drawn: when the page stalls (the map parsing its style, say) the
+      // loop picks up where it was, instead of jumping ahead to catch up.
+      const RATES = [1000 / 30, 1000 / 20, 1000 / 15, 1000 / 10];
+      let T = 0, lastDraw = 0, next = 0, interval = RATES[0];
+      const calib = [], mc = new MessageChannel(), port = mc.port1;
+      let pending = false;
       const tick = (now) => {
         if (now >= next) {
-          const T = ((now - t0) / 1000) % DUR, f = Math.floor(T * 30);
-          if (f !== last) {
-            last = f;
+          const dt = lastDraw ? Math.min(now - lastDraw, interval * 1.5) : 0;
+          T = (T + dt / 1000) % DUR;
+          lastDraw = now;
+          if (calib.length < 6 && !pending) {
+            // Time the WHOLE frame: a message posted from here is handled
+            // after this frame's style, layout and paint, and paint is most
+            // of the cost (every shape repaints each frame).
             const c0 = performance.now();
+            pending = true;
             draw(T);
-            // Pull style + layout into the measured window (they'd run anyway,
-            // just later) so the wait reflects the frame's whole cost.
-            this._art.getBoundingClientRect();
-            next = now + 3 * (performance.now() - c0);
+            port.onmessage = () => {
+              pending = false;
+              calib.push(performance.now() - c0);
+              if (calib.length === 6) {
+                // The fastest reading, not the median: the timing message
+                // queues behind whatever else the page is doing while it
+                // loads, which can only ever inflate a reading — never shrink
+                // it. The cold first frame is skipped.
+                const cost = Math.min(...calib.slice(1));
+                interval = RATES.find((r) => cost * 3 <= r) || RATES[RATES.length - 1];
+              }
+            };
+            mc.port2.postMessage(0);
+          } else {
+            draw(T);
           }
+          // 4 ms of slack so a frame due "now-ish" isn't pushed to the next vsync.
+          next = now + interval - 4;
         }
         this._raf = requestAnimationFrame(tick);
       };
-      draw(0);
       this._raf = requestAnimationFrame(tick);
     }
     disconnectedCallback() { cancelAnimationFrame(this._raf); }

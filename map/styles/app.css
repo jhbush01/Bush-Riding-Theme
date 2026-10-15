@@ -105,6 +105,11 @@ body {
 #map.is-waiting {
   opacity: 0;
 }
+/* Repeat visit in the same session (index.html): no loading screen, no
+   fade — the map is simply there. Belt and braces with the inline script
+   that removes both, so neither can flash before it runs. */
+.brm-loader-seen .map-loader { display: none; }
+.brm-loader-seen #map.is-waiting { opacity: 1; transition: none; }
 @media (prefers-reduced-motion: reduce) {
   .map-loader,
   #map { transition: none; }

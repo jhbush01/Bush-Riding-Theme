@@ -45,10 +45,23 @@
 
     <link rel="stylesheet" href="styles/app.css" />
 
-    <!-- Loading animation (<bush-map-loader>, a self-contained web component).
-         Loaded synchronously — it's small and local — so it's drawing before
-         the map scripts have even started. -->
-    <script src="src/bush-map-loader.js"></script>
+    <!-- Loading animation (<bush-map-loader>, a self-contained web component)
+         plays once per browser session. Decided here, before anything draws:
+         on a repeat visit the script isn't even fetched, and the
+         .brm-loader-seen class hides the loading screen and shows the map at
+         once (rules in app.css). sessionStorage can throw in some private
+         modes, in which case it just plays. -->
+    <script>
+      (function () {
+        var seen = false;
+        try { seen = sessionStorage.getItem("brm-loader-seen") === "1"; } catch (e) {}
+        if (seen) { document.documentElement.classList.add("brm-loader-seen"); return; }
+        window.brmLoaderStart = Date.now();
+        var s = document.createElement("script");
+        s.src = "src/bush-map-loader.js";
+        document.head.appendChild(s);
+      })();
+    </script>
 
     <!-- Deployment config — the only place to set per-environment values. -->
     <script>
@@ -89,7 +102,11 @@
       window.brmHideLoader = function () {
         var el = document.getElementById("map-loader");
         if (!el || el.classList.contains("is-done")) return;
+        // Stay up at least 1.5 s, so a fast load doesn't blink it on and off.
+        var shown = Date.now() - (window.brmLoaderStart || 0);
+        if (shown < 1500) { setTimeout(window.brmHideLoader, 1500 - shown); return; }
         el.classList.add("is-done");
+        try { sessionStorage.setItem("brm-loader-seen", "1"); } catch (e) {}
         // Nothing to wait for when reduced motion has turned the fade off.
         var still = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
         setTimeout(function () {
@@ -98,9 +115,16 @@
           if (map) map.classList.remove("is-waiting");
         }, still ? 0 : 400);
       };
-      // Never outstay the page: if anything upstream stalls or fails, lift it
-      // anyway — the route list works without the map.
-      setTimeout(window.brmHideLoader, 15000);
+      // Already played this session: take it straight out, map shown as is.
+      if (document.documentElement.classList.contains("brm-loader-seen")) {
+        var l = document.getElementById("map-loader");
+        if (l) l.parentNode.removeChild(l);
+        document.getElementById("map").classList.remove("is-waiting");
+      } else {
+        // Never outstay the page: if anything upstream stalls or fails, lift
+        // it anyway — the route list works without the map.
+        setTimeout(window.brmHideLoader, 15000);
+      }
     </script>
 
 
