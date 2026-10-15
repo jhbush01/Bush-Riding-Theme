@@ -215,7 +215,6 @@ body.alp-hd-away .alp-hd-section { top: calc(-1 * var(--alp-hd) - 2px); }
 .alp-hd__bar {
   display: flex; align-items: center; gap: 44px;
   height: 84px; padding: 0 40px;
-  border-bottom: 1px solid var(--alp-line);
   font: 600 16px/1 var(--alp-font-display);
   background: var(--alp-bg);
   position: relative; z-index: 2;
@@ -266,7 +265,7 @@ body.alp-hd-away .alp-hd-section { top: calc(-1 * var(--alp-hd) - 2px); }
 body.alp-hd-over .alp-hd-under { margin-top: calc(-1 * var(--alp-hd)); }
 body.alp-hd-over .alp-hd-under .alp-hero { height: calc(720px + var(--alp-hd)); }
 body.alp-hd-over:not(.alp-hd-solid):not(.alp-hd-open):not(.alp-hd-hot) .alp-hd,
-body.alp-hd-over:not(.alp-hd-solid):not(.alp-hd-open):not(.alp-hd-hot) .alp-hd .alp-hd__bar { background-color: transparent; color: var(--alp-bg); border-bottom-color: transparent; }
+body.alp-hd-over:not(.alp-hd-solid):not(.alp-hd-open):not(.alp-hd-hot) .alp-hd .alp-hd__bar { background-color: transparent; color: var(--alp-bg); }
 body.alp-hd-over:not(.alp-hd-solid):not(.alp-hd-open):not(.alp-hd-hot) .alp-hd .alp-hd__bar::before { opacity: 1; }
 body.alp-hd-over:not(.alp-hd-solid):not(.alp-hd-open):not(.alp-hd-hot) .alp-hd .alp-hd__now { color: var(--alp-bg); opacity: 0.85; }
 body.alp-hd-over:not(.alp-hd-solid):not(.alp-hd-open):not(.alp-hd-hot) .alp-hd .alp-hd__link:hover { color: var(--alp-bg); }
