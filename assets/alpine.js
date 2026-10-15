@@ -1271,7 +1271,25 @@
     document.addEventListener(e, function () { setTimeout(function () { heroMark(); heroHeader(); }, 0); });
   });
   heroHeader();
-  requestAnimationFrame(function () { requestAnimationFrame(function () { document.body.classList.add('alp-hd-ready'); }); });
+  /* The bone bar comes back while the mouse is on the nav (the whole group,
+     so sweeping Shop → Rides doesn't flicker), the logo, search or cart, or
+     while keyboard focus is there — not for the empty stretch of the bar. */
+  var HOT = '.alp-hd__nav, .alp-hd__bar a, .alp-hd__bar button';
+  document.addEventListener('pointerover', function (e) {
+    if (e.pointerType === 'mouse' && e.target.closest && e.target.closest(HOT)) document.body.classList.add('alp-hd-hot');
+  });
+  document.addEventListener('pointerout', function (e) {
+    if (e.pointerType !== 'mouse' || !e.target.closest || !e.target.closest(HOT)) return;
+    var to = e.relatedTarget;
+    if (!to || !to.closest || !to.closest(HOT)) document.body.classList.remove('alp-hd-hot');
+  });
+  function kbFocus(el) {
+    try { return !!(el && el.closest && el.closest('.alp-hd__bar') && el.matches(':focus-visible')); } catch (err) { return false; }
+  }
+  document.addEventListener('focusin', function (e) { if (kbFocus(e.target)) document.body.classList.add('alp-hd-hot'); });
+  document.addEventListener('focusout', function (e) {
+    if (kbFocus(e.target) && !kbFocus(e.relatedTarget)) document.body.classList.remove('alp-hd-hot');
+  });
 
   /* ── Boot ── */
   /* ── Trademarks ──────────────────────────────────────────────────────────
