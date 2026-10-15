@@ -77,7 +77,8 @@
       {%- if section.settings.logo != blank -%}
         {{ section.settings.logo | image_url: width: 400 | image_tag: alt: wordmark_alt, loading: 'eager' }}
       {%- else -%}
-        <img src="{{ 'wordmark-olive.svg' | asset_url }}" alt="{{ wordmark_alt | escape }}" width="1273" height="543" loading="eager">
+        <img class="alp-hd__mark" src="{{ 'wordmark-olive.svg' | asset_url }}" alt="{{ wordmark_alt | escape }}" width="1273" height="543" loading="eager">
+        <img class="alp-hd__mark alp-hd__mark--light" src="{{ 'wordmark-bone.svg' | asset_url }}" alt="" width="1273" height="543" loading="eager" aria-hidden="true">
       {%- endif -%}
     </a>
 

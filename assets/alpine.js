@@ -1238,6 +1238,26 @@
   }
   window.addEventListener('scroll', headerScroll, { passive: true });
 
+  /* ── Header over the opening photo: clear until the photo has gone up
+     behind it, then the bone bar (body.alp-hd-solid). The clear look itself
+     is CSS (alpine.css), so there's no flash before this runs. */
+  var HERO_SEL = '#MainContent > .shopify-section:first-child > .alp-hero, #MainContent > .shopify-section:first-child .alp-cat > .alp-intro:first-child:not(.alp-intro--plain)';
+  var heroTick = false;
+  function heroHeader() {
+    heroTick = false;
+    var hero = document.querySelector(HERO_SEL);
+    var bar = document.querySelector('.alp-hd__bar');
+    if (!hero || !bar) { document.body.classList.remove('alp-hd-solid'); return; }
+    var past = hero.getBoundingClientRect().bottom <= bar.getBoundingClientRect().bottom + 1;
+    document.body.classList.toggle('alp-hd-solid', past);
+  }
+  function onHeroScroll() { if (!heroTick) { heroTick = true; requestAnimationFrame(heroHeader); } }
+  window.addEventListener('scroll', onHeroScroll, { passive: true });
+  window.addEventListener('resize', onHeroScroll);
+  document.addEventListener('shopify:section:load', onHeroScroll);
+  heroHeader();
+  requestAnimationFrame(function () { requestAnimationFrame(function () { document.body.classList.add('alp-hd-ready'); }); });
+
   /* ── Boot ── */
   /* ── Trademarks ──────────────────────────────────────────────────────────
      Every ™ is set small and raised (.alp-tm). Bush Riding, Bush Map and
