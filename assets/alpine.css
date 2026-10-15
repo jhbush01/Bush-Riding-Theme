@@ -246,32 +246,34 @@ a:hover > .alp-duo__stack .alp-chip, summary:hover > .alp-chip {
 }
 
 /* ── Header over a full-bleed opening photo (home hero, a Type's intro) ──
-   The page's first photo slides up under the header, which goes clear with
-   bone type over a soft olive fade. Hover, focus, an open menu or scrolling
-   past the photo (alpine.js adds body.alp-hd-solid) bring the bone bar back.
-   Phones and desktop. */
+   A small script at the end of <main> (layout/theme.liquid) checks whether
+   the page opens on one of those photos; if so it adds body.alp-hd-over and
+   .alp-hd-under on that section, which slides up under the header. The
+   header goes clear with bone type over a soft olive fade. Hover, focus, an
+   open menu (body.alp-hd-open) or scrolling past the photo (body.alp-hd-solid,
+   alpine.js) bring the bone bar back. Phones and desktop. */
 .alp-hd__mark--light { display: none; }
 .alp-hd__bar::before {
   content: ''; position: absolute; inset: 0 0 -28px; z-index: -1; pointer-events: none;
   background: linear-gradient(180deg, rgba(47, 47, 38, 0.5), rgba(47, 47, 38, 0));
   opacity: 0;
 }
-body.alp-hd-ready .alp-hd__bar::before { transition: opacity 0.25s; }
 /* Fades only after load (alpine.js adds .alp-hd-ready), so a page that
    opens on a photo doesn't fade from solid to clear as it arrives. */
 body.alp-hd-ready .alp-hd, body.alp-hd-ready .alp-hd__bar { transition: background-color 0.25s, color 0.25s, border-color 0.25s; }
-body:has(#MainContent > .shopify-section:first-child > .alp-hero, #MainContent > .shopify-section:first-child .alp-cat > .alp-intro:first-child:not(.alp-intro--plain)) #MainContent > .shopify-section:first-child { margin-top: calc(-1 * var(--alp-hd)); }
-body:has(#MainContent > .shopify-section:first-child > .alp-hero, #MainContent > .shopify-section:first-child .alp-cat > .alp-intro:first-child:not(.alp-intro--plain)) #MainContent > .shopify-section:first-child > .alp-hero { height: calc(720px + var(--alp-hd)); }
-body:has(#MainContent > .shopify-section:first-child > .alp-hero, #MainContent > .shopify-section:first-child .alp-cat > .alp-intro:first-child:not(.alp-intro--plain)):not(.alp-hd-solid) .alp-hd:not(:hover):not(:focus-within):not(:has([aria-expanded="true"])),
-body:has(#MainContent > .shopify-section:first-child > .alp-hero, #MainContent > .shopify-section:first-child .alp-cat > .alp-intro:first-child:not(.alp-intro--plain)):not(.alp-hd-solid) .alp-hd:not(:hover):not(:focus-within):not(:has([aria-expanded="true"])) .alp-hd__bar { background-color: transparent; color: var(--alp-bg); border-bottom-color: transparent; }
-body:has(#MainContent > .shopify-section:first-child > .alp-hero, #MainContent > .shopify-section:first-child .alp-cat > .alp-intro:first-child:not(.alp-intro--plain)):not(.alp-hd-solid) .alp-hd:not(:hover):not(:focus-within):not(:has([aria-expanded="true"])) .alp-hd__bar::before { opacity: 1; }
-body:has(#MainContent > .shopify-section:first-child > .alp-hero, #MainContent > .shopify-section:first-child .alp-cat > .alp-intro:first-child:not(.alp-intro--plain)):not(.alp-hd-solid) .alp-hd:not(:hover):not(:focus-within):not(:has([aria-expanded="true"])) .alp-hd__now { color: var(--alp-bg); opacity: 0.85; }
-body:has(#MainContent > .shopify-section:first-child > .alp-hero, #MainContent > .shopify-section:first-child .alp-cat > .alp-intro:first-child:not(.alp-intro--plain)):not(.alp-hd-solid) .alp-hd:not(:hover):not(:focus-within):not(:has([aria-expanded="true"])) .alp-hd__link:hover { color: var(--alp-bg); }
-body:has(#MainContent > .shopify-section:first-child > .alp-hero, #MainContent > .shopify-section:first-child .alp-cat > .alp-intro:first-child:not(.alp-intro--plain)):not(.alp-hd-solid) .alp-hd:not(:hover):not(:focus-within):not(:has([aria-expanded="true"])) .alp-hd__mark { display: none; }
-body:has(#MainContent > .shopify-section:first-child > .alp-hero, #MainContent > .shopify-section:first-child .alp-cat > .alp-intro:first-child:not(.alp-intro--plain)):not(.alp-hd-solid) .alp-hd:not(:hover):not(:focus-within):not(:has([aria-expanded="true"])) .alp-hd__mark--light { display: block; }
-body:has(#MainContent > .shopify-section:first-child > .alp-hero, #MainContent > .shopify-section:first-child .alp-cat > .alp-intro:first-child:not(.alp-intro--plain)):not(.alp-hd-solid) .alp-hd:not(:hover):not(:focus-within):not(:has([aria-expanded="true"])) .alp-hd__logo img:not(.alp-hd__mark) { filter: brightness(0) invert(1); }
+body.alp-hd-ready .alp-hd__bar::before { transition: opacity 0.25s; }
+body.alp-hd-over .alp-hd-under { margin-top: calc(-1 * var(--alp-hd)); }
+body.alp-hd-over .alp-hd-under .alp-hero { height: calc(720px + var(--alp-hd)); }
+body.alp-hd-over:not(.alp-hd-solid):not(.alp-hd-open) .alp-hd:not(:hover):not(:focus-within),
+body.alp-hd-over:not(.alp-hd-solid):not(.alp-hd-open) .alp-hd:not(:hover):not(:focus-within) .alp-hd__bar { background-color: transparent; color: var(--alp-bg); border-bottom-color: transparent; }
+body.alp-hd-over:not(.alp-hd-solid):not(.alp-hd-open) .alp-hd:not(:hover):not(:focus-within) .alp-hd__bar::before { opacity: 1; }
+body.alp-hd-over:not(.alp-hd-solid):not(.alp-hd-open) .alp-hd:not(:hover):not(:focus-within) .alp-hd__now { color: var(--alp-bg); opacity: 0.85; }
+body.alp-hd-over:not(.alp-hd-solid):not(.alp-hd-open) .alp-hd:not(:hover):not(:focus-within) .alp-hd__link:hover { color: var(--alp-bg); }
+body.alp-hd-over:not(.alp-hd-solid):not(.alp-hd-open) .alp-hd:not(:hover):not(:focus-within) .alp-hd__mark { display: none; }
+body.alp-hd-over:not(.alp-hd-solid):not(.alp-hd-open) .alp-hd:not(:hover):not(:focus-within) .alp-hd__mark--light { display: block; }
+body.alp-hd-over:not(.alp-hd-solid):not(.alp-hd-open) .alp-hd:not(:hover):not(:focus-within) .alp-hd__logo img:not(.alp-hd__mark) { filter: brightness(0) invert(1); }
 @media (max-width: 749px) {
-  body:has(#MainContent > .shopify-section:first-child > .alp-hero, #MainContent > .shopify-section:first-child .alp-cat > .alp-intro:first-child:not(.alp-intro--plain)) #MainContent > .shopify-section:first-child > .alp-hero { height: 100svh; min-height: 560px; }
+  body.alp-hd-over .alp-hd-under .alp-hero { height: 100svh; min-height: 560px; }
 }
 
 /* Panels under the bar: they slide down from behind it. */

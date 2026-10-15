@@ -76,6 +76,8 @@
 
   function setExpanded(id, on) {
     $$('[data-alp-toggle="' + id + '"]').forEach(function (b) { b.setAttribute('aria-expanded', on ? 'true' : 'false'); });
+    /* A header menu is open: the header shows its bone bar (alpine.css). */
+    document.body.classList.toggle('alp-hd-open', !!$('[data-alp-header] [aria-expanded="true"]'));
   }
 
   function openPanel(id, opts) {
@@ -1241,12 +1243,23 @@
   /* ── Header over the opening photo: clear until the photo has gone up
      behind it, then the bone bar (body.alp-hd-solid). The clear look itself
      is CSS (alpine.css), so there's no flash before this runs. */
-  var HERO_SEL = '#MainContent > .shopify-section:first-child > .alp-hero, #MainContent > .shopify-section:first-child .alp-cat > .alp-intro:first-child:not(.alp-intro--plain)';
+  var HERO_SEL = '.alp-hero, .alp-cat > .alp-intro:not(.alp-intro--plain)';
   var heroTick = false;
+  /* Same test as the script at the end of <main> (layout/theme.liquid), run
+     again when the theme editor adds, moves or removes a section. */
+  function heroMark() {
+    var m = document.getElementById('MainContent');
+    $$('.alp-hd-under').forEach(function (x) { x.classList.remove('alp-hd-under'); });
+    document.body.classList.remove('alp-hd-over');
+    var h = m && $(HERO_SEL, m);
+    if (!h || h.getBoundingClientRect().top - m.getBoundingClientRect().top > 4) return;
+    (h.closest('.shopify-section') || h).classList.add('alp-hd-under');
+    document.body.classList.add('alp-hd-over');
+  }
   function heroHeader() {
     heroTick = false;
-    var hero = document.querySelector(HERO_SEL);
-    var bar = document.querySelector('.alp-hd__bar');
+    var hero = document.body.classList.contains('alp-hd-over') && $('.alp-hd-under') && ($('.alp-hd-under').matches(HERO_SEL) ? $('.alp-hd-under') : $(HERO_SEL, $('.alp-hd-under')));
+    var bar = $('.alp-hd__bar');
     if (!hero || !bar) { document.body.classList.remove('alp-hd-solid'); return; }
     var past = hero.getBoundingClientRect().bottom <= bar.getBoundingClientRect().bottom + 1;
     document.body.classList.toggle('alp-hd-solid', past);
@@ -1254,7 +1267,9 @@
   function onHeroScroll() { if (!heroTick) { heroTick = true; requestAnimationFrame(heroHeader); } }
   window.addEventListener('scroll', onHeroScroll, { passive: true });
   window.addEventListener('resize', onHeroScroll);
-  document.addEventListener('shopify:section:load', onHeroScroll);
+  ['shopify:section:load', 'shopify:section:unload', 'shopify:section:reorder'].forEach(function (e) {
+    document.addEventListener(e, function () { setTimeout(function () { heroMark(); heroHeader(); }, 0); });
+  });
   heroHeader();
   requestAnimationFrame(function () { requestAnimationFrame(function () { document.body.classList.add('alp-hd-ready'); }); });
 
