@@ -60,6 +60,7 @@ export default {
       if (url.pathname === "/subscribe" && request.method === "POST") {
         return subscribeEndpoint(request, env, cors);
       }
+      if (url.pathname === "/geo" && request.method === "GET") return geo(request, cors);
       if (url.pathname === "/routes" && request.method === "GET") return routes(env, cors);
       if (url.pathname === "/events" && request.method === "GET") return eventsEndpoint(env, cors);
       if (url.pathname.startsWith("/file/") && request.method === "GET") return serveFile(url, env, cors);
@@ -291,6 +292,29 @@ async function submit(request, env, cors) {
 }
 
 /* ---------------- Public: approved routes ---------------- */
+/* Roughly where the visitor is, from Cloudflare's own IP lookup on this
+   request (request.cf): city, state, coordinates, time zone. The store uses
+   it for local weather and time and to put nearby routes first, so nobody
+   is asked for their location. Nothing is stored or logged. City-level at
+   best — phones on mobile data often show the carrier's capital city. */
+function geo(request, cors) {
+  const cf = request.cf || {};
+  const lat = Number(cf.latitude), lon = Number(cf.longitude);
+  const body = Number.isFinite(lat) && Number.isFinite(lon)
+    ? {
+        city: cf.city || "",
+        region: cf.region || "",
+        region_code: cf.regionCode || "",
+        country: cf.country || "",
+        lat, lon,
+        tz: cf.timezone || "",
+      }
+    : null;
+  return new Response(JSON.stringify(body), {
+    headers: { "Content-Type": "application/json", "Cache-Control": "private, no-store", ...cors },
+  });
+}
+
 async function routes(env, cors) {
   await ensureSubmissionsSchema(env);
   await seedFamousEventsOnce(env); // promote known events to Famous Events (once)

@@ -193,10 +193,9 @@
     var btn = e.target.closest('[data-alp-hover]');
     if (btn) {
       var id = btn.getAttribute('data-alp-toggle');
+      /* Straight away — the whole menu at once. */
       clearTimeout(hoverT);
-      hoverT = setTimeout(function () {
-        if (openId !== id) { hoverOpenedAt = Date.now(); openPanel(id, { focusFrom: btn }); }
-      }, 120);
+      if (openId !== id) { hoverOpenedAt = Date.now(); openPanel(id, { focusFrom: btn }); }
       return;
     }
     var open = openId && document.getElementById(openId);
@@ -228,6 +227,61 @@
   });
 
   DESKTOP.addEventListener && DESKTOP.addEventListener('change', function () { closePanel(true); openFilterGroups(); });
+
+  /* ── Where the visitor roughly is ─────────────────────────────────────────
+     The routes worker answers /geo from Cloudflare's own IP lookup (city,
+     state, coordinates, time zone) — no third party, nothing stored, never
+     asks permission. Fetched once a session, after the page is up, so it
+     adds nothing to loading. Until it answers, or if it can't, everything
+     uses the theme's place (Theme settings → Bush Riding). */
+  var geoP = null, geoNow = null;
+  function geo() {
+    if (geoP) return geoP;
+    var api = (cfg('api') || 'https://map-api.bushriding.cc').replace(/\/$/, '');
+    try {
+      var c = JSON.parse(sessionStorage.getItem('alp-geo') || 'null');
+      if (c && c.at && Date.now() - c.at < 6 * 60 * 60 * 1000) { geoNow = c.g; geoP = Promise.resolve(c.g); return geoP; }
+    } catch (err) {}
+    geoP = fetch(api + '/geo', { headers: { Accept: 'application/json' } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (g) {
+        g = g && isFinite(g.lat) && isFinite(g.lon) ? g : null;
+        geoNow = g;
+        try { sessionStorage.setItem('alp-geo', JSON.stringify({ at: Date.now(), g: g })); } catch (err) {}
+        return g;
+      })
+      .catch(function () { return null; });
+    return geoP;
+  }
+  /* "Beerwah, QLD" — the state's short code in Australia, else the country. */
+  function geoPlace(g) {
+    if (!g || !g.city) return '';
+    var tail = g.country === 'AU' ? g.region_code : (g.country || '');
+    return g.city + (tail ? ', ' + tail : '');
+  }
+  function tzLabel(tz) {
+    try {
+      var part = new Intl.DateTimeFormat('en-AU', { timeZone: tz, timeZoneName: 'short' }).formatToParts(new Date())
+        .filter(function (x) { return x.type === 'timeZoneName'; })[0];
+      return part ? part.value : '';
+    } catch (err) { return ''; }
+  }
+  /* The visitor's place, time zone and weather replace the theme's. */
+  function initGeo() {
+    geo().then(function (g) {
+      if (!g) return;
+      var place = geoPlace(g);
+      if (place) $$('[data-alp-place]').forEach(function (n) { n.textContent = place; });
+      if (place) $$('[data-alp-near-label]').forEach(function (n) { n.textContent = ' · ' + g.city; });
+      if (g.tz) {
+        var h = header();
+        if (h) h.setAttribute('data-alp-tz', g.tz);
+        var lab = tzLabel(g.tz);
+        if (lab) $$('[data-alp-tz-label]').forEach(function (n) { n.textContent = lab; });
+        tickClock();
+      }
+    });
+  }
 
   /* ── Local time and weather ── */
   function tickClock() {
@@ -266,26 +320,30 @@
 
   var wx = null;
   function initWeather() {
-    var at = cfg('wx');
-    if (!at) return;
+    if (!cfg('wx')) return;
     if (wx) { paintWx(wx); return; }
-    var key = 'alp-wx:' + at;
-    try {
-      var c = JSON.parse(sessionStorage.getItem(key) || 'null');
-      if (c && Date.now() - c.at < 20 * 60 * 1000) { wx = c.w; paintWx(wx); return; }
-    } catch (err) {}
-    var ll = at.split(',');
-    fetch('https://api.open-meteo.com/v1/forecast?latitude=' + encodeURIComponent(ll[0]) + '&longitude=' + encodeURIComponent(ll[1]) + '&current=temperature_2m,weather_code&timezone=auto')
-      .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (d) {
-        if (!d || !d.current) return;
-        var word = wxWord(d.current.weather_code);
-        if (!word) return;
-        wx = { t: Math.round(d.current.temperature_2m), word: word };
-        try { sessionStorage.setItem(key, JSON.stringify({ at: Date.now(), w: wx })); } catch (err) {}
-        paintWx(wx);
-      })
-      .catch(function () { /* no weather is shown */ });
+    /* The visitor's own weather when /geo knows where they are, else the
+       theme's place. */
+    geo().then(function (g) {
+      var at = g ? g.lat.toFixed(2) + ',' + g.lon.toFixed(2) : cfg('wx');
+      var key = 'alp-wx:' + at;
+      try {
+        var c = JSON.parse(sessionStorage.getItem(key) || 'null');
+        if (c && Date.now() - c.at < 20 * 60 * 1000) { wx = c.w; paintWx(wx); return; }
+      } catch (err) {}
+      var ll = at.split(',');
+      fetch('https://api.open-meteo.com/v1/forecast?latitude=' + encodeURIComponent(ll[0]) + '&longitude=' + encodeURIComponent(ll[1]) + '&current=temperature_2m,weather_code&timezone=auto')
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+          if (!d || !d.current) return;
+          var word = wxWord(d.current.weather_code);
+          if (!word) return;
+          wx = { t: Math.round(d.current.temperature_2m), word: word };
+          try { sessionStorage.setItem(key, JSON.stringify({ at: Date.now(), w: wx })); } catch (err) {}
+          paintWx(wx);
+        })
+        .catch(function () { /* no weather is shown */ });
+    });
   }
 
   /* ── Deferred video ── */
@@ -744,6 +802,25 @@
     if (p.elevation_gain_m != null && p.elevation_gain_m !== '') bits.push(Math.round(Number(p.elevation_gain_m)).toLocaleString('en-AU') + ' m');
     return bits.join(' · ');
   }
+  /* Routes nearest the visitor first (each route's marker, as the crow
+     flies) when /geo knows where they are; otherwise the theme's region. */
+  function kmBetween(lat1, lon1, lat2, lon2) {
+    var r = Math.PI / 180, dLat = (lat2 - lat1) * r, dLon = (lon2 - lon1) * r;
+    var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * r) * Math.cos(lat2 * r) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    return 12742 * Math.asin(Math.sqrt(a));
+  }
+  function nearFirst(list, g) {
+    if (!g) return regionFirst(list);
+    var far = Infinity;
+    return list.map(function (p) {
+      var m = p.marker || [];
+      var d = isFinite(m[0]) && isFinite(m[1]) ? kmBetween(g.lat, g.lon, Number(m[1]), Number(m[0])) : far;
+      return { p: p, d: d };
+    }).sort(function (a, b) { return a.d - b.d; }).map(function (x) { return x.p; });
+  }
+  function routesNear() {
+    return Promise.all([feed('routes'), geo()]).then(function (res) { return nearFirst(res[0] || [], res[1]); });
+  }
   function regionFirst(list) {
     var want = (cfg('region') || '').toLowerCase();
     if (!want) return list.slice();
@@ -790,8 +867,8 @@
     var box = $('[data-alp-near-list]');
     if (!box || nearFilled) return;
     nearFilled = true;
-    feed('routes').then(function (list) {
-      var routes = regionFirst(list || []).slice(0, 2);
+    routesNear().then(function (list) {
+      var routes = list.slice(0, 2);
       box.innerHTML = '';
       routes.forEach(function (p) { box.appendChild(ddRow(routeHref(p.id), p.name, routeStats(p))); });
       if (!routes.length) { box.appendChild(el('span', 'alp-dd__quiet', 'Open the map to see every route.')); nearFilled = false; }
@@ -861,8 +938,8 @@
       if (!list || !tpl || list.getAttribute('data-done')) return;
       list.setAttribute('data-done', '1');
       var limit = Number(sec.getAttribute('data-alp-limit')) || 6;
-      feed('routes').then(function (all) {
-        var routes = regionFirst(all || []).slice(0, limit);
+      routesNear().then(function (all) {
+        var routes = all.slice(0, limit);
         if (!routes.length) { $('[data-alp-route-none]', sec).hidden = false; return; }
         routes.forEach(function (p) { list.appendChild(routeCard(tpl, p)); });
       });
@@ -895,8 +972,8 @@
   function fillPopular(grid) {
     if (!grid || grid.getAttribute('data-done')) return;
     grid.setAttribute('data-done', '1');
-    Promise.all([feed('routes'), feed('events')]).then(function (res) {
-      regionFirst(res[0] || []).slice(0, 2).forEach(function (p) {
+    Promise.all([routesNear(), feed('events')]).then(function (res) {
+      res[0].slice(0, 2).forEach(function (p) {
         grid.appendChild(popularCard(routeHref(p.id), 'Route', false, p.name, routeStats(p), p.photo_url, true));
       });
       var r = upcoming(res[1] || [])[0];
@@ -1223,18 +1300,19 @@
     });
   }
 
-  /* ── Product page (desktop): the header slides away on the way down and
-     comes back the moment you scroll up. Never while one of its panels is
-     open, and never in the theme editor. */
+  /* ── Header: slides away on the way down, back the moment you scroll up.
+     Every page, phones and desktop. Never while one of its panels is open,
+     never near the top of the page, and never in the theme editor. (On
+     collection pages the category/filter bar stays pinned under it — CSS.) */
   var lastY = window.scrollY || 0;
   function headerScroll() {
-    if (DESIGN_MODE || !document.body.classList.contains('template-product')) return;
+    if (DESIGN_MODE) return;
     var y = window.scrollY || 0;
     var dy = y - lastY;
     lastY = y;
     var hidden = document.body.classList.contains('alp-hd-away');
     var panelOpen = openId && document.getElementById(openId) && document.getElementById(openId).closest('[data-alp-header]');
-    if (!DESKTOP.matches || panelOpen || y < 120) { if (hidden) document.body.classList.remove('alp-hd-away'); return; }
+    if (panelOpen || y < 120) { if (hidden) document.body.classList.remove('alp-hd-away'); return; }
     if (dy > 6 && !hidden) document.body.classList.add('alp-hd-away');
     else if (dy < -6 && hidden) document.body.classList.remove('alp-hd-away');
   }
@@ -1289,6 +1367,17 @@
   document.addEventListener('focusin', function (e) { if (kbFocus(e.target)) document.body.classList.add('alp-hd-hot'); });
   document.addEventListener('focusout', function (e) {
     if (kbFocus(e.target) && !kbFocus(e.relatedTarget)) document.body.classList.remove('alp-hd-hot');
+  });
+
+  /* Menus open whole: once the page has loaded, their photos are fetched
+     and the route / ride lists filled ahead of the first hover. */
+  function warmMenus() {
+    $$('.alp-mega img[loading="lazy"]').forEach(function (img) { img.setAttribute('loading', 'eager'); });
+    fillNearList();
+    fillRidesList();
+  }
+  window.addEventListener('load', function () {
+    (window.requestIdleCallback || function (f) { setTimeout(f, 200); })(warmMenus);
   });
 
   /* ── Boot ── */
@@ -1438,7 +1527,7 @@
 
   function init() {
     /* One failing block mustn't stop the rest of the page's script. */
-    [function () { trademark(document.body); }, initArticleVideos, initSignups, initScrollers, initRecs, tickClock, initWeather, initVideos, initPdp, initRideTiles,
+    [function () { trademark(document.body); }, initArticleVideos, initSignups, initScrollers, initRecs, tickClock, initGeo, initWeather, initVideos, initPdp, initRideTiles,
      openFilterGroups, initRides, initRoutesPage, initSearch].forEach(function (fn) {
       try { fn(); } catch (err) { if (window.console) console.error('[alp] ' + (fn.name || 'init') + ' failed:', err); }
     });

@@ -113,7 +113,7 @@
     <span class="alp-hd__spacer"></span>
 
     <span class="alp-hd__now alp-d" aria-label="Local time and weather">
-      <span data-alp-clock>{{ 'now' | date: '%H:%M' }}</span> {{ settings.alp_tz_label | escape }}<span data-alp-wx-wrap hidden> · <span data-alp-wx-text></span></span>
+      <span data-alp-clock>{{ 'now' | date: '%H:%M' }}</span> <span data-alp-tz-label>{{ settings.alp_tz_label | escape }}</span><span data-alp-wx-wrap hidden> · <span data-alp-wx-text></span></span>
     </span>
 
     <a
@@ -247,7 +247,7 @@
         {%- if bush_map_url != blank and bush_map_url != map_url -%}<a class="alp-cats__item" href="{{ bush_map_url }}">About Bush Map™</a>{%- endif -%}
       </div>
       <div class="alp-mega__col alp-mega__col--wide">
-        <p class="alp-mega__head">Near you{% if settings.alp_near_region != blank %} · {{ settings.alp_near_region | escape }}{% endif %}</p>
+        <p class="alp-mega__head">Near you<span data-alp-near-label>{% if settings.alp_near_region != blank %} · {{ settings.alp_near_region | escape }}{% endif %}</span></p>
         <div class="alp-dd__list" data-alp-near-list><span class="alp-dd__quiet">Finding routes…</span></div>
       </div>
     </nav>
@@ -353,7 +353,7 @@
     <div class="alp-menu__foot">
       <p>
         Local time <span data-alp-clock>{{ 'now' | date: '%H:%M' }}</span><br>
-        {{ settings.alp_place_short | escape }}<span data-alp-wx-wrap hidden> · <span data-alp-wx-text></span></span>
+        <span data-alp-place>{{ settings.alp_place_short | escape }}</span><span data-alp-wx-wrap hidden> · <span data-alp-wx-text></span></span>
       </p>
       {%- render 'alp-currency', id: 'MenuCurrency' -%}
     </div>
