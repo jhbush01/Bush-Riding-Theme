@@ -202,11 +202,9 @@
     if (!open || !open.closest('[data-alp-header]') || openId === 'alp-menu') return;
     if (e.target.closest('[data-alp-header]')) { clearTimeout(hoverT); return; }
     if (openId === 'alp-searchmenu' && searchInUse()) return;
+    /* Off the header and its menu: gone at once. */
     clearTimeout(hoverT);
-    hoverT = setTimeout(function () {
-      if (openId === 'alp-searchmenu' && searchInUse()) return;
-      if (openId && document.getElementById(openId).closest('[data-alp-header]')) closePanel(true);
-    }, 280);
+    closePanel(true);
   });
   /* Keyboard: tabbing onto Shop, Bush Map or Search opens its panel, so what's
      in it can be reached without a mouse. */
@@ -223,7 +221,7 @@
     if (!open || !open.closest('[data-alp-header]')) return;
     if (openId === 'alp-searchmenu' && searchInUse()) return;
     clearTimeout(hoverT);
-    hoverT = setTimeout(function () { closePanel(true); }, 280);
+    closePanel(true);
   });
 
   DESKTOP.addEventListener && DESKTOP.addEventListener('change', function () { closePanel(true); openFilterGroups(); });
@@ -1349,18 +1347,9 @@
     document.addEventListener(e, function () { setTimeout(function () { heroMark(); heroHeader(); }, 0); });
   });
   heroHeader();
-  /* The bone bar comes back while the mouse is on the nav (the whole group,
-     so sweeping Shop → Rides doesn't flicker), the logo, search or cart, or
-     while keyboard focus is there — not for the empty stretch of the bar. */
-  var HOT = '.alp-hd__nav, .alp-hd__bar a, .alp-hd__bar button';
-  document.addEventListener('pointerover', function (e) {
-    if (e.pointerType === 'mouse' && e.target.closest && e.target.closest(HOT)) document.body.classList.add('alp-hd-hot');
-  });
-  document.addEventListener('pointerout', function (e) {
-    if (e.pointerType !== 'mouse' || !e.target.closest || !e.target.closest(HOT)) return;
-    var to = e.relatedTarget;
-    if (!to || !to.closest || !to.closest(HOT)) document.body.classList.remove('alp-hd-hot');
-  });
+  /* The mouse alone never changes the bar — only an open menu does
+     (body.alp-hd-open). Keyboard focus in the bar still brings the bone bar
+     back, so a focus ring is never bone on a photo. */
   function kbFocus(el) {
     try { return !!(el && el.closest && el.closest('.alp-hd__bar') && el.matches(':focus-visible')); } catch (err) { return false; }
   }

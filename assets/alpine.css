@@ -222,7 +222,8 @@ body.alp-hd-away .alp-hd-section { top: calc(-1 * var(--alp-hd) - 2px); }
 }
 .alp-hd__logo { margin-right: 20px; flex: none; }
 .alp-hd__logo img { height: 26px; width: auto; }
-.alp-hd__nav { display: flex; align-items: center; gap: 44px; }
+.alp-hd__nav { display: flex; align-items: stretch; align-self: stretch; gap: 44px; }
+.alp-hd__nav .alp-hd__link { display: flex; align-items: center; }
 .alp-hd__link {
   padding: 0; background: none; border: 0; cursor: pointer;
   font: inherit; color: inherit; white-space: nowrap;
@@ -252,10 +253,10 @@ body.alp-hd-away .alp-hd-section { top: calc(-1 * var(--alp-hd) - 2px); }
    A small script at the end of <main> (layout/theme.liquid) checks whether
    the page opens on one of those photos; if so it adds body.alp-hd-over and
    .alp-hd-under on that section, which slides up under the header. The
-   header goes clear with bone type over a soft olive fade. The mouse on the
-   nav, logo, search or cart, or keyboard focus there (body.alp-hd-hot), an
-   open menu (body.alp-hd-open) or scrolling past the photo (body.alp-hd-solid)
-   bring the bone bar back — instantly, no fade. Phones and desktop. */
+   header goes clear with bone type over a soft olive fade. An open menu
+   (body.alp-hd-open), keyboard focus in the bar (body.alp-hd-hot) or
+   scrolling past the photo (body.alp-hd-solid) bring the bone bar back —
+   instantly, no fade. Hovering alone never does. Phones and desktop. */
 .alp-hd__mark--light { display: none; }
 .alp-hd__bar::before {
   content: ''; position: absolute; inset: 0 0 -28px; z-index: -1; pointer-events: none;
@@ -693,7 +694,6 @@ body.alp-hd-away .alp-cat__head { top: 0; }
 .alp-intro { position: relative; display: grid; color: var(--alp-bg); background: var(--alp-haze); overflow: hidden; }
 .alp-intro__media, .alp-intro__text { grid-area: 1 / 1; }
 .alp-intro__media { position: relative; height: min(78vh, 760px); min-height: 460px; }
-.alp-intro__media::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 40%, rgba(76, 75, 59, 0.62)); }
 .alp-intro__text {
   position: relative; z-index: 1; align-self: end; justify-self: center;
   display: flex; flex-direction: column; align-items: center; gap: 12px;
