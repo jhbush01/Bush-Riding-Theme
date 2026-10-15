@@ -76,6 +76,8 @@
 
   function setExpanded(id, on) {
     $$('[data-alp-toggle="' + id + '"]').forEach(function (b) { b.setAttribute('aria-expanded', on ? 'true' : 'false'); });
+    /* A header menu is open: the header shows its bone bar (alpine.css). */
+    document.body.classList.toggle('alp-hd-open', !!$('[data-alp-header] [aria-expanded="true"]'));
   }
 
   function openPanel(id, opts) {
@@ -191,21 +193,18 @@
     var btn = e.target.closest('[data-alp-hover]');
     if (btn) {
       var id = btn.getAttribute('data-alp-toggle');
+      /* Straight away — the whole menu at once. */
       clearTimeout(hoverT);
-      hoverT = setTimeout(function () {
-        if (openId !== id) { hoverOpenedAt = Date.now(); openPanel(id, { focusFrom: btn }); }
-      }, 120);
+      if (openId !== id) { hoverOpenedAt = Date.now(); openPanel(id, { focusFrom: btn }); }
       return;
     }
     var open = openId && document.getElementById(openId);
     if (!open || !open.closest('[data-alp-header]') || openId === 'alp-menu') return;
     if (e.target.closest('[data-alp-header]')) { clearTimeout(hoverT); return; }
     if (openId === 'alp-searchmenu' && searchInUse()) return;
+    /* Off the header and its menu: gone at once. */
     clearTimeout(hoverT);
-    hoverT = setTimeout(function () {
-      if (openId === 'alp-searchmenu' && searchInUse()) return;
-      if (openId && document.getElementById(openId).closest('[data-alp-header]')) closePanel(true);
-    }, 280);
+    closePanel(true);
   });
   /* Keyboard: tabbing onto Shop, Bush Map or Search opens its panel, so what's
      in it can be reached without a mouse. */
@@ -222,10 +221,67 @@
     if (!open || !open.closest('[data-alp-header]')) return;
     if (openId === 'alp-searchmenu' && searchInUse()) return;
     clearTimeout(hoverT);
-    hoverT = setTimeout(function () { closePanel(true); }, 280);
+    closePanel(true);
   });
 
   DESKTOP.addEventListener && DESKTOP.addEventListener('change', function () { closePanel(true); openFilterGroups(); });
+
+  /* ── Where the visitor roughly is ─────────────────────────────────────────
+     The routes worker answers /geo from Cloudflare's own IP lookup (city,
+     state, coordinates, time zone) — no third party, nothing stored, never
+     asks permission. Fetched once a session, after the page is up, so it
+     adds nothing to loading. Until it answers, or if it can't, everything
+     uses the theme's place (Theme settings → Bush Riding). */
+  var geoP = null, geoNow = null;
+  function geo() {
+    if (geoP) return geoP;
+    var api = (cfg('api') || 'https://map-api.bushriding.cc').replace(/\/$/, '');
+    try {
+      var c = JSON.parse(sessionStorage.getItem('alp-geo') || 'null');
+      if (c && c.g && c.at && Date.now() - c.at < 60 * 60 * 1000) { geoNow = c.g; geoP = Promise.resolve(c.g); return geoP; }
+    } catch (err) {}
+    geoP = fetch(api + '/geo', { headers: { Accept: 'application/json' } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (g) {
+        g = g && isFinite(g.lat) && isFinite(g.lon) ? g : null;
+        geoNow = g;
+        /* Only a real answer is kept (an hour, this tab): a failed lookup is
+           tried again on the next page rather than remembered. */
+        if (g) { try { sessionStorage.setItem('alp-geo', JSON.stringify({ at: Date.now(), g: g })); } catch (err) {} }
+        return g;
+      })
+      .catch(function () { return null; });
+    return geoP;
+  }
+  /* "Beerwah, QLD" — the state's short code in Australia, else the country. */
+  function geoPlace(g) {
+    if (!g || !g.city) return '';
+    var tail = g.country === 'AU' ? g.region_code : (g.country || '');
+    return g.city + (tail ? ', ' + tail : '');
+  }
+  function tzLabel(tz) {
+    try {
+      var part = new Intl.DateTimeFormat('en-AU', { timeZone: tz, timeZoneName: 'short' }).formatToParts(new Date())
+        .filter(function (x) { return x.type === 'timeZoneName'; })[0];
+      return part ? part.value : '';
+    } catch (err) { return ''; }
+  }
+  /* The visitor's place, time zone and weather replace the theme's. */
+  function initGeo() {
+    geo().then(function (g) {
+      if (!g) return;
+      var place = geoPlace(g);
+      if (place) $$('[data-alp-place]').forEach(function (n) { n.textContent = place; });
+      if (place) $$('[data-alp-near-label]').forEach(function (n) { n.textContent = ' · ' + g.city; });
+      if (g.tz) {
+        var h = header();
+        if (h) h.setAttribute('data-alp-tz', g.tz);
+        var lab = tzLabel(g.tz);
+        if (lab) $$('[data-alp-tz-label]').forEach(function (n) { n.textContent = lab; });
+        tickClock();
+      }
+    });
+  }
 
   /* ── Local time and weather ── */
   function tickClock() {
@@ -264,26 +320,30 @@
 
   var wx = null;
   function initWeather() {
-    var at = cfg('wx');
-    if (!at) return;
+    if (!cfg('wx')) return;
     if (wx) { paintWx(wx); return; }
-    var key = 'alp-wx:' + at;
-    try {
-      var c = JSON.parse(sessionStorage.getItem(key) || 'null');
-      if (c && Date.now() - c.at < 20 * 60 * 1000) { wx = c.w; paintWx(wx); return; }
-    } catch (err) {}
-    var ll = at.split(',');
-    fetch('https://api.open-meteo.com/v1/forecast?latitude=' + encodeURIComponent(ll[0]) + '&longitude=' + encodeURIComponent(ll[1]) + '&current=temperature_2m,weather_code&timezone=auto')
-      .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (d) {
-        if (!d || !d.current) return;
-        var word = wxWord(d.current.weather_code);
-        if (!word) return;
-        wx = { t: Math.round(d.current.temperature_2m), word: word };
-        try { sessionStorage.setItem(key, JSON.stringify({ at: Date.now(), w: wx })); } catch (err) {}
-        paintWx(wx);
-      })
-      .catch(function () { /* no weather is shown */ });
+    /* The visitor's own weather when /geo knows where they are, else the
+       theme's place. */
+    geo().then(function (g) {
+      var at = g ? g.lat.toFixed(2) + ',' + g.lon.toFixed(2) : cfg('wx');
+      var key = 'alp-wx:' + at;
+      try {
+        var c = JSON.parse(sessionStorage.getItem(key) || 'null');
+        if (c && Date.now() - c.at < 20 * 60 * 1000) { wx = c.w; paintWx(wx); return; }
+      } catch (err) {}
+      var ll = at.split(',');
+      fetch('https://api.open-meteo.com/v1/forecast?latitude=' + encodeURIComponent(ll[0]) + '&longitude=' + encodeURIComponent(ll[1]) + '&current=temperature_2m,weather_code&timezone=auto')
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+          if (!d || !d.current) return;
+          var word = wxWord(d.current.weather_code);
+          if (!word) return;
+          wx = { t: Math.round(d.current.temperature_2m), word: word };
+          try { sessionStorage.setItem(key, JSON.stringify({ at: Date.now(), w: wx })); } catch (err) {}
+          paintWx(wx);
+        })
+        .catch(function () { /* no weather is shown */ });
+    });
   }
 
   /* ── Deferred video ── */
@@ -742,6 +802,25 @@
     if (p.elevation_gain_m != null && p.elevation_gain_m !== '') bits.push(Math.round(Number(p.elevation_gain_m)).toLocaleString('en-AU') + ' m');
     return bits.join(' · ');
   }
+  /* Routes nearest the visitor first (each route's marker, as the crow
+     flies) when /geo knows where they are; otherwise the theme's region. */
+  function kmBetween(lat1, lon1, lat2, lon2) {
+    var r = Math.PI / 180, dLat = (lat2 - lat1) * r, dLon = (lon2 - lon1) * r;
+    var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * r) * Math.cos(lat2 * r) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    return 12742 * Math.asin(Math.sqrt(a));
+  }
+  function nearFirst(list, g) {
+    if (!g) return regionFirst(list);
+    var far = Infinity;
+    return list.map(function (p) {
+      var m = p.marker || [];
+      var d = isFinite(m[0]) && isFinite(m[1]) ? kmBetween(g.lat, g.lon, Number(m[1]), Number(m[0])) : far;
+      return { p: p, d: d };
+    }).sort(function (a, b) { return a.d - b.d; }).map(function (x) { return x.p; });
+  }
+  function routesNear() {
+    return Promise.all([feed('routes'), geo()]).then(function (res) { return nearFirst(res[0] || [], res[1]); });
+  }
   function regionFirst(list) {
     var want = (cfg('region') || '').toLowerCase();
     if (!want) return list.slice();
@@ -788,8 +867,8 @@
     var box = $('[data-alp-near-list]');
     if (!box || nearFilled) return;
     nearFilled = true;
-    feed('routes').then(function (list) {
-      var routes = regionFirst(list || []).slice(0, 2);
+    routesNear().then(function (list) {
+      var routes = list.slice(0, 2);
       box.innerHTML = '';
       routes.forEach(function (p) { box.appendChild(ddRow(routeHref(p.id), p.name, routeStats(p))); });
       if (!routes.length) { box.appendChild(el('span', 'alp-dd__quiet', 'Open the map to see every route.')); nearFilled = false; }
@@ -859,8 +938,8 @@
       if (!list || !tpl || list.getAttribute('data-done')) return;
       list.setAttribute('data-done', '1');
       var limit = Number(sec.getAttribute('data-alp-limit')) || 6;
-      feed('routes').then(function (all) {
-        var routes = regionFirst(all || []).slice(0, limit);
+      routesNear().then(function (all) {
+        var routes = all.slice(0, limit);
         if (!routes.length) { $('[data-alp-route-none]', sec).hidden = false; return; }
         routes.forEach(function (p) { list.appendChild(routeCard(tpl, p)); });
       });
@@ -893,8 +972,8 @@
   function fillPopular(grid) {
     if (!grid || grid.getAttribute('data-done')) return;
     grid.setAttribute('data-done', '1');
-    Promise.all([feed('routes'), feed('events')]).then(function (res) {
-      regionFirst(res[0] || []).slice(0, 2).forEach(function (p) {
+    Promise.all([routesNear(), feed('events')]).then(function (res) {
+      res[0].slice(0, 2).forEach(function (p) {
         grid.appendChild(popularCard(routeHref(p.id), 'Route', false, p.name, routeStats(p), p.photo_url, true));
       });
       var r = upcoming(res[1] || [])[0];
@@ -1221,22 +1300,122 @@
     });
   }
 
-  /* ── Product page (desktop): the header slides away on the way down and
-     comes back the moment you scroll up. Never while one of its panels is
-     open, and never in the theme editor. */
+  /* ── Header: slides away on the way down, back the moment you scroll up.
+     Every page, phones and desktop. Never while one of its panels is open,
+     never near the top of the page, and never in the theme editor. (On
+     collection pages the category/filter bar stays pinned under it — CSS.) */
   var lastY = window.scrollY || 0;
   function headerScroll() {
-    if (DESIGN_MODE || !document.body.classList.contains('template-product')) return;
+    if (DESIGN_MODE) return;
     var y = window.scrollY || 0;
     var dy = y - lastY;
     lastY = y;
     var hidden = document.body.classList.contains('alp-hd-away');
     var panelOpen = openId && document.getElementById(openId) && document.getElementById(openId).closest('[data-alp-header]');
-    if (!DESKTOP.matches || panelOpen || y < 120) { if (hidden) document.body.classList.remove('alp-hd-away'); return; }
+    if (panelOpen || y < 120) { if (hidden) document.body.classList.remove('alp-hd-away'); return; }
     if (dy > 6 && !hidden) document.body.classList.add('alp-hd-away');
     else if (dy < -6 && hidden) document.body.classList.remove('alp-hd-away');
   }
   window.addEventListener('scroll', headerScroll, { passive: true });
+
+  /* ── Header over the opening photo: clear until the photo has gone up
+     behind it, then the bone bar (body.alp-hd-solid). The clear look itself
+     is CSS (alpine.css), so there's no flash before this runs. */
+  var HERO_SEL = '.alp-hero, .alp-cat > .alp-intro:not(.alp-intro--plain)';
+  var heroTick = false;
+  /* Same test as the script at the end of <main> (layout/theme.liquid), run
+     again when the theme editor adds, moves or removes a section. */
+  function heroMark() {
+    var m = document.getElementById('MainContent');
+    $$('.alp-hd-under').forEach(function (x) { x.classList.remove('alp-hd-under'); });
+    document.body.classList.remove('alp-hd-over');
+    var h = m && $(HERO_SEL, m);
+    if (!h || h.getBoundingClientRect().top - m.getBoundingClientRect().top > 4) return;
+    (h.closest('.shopify-section') || h).classList.add('alp-hd-under');
+    document.body.classList.add('alp-hd-over');
+  }
+  function heroHeader() {
+    heroTick = false;
+    var hero = document.body.classList.contains('alp-hd-over') && $('.alp-hd-under') && ($('.alp-hd-under').matches(HERO_SEL) ? $('.alp-hd-under') : $(HERO_SEL, $('.alp-hd-under')));
+    var bar = $('.alp-hd__bar');
+    if (!hero || !bar) { document.body.classList.remove('alp-hd-solid'); return; }
+    var past = hero.getBoundingClientRect().bottom <= bar.getBoundingClientRect().bottom + 1;
+    document.body.classList.toggle('alp-hd-solid', past);
+  }
+  function onHeroScroll() { if (!heroTick) { heroTick = true; requestAnimationFrame(heroHeader); } }
+  window.addEventListener('scroll', onHeroScroll, { passive: true });
+  window.addEventListener('resize', onHeroScroll);
+  ['shopify:section:load', 'shopify:section:unload', 'shopify:section:reorder'].forEach(function (e) {
+    document.addEventListener(e, function () { setTimeout(function () { heroMark(); heroHeader(); }, 0); });
+  });
+  heroHeader();
+  /* The mouse alone never changes the bar — only an open menu does
+     (body.alp-hd-open). Keyboard focus in the bar still brings the bone bar
+     back, so a focus ring is never bone on a photo. */
+  function kbFocus(el) {
+    try { return !!(el && el.closest && el.closest('.alp-hd__bar') && el.matches(':focus-visible')); } catch (err) { return false; }
+  }
+  document.addEventListener('focusin', function (e) { if (kbFocus(e.target)) document.body.classList.add('alp-hd-hot'); });
+  document.addEventListener('focusout', function (e) {
+    if (kbFocus(e.target) && !kbFocus(e.relatedTarget)) document.body.classList.remove('alp-hd-hot');
+  });
+
+  /* Menus open whole: once the page has loaded, their photos are fetched
+     and the route / ride lists filled ahead of the first hover. */
+  function warmMenus() {
+    $$('.alp-mega img[loading="lazy"]').forEach(function (img) { img.setAttribute('loading', 'eager'); });
+    fillNearList();
+    fillRidesList();
+  }
+  window.addEventListener('load', function () {
+    (window.requestIdleCallback || function (f) { setTimeout(f, 200); })(warmMenus);
+  });
+
+  /* Focus rings for the keyboard only: a tap or click hides them. */
+  document.addEventListener('pointerdown', function () { document.documentElement.classList.add('alp-pointer'); }, true);
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Tab' || e.key.indexOf('Arrow') === 0) document.documentElement.classList.remove('alp-pointer');
+  }, true);
+
+  /* Phones: the round menu button drags to either side — left- or
+     right-handed — and stays where it's dropped (remembered in this
+     browser). A tap still opens the menu; a drag doesn't. */
+  (function () {
+    var fab = null, startX = 0, startY = 0, moved = false, base = 0;
+    function floating(el) { return !DESKTOP.matches && getComputedStyle(el).position === 'fixed'; }
+    document.addEventListener('pointerdown', function (e) {
+      var el = e.target.closest && e.target.closest('.alp-fab');
+      if (!el || !floating(el) || (e.pointerType === 'mouse' && e.button !== 0)) return;
+      fab = el; startX = e.clientX; startY = e.clientY; moved = false;
+      base = el.getBoundingClientRect().left;
+    });
+    document.addEventListener('pointermove', function (e) {
+      if (!fab) return;
+      var dx = e.clientX - startX;
+      if (!moved && Math.abs(dx) < 8) return;
+      if (!moved) { moved = true; fab.classList.add('is-dragging'); try { fab.setPointerCapture(e.pointerId); } catch (err) {} }
+      var w = fab.offsetWidth, max = window.innerWidth - w - 16;
+      var x = Math.max(16, Math.min(max, base + dx));
+      fab.style.transform = 'translateX(' + (x - base) + 'px)';
+    });
+    function drop(e) {
+      if (!fab) return;
+      var el = fab; fab = null;
+      el.classList.remove('is-dragging');
+      if (!moved) return;
+      var r = el.getBoundingClientRect();
+      var right = r.left + r.width / 2 > window.innerWidth / 2;
+      el.style.transform = '';
+      document.documentElement.classList.toggle('alp-fab-right', right);
+      try { localStorage.setItem('alp-fab-side', right ? 'right' : 'left'); } catch (err) {}
+      /* The click that follows a drag doesn't open the menu. */
+      var swallow = function (ev) { ev.preventDefault(); ev.stopPropagation(); };
+      el.addEventListener('click', swallow, { capture: true, once: true });
+      setTimeout(function () { el.removeEventListener('click', swallow, { capture: true }); }, 400);
+    }
+    document.addEventListener('pointerup', drop);
+    document.addEventListener('pointercancel', drop);
+  })();
 
   /* ── Boot ── */
   /* ── Trademarks ──────────────────────────────────────────────────────────
@@ -1385,7 +1564,7 @@
 
   function init() {
     /* One failing block mustn't stop the rest of the page's script. */
-    [function () { trademark(document.body); }, initArticleVideos, initSignups, initScrollers, initRecs, tickClock, initWeather, initVideos, initPdp, initRideTiles,
+    [function () { trademark(document.body); }, initArticleVideos, initSignups, initScrollers, initRecs, tickClock, initGeo, initWeather, initVideos, initPdp, initRideTiles,
      openFilterGroups, initRides, initRoutesPage, initSearch].forEach(function (fn) {
       try { fn(); } catch (err) { if (window.console) console.error('[alp] ' + (fn.name || 'init') + ' failed:', err); }
     });

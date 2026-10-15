@@ -93,6 +93,12 @@
 
   {%- unless has_intro -%}<h1 class="alp-vh">{{ collection.title | escape }}</h1>{%- endunless -%}
 
+  {%- comment -%}
+    Category bar, the phone's count + Filters row and the Filters panel stay
+    pinned to the top once scrolled to; the header slides in above them on
+    the way up (alpine.css, "alp-cat__head").
+  {%- endcomment -%}
+  <div class="alp-cat__head">
   <div class="alp-cat__bar">
     <nav class="alp-cats alp-cats--bar" aria-label="Categories">
       {%- render 'alp-shop-links', variant: 'bar' -%}
@@ -205,6 +211,8 @@
       </form>
     </div>
   {%- endif -%}
+
+  </div>
 
   {%- if coming_soon -%}
     {%- comment -%}

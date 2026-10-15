@@ -325,6 +325,7 @@
       if (Shopify.designMode) {
         document.documentElement.classList.add('shopify-design-mode');
       }
+      try { if (localStorage.getItem('alp-fab-side') === 'right') document.documentElement.classList.add('alp-fab-right'); } catch (e) {}
     </script>
   </head>
 
@@ -347,6 +348,21 @@
       data-template="{{ template.name }}"
     >
       {{ content_for_layout }}
+      {%- comment -%}
+        Does the page open on a full-bleed photo (home hero, a Type's intro)?
+        Then the header goes clear over it (alpine.css, "Header over a
+        full-bleed opening photo"). Runs here, before the first paint, so
+        the header never flashes solid first.
+      {%- endcomment -%}
+      <script>
+        (function () {
+          var m = document.getElementById('MainContent');
+          var h = m && m.querySelector('.alp-hero, .alp-cat > .alp-intro:not(.alp-intro--plain)');
+          if (!h || h.getBoundingClientRect().top - m.getBoundingClientRect().top > 4) return;
+          (h.closest('.shopify-section') || h).classList.add('alp-hd-under');
+          document.body.classList.add('alp-hd-over');
+        })();
+      </script>
     </main>
 
     {% sections 'footer-group' %}
