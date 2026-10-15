@@ -57,6 +57,63 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      # Checks the store settings without printing them: is each one the right
+      # shape, and does the store accept the token? Written to the summary and
+      # the commit, because when the action fails it says why only in its log.
+      - name: Check the store settings
+        id: preflight
+        env:
+          STORE: ${{ secrets.SHOP_STORE_OS2 }}
+          ACCESS_TOKEN: ${{ secrets.SHOP_ACCESS_TOKEN }}
+          PULL_THEME: ${{ secrets.SHOP_PULL_THEME }}
+          PASSWORD: ${{ secrets.SHOP_PASSWORD_OS2 }}
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -u
+          ok() { echo "- ✅ $1"; }
+          bad() { echo "- ❌ $1"; }
+          {
+            echo "### Lighthouse (Shopify preview): store settings check"
+            echo
+            case "$STORE" in
+              *.myshopify.com) ok '`SHOP_STORE_OS2` is a myshopify.com domain' ;;
+              http*) bad '`SHOP_STORE_OS2` starts with http — it must be just `yourstore.myshopify.com`' ;;
+              *) bad '`SHOP_STORE_OS2` is not a `….myshopify.com` domain — the action needs the myshopify domain, not bushriding.cc' ;;
+            esac
+            case "$ACCESS_TOKEN" in
+              shptka_*) ok '`SHOP_ACCESS_TOKEN` looks like a Theme Access password (shptka_…)' ;;
+              shpat_*) ok '`SHOP_ACCESS_TOKEN` looks like an Admin API token (shpat_…)' ;;
+              *) bad '`SHOP_ACCESS_TOKEN` is neither a Theme Access password (shptka_…) nor an Admin API token (shpat_…)' ;;
+            esac
+            if [ -n "$PASSWORD" ]; then ok '`SHOP_PASSWORD_OS2` is set'; else echo "- ⚪ \`SHOP_PASSWORD_OS2\` is empty (fine only if the storefront has no password)"; fi
+            case "$PULL_THEME" in
+              '') echo "- ⚪ \`SHOP_PULL_THEME\` is empty (the preview will use default settings)" ;;
+              *[!0-9]*) bad '`SHOP_PULL_THEME` must be a numeric theme id' ;;
+              *) ok '`SHOP_PULL_THEME` is a numeric theme id' ;;
+            esac
+            if [ "${ACCESS_TOKEN#shptka_}" != "$ACCESS_TOKEN" ]; then
+              url="https://theme-kit-access.shopifyapps.com/cli/admin/api/2024-10/themes.json"
+              code=$(curl -s -o themes.json -w '%{http_code}' -H "X-Shopify-Access-Token: $ACCESS_TOKEN" -H "X-Shopify-Shop: $STORE" "$url")
+            else
+              code=$(curl -s -o themes.json -w '%{http_code}' -H "X-Shopify-Access-Token: $ACCESS_TOKEN" "https://$STORE/admin/api/2024-10/themes.json")
+            fi
+            case "$code" in
+              200) ok "the store accepted the token (HTTP 200)"
+                   if [ -n "$PULL_THEME" ]; then
+                     if grep -q "\"id\":$PULL_THEME," themes.json; then ok 'the `SHOP_PULL_THEME` theme exists on the store'; else bad 'no theme with the `SHOP_PULL_THEME` id exists on the store (it was deleted or the id is wrong)'; fi
+                   fi
+                   echo "- ℹ️ themes on the store: $(grep -o '"id":' themes.json | wc -l | tr -d ' ') (a store holds at most 20; a full store makes the preview push fail)" ;;
+              401|403) bad "the store rejected the token (HTTP $code) — it has expired, been revoked, or lacks theme access. Make a new one in the Theme Access app." ;;
+              404) bad "the store wasn't found (HTTP 404) — check \`SHOP_STORE_OS2\`" ;;
+              *) bad "unexpected answer from the store (HTTP $code)" ;;
+            esac
+          } > preflight.md
+          rm -f themes.json
+          cat preflight.md >> "$GITHUB_STEP_SUMMARY"
+          python3 -c "import json;print(json.dumps({'body': open('preflight.md').read()}))" > pf.json
+          gh api "repos/$REPO/commits/$SHA/comments" --input pf.json --silent || true
       - name: Lighthouse
         id: shopify_lighthouse
         uses: shopify/lighthouse-ci-action@v1
