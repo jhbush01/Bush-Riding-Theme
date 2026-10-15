@@ -102,6 +102,10 @@ body.alp-locked { overflow: hidden; }
 :where(.alp) summary::before, :where(.alp) summary::after { content: none; }
 :where(.alp) img { display: block; max-width: 100%; }
 :where(.alp) :focus-visible { outline: 2px solid var(--alp-flare); outline-offset: 2px; box-shadow: none; }
+/* After a tap or click (html.alp-pointer, alpine.js) there is no focus ring —
+   e.g. Search after its panel closes. The keyboard brings it back. */
+html.alp-pointer :focus, html.alp-pointer :focus-visible,
+html.alp-pointer :focus-visible + * { outline: none !important; }
 
 .alp-vh {
   position: absolute !important; width: 1px; height: 1px; margin: -1px; padding: 0;
@@ -402,6 +406,13 @@ body.alp-hd-over:not(.alp-hd-solid):not(.alp-hd-open):not(.alp-hd-hot) .alp-hd .
   transition: bottom 0.25s ease-out, background 0.2s;
 }
 .alp-fab[aria-expanded='true'] { background: var(--alp-bg); color: var(--alp-ink); }
+/* Drag it across and it stays on that side (alpine.js; remembered per
+   browser, set before first paint in layout/theme.liquid). */
+html.alp-fab-right .alp-fab { left: auto; right: 16px; }
+@media (max-width: 749px) {
+  body:not(.template-product):not(.template-cart) .alp-fab { touch-action: none; }
+  .alp-fab.is-dragging { transition: none; box-shadow: 0 10px 26px rgba(47, 47, 38, 0.36); }
+}
 /* Product and cart pages: the bottom of the screen belongs to the buy bar and
    Checkout, so there the button goes back into the bar, top right, and the
    menu drops from the top as before. */
@@ -585,7 +596,7 @@ div.alp-scrim[hidden] { display: none; }
 /* ™ set small and raised (alpine.js wraps every ™ in .alp-tm); the font's own
    ™ is cap-height and heavy beside Aktiv Grotesk headings. */
 .alp-tmw { display: inline; }
-.alp-tm { font-size: max(0.42em, 9px); font-weight: 400; line-height: 0; vertical-align: 0.95em; margin-left: 0.06em; letter-spacing: 0; }
+.alp-tm { display: inline-block; text-decoration: none; font-size: max(0.42em, 9px); font-weight: 400; line-height: 0; vertical-align: 0.95em; margin-left: 0.06em; letter-spacing: 0; }
 .alp a.alp-hero__btn:hover { background: var(--alp-bg); color: var(--alp-ink); }
 
 .alp-mhome { padding-top: 64px; }
@@ -1024,7 +1035,8 @@ body.alp-hd-away .alp-cat__head { top: 0; }
   .alp-pdp__info { order: 2; }
   .alp-pdp__story { order: 3; }
   .alp-pdp__details { order: 4; }
-  .alp-gal__slide { height: 520px; min-height: 0; }
+  /* The whole photo on the first screen, with the title peeking below. */
+  .alp-gal__slide { height: clamp(320px, calc(100svh - var(--alp-hd) - 72px), 560px); min-height: 0; }
   .alp-gal__arrow { padding: 12px 6px; }
   .alp-gal__arrow svg { height: 40px; }
   .alp-pdp__info { position: static; max-width: none; padding: 28px 18px; gap: 18px; }

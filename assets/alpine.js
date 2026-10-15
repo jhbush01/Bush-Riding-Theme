@@ -1369,6 +1369,52 @@
     (window.requestIdleCallback || function (f) { setTimeout(f, 200); })(warmMenus);
   });
 
+  /* Focus rings for the keyboard only: a tap or click hides them. */
+  document.addEventListener('pointerdown', function () { document.documentElement.classList.add('alp-pointer'); }, true);
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Tab' || e.key.indexOf('Arrow') === 0) document.documentElement.classList.remove('alp-pointer');
+  }, true);
+
+  /* Phones: the round menu button drags to either side — left- or
+     right-handed — and stays where it's dropped (remembered in this
+     browser). A tap still opens the menu; a drag doesn't. */
+  (function () {
+    var fab = null, startX = 0, startY = 0, moved = false, base = 0;
+    function floating(el) { return !DESKTOP.matches && getComputedStyle(el).position === 'fixed'; }
+    document.addEventListener('pointerdown', function (e) {
+      var el = e.target.closest && e.target.closest('.alp-fab');
+      if (!el || !floating(el) || (e.pointerType === 'mouse' && e.button !== 0)) return;
+      fab = el; startX = e.clientX; startY = e.clientY; moved = false;
+      base = el.getBoundingClientRect().left;
+    });
+    document.addEventListener('pointermove', function (e) {
+      if (!fab) return;
+      var dx = e.clientX - startX;
+      if (!moved && Math.abs(dx) < 8) return;
+      if (!moved) { moved = true; fab.classList.add('is-dragging'); try { fab.setPointerCapture(e.pointerId); } catch (err) {} }
+      var w = fab.offsetWidth, max = window.innerWidth - w - 16;
+      var x = Math.max(16, Math.min(max, base + dx));
+      fab.style.transform = 'translateX(' + (x - base) + 'px)';
+    });
+    function drop(e) {
+      if (!fab) return;
+      var el = fab; fab = null;
+      el.classList.remove('is-dragging');
+      if (!moved) return;
+      var r = el.getBoundingClientRect();
+      var right = r.left + r.width / 2 > window.innerWidth / 2;
+      el.style.transform = '';
+      document.documentElement.classList.toggle('alp-fab-right', right);
+      try { localStorage.setItem('alp-fab-side', right ? 'right' : 'left'); } catch (err) {}
+      /* The click that follows a drag doesn't open the menu. */
+      var swallow = function (ev) { ev.preventDefault(); ev.stopPropagation(); };
+      el.addEventListener('click', swallow, { capture: true, once: true });
+      setTimeout(function () { el.removeEventListener('click', swallow, { capture: true }); }, 400);
+    }
+    document.addEventListener('pointerup', drop);
+    document.addEventListener('pointercancel', drop);
+  })();
+
   /* ── Boot ── */
   /* ── Trademarks ──────────────────────────────────────────────────────────
      Every ™ is set small and raised (.alp-tm). Bush Riding, Bush Map and
