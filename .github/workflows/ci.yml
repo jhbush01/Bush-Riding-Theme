@@ -71,14 +71,17 @@ jobs:
           REPO: ${{ github.repository }}
           SHA: ${{ github.sha }}
         run: |
-          set -u
+          set +e
           ok() { echo "- ✅ $1"; }
           bad() { echo "- ❌ $1"; }
           {
             echo "### Lighthouse (Shopify preview): store settings check"
             echo
+            if [ -z "$STORE" ]; then bad '`SHOP_STORE_OS2` is empty'; fi
+            case "$STORE" in *" "*|*"/"*) bad '`SHOP_STORE_OS2` contains a space or a slash — it must be exactly `yourstore.myshopify.com`, no https:// and no trailing /' ;; esac
+            echo "- ℹ️ \`SHOP_STORE_OS2\` is ${#STORE} characters long"
             case "$STORE" in
-              *.myshopify.com) ok '`SHOP_STORE_OS2` is a myshopify.com domain' ;;
+              *.myshopify.com) ok '`SHOP_STORE_OS2` ends in .myshopify.com' ;;
               http*) bad '`SHOP_STORE_OS2` starts with http — it must be just `yourstore.myshopify.com`' ;;
               *) bad '`SHOP_STORE_OS2` is not a `….myshopify.com` domain — the action needs the myshopify domain, not bushriding.cc' ;;
             esac
@@ -99,7 +102,10 @@ jobs:
             else
               code=$(curl -s -o themes.json -w '%{http_code}' -H "X-Shopify-Access-Token: $ACCESS_TOKEN" "https://$STORE/admin/api/2024-10/themes.json")
             fi
+            rc=$?
+            [ "$rc" != 0 ] && bad "couldn't reach the store at all (curl exit $rc$([ "$rc" = 6 ] && echo ': the store address does not resolve — SHOP_STORE_OS2 is not a real host name'))"
             case "$code" in
+              000) : ;;
               200) ok "the store accepted the token (HTTP 200)"
                    if [ -n "$PULL_THEME" ]; then
                      if grep -q "\"id\":$PULL_THEME," themes.json; then ok 'the `SHOP_PULL_THEME` theme exists on the store'; else bad 'no theme with the `SHOP_PULL_THEME` id exists on the store (it was deleted or the id is wrong)'; fi
