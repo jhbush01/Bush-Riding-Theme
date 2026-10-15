@@ -52,6 +52,9 @@ jobs:
     if: needs.config.outputs.shopify_lighthouse == 'true'
     runs-on: ubuntu-latest
     continue-on-error: true
+    # To post the per-page scores back onto the commit (see "Report").
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Lighthouse
@@ -64,6 +67,75 @@ jobs:
           collection_handle: all
           lhci_github_app_token: ${{ secrets.LHCI_GITHUB_TOKEN }}
           pull_theme: ${{ secrets.SHOP_PULL_THEME }}
+
+      # The action's own check run carries no output, and the job log isn't
+      # readable without signing in to GitHub. So: every page it audited, its
+      # four scores and each failed assertion, on the step summary AND as a
+      # comment on the commit (readable over the API, or on a phone).
+      - name: Report
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -uo pipefail
+          node - <<'JS' > lhci-summary.md
+          const fs = require('fs'), path = require('path');
+          const found = [];
+          (function walk(d, depth) {
+            if (depth > 5) return;
+            let list = [];
+            try { list = fs.readdirSync(d, { withFileTypes: true }); } catch (e) { return; }
+            for (const f of list) {
+              const p = path.join(d, f.name);
+              if (f.isDirectory() && f.name !== 'node_modules' && f.name !== '.git') walk(p, depth + 1);
+              else if (/^lhr-.*\.json$|^assertion-results\.json$/.test(f.name)) found.push(p);
+            }
+          })(process.cwd(), 0);
+          const pct = (c) => (c && c.score != null ? Math.round(c.score * 100) : '—');
+          console.log('### Lighthouse (Shopify preview) — per page\n');
+          const lhrs = found.filter((f) => /lhr-/.test(f));
+          if (!lhrs.length) console.log('No Lighthouse reports were written to the workspace — the action failed before auditing (credentials, password or theme id). See the job log.\n');
+          if (lhrs.length) {
+            console.log('| Page | Perf | A11y | Best pr. | SEO | LCP | TBT | CLS |');
+            console.log('| --- | --- | --- | --- | --- | --- | --- | --- |');
+            for (const f of lhrs) {
+              const r = JSON.parse(fs.readFileSync(f, 'utf8')), c = r.categories || {}, a = r.audits || {};
+              const u = (r.finalDisplayedUrl || r.finalUrl || r.requestedUrl || '').replace(/\?.*$/, '');
+              const v = (id) => (a[id] && a[id].displayValue) || '—';
+              console.log(`| ${u} | ${pct(c.performance)} | ${pct(c.accessibility)} | ${pct(c['best-practices'])} | ${pct(c.seo)} | ${v('largest-contentful-paint')} | ${v('total-blocking-time')} | ${v('cumulative-layout-shift')} |`);
+            }
+            const r0 = JSON.parse(fs.readFileSync(lhrs[0], 'utf8'));
+            const fails = new Set();
+            for (const f of lhrs) {
+              const r = JSON.parse(fs.readFileSync(f, 'utf8'));
+              for (const key of ['accessibility', 'best-practices', 'seo']) {
+                const c = (r.categories || {})[key];
+                if (!c) continue;
+                for (const ref of c.auditRefs || []) {
+                  const x = (r.audits || {})[ref.id];
+                  if (x && x.score !== null && x.score < 0.9 && x.scoreDisplayMode !== 'notApplicable' && x.scoreDisplayMode !== 'manual') {
+                    const items = ((x.details && x.details.items) || []).slice(0, 3).map((i) => (i.node && (i.node.selector || i.node.snippet)) || i.url || '').filter(Boolean);
+                    fails.add(`- ${c.title}: **${x.title}**${items.length ? ' — `' + items.join('`, `') + '`' : ''}`);
+                  }
+                }
+              }
+            }
+            if (fails.size) { console.log('\n#### Failing audits\n'); for (const l of fails) console.log(l); }
+          }
+          const ar = found.find((f) => /assertion-results/.test(f));
+          if (ar) {
+            const list = JSON.parse(fs.readFileSync(ar, 'utf8')).filter((x) => !x.passed);
+            if (list.length) {
+              console.log('\n#### Failed assertions (what turns the check red)\n');
+              for (const x of list) console.log(`- ${x.level}: \`${x.auditId || x.name}\` ${x.operator || ''} ${x.expected} — got ${typeof x.actual === 'number' ? Math.round(x.actual * 100) / 100 : x.actual} on ${(x.url || '').replace(/\?.*$/, '')}`);
+            }
+          }
+          JS
+          cat lhci-summary.md >> "$GITHUB_STEP_SUMMARY"
+          python3 -c "import json;print(json.dumps({'body': open('lhci-summary.md').read()}))" > lhci-comment.json
+          gh api "repos/$REPO/commits/$SHA/comments" --input lhci-comment.json --silent || true
 
       # This action posts a check run with no output, so when it fails the only
       # record is the job log — which is how it stayed red and unexplained for

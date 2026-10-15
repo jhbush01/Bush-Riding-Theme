@@ -1,5 +1,17 @@
 <!doctype html>
 <html class="js" lang="{{ request.locale.iso_code }}">
+  {%- liquid
+    comment
+      Dawn's own scripts, fonts and search only matter on the pages still
+      built from Dawn sections — accounts, Contact and the 404. Every other
+      page is the Bush Riding storefront (alpine.*), so they stay off it:
+      less to download, parse and run before the page is usable (Lighthouse).
+    endcomment
+    assign dawn_page = false
+    if template.directory == 'customers' or template.suffix == 'contact' or template.name == '404' or template.name == 'gift_card'
+      assign dawn_page = true
+    endif
+  -%}
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -13,9 +25,11 @@
       <link rel="icon" type="image/png" href="{{ settings.favicon | image_url: width: 32, height: 32 }}">
     {%- endif -%}
 
+    {%- if dawn_page -%}
     {%- unless settings.type_header_font.system? and settings.type_body_font.system? -%}
       <link rel="preconnect" href="https://fonts.shopifycdn.com" crossorigin>
     {%- endunless -%}
+    {%- endif -%}
 
     {%- comment -%} Bush Riding storefront: the brand faces (Aktiv Grotesk headings, Inter body), tokens and behaviour {%- endcomment -%}
     {%- render 'alp-brand-fonts' -%}
@@ -55,6 +69,7 @@
       }, { once: true });
     </script>
 
+    {%- if dawn_page -%}
     <script src="{{ 'constants.js' | asset_url }}" defer="defer"></script>
     <script src="{{ 'pubsub.js' | asset_url }}" defer="defer"></script>
     <script src="{{ 'global.js' | asset_url }}" defer="defer"></script>
@@ -67,6 +82,7 @@
 
     {%- if settings.animations_reveal_on_scroll -%}
       <script src="{{ 'animations.js' | asset_url }}" defer="defer"></script>
+    {%- endif -%}
     {%- endif -%}
 
     {{ content_for_header }}
@@ -296,6 +312,7 @@
       {{ 'component-discounts.css' | asset_url | stylesheet_tag }}
     {%- endif -%}
 
+    {%- if dawn_page -%}
     {%- unless settings.type_body_font.system? -%}
       {% comment %}theme-check-disable AssetPreload{% endcomment %}
       <link rel="preload" as="font" href="{{ settings.type_body_font | font_url }}" type="font/woff2" crossorigin>
@@ -306,13 +323,14 @@
       <link rel="preload" as="font" href="{{ settings.type_header_font | font_url }}" type="font/woff2" crossorigin>
       {% comment %}theme-check-enable AssetPreload{% endcomment %}
     {%- endunless -%}
+    {%- endif -%}
 
     {%- if localization.available_countries.size > 1 or localization.available_languages.size > 1 -%}
       {{ 'component-localization-form.css' | asset_url | stylesheet_tag: preload: true }}
       <script src="{{ 'localization-form.js' | asset_url }}" defer="defer"></script>
     {%- endif -%}
 
-    {%- if settings.predictive_search_enabled -%}
+    {%- if settings.predictive_search_enabled and dawn_page -%}
       <link
         rel="stylesheet"
         href="{{ 'component-predictive-search.css' | asset_url }}"
@@ -325,7 +343,7 @@
       if (Shopify.designMode) {
         document.documentElement.classList.add('shopify-design-mode');
       }
-      try { if (localStorage.getItem('alp-fab-side') === 'right') document.documentElement.classList.add('alp-fab-right'); } catch (e) {}
+      try { if (localStorage.getItem('alp-fab-side') === 'left') document.documentElement.classList.add('alp-fab-left'); } catch (e) {}
     </script>
   </head>
 
@@ -420,7 +438,7 @@
       };
     </script>
 
-    {%- if settings.predictive_search_enabled -%}
+    {%- if settings.predictive_search_enabled and dawn_page -%}
       <script src="{{ 'predictive-search.js' | asset_url }}" defer="defer"></script>
     {%- endif -%}
 
