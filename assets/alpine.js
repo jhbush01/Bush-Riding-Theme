@@ -238,14 +238,16 @@
     var api = (cfg('api') || 'https://map-api.bushriding.cc').replace(/\/$/, '');
     try {
       var c = JSON.parse(sessionStorage.getItem('alp-geo') || 'null');
-      if (c && c.at && Date.now() - c.at < 6 * 60 * 60 * 1000) { geoNow = c.g; geoP = Promise.resolve(c.g); return geoP; }
+      if (c && c.g && c.at && Date.now() - c.at < 60 * 60 * 1000) { geoNow = c.g; geoP = Promise.resolve(c.g); return geoP; }
     } catch (err) {}
     geoP = fetch(api + '/geo', { headers: { Accept: 'application/json' } })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (g) {
         g = g && isFinite(g.lat) && isFinite(g.lon) ? g : null;
         geoNow = g;
-        try { sessionStorage.setItem('alp-geo', JSON.stringify({ at: Date.now(), g: g })); } catch (err) {}
+        /* Only a real answer is kept (an hour, this tab): a failed lookup is
+           tried again on the next page rather than remembered. */
+        if (g) { try { sessionStorage.setItem('alp-geo', JSON.stringify({ at: Date.now(), g: g })); } catch (err) {} }
         return g;
       })
       .catch(function () { return null; });
