@@ -401,7 +401,7 @@ body.alp-hd-over:not(.alp-hd-solid):not(.alp-hd-open):not(.alp-hd-hot) .alp-hd .
   position: fixed; left: 16px; bottom: calc(16px + env(safe-area-inset-bottom));
   z-index: 3; width: 58px; height: 58px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  background: var(--alp-ink); color: var(--alp-bg); border: 1px solid var(--alp-ink);
+  background: var(--alp-mist); color: var(--alp-ink); border: 1px solid var(--alp-mist);
   box-shadow: 0 6px 18px rgba(47, 47, 38, 0.28);
   transition: bottom 0.25s ease-out, background 0.2s;
 }
