@@ -16,7 +16,8 @@
   <div class="alp-about__split">
     <div class="alp-about__photo">
       {%- if section.settings.image != blank -%}
-        {{ section.settings.image | image_url: width: 1600 | image_tag: class: 'alp-fill', loading: 'eager', widths: '600, 1000, 1600', sizes: '(min-width: 750px) 50vw, 100vw', alt: section.settings.image.alt | default: '' }}
+        {%- assign about_alt = section.settings.image.alt | default: '' -%}
+        {{ section.settings.image | image_url: width: 1600 | image_tag: class: 'alp-fill', loading: 'eager', widths: '600, 1000, 1600', sizes: '(min-width: 750px) 50vw, 100vw', alt: about_alt }}
       {%- endif -%}
     </div>
     <div class="alp-about__text">
