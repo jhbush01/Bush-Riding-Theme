@@ -893,7 +893,9 @@ async function serveFile(url, env, cors) {
 
    Upload: Cloudflare → R2 → bush-riding-map-routes → Upload, object name
    fonts/aktiv-grotesk-semibold.woff2 (any fonts/<name>.woff2 works). */
-const FONT_ORIGINS = ["https://bushriding.cc", "https://www.bushriding.cc"];
+// The store's own domains: its address, and the myshopify.com one Shopify
+// uses for theme previews and Lighthouse CI.
+const FONT_ORIGINS = ["https://bushriding.cc", "https://www.bushriding.cc", "https://v3bbqm-xx.myshopify.com"];
 function fontOriginAllowed(origin, env) {
   if (!origin) return false;
   const extra = ((env && env.FONT_ORIGINS) || "").split(",").map((o) => o.trim()).filter(Boolean);

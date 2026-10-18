@@ -42,9 +42,17 @@
       {%- unless page_title contains shop.name %} &ndash; {{ shop.name }}{% endunless -%}
     </title>
 
-    {% if page_description %}
-      <meta name="description" content="{{ page_description | escape }}">
-    {% endif %}
+    {%- liquid
+      comment
+        Every page gets a description (search results, Lighthouse SEO): the
+        page's own, else the store's, else a line in our voice.
+      endcomment
+      assign meta_description = page_description | default: shop.description
+      if meta_description == blank
+        assign meta_description = 'Gravel apparel designed in Australia for the long way round. Ride with us, find a route on the Bush Map, and explore in kit that moves with you.'
+      endif
+    -%}
+    <meta name="description" content="{{ meta_description | escape }}">
 
     {% render 'meta-tags' %}
 
