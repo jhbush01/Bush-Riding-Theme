@@ -13,9 +13,21 @@
   inter_only – true on the password page, which needs no Archivo request
                when Aktiv is supplied
 {%- endcomment -%}
+{%- comment -%}
+  Google Fonts load without holding up the first paint (text shows in the
+  fallback, then swaps). Archivo is only fetched while Aktiv isn't set up.
+{%- endcomment -%}
+{%- liquid
+  if settings.alp_font_aktiv != blank or settings.alp_font_kit != blank
+    assign gf = 'https://fonts.googleapis.com/css2?family=Inter:wght@400&display=swap'
+  else
+    assign gf = 'https://fonts.googleapis.com/css2?family=Archivo:wght@600&family=Inter:wght@400&display=swap'
+  endif
+-%}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600&family=Inter:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ gf }}" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="{{ gf }}"></noscript>
 {%- if settings.alp_font_kit != blank -%}
   <link rel="stylesheet" href="https://use.typekit.net/{{ settings.alp_font_kit | strip | escape }}.css">
 {%- endif -%}

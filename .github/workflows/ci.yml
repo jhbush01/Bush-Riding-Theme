@@ -52,8 +52,74 @@ jobs:
     if: needs.config.outputs.shopify_lighthouse == 'true'
     runs-on: ubuntu-latest
     continue-on-error: true
+    # To post the per-page scores back onto the commit (see "Report").
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      # Checks the store settings without printing them: is each one the right
+      # shape, and does the store accept the token? Written to the summary and
+      # the commit, because when the action fails it says why only in its log.
+      - name: Check the store settings
+        id: preflight
+        env:
+          STORE: ${{ secrets.SHOP_STORE_OS2 }}
+          ACCESS_TOKEN: ${{ secrets.SHOP_ACCESS_TOKEN }}
+          PULL_THEME: ${{ secrets.SHOP_PULL_THEME }}
+          PASSWORD: ${{ secrets.SHOP_PASSWORD_OS2 }}
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set +e
+          ok() { echo "- ✅ $1"; }
+          bad() { echo "- ❌ $1"; }
+          {
+            echo "### Lighthouse (Shopify preview): store settings check"
+            echo
+            if [ -z "$STORE" ]; then bad '`SHOP_STORE_OS2` is empty'; fi
+            case "$STORE" in *" "*|*"/"*) bad '`SHOP_STORE_OS2` contains a space or a slash — it must be exactly `yourstore.myshopify.com`, no https:// and no trailing /' ;; esac
+            echo "- ℹ️ \`SHOP_STORE_OS2\` is ${#STORE} characters long"
+            case "$STORE" in
+              *.myshopify.com) ok '`SHOP_STORE_OS2` ends in .myshopify.com' ;;
+              http*) bad '`SHOP_STORE_OS2` starts with http — it must be just `yourstore.myshopify.com`' ;;
+              *) bad '`SHOP_STORE_OS2` is not a `….myshopify.com` domain — the action needs the myshopify domain, not bushriding.cc' ;;
+            esac
+            case "$ACCESS_TOKEN" in
+              shptka_*) ok '`SHOP_ACCESS_TOKEN` looks like a Theme Access password (shptka_…)' ;;
+              shpat_*) ok '`SHOP_ACCESS_TOKEN` looks like an Admin API token (shpat_…)' ;;
+              *) bad '`SHOP_ACCESS_TOKEN` is neither a Theme Access password (shptka_…) nor an Admin API token (shpat_…)' ;;
+            esac
+            if [ -n "$PASSWORD" ]; then ok '`SHOP_PASSWORD_OS2` is set'; else echo "- ⚪ \`SHOP_PASSWORD_OS2\` is empty (fine only if the storefront has no password)"; fi
+            case "$PULL_THEME" in
+              '') echo "- ⚪ \`SHOP_PULL_THEME\` is empty (the preview will use default settings)" ;;
+              *[!0-9]*) bad '`SHOP_PULL_THEME` must be a numeric theme id' ;;
+              *) ok '`SHOP_PULL_THEME` is a numeric theme id' ;;
+            esac
+            if [ "${ACCESS_TOKEN#shptka_}" != "$ACCESS_TOKEN" ]; then
+              url="https://theme-kit-access.shopifyapps.com/cli/admin/api/2024-10/themes.json"
+              code=$(curl -s -o themes.json -w '%{http_code}' -H "X-Shopify-Access-Token: $ACCESS_TOKEN" -H "X-Shopify-Shop: $STORE" "$url")
+            else
+              code=$(curl -s -o themes.json -w '%{http_code}' -H "X-Shopify-Access-Token: $ACCESS_TOKEN" "https://$STORE/admin/api/2024-10/themes.json")
+            fi
+            rc=$?
+            [ "$rc" != 0 ] && bad "couldn't reach the store at all (curl exit $rc$([ "$rc" = 6 ] && echo ': the store address does not resolve — SHOP_STORE_OS2 is not a real host name'))"
+            case "$code" in
+              000) : ;;
+              200) ok "the store accepted the token (HTTP 200)"
+                   if [ -n "$PULL_THEME" ]; then
+                     if grep -q "\"id\":$PULL_THEME," themes.json; then ok 'the `SHOP_PULL_THEME` theme exists on the store'; else bad 'no theme with the `SHOP_PULL_THEME` id exists on the store (it was deleted or the id is wrong)'; fi
+                   fi
+                   echo "- ℹ️ themes on the store: $(grep -o '"id":' themes.json | wc -l | tr -d ' ') (a store holds at most 20; a full store makes the preview push fail)" ;;
+              401|403) bad "the store rejected the token (HTTP $code) — it has expired, been revoked, or lacks theme access. Make a new one in the Theme Access app." ;;
+              404) bad "the store wasn't found (HTTP 404) — check \`SHOP_STORE_OS2\`" ;;
+              *) bad "unexpected answer from the store (HTTP $code)" ;;
+            esac
+          } > preflight.md
+          rm -f themes.json
+          cat preflight.md >> "$GITHUB_STEP_SUMMARY"
+          python3 -c "import json;print(json.dumps({'body': open('preflight.md').read()}))" > pf.json
+          gh api "repos/$REPO/commits/$SHA/comments" --input pf.json --silent || true
       - name: Lighthouse
         id: shopify_lighthouse
         uses: shopify/lighthouse-ci-action@v1
@@ -64,6 +130,75 @@ jobs:
           collection_handle: all
           lhci_github_app_token: ${{ secrets.LHCI_GITHUB_TOKEN }}
           pull_theme: ${{ secrets.SHOP_PULL_THEME }}
+
+      # The action's own check run carries no output, and the job log isn't
+      # readable without signing in to GitHub. So: every page it audited, its
+      # four scores and each failed assertion, on the step summary AND as a
+      # comment on the commit (readable over the API, or on a phone).
+      - name: Report
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -uo pipefail
+          node - <<'JS' > lhci-summary.md
+          const fs = require('fs'), path = require('path');
+          const found = [];
+          (function walk(d, depth) {
+            if (depth > 5) return;
+            let list = [];
+            try { list = fs.readdirSync(d, { withFileTypes: true }); } catch (e) { return; }
+            for (const f of list) {
+              const p = path.join(d, f.name);
+              if (f.isDirectory() && f.name !== 'node_modules' && f.name !== '.git') walk(p, depth + 1);
+              else if (/^lhr-.*\.json$|^assertion-results\.json$/.test(f.name)) found.push(p);
+            }
+          })(process.cwd(), 0);
+          const pct = (c) => (c && c.score != null ? Math.round(c.score * 100) : '—');
+          console.log('### Lighthouse (Shopify preview) — per page\n');
+          const lhrs = found.filter((f) => /lhr-/.test(f));
+          if (!lhrs.length) console.log('No Lighthouse reports were written to the workspace — the action failed before auditing (credentials, password or theme id). See the job log.\n');
+          if (lhrs.length) {
+            console.log('| Page | Perf | A11y | Best pr. | SEO | LCP | TBT | CLS |');
+            console.log('| --- | --- | --- | --- | --- | --- | --- | --- |');
+            for (const f of lhrs) {
+              const r = JSON.parse(fs.readFileSync(f, 'utf8')), c = r.categories || {}, a = r.audits || {};
+              const u = (r.finalDisplayedUrl || r.finalUrl || r.requestedUrl || '').replace(/\?.*$/, '');
+              const v = (id) => (a[id] && a[id].displayValue) || '—';
+              console.log(`| ${u} | ${pct(c.performance)} | ${pct(c.accessibility)} | ${pct(c['best-practices'])} | ${pct(c.seo)} | ${v('largest-contentful-paint')} | ${v('total-blocking-time')} | ${v('cumulative-layout-shift')} |`);
+            }
+            const r0 = JSON.parse(fs.readFileSync(lhrs[0], 'utf8'));
+            const fails = new Set();
+            for (const f of lhrs) {
+              const r = JSON.parse(fs.readFileSync(f, 'utf8'));
+              for (const key of ['accessibility', 'best-practices', 'seo']) {
+                const c = (r.categories || {})[key];
+                if (!c) continue;
+                for (const ref of c.auditRefs || []) {
+                  const x = (r.audits || {})[ref.id];
+                  if (x && x.score !== null && x.score < 0.9 && x.scoreDisplayMode !== 'notApplicable' && x.scoreDisplayMode !== 'manual') {
+                    const items = ((x.details && x.details.items) || []).slice(0, 3).map((i) => (i.node && (i.node.selector || i.node.snippet)) || i.url || '').filter(Boolean);
+                    fails.add(`- ${c.title}: **${x.title}**${items.length ? ' — `' + items.join('`, `') + '`' : ''}`);
+                  }
+                }
+              }
+            }
+            if (fails.size) { console.log('\n#### Failing audits\n'); for (const l of fails) console.log(l); }
+          }
+          const ar = found.find((f) => /assertion-results/.test(f));
+          if (ar) {
+            const list = JSON.parse(fs.readFileSync(ar, 'utf8')).filter((x) => !x.passed);
+            if (list.length) {
+              console.log('\n#### Failed assertions (what turns the check red)\n');
+              for (const x of list) console.log(`- ${x.level}: \`${x.auditId || x.name}\` ${x.operator || ''} ${x.expected} — got ${typeof x.actual === 'number' ? Math.round(x.actual * 100) / 100 : x.actual} on ${(x.url || '').replace(/\?.*$/, '')}`);
+            }
+          }
+          JS
+          cat lhci-summary.md >> "$GITHUB_STEP_SUMMARY"
+          python3 -c "import json;print(json.dumps({'body': open('lhci-summary.md').read()}))" > lhci-comment.json
+          gh api "repos/$REPO/commits/$SHA/comments" --input lhci-comment.json --silent || true
 
       # This action posts a check run with no output, so when it fails the only
       # record is the job log — which is how it stayed red and unexplained for

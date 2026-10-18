@@ -1378,7 +1378,7 @@
   }, true);
 
   /* Phones: the round menu button drags to either side — left- or
-     right-handed — and stays where it's dropped (remembered in this
+     right-handed — and stays where it's dropped (it starts bottom right) (remembered in this
      browser). A tap still opens the menu; a drag doesn't. */
   (function () {
     var fab = null, startX = 0, startY = 0, moved = false, base = 0;
@@ -1406,7 +1406,7 @@
       var r = el.getBoundingClientRect();
       var right = r.left + r.width / 2 > window.innerWidth / 2;
       el.style.transform = '';
-      document.documentElement.classList.toggle('alp-fab-right', right);
+      document.documentElement.classList.toggle('alp-fab-left', !right);
       try { localStorage.setItem('alp-fab-side', right ? 'right' : 'left'); } catch (err) {}
       /* The click that follows a drag doesn't open the menu. */
       var swallow = function (ev) { ev.preventDefault(); ev.stopPropagation(); };
