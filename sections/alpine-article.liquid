@@ -9,7 +9,8 @@
   </header>
   {%- if article.image != blank -%}
     <div class="alp-article__photo">
-      {{ article.image | image_url: width: 2400 | image_tag: class: 'alp-fill', loading: 'eager', widths: '800, 1200, 1800, 2400', sizes: '100vw', alt: article.image.alt | default: '' }}
+      {%- assign art_alt = article.image.alt | default: '' -%}
+      {{ article.image | image_url: width: 2400 | image_tag: class: 'alp-fill', loading: 'eager', widths: '800, 1200, 1800, 2400', sizes: '100vw', alt: art_alt }}
     </div>
   {%- endif -%}
   <div class="alp-article__body">{{ article.content }}</div>

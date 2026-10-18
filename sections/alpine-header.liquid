@@ -73,7 +73,7 @@
   {% if settings.alp_weather %}data-alp-wx="{{ settings.alp_lat | escape }},{{ settings.alp_lon | escape }}"{% endif %}
 >
   <div class="alp-hd__bar">
-    <a class="alp-hd__logo" href="{{ routes.root_url }}">
+    <a class="alp-hd__logo" href="{{ routes.root_url }}" aria-label="{{ wordmark_alt | escape }} — home">
       {%- if section.settings.logo != blank -%}
         {{ section.settings.logo | image_url: width: 400 | image_tag: alt: wordmark_alt, loading: 'eager' }}
       {%- else -%}

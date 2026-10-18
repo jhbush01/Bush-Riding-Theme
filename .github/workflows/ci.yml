@@ -120,6 +120,39 @@ jobs:
           cat preflight.md >> "$GITHUB_STEP_SUMMARY"
           python3 -c "import json;print(json.dumps({'body': open('preflight.md').read()}))" > pf.json
           gh api "repos/$REPO/commits/$SHA/comments" --input pf.json --silent || true
+      # The action asks the Admin API for "the first product" unless it's told
+      # one, and a Theme Access password can't read products — so it fails
+      # before testing a page. Find one from the storefront instead (through
+      # the password page, which is what the action itself does later).
+      - name: Find a product to test
+        id: product
+        env:
+          STORE: ${{ secrets.SHOP_STORE_OS2 }}
+          PASSWORD: ${{ secrets.SHOP_PASSWORD_OS2 }}
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set +e
+          jar=$(mktemp)
+          curl -sL -c "$jar" -b "$jar" -o /dev/null "https://$STORE/password"
+          if [ -n "$PASSWORD" ]; then
+            curl -sL -c "$jar" -b "$jar" -o /dev/null -X POST \
+              --data-urlencode "form_type=storefront_password" --data-urlencode "utf8=✓" \
+              --data-urlencode "password=$PASSWORD" "https://$STORE/password"
+          fi
+          handle=$(curl -sL -b "$jar" "https://$STORE/products.json?limit=1" \
+            | python3 -c "import json,sys
+          try:
+            d=json.load(sys.stdin); print((d.get('products') or [{}])[0].get('handle',''))
+          except Exception:
+            print('')")
+          rm -f "$jar"
+          echo "handle=$handle" >> "$GITHUB_OUTPUT"
+          if [ -n "$handle" ]; then msg="- ✅ product page to test: \`/products/$handle\`"; else msg="- ❌ couldn't find a product through the storefront (is \`SHOP_PASSWORD_OS2\` the storefront password, and is a product published to the Online Store?)"; fi
+          echo "$msg" >> "$GITHUB_STEP_SUMMARY"
+          python3 -c "import json,sys;print(json.dumps({'body': sys.argv[1]}))" "$msg" > pr.json
+          gh api "repos/$REPO/commits/$SHA/comments" --input pr.json --silent || true
       - name: Lighthouse
         id: shopify_lighthouse
         uses: shopify/lighthouse-ci-action@v1
@@ -128,6 +161,7 @@ jobs:
           password: ${{ secrets.SHOP_PASSWORD_OS2 }}
           access_token: ${{ secrets.SHOP_ACCESS_TOKEN }}
           collection_handle: all
+          product_handle: ${{ steps.product.outputs.handle }}
           lhci_github_app_token: ${{ secrets.LHCI_GITHUB_TOKEN }}
           pull_theme: ${{ secrets.SHOP_PULL_THEME }}
 

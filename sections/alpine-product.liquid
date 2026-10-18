@@ -59,7 +59,8 @@
           {%- for m in product.media limit: hero_n -%}
             {%- if forloop.first -%}{%- assign eager = 'eager' -%}{%- else -%}{%- assign eager = 'lazy' -%}{%- endif -%}
             <div class="alp-gal__slide alp-pdp__img">
-              {{ m.preview_image | image_url: width: 2000 | image_tag: class: 'alp-gal__img', loading: eager, widths: '700, 1000, 1400, 2000', sizes: '(min-width: 750px) 66vw, 100vw', alt: m.alt | default: product.title }}
+              {%- assign m_alt = m.alt | default: product.title -%}
+              {{ m.preview_image | image_url: width: 2000 | image_tag: class: 'alp-gal__img', loading: eager, widths: '700, 1000, 1400, 2000', sizes: '(min-width: 750px) 66vw, 100vw', alt: m_alt }}
             </div>
           {%- else -%}
             <div class="alp-gal__slide alp-pdp__img"></div>
@@ -97,7 +98,8 @@
             {%- for m in product.media offset: hero_n -%}
               <figure class="alp-pdp__fig">
                 <div class="alp-pdp__img alp-pdp__img--natural">
-                  {{ m.preview_image | image_url: width: 2400 | image_tag: class: 'alp-pdp__photo', loading: 'lazy', widths: '700, 1100, 1600, 2000, 2400', sizes: '(min-width: 750px) 66vw, 100vw', alt: m.alt | default: product.title }}
+                  {%- assign m_alt = m.alt | default: product.title -%}
+                  {{ m.preview_image | image_url: width: 2400 | image_tag: class: 'alp-pdp__photo', loading: 'lazy', widths: '700, 1100, 1600, 2000, 2400', sizes: '(min-width: 750px) 66vw, 100vw', alt: m_alt }}
                 </div>
                 {%- if section.settings.alt_captions and m.alt != blank -%}
                   <figcaption class="alp-pdp__cap">{{ m.alt | escape }}</figcaption>

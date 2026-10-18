@@ -29,7 +29,8 @@
         {%- if section.settings.image_mobile != blank -%}
           <source media="(max-width: 749px)" srcset="{{ img_m | image_url: width: 800 }} 800w, {{ img_m | image_url: width: 1200 }} 1200w" sizes="100vw">
         {%- endif -%}
-        {{ img | image_url: width: 3000 | image_tag: class: 'alp-fill', loading: 'eager', fetchpriority: 'high', widths: '800, 1200, 1800, 2400, 3000', sizes: '100vw', alt: img.alt | default: '' }}
+        {%- assign hero_alt = img.alt | default: shop.name -%}
+        {{ img | image_url: width: 3000 | image_tag: class: 'alp-fill', loading: 'eager', fetchpriority: 'high', widths: '800, 1200, 1800, 2400, 3000', sizes: '100vw', alt: hero_alt }}
       </picture>
     {%- endif -%}
   </div>

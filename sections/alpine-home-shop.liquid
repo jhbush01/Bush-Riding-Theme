@@ -31,7 +31,8 @@
     <div class="alp-duo alp-duo--640">
       <div class="alp-duo__panel">
         {%- if life != blank -%}
-          {{ life | image_url: width: 1600 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '800, 1200, 1600', sizes: '50vw', alt: life.alt | default: '' }}
+          {%- assign life_alt = life.alt | default: '' -%}
+          {{ life | image_url: width: 1600 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '800, 1200, 1600', sizes: '50vw', alt: life_alt }}
         {%- endif -%}
         {%- if section.settings.lifestyle_caption != blank -%}
           <span class="alp-duo__caption">{{ section.settings.lifestyle_caption | escape }}</span>
@@ -39,7 +40,8 @@
       </div>
       <a class="alp-duo__panel alp-duo__panel--ground" href="{{ p.url | default: routes.all_products_collection_url }}">
         {%- if panel != blank -%}
-          {{ panel | image_url: width: 1600 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '800, 1200, 1600', sizes: '50vw', alt: p.title | default: '' }}
+          {%- assign panel_alt = p.title | default: '' -%}
+          {{ panel | image_url: width: 1600 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '800, 1200, 1600', sizes: '50vw', alt: panel_alt }}
         {%- endif -%}
         {%- if p != blank -%}
           <span class="alp-duo__chips">
@@ -115,7 +117,8 @@
     <p class="alp-mhome__cta"><a class="alp-btn" href="{{ routes.all_products_collection_url }}">{{ section.settings.mobile_button | escape }}</a></p>
     {%- if life != blank -%}
       <div class="alp-mhome__photo">
-        {{ life | image_url: width: 1400 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '600, 900, 1400', sizes: '100vw', alt: life.alt | default: '' }}
+        {%- assign life_alt = life.alt | default: '' -%}
+        {{ life | image_url: width: 1400 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '600, 900, 1400', sizes: '100vw', alt: life_alt }}
         {%- if section.settings.lifestyle_caption != blank -%}
           <span class="alp-duo__caption">{{ section.settings.lifestyle_caption | escape }}</span>
         {%- endif -%}
