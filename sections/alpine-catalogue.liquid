@@ -149,7 +149,7 @@
             {%- assign label_down = f.label | downcase -%}
             {%- if label_down contains 'size' -%}{%- assign is_size = true -%}{%- endif -%}
             <details class="alp-filters__group"{% if forloop.first or f.active_values.size > 0 %} open{% endif %}>
-              <summary class="alp-filters__head">{{ f.label | escape }}<span class="alp-menu__pm alp-m" aria-hidden="true"></span></summary>
+              <summary class="alp-filters__head">{{ f.label | replace: 'Color', 'Colour' | replace: 'color', 'colour' | escape }}<span class="alp-menu__pm alp-m" aria-hidden="true"></span></summary>
               {%- case f.type -%}
                 {%- when 'price_range' -%}
                   <div class="alp-filters__price">

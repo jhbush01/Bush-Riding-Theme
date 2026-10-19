@@ -183,7 +183,7 @@
             -%}
             <fieldset class="alp-buy__opt{% if is_colour %} alp-buy__opt--colour{% endif %}" data-alp-option="{{ opt_index }}">
               <legend class="alp-buy__opthead">
-                <span><b class="alp-buy__optname">{{ option.name | escape }}</b><span class="alp-buy__chosen" data-alp-chosen-wrap hidden> <span data-alp-chosen></span></span></span>
+                <span><b class="alp-buy__optname">{% if opt_name == 'color' %}Colour{% else %}{{ option.name | escape }}{% endif %}</b><span class="alp-buy__chosen" data-alp-chosen-wrap hidden> <span data-alp-chosen></span></span></span>
                 {%- if is_colour == false and size_url != blank -%}<a href="{{ size_url }}">Size guide</a>{%- endif -%}
               </legend>
               <div class="{% if is_colour %}alp-swatches{% else %}alp-buy__tiles{% endif %}" style="--n: {{ option.values.size | at_most: 6 }}">

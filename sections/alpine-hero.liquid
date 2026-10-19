@@ -43,7 +43,7 @@
       <p class="alp-hero__tagline">{{ section.settings.tagline | escape }}</p>
     {%- endif -%}
     {%- if section.settings.button_label != blank -%}
-      <a class="alp-hero__btn alp-m" href="{{ section.settings.button_link | default: routes.all_products_collection_url }}">{{ section.settings.button_label | escape }}</a>
+      <a class="alp-hero__btn" href="{{ section.settings.button_link | default: routes.all_products_collection_url }}">{{ section.settings.button_label | escape }}</a>
     {%- endif -%}
   </div>
 </section>

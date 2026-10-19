@@ -51,6 +51,9 @@
    and the ground behind product photos go white, so photos shot on white
    disappear into the page; type on photos goes white with them. */
 html[data-ground='white'] { --alp-bg: #ffffff; --alp-card: #ffffff; --alp-line: rgba(76, 75, 59, 0.16); }
+/* …but type over photos stays bone, to match the bone wordmark artwork. */
+html[data-ground='white'] :is(.alp-hero, .alp-intro, .alp-duo, .alp-mcards),
+html[data-ground='white'] body.alp-hd-over:not(.alp-hd-solid):not(.alp-hd-open):not(.alp-hd-hot) .alp-hd { --alp-bg: #edecc5; }
 /* Dawn's .gradient on <body> beats a bare `body` selector, so match it. */
 body,
 body.gradient {
@@ -272,7 +275,7 @@ body.alp-hd-away .alp-hd-section { top: calc(-1 * var(--alp-hd) - 2px); }
   opacity: 0;
 }
 body.alp-hd-over .alp-hd-under { margin-top: calc(-1 * var(--alp-hd)); }
-body.alp-hd-over .alp-hd-under .alp-hero { height: calc(720px + var(--alp-hd)); }
+body.alp-hd-over .alp-hd-under .alp-hero { height: 100vh; }
 body.alp-hd-over:not(.alp-hd-solid):not(.alp-hd-open):not(.alp-hd-hot) .alp-hd,
 body.alp-hd-over:not(.alp-hd-solid):not(.alp-hd-open):not(.alp-hd-hot) .alp-hd .alp-hd__bar { background-color: transparent; color: var(--alp-bg); }
 body.alp-hd-over:not(.alp-hd-solid):not(.alp-hd-open):not(.alp-hd-hot) .alp-hd .alp-hd__bar::before { opacity: 1; }
@@ -496,7 +499,8 @@ div.alp-scrim[hidden] { display: none; }
 .alp-scrim.is-over { z-index: 55; }
 
 /* ── Hero (D01 · M02) ────────────────────────────────────────────────────── */
-.alp-hero { position: relative; height: 720px; overflow: hidden; background: var(--alp-olive); }
+/* The full screen under the header — no strip of page below it. */
+.alp-hero { position: relative; height: calc(100vh - var(--alp-hd)); min-height: 560px; overflow: hidden; background: var(--alp-olive); }
 .alp-hero__media, .alp-hero__media picture { position: absolute; inset: 0; }
 .alp-hero__scrim { position: absolute; inset: 0; background: var(--alp-scrim-hero); pointer-events: none; }
 .alp-hero__centre {
@@ -623,8 +627,13 @@ div.alp-scrim[hidden] { display: none; }
    cards (Rides / Bush Map) and the help strip. All of it lives inside .alp-m
    blocks, so desktop never sees it. */
 .alp-hero__btn {
-  margin-top: 6px; padding: 13px 30px; border: 1.5px solid var(--alp-bg); border-radius: 999px;
+  position: absolute; left: 50%; bottom: clamp(40px, 7vh, 72px); transform: translateX(-50%);
+  min-width: 280px; padding: 18px 40px; border: 1px solid var(--alp-bg); border-radius: 0;
   font: 600 14px/1 var(--alp-font-display); letter-spacing: 0.08em; text-transform: uppercase; color: var(--alp-bg);
+  text-align: center; white-space: nowrap;
+}
+@media (max-width: 749px) {
+  .alp-hero__btn { min-width: 0; width: calc(100% - 48px); bottom: calc(32px + env(safe-area-inset-bottom)); }
 }
 .alp-hero__btn { pointer-events: auto; }
 /* ™ set small and raised (alpine.js wraps every ™ in .alp-tm); the font's own
@@ -983,7 +992,7 @@ body.alp-hd-away .alp-cat__head { top: 0; }
   background: var(--sw, var(--alp-card)) var(--sw-img, none) center / cover;
   box-shadow: inset 0 0 0 1px var(--alp-line);
 }
-.alp-swatch input:checked + .alp-swatch__dot { box-shadow: 0 0 0 2px var(--alp-bg), 0 0 0 4px var(--alp-ink); }
+.alp-swatch input:checked + .alp-swatch__dot { box-shadow: inset 0 0 0 1px var(--alp-line), 0 0 0 1.5px var(--alp-bg), 0 0 0 3px var(--alp-ink); }
 .alp-swatch input:focus-visible + .alp-swatch__dot { outline: 2px solid var(--alp-flare); outline-offset: 4px; }
 .alp-swatch.is-out .alp-swatch__dot { opacity: 0.35; }
 
