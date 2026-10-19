@@ -30,7 +30,7 @@ const STATES = ["QLD", "NSW", "VIC", "TAS", "SA", "WA", "NT", "ACT"];
 // Add columns introduced after the original schema. ALTER fails once the column
 // exists, so each is best-effort — cheap and idempotent.
 async function ensureSubmissionsSchema(env) {
-  for (const col of ["state TEXT", "contributor_url TEXT", "series TEXT", "review_note TEXT", "series_version TEXT", "strava_route_url TEXT"]) {
+  for (const col of ["state TEXT", "contributor_url TEXT", "series TEXT", "review_note TEXT", "series_version TEXT", "strava_route_url TEXT", "start_place TEXT"]) {
     try {
       await env.DB.prepare(`ALTER TABLE submissions ADD COLUMN ${col}`).run();
     } catch (_) {
@@ -69,6 +69,7 @@ export default {
       if (url.pathname === "/admin/action" && request.method === "POST") return adminAction(request, env);
       if (url.pathname === "/admin/edit" && request.method === "POST") return adminEdit(request, env);
       if (url.pathname === "/admin/route/create" && request.method === "POST") return adminRouteCreate(request, env);
+      if (url.pathname === "/admin/route/starts" && request.method === "POST") return adminFillStarts(request, env);
       if (url.pathname === "/admin/event/save" && request.method === "POST") return adminEventSave(request, env);
       if (url.pathname === "/admin/event/delete" && request.method === "POST") return adminEventDelete(request, env);
       if (url.pathname === "/admin/famous/save" && request.method === "POST") return adminFamousSave(request, env);
@@ -223,6 +224,48 @@ function failed(result, request, cors) {
 }
 
 /* ---------------- Public: submit ---------------- */
+/* Where a route starts, in words — "Mount Glorious Rd, Mount Glorious" — for
+   the card's "Start" line above "Navigate to start". Looked up ONCE, when the
+   route is added, from its start coordinate via OpenStreetMap's Nominatim,
+   and stored (start_place), so a rider opening a card never triggers a
+   lookup. That's also what Nominatim's usage policy asks for: an identifying
+   User-Agent, at most one request a second, and results cached rather than
+   re-requested. The map already credits OpenStreetMap.
+
+   Never blocks anything: a slow or failed lookup returns "" and the card
+   falls back to the route's region. Moderation can overwrite the result by
+   hand ("Ferny Grove Station car park" beats a street name). GEOCODE_URL can
+   point it at another Nominatim-compatible server. */
+async function reverseGeocode(env, lat, lng) {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return "";
+  const base = ((env && env.GEOCODE_URL) || "https://nominatim.openstreetmap.org").replace(/\/$/, "");
+  const url = `${base}/reverse?format=jsonv2&zoom=17&addressdetails=1&accept-language=en-AU&lat=${lat.toFixed(6)}&lon=${lng.toFixed(6)}`;
+  try {
+    const res = await fetch(url, {
+      headers: { "User-Agent": "BushMap/1.0 (+https://map.bushriding.cc)", Accept: "application/json" },
+      signal: AbortSignal.timeout(4000),
+    });
+    if (!res.ok) return "";
+    return placeLabel((await res.json()).address || {});
+  } catch (_) {
+    return "";
+  }
+}
+// "Road, Suburb" from a Nominatim address. Either half on its own if that's
+// all there is; "" when neither (the card then shows the region).
+function placeLabel(a) {
+  const road = (a.road || a.track || a.path || a.footway || a.cycleway || "").trim();
+  const where = (a.suburb || a.village || a.town || a.hamlet || a.city_district || a.city || a.locality || "").trim();
+  const shortRoad = road
+    .replace(/\bRoad$/, "Rd").replace(/\bStreet$/, "St").replace(/\bAvenue$/, "Ave")
+    .replace(/\bDrive$/, "Dr").replace(/\bHighway$/, "Hwy").replace(/\bParade$/, "Pde");
+  return [shortRoad, where && where !== shortRoad ? where : ""].filter(Boolean).join(", ").slice(0, 120);
+}
+// A hand-typed start label from moderation: plain text, one line.
+function cleanStartPlace(v) {
+  return (v || "").toString().replace(/\s+/g, " ").trim().slice(0, 120);
+}
+
 /* Optional link to the same route on Strava. Shown on the route card as an
    "Open in Strava" button, which opens the Strava app on a phone, so a rider
    can save the route there. It's a plain link: nothing is fetched from
@@ -310,17 +353,19 @@ async function submit(request, env, cors) {
     await env.BUCKET.put(photoKey, await photoFile.arrayBuffer(), { httpMetadata: { contentType: type } });
   }
 
+  const startPlace = await reverseGeocode(env, stats.marker[1], stats.marker[0]);
+
   await env.DB.prepare(
     `INSERT INTO submissions
       (id, status, name, region, state, country, difficulty, surface, description, series,
        distance_km, elevation_gain_m, marker_lng, marker_lat, coords,
-       gpx_key, photo_key, contributor, contributor_url, strava_route_url, email, created_at)
-     VALUES (?, 'pending', ?, ?, ?, 'Australia', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+       gpx_key, photo_key, contributor, contributor_url, strava_route_url, start_place, email, created_at)
+     VALUES (?, 'pending', ?, ?, ?, 'Australia', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   )
     .bind(
       id, name, region, state, difficulty, surface, description, series,
       stats.distance_km, stats.elevation_gain_m, stats.marker[0], stats.marker[1],
-      JSON.stringify(stats.coords), gpxKey, photoKey, contributor, contributorUrl, strava, email,
+      JSON.stringify(stats.coords), gpxKey, photoKey, contributor, contributorUrl, strava, startPlace || null, email,
       new Date().toISOString()
     )
     .run();
@@ -358,7 +403,7 @@ async function routes(env, cors) {
   const { results } = await env.DB.prepare(
     `SELECT id, name, region, state, country, difficulty, surface, description, series, series_version,
             distance_km, elevation_gain_m, marker_lng, marker_lat, coords,
-            photo_key, contributor, contributor_url, strava_route_url, created_at
+            photo_key, contributor, contributor_url, strava_route_url, start_place, created_at
        FROM submissions WHERE status = 'published' ORDER BY created_at DESC`
   ).all();
 
@@ -398,6 +443,8 @@ async function routes(env, cors) {
         contributor_url: r.contributor_url || "",
         // Same route on Strava — the card's "Open in Strava" button. "" if none.
         strava_route_url: r.strava_route_url || "",
+        // Where it starts, in words ("Mount Glorious Rd, Mount Glorious"). "" if unknown.
+        start_place: r.start_place || "",
         source: "community",
         status: "published",
       },
@@ -848,6 +895,31 @@ async function adminFamousDelete(request, env) {
 
 // Admin: create a community route directly (skips the public submit form). Same
 // GPX parsing as /submit, but publishes immediately and allows a series tag.
+/* Fill in start labels for routes that don't have one yet (NULL: added
+   before this existed, or the lookup at submit time failed). A lookup that
+   comes back empty is stored as '' so the next press moves on instead of
+   retrying the same remote spots forever — set those by hand. Spaced 1.1 s apart for Nominatim's
+   one-a-second limit, and capped per press so a big backlog can't run into
+   the Worker's subrequest limit — press again for the next batch. */
+async function adminFillStarts(request, env) {
+  if (!requireAuth(request, env)) return authChallenge();
+  await ensureSubmissionsSchema(env);
+  const { results } = await env.DB.prepare(
+    `SELECT id, marker_lat, marker_lng FROM submissions
+      WHERE start_place IS NULL AND marker_lat IS NOT NULL
+      ORDER BY (status='published') DESC, created_at DESC LIMIT 25`
+  ).all();
+  let filled = 0;
+  for (const [i, r] of (results || []).entries()) {
+    if (i) await new Promise((res) => setTimeout(res, 1100));
+    const place = await reverseGeocode(env, r.marker_lat, r.marker_lng);
+    await env.DB.prepare("UPDATE submissions SET start_place=? WHERE id=?").bind(place || "", r.id).run();
+    if (place) filled++;
+  }
+  if (filled) await triggerRebuild(env);
+  return new Response(null, { status: 303, headers: { Location: `/admin?starts=${filled}-of-${(results || []).length}#routes` } });
+}
+
 async function adminRouteCreate(request, env) {
   if (!requireAuth(request, env)) return authChallenge();
   await ensureSubmissionsSchema(env);
@@ -894,13 +966,14 @@ async function adminRouteCreate(request, env) {
     `INSERT INTO submissions
       (id, status, name, region, state, country, difficulty, surface, description, series, series_version,
        distance_km, elevation_gain_m, marker_lng, marker_lat, coords,
-       gpx_key, photo_key, contributor, contributor_url, strava_route_url, email, created_at)
-     VALUES (?, 'published', ?, ?, ?, 'Australia', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+       gpx_key, photo_key, contributor, contributor_url, strava_route_url, start_place, email, created_at)
+     VALUES (?, 'published', ?, ?, ?, 'Australia', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).bind(
     id, name, region, STATES.includes(state) ? state : null, difficulty, surface, description, series, seriesVersion,
     stats.distance_km, stats.elevation_gain_m, stats.marker[0], stats.marker[1],
-    JSON.stringify(stats.coords), gpxKey, photoKey, contributor, contributorUrl, strava, email,
-    new Date().toISOString()
+    JSON.stringify(stats.coords), gpxKey, photoKey, contributor, contributorUrl, strava,
+    cleanStartPlace(form.get("start_place")) || (await reverseGeocode(env, stats.marker[1], stats.marker[0])) || null,
+    email, new Date().toISOString()
   ).run();
 
   await triggerRebuild(env);
@@ -984,7 +1057,7 @@ async function adminPage(request, env) {
   await seedFamousEventsOnce(env); // ensure the known Famous Events exist + tagged
   const { results } = await env.DB.prepare(
     `SELECT id, status, name, region, state, country, difficulty, surface, distance_km,
-            elevation_gain_m, description, series, series_version, contributor, contributor_url, strava_route_url, email, coords,
+            elevation_gain_m, description, series, series_version, contributor, contributor_url, strava_route_url, start_place, email, coords,
             photo_key, review_note, created_at
        FROM submissions ORDER BY (status='pending') DESC, created_at DESC`
   ).all();
@@ -992,7 +1065,13 @@ async function adminPage(request, env) {
   const routeOpts = await routeOptions(env);
   const famous = await loadFamousList(env);
   const famousNames = famous.map((f) => f.name).filter(Boolean);
-  return new Response(adminHtml(results || [], events, routeOpts, famous, famousNames), {
+  // "Fill in missing start points" redirects back with ?starts=<filled>-of-<tried>.
+  const starts = (new URL(request.url).searchParams.get("starts") || "").match(/^(\d+)-of-(\d+)$/);
+  const notice = starts
+    ? (+starts[2] === 0 ? "Nothing left to look up — any route still showing \"not set\" needs its start point typed in."
+      : `Filled in ${starts[1]} of ${starts[2]} start point${+starts[2] === 1 ? "" : "s"}.${+starts[1] < +starts[2] ? " The rest couldn't be looked up — add them by hand in each route's edit form." : ""}`)
+    : "";
+  return new Response(adminHtml(results || [], events, routeOpts, famous, famousNames, notice), {
     // Never cache the admin panel — always reflect the latest deploy + data.
     headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
   });
@@ -1084,9 +1163,16 @@ async function adminEdit(request, env) {
   const distance = parseFloat(form.get("distance_km"));
   const elevation = parseInt(form.get("elevation_gain_m"), 10);
   const strava = cleanStravaRouteUrl(form.get("strava_route_url"));
+  let startPlace = cleanStartPlace(form.get("start_place"));
 
   if (strava && strava.error) return json({ error: strava.error }, 400, corsHeaders());
   if (!name || !region) return json({ error: "Name and region are required" }, 400, corsHeaders());
+
+  // Blank start label: look it up again from the route's start point.
+  if (!startPlace) {
+    const pt = await env.DB.prepare("SELECT marker_lat, marker_lng FROM submissions WHERE id=?").bind(id).first();
+    if (pt) startPlace = await reverseGeocode(env, pt.marker_lat, pt.marker_lng);
+  }
 
   // Optional photo (hero) upload — lets an image be added or replaced after a
   // route is submitted. Existing photo is kept when no new file is provided.
@@ -1104,7 +1190,7 @@ async function adminEdit(request, env) {
   await env.DB.prepare(
     `UPDATE submissions
         SET name=?, region=?, state=?, country=?, difficulty=?, surface=?, description=?, series=?, series_version=?,
-            contributor=?, contributor_url=?, strava_route_url=?, distance_km=?, elevation_gain_m=?, photo_key=?
+            contributor=?, contributor_url=?, strava_route_url=?, start_place=?, distance_km=?, elevation_gain_m=?, photo_key=?
       WHERE id=?`
   )
     .bind(
@@ -1120,6 +1206,7 @@ async function adminEdit(request, env) {
       contributor,
       contributorUrl,
       strava,
+      startPlace || null,
       Number.isFinite(distance) ? distance : null,
       Number.isFinite(elevation) ? elevation : null,
       photoKey,
@@ -1218,7 +1305,7 @@ function coordsSvg(coordsJson) {
   return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><polyline points="${pts}" fill="none" stroke="#234a25" stroke-width="2"/></svg>`;
 }
 
-function adminHtml(rows, events = [], routeOpts = [], famous = [], famousNames = []) {
+function adminHtml(rows, events = [], routeOpts = [], famous = [], famousNames = [], notice) {
   const pending = rows.filter((r) => r.status === "pending").length;
   // Dropdown of famous rides for tagging a route to one (shared by create + edit).
   const seriesSelect = (sel) =>
@@ -1307,6 +1394,7 @@ function adminHtml(rows, events = [], routeOpts = [], famous = [], famousNames =
         <label>Contributed by<input name="contributor" /></label>
         <label>Contributor link<input name="contributor_url" placeholder="Strava / RWGPS / website" /></label>
         <label class="full">Strava route link — adds an orange “Open in Strava” button to the card<input name="strava_route_url" placeholder="https://www.strava.com/routes/…" /></label>
+        <label class="full">Start point — shown above “Navigate to start” (blank = looked up from the GPX start)<input name="start_place" maxlength="120" placeholder="e.g. Ferny Grove Station car park" /></label>
         <label class="full">Famous event${seriesSelect("")}</label>
         <label>Edition / year<input name="series_version" placeholder="e.g. 2026 (blank = current)" /></label>
         <label class="full">Description<textarea name="description" rows="6"></textarea></label>
@@ -1365,6 +1453,7 @@ function adminHtml(rows, events = [], routeOpts = [], famous = [], famousNames =
         <p class="sub">${esc(r.region)}${r.state ? ", " + esc(r.state) : ""} · ${esc(r.difficulty)} · ${r.distance_km} km · ${r.elevation_gain_m} m</p>
         <p class="desc">${esc(r.description) || "<em>no description</em>"}</p>
         <p class="by">by ${esc(r.contributor) || "—"}${r.contributor_url ? ` · <a href="${esc(r.contributor_url)}" target="_blank" rel="noopener">link</a>` : ""} · ${esc(r.email)} · ${esc((r.created_at || "").slice(0, 10))}</p>
+        <p class="by">Start: ${r.start_place ? esc(r.start_place) : "<em>not set — the card shows the region</em>"}</p>
         ${r.strava_route_url ? `<p class="by">Strava: <a href="${esc(r.strava_route_url)}" target="_blank" rel="noopener">${esc(r.strava_route_url)}</a>${/strava\.app\.link/.test(r.strava_route_url) ? ` — <strong>app share link: open it and check it's a route, not an activity</strong>` : ""}</p>` : ""}
         <form method="POST" action="/admin/action" class="actions">
           <input type="hidden" name="id" value="${esc(r.id)}" />
@@ -1401,6 +1490,9 @@ function adminHtml(rows, events = [], routeOpts = [], famous = [], famousNames =
             <label>Contributor link<input name="contributor_url" value="${esc(r.contributor_url)}" placeholder="Strava / RWGPS / website" /></label>
             <label class="full">Strava route link — the orange “Open in Strava” button on the card (blank = “Full route page”)
               <input name="strava_route_url" value="${esc(r.strava_route_url)}" placeholder="https://www.strava.com/routes/…" />
+            </label>
+            <label class="full">Start point — shown above “Navigate to start” (clear it to look it up again from the GPX start)
+              <input name="start_place" maxlength="120" value="${esc(r.start_place)}" placeholder="e.g. Ferny Grove Station car park" />
             </label>
             <label class="full">Famous event — group this route under a famous event pin on the map
               ${seriesSelect(r.series || "")}
@@ -1484,6 +1576,11 @@ function adminHtml(rows, events = [], routeOpts = [], famous = [], famousNames =
   </nav>
 </header>
 <main id="tab-routes" class="tabpanel">
+  <form method="POST" action="/admin/route/starts" class="actions" style="margin:0 0 12px">
+    <button type="submit">Fill in missing start points</button>
+    <span class="hint">Looks up the street at each route's start, for routes that don't have one yet. Up to 25 a press, about a second each.</span>
+  </form>
+  ${notice ? `<p class="by" style="margin:-4px 0 12px"><strong>${esc(notice)}</strong></p>` : ""}
   <details class="card published">
     <summary><span class="cname">+ New community route</span><span class="csub">add a route directly — skips the public submit form</span></summary>
     <div class="body">

@@ -18,7 +18,8 @@ CREATE TABLE IF NOT EXISTS submissions (
   photo_key        TEXT,                              -- R2 object key (nullable)
   contributor      TEXT,                              -- full name, shown as "Contributed by"
   contributor_url  TEXT,                              -- optional Strava/RWGPS/website link
-  strava_route_url TEXT,                              -- optional strava.com/routes/<id> (or strava.app.link) — "Open in Strava"
+  strava_route_url TEXT,
+  start_place      TEXT,                              -- "Mount Glorious Rd, Mount Glorious" — reverse-geocoded start, editable                              -- optional strava.com/routes/<id> (or strava.app.link) — "Open in Strava"
   email            TEXT,
   created_at       TEXT,
   reviewed_at      TEXT

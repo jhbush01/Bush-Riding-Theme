@@ -191,6 +191,7 @@ function normalize(f) {
     stravaRoute: /^https:\/\/(www\.strava\.com\/routes\/\d+|strava\.app\.link\/[\w-]+)$/.test((p.strava_route_url || "").trim())
       ? p.strava_route_url.trim() : "",
     startNote: (p.start_note || "").trim(), // not in current data — reserved
+    startPlace: (p.start_place || "").trim(), // "Mount Glorious Rd, Mount Glorious"
     lat: marker ? marker[1] : null,
     lng: marker ? marker[0] : null,
     hero: normUrl(p.photo_url, `/public/${p.id}.jpg`),
@@ -540,7 +541,7 @@ ${crumbs(crumbItems)}
     <a class="button" href="/map#${esc(r.id)}">Open in interactive map</a>
   </div>
 
-  <p class="rp-start"><strong>Start:</strong> ${esc(r.regionLabel)}${r.startNote ? " — " + esc(r.startNote) : ""}.</p>
+  <p class="rp-start"><strong>Start:</strong> ${esc(r.startPlace || r.regionLabel)}${r.startNote ? " — " + esc(r.startNote) : ""}.</p>
 
   <h2>About this route</h2>
   ${r.description ? descParagraphs(r.description) : `<p class="rp-desc">${esc(r.name)} is a ${dist} km gravel route near ${esc(r.regionLabel)}, ${esc(r.stateFull)}, with ${elev} m of climbing. Open the interactive map for the full turn-by-turn track, or download the GPX to load onto your head unit.</p>`}

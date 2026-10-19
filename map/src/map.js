@@ -2649,7 +2649,11 @@ function fillDetail(feature) {
   setFamous(p, isFamous);
   setText("detail-name", p.name || "");
   setStats(p);
-  setStart("Area", [p.region, p.state].filter(Boolean).join(", "), routeStartNav(feature));
+  // Where the ride starts, in words, above "Navigate to start" — the street
+  // and suburb looked up when the route was added (start_place), or set by
+  // hand in moderation. Routes without one show their area instead.
+  const startPlace = String(p.start_place || "").trim();
+  setStart(startPlace ? "Start" : "Start area", startPlace || [p.region, p.state].filter(Boolean).join(", "), routeStartNav(feature));
   // Card shows a short preview; the full write-up lives on the route page. When
   // it's clamped, offer a "Continue reading" link through to that page.
   setCardDescription(p);
@@ -2791,6 +2795,7 @@ function setStart(label, name, navHref) {
   const nav = els.detail.querySelector("#detail-navigate");
   if (navHref) {
     nav.href = navHref;
+    nav.setAttribute("aria-label", `Navigate to the start${name ? ": " + name : ""}`);
     nav.style.display = "";
   } else {
     nav.style.display = "none";

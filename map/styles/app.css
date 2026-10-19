@@ -1820,12 +1820,17 @@ textarea.field-input {
 .card__elev-empty { margin: 8px 0 0; font-size: 12.5px; color: var(--card-muted-2); }
 
 /* Start + Navigate */
-.card__start { margin-top: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.card__start-info { display: flex; align-items: center; gap: 9px; min-width: 0; }
+/* The name keeps at least ~170px beside the button; when the card is
+   narrower than that (small phones) the button drops to its own full-width
+   line instead of squeezing the street name to a word or two. */
+.card__start { margin-top: 16px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 12px; }
+.card__start-info { flex: 999 1 170px; display: flex; align-items: center; gap: 9px; min-width: 0; }
 .card__start-pin { flex: none; color: var(--card-rust-2); }
 .card__start-text { min-width: 0; }
-.card__start-name { font-size: 13.5px; font-weight: 600; color: var(--card-ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.card__nav { flex: none; display: flex; align-items: center; gap: 7px; padding: 9px 15px; border: 1.5px solid rgba(76, 75, 59, 0.28); background: transparent; border-radius: 999px; cursor: pointer; color: var(--card-ink-2); font-family: var(--ui-font); font-weight: 600; font-size: 13px; text-decoration: none; }
+/* Street + suburb can run long next to "Navigate to start", so it wraps to a
+   second line rather than losing the suburb to an ellipsis. */
+.card__start-name { font-size: 13.5px; font-weight: 600; line-height: 1.3; color: var(--card-ink-2); overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.card__nav { flex: 1 0 auto; display: flex; align-items: center; justify-content: center; gap: 7px; padding: 9px 15px; border: 1.5px solid rgba(76, 75, 59, 0.28); background: transparent; border-radius: 999px; cursor: pointer; color: var(--card-ink-2); font-family: var(--ui-font); font-weight: 600; font-size: 13px; text-decoration: none; }
 .card__nav svg { color: var(--card-rust-2); }
 .card__nav:hover { border-color: var(--card-rust-2); }
 
