@@ -1077,7 +1077,7 @@
     var slides = $$('.alp-gal__slide', track);
     if (slides.length < 2) return;
     var head = slides[slides.length - 1].cloneNode(true), tail = slides[0].cloneNode(true);
-    [head, tail].forEach(function (c) { c.setAttribute('aria-hidden', 'true'); c.setAttribute('data-alp-clone', ''); $$('img', c).forEach(function (i) { i.loading = 'eager'; }); });
+    [head, tail].forEach(function (c) { c.setAttribute('aria-hidden', 'true'); c.setAttribute('data-alp-clone', ''); /* The copies load lazily, at low priority: they mustn't compete with the first photo (the page's LCP). */ $$('img', c).forEach(function (i) { i.loading = 'lazy'; i.fetchPriority = 'low'; }); });
     track.insertBefore(head, slides[0]);
     track.appendChild(tail);
     sc._loop = slides.length;
@@ -1367,9 +1367,16 @@
     fillNearList();
     fillRidesList();
   }
-  window.addEventListener('load', function () {
-    (window.requestIdleCallback || function (f) { setTimeout(f, 200); })(warmMenus);
-  });
+  /* Desktop only (phones have no dropdown photos), and only once the mouse
+     first moves: warming on page load downloaded ~600 KB of menu photos
+     that competed with the page's own main photo. */
+  var warmed = false;
+  document.addEventListener('pointermove', function onMove(e) {
+    if (warmed || e.pointerType !== 'mouse' || !DESKTOP.matches) return;
+    warmed = true;
+    document.removeEventListener('pointermove', onMove);
+    (window.requestIdleCallback || function (f) { setTimeout(f, 50); })(warmMenus);
+  }, { passive: true });
 
   /* Focus rings for the keyboard only: a tap or click hides them. */
   document.addEventListener('pointerdown', function () { document.documentElement.classList.add('alp-pointer'); }, true);
