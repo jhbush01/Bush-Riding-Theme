@@ -9,6 +9,7 @@
  */
 {
   "current": {
+    "alp_ground": "white",
     "alp_map_url": "map.bushriding.cc",
     "alp_map_api": "https://map-api.bushriding.cc",
     "alp_font_aktiv": "https://map-api.bushriding.cc/font/aktiv-grotesk-semibold.woff2",
