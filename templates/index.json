@@ -13,16 +13,27 @@
       "type": "alpine-hero",
       "settings": {
         "video_url": "",
-        "image": "shopify://shop_images/IMG_8186.jpg",
-        "show_wordmark": true,
+        "image": "shopify://shop_images/IMG_2419.jpg",
+        "show_wordmark": false,
         "wordmark_tone": "bone",
-        "tagline": "Made for the detour.",
+        "tagline": "",
         "button_label": "Shop the kit",
         "button_link": ""
       }
     },
+    "products": {
+      "type": "alpine-home-products",
+      "settings": {
+        "collection": "",
+        "limit": 3,
+        "dots": false,
+        "heading": "",
+        "link_label": "Shop all"
+      }
+    },
     "shop": {
       "type": "alpine-home-shop",
+      "disabled": true,
       "settings": {
         "product": "bush-riding-shorts",
         "second_suffix": ", rear",
@@ -30,8 +41,7 @@
         "lifestyle_caption": "Mount Beerwah, QLD",
         "mobile_heading": "The shorts",
         "mobile_button": "View all"
-      },
-      "disabled": true
+      }
     },
     "pair": {
       "type": "alpine-duo",
@@ -108,16 +118,6 @@
         "returns"
       ],
       "settings": {}
-    },
-    "products": {
-      "type": "alpine-home-products",
-      "settings": {
-        "collection": "",
-        "limit": 3,
-        "dots": false,
-        "heading": "",
-        "link_label": "Shop all"
-      }
     }
   },
   "order": [
