@@ -1393,6 +1393,7 @@
     document.addEventListener('pointerdown', function (e) {
       var el = e.target.closest && e.target.closest('.alp-fab');
       if (!el || !floating(el) || (e.pointerType === 'mouse' && e.button !== 0)) return;
+      if (document.documentElement.classList.contains('alp-fab-top')) return; /* docked at the top: no drag */
       fab = el; startX = e.clientX; startY = e.clientY; moved = false;
       base = el.getBoundingClientRect().left;
     });
@@ -1422,6 +1423,36 @@
     }
     document.addEventListener('pointerup', drop);
     document.addEventListener('pointercancel', drop);
+  })();
+
+  /* Phones: at the very top of a page the menu button sits top right, under
+     Cart. Scroll down and it drops to its bottom spot (whichever side it was
+     dragged to); scroll back to the top and it snaps up again. The move is
+     measured before and after and animated between, with an overshoot. */
+  (function () {
+    var root = document.documentElement, anim = null, queued = false;
+    function sync(animate) {
+      queued = false;
+      var fab = document.querySelector('.alp-fab');
+      if (!fab || fab.getAttribute('aria-expanded') === 'true' || fab.classList.contains('is-dragging')) return;
+      var on = root.classList.contains('alp-fab-top'), y = window.scrollY;
+      var top = on ? y < 12 : y <= 2;
+      if (top === on) return;
+      var floating = !DESKTOP.matches && getComputedStyle(fab).position === 'fixed';
+      if (!animate || REDUCE || !floating || !fab.animate) { root.classList.toggle('alp-fab-top', top); return; }
+      var a = fab.getBoundingClientRect();
+      if (anim) anim.cancel();
+      root.classList.toggle('alp-fab-top', top);
+      var b = fab.getBoundingClientRect();
+      anim = fab.animate(
+        [{ transform: 'translate(' + (a.left - b.left) + 'px, ' + (a.top - b.top) + 'px)' }, { transform: 'none' }],
+        { duration: 520, easing: 'cubic-bezier(0.3, 1.25, 0.5, 1)' }
+      );
+    }
+    sync(false);
+    window.addEventListener('scroll', function () {
+      if (!queued) { queued = true; requestAnimationFrame(function () { sync(true); }); }
+    }, { passive: true });
   })();
 
   /* ── Boot ── */

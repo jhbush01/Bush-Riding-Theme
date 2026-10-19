@@ -419,6 +419,14 @@ body.alp-hd-over:not(.alp-hd-solid):not(.alp-hd-open):not(.alp-hd-hot) .alp-hd .
 /* Starts bottom right; drag it across and it stays on that side (alpine.js;
    remembered per browser, set before first paint in layout/theme.liquid). */
 html.alp-fab-left .alp-fab { right: auto; left: 16px; }
+/* At the very top of a page the button docks top right, under Cart; scroll
+   down and it drops back to its bottom spot, left or right. alpine.js
+   animates the move with a little overshoot so it snaps into place. */
+@media (max-width: 749px) {
+  html.alp-fab-top body:not(.template-product):not(.template-cart) .alp-fab {
+    top: calc(var(--alp-hd) + 8px); bottom: auto; left: auto; right: 16px;
+  }
+}
 @media (max-width: 749px) {
   body:not(.template-product):not(.template-cart) .alp-fab { touch-action: none; }
   .alp-fab.is-dragging { transition: none; box-shadow: 0 10px 26px rgba(47, 47, 38, 0.36); }
