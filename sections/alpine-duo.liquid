@@ -40,7 +40,7 @@
 <section class="alp alp-duo alp-duo--links alp-d">
   {%- for block in section.blocks -%}
     {%- assign url = url_list[forloop.index0] | strip -%}
-    <a class="alp-duo__panel alp-duo__panel--{{ block.settings.ground }}" href="{{ url | default: '#' }}" {{ block.shopify_attributes }}>
+    <a class="alp-duo__panel alp-duo__panel--{{ block.settings.ground }} alp-duo--to-{{ block.settings.to }}" href="{{ url | default: '#' }}" {{ block.shopify_attributes }}>
       {%- if block.settings.image != blank -%}
         {{ block.settings.image | image_url: width: 1600 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '400, 800, 1200, 1600', sizes: '50vw', alt: '' }}
       {%- endif -%}
@@ -58,7 +58,7 @@
   <div class="alp-mcards__track" data-alp-track>
     {%- for block in section.blocks -%}
       {%- assign url = url_list[forloop.index0] | strip -%}
-      <a class="alp-mcard alp-duo__panel--{{ block.settings.ground }}" href="{{ url }}" {{ block.shopify_attributes }}>
+      <a class="alp-mcard alp-duo__panel--{{ block.settings.ground }} alp-duo--to-{{ block.settings.to }}" href="{{ url }}" {{ block.shopify_attributes }}>
         {%- if block.settings.image != blank -%}
           {{ block.settings.image | image_url: width: 1200 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '600, 900, 1200', sizes: '84vw', alt: '' }}
         {%- endif -%}

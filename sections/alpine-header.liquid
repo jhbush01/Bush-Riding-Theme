@@ -83,6 +83,8 @@
     </a>
 
     <nav class="alp-hd__nav alp-d" aria-label="Primary">
+      {%- comment -%} Shop opens its dropdown only when it's switched on (header settings); while there's one product it's a plain link. {%- endcomment -%}
+      {%- if section.settings.shop_menu -%}
       <a
         class="alp-hd__link{% if here == 'shop' %} is-on{% endif %}"
         href="{{ shop_url }}"
@@ -91,6 +93,9 @@
         aria-expanded="false"
         aria-controls="alp-shopmenu"
       >Shop</a>
+      {%- else -%}
+      <a class="alp-hd__link" href="{{ shop_url }}"{% if here == 'shop' %} aria-current="page"{% endif %}>Shop</a>
+      {%- endif -%}
       <a
         class="alp-hd__link{% if here == 'map' %} is-on{% endif %}"
         href="{{ map_url }}"
@@ -320,12 +325,16 @@
   <div class="alp-menu alp-m" id="alp-menu" data-alp-panel data-alp-swipe-close hidden>
     <span class="alp-menu__grab" aria-hidden="true"></span>
     <nav class="alp-menu__nav" aria-label="Menu">
+      {%- if section.settings.shop_menu -%}
       <details class="alp-menu__group">
         <summary class="alp-menu__row">Shop <span class="alp-menu__pm" aria-hidden="true"></span></summary>
         <div class="alp-menu__sub alp-cats">
           {%- render 'alp-shop-links', variant: 'list', menu_link: true -%}
         </div>
       </details>
+      {%- else -%}
+      <a class="alp-menu__row" href="{{ shop_url }}" data-alp-close>Shop</a>
+      {%- endif -%}
       <details class="alp-menu__group">
         <summary class="alp-menu__row">Bush Map <span class="alp-menu__pm" aria-hidden="true"></span></summary>
         <div class="alp-menu__sub alp-cats">
@@ -371,6 +380,7 @@
     { "type": "image_picker", "id": "logo", "label": "Logo", "info": "Leave empty to use the olive wordmark that ships with the theme." },
     { "type": "text", "id": "wordmark", "label": "Logo alt text", "default": "Bush Riding™" },
     { "type": "header", "content": "Shop dropdown (desktop)" },
+    { "type": "checkbox", "id": "shop_menu", "label": "Shop opens a dropdown", "default": false, "info": "Off: Shop goes straight to the products (desktop and phone menu). Switch on once there's more than one product." },
     { "type": "product", "id": "shop_product", "label": "Product", "info": "Leads Most popular in the search panel. Leave empty to use the first product in the store." },
     { "type": "image_picker", "id": "shop_image", "label": "Photo", "info": "Portrait works best. Leave empty for a links-only dropdown." },
     { "type": "text", "id": "shop_image_label", "label": "Lifestyle caption", "default": "Shorts" },

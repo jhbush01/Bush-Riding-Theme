@@ -685,6 +685,11 @@ div.alp-scrim[hidden] { display: none; }
   font: 600 13px/1 var(--alp-font-display); letter-spacing: 0.08em; text-transform: uppercase;
 }
 .alp a.alp-mcard:hover { color: inherit; }
+/* Home photo pair buttons: Rides in mist, Bush Map in flare (desktop chip
+   and phone button alike). */
+.alp-duo--to-rides .alp-chip, .alp-duo--to-rides .alp-mcard__btn { background: var(--alp-mist); border-color: var(--alp-mist); color: var(--alp-ink); }
+.alp-duo--to-map .alp-chip, .alp-duo--to-map .alp-mcard__btn,
+.alp-duo--to-bush_map .alp-chip, .alp-duo--to-bush_map .alp-mcard__btn { background: var(--alp-flare); border-color: var(--alp-flare); color: var(--alp-ink); }
 /* Phones: the Rides and Bush Map photos stack edge to edge — no gaps, no
    rounding, no swipe — one unbroken run of photography down the page. */
 .alp-mcards { padding: 0; }
@@ -1330,6 +1335,9 @@ body.alp-hd-away .alp-cat__head { top: 0; }
   -webkit-appearance: none; appearance: none; box-shadow: none;
 }
 .alp-search__input::placeholder { color: var(--alp-muted); opacity: 1; }
+/* The field's own olive border already says where you're typing: no
+   yellow focus ring on it, tap, click or keyboard. */
+.alp-search__input:focus, .alp-search__input:focus-visible { outline: none !important; box-shadow: none; }
 .alp-search__go { padding: 18px 32px; background: var(--alp-ink); color: #fff; border: 1px solid var(--alp-ink); border-radius: 0; font: 600 16px/1.2 var(--alp-font-display); cursor: pointer; }
 .alp-search__go:hover { background: var(--alp-accent); border-color: var(--alp-accent); }
 .alp-search__popular { padding: 8px 40px 16px; font-size: 18px; }
