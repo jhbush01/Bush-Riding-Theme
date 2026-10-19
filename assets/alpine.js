@@ -1367,9 +1367,16 @@
     fillNearList();
     fillRidesList();
   }
-  window.addEventListener('load', function () {
-    (window.requestIdleCallback || function (f) { setTimeout(f, 200); })(warmMenus);
-  });
+  /* Desktop only (phones have no dropdown photos), and only once the mouse
+     first moves: warming on page load downloaded ~600 KB of menu photos
+     that competed with the page's own main photo. */
+  var warmed = false;
+  document.addEventListener('pointermove', function onMove(e) {
+    if (warmed || e.pointerType !== 'mouse' || !DESKTOP.matches) return;
+    warmed = true;
+    document.removeEventListener('pointermove', onMove);
+    (window.requestIdleCallback || function (f) { setTimeout(f, 50); })(warmMenus);
+  }, { passive: true });
 
   /* Focus rings for the keyboard only: a tap or click hides them. */
   document.addEventListener('pointerdown', function () { document.documentElement.classList.add('alp-pointer'); }, true);
