@@ -245,7 +245,10 @@ jobs:
                 .sort((a, b) => (a.networkRequestTime || a.startTime || 0) - (b.networkRequestTime || b.startTime || 0))
                 .slice(0, 25)
                 .forEach((x) => {
-                  const u = String(x.url || '').replace(/^https?:\/\//, '').replace(/\?.*$/, '').slice(0, 90);
+                  const raw = String(x.url || '').replace(/^https?:\/\//, '');
+                  // Images keep their width, so two downloads of one photo can be told apart.
+                  const w = (raw.match(/[?&]width=(\d+)/) || [])[1];
+                  const u = raw.replace(/\?.*$/, '').slice(0, 80) + (w ? ' @' + w + 'w' : '');
                   const t = Math.round(x.networkRequestTime || x.startTime || 0);
                   console.log(`| ${t}ms | ${Math.round((x.transferSize || 0) / 1024)} | ${x.resourceType || ''} | ${x.priority || ''} | ${u} |`);
                 });
