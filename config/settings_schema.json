@@ -11,6 +11,23 @@
     "name": "Bush Riding",
     "settings": [
       {
+        "type": "select",
+        "id": "alp_ground",
+        "label": "Page colour",
+        "default": "bone",
+        "options": [
+          {
+            "value": "bone",
+            "label": "Bone (brand)"
+          },
+          {
+            "value": "white",
+            "label": "White"
+          }
+        ],
+        "info": "White lets product photos shot on white disappear into the page."
+      },
+      {
         "type": "paragraph",
         "content": "Shared by the header, menus, footer and pages. Set once here instead of in every section."
       },

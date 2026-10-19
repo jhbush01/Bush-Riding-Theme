@@ -1,5 +1,5 @@
 <!doctype html>
-<html class="js" lang="{{ request.locale.iso_code }}">
+<html class="js" lang="{{ request.locale.iso_code }}" data-ground="{{ settings.alp_ground | default: 'bone' }}">
   {%- liquid
     comment
       Dawn's own scripts, fonts and search only matter on the pages still
@@ -18,7 +18,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
     {%- comment -%} Safari tints the status bar with theme-color: bone, the colour
         the header sits on. {%- endcomment -%}
-    <meta name="theme-color" content="#edecc5">
+    <meta name="theme-color" content="{% if settings.alp_ground == 'white' %}#ffffff{% else %}#edecc5{% endif %}">
     <link rel="canonical" href="{{ canonical_url }}">
 
     {%- if settings.favicon != blank -%}
