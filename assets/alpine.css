@@ -160,7 +160,7 @@ html.alp-pointer :focus-visible + * { outline: none !important; }
 .alp-chip--line { background: transparent; border-color: var(--alp-ink); font-family: var(--alp-font-display); font-weight: 600; }
 .alp-chip--flare { background: var(--alp-flare); border-color: var(--alp-ink); font-family: var(--alp-font-display); font-weight: 600; }
 .alp a.alp-chip:hover, button.alp-chip:hover, summary.alp-chip:hover,
-a:hover > .alp-duo__stack .alp-chip, summary:hover > .alp-chip {
+.alp-duo__go:hover .alp-chip, summary:hover > .alp-chip {
   color: color-mix(in srgb, var(--alp-ink) 62%, transparent);
 }
 .alp a.alp-chip.is-on:hover, button.alp-chip.is-on:hover, summary.alp-chip.is-on:hover { color: color-mix(in srgb, var(--alp-bg) 72%, transparent); }
@@ -235,8 +235,11 @@ body.alp-hd-away .alp-hd-section { top: calc(-1 * var(--alp-hd) - 2px); }
 }
 .alp-hd__logo { margin-right: 20px; flex: none; }
 .alp-hd__logo img { height: 26px; width: auto; }
-.alp-hd__nav { display: flex; align-items: stretch; align-self: stretch; gap: 44px; }
-.alp-hd__nav .alp-hd__link { display: flex; align-items: center; }
+/* Tap boxes hug the words (a few px of height so they're still hittable);
+   empty header space opens nothing. Hover menus stay open across the whole
+   header (alpine.js), so the gap under a link doesn't close them. */
+.alp-hd__nav { display: flex; align-items: center; gap: 44px; }
+.alp-hd__nav .alp-hd__link, .alp-hd__bar > .alp-hd__link { display: block; padding: 5px 0; }
 .alp-hd__link {
   padding: 0; background: none; border: 0; cursor: pointer;
   font: inherit; color: inherit; white-space: nowrap;
@@ -558,12 +561,16 @@ div.alp-scrim[hidden] { display: none; }
 .alp-duo__chips { position: absolute; left: 24px; bottom: 24px; display: flex; gap: 8px; }
 /* Title and button sit dead centre in each photo (iPad and desktop). */
 .alp-duo__stack {
-  position: absolute; inset: 24px;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
-  text-align: center;
+  position: absolute; inset: 24px; pointer-events: none;
+  display: flex; align-items: center; justify-content: center; text-align: center;
+}
+/* Only the title and button are the link. */
+.alp-duo__go {
+  pointer-events: auto; display: inline-flex; flex-direction: column; align-items: center; gap: 14px;
+  color: inherit; text-decoration: none;
 }
 .alp-duo__title { font: 600 28px/1.15 var(--alp-font-display); color: var(--alp-bg); }
-.alp a.alp-duo__panel:hover { color: inherit; }
+.alp a.alp-duo__go:hover { color: inherit; }
 @media (max-width: 749px) {
   .alp-duo--links { height: 240px; gap: 6px; margin-top: 6px; }
   .alp-duo__stack { left: 12px; bottom: 12px; }
@@ -699,15 +706,21 @@ div.alp-scrim[hidden] { display: none; }
 .alp-mcard:only-child { flex-basis: 100%; }
 .alp-mcard__scrim { position: absolute; inset: 0; background: linear-gradient(to top, rgba(76, 75, 59, 0.55), rgba(76, 75, 59, 0) 60%); }
 .alp-mcard__body {
-  position: absolute; left: 18px; right: 18px; bottom: 26px;
-  display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; color: var(--alp-bg);
+  position: absolute; left: 18px; right: 18px; bottom: 26px; pointer-events: none;
+  display: flex; flex-direction: column; align-items: center; text-align: center; color: var(--alp-bg);
+}
+/* Only the title and button are the link, so touching the photo to swipe
+   never opens a page. */
+.alp-mcard__go {
+  pointer-events: auto; display: inline-flex; flex-direction: column; align-items: center; gap: 16px;
+  color: inherit; text-decoration: none;
 }
 .alp-mcard__title { font: 600 30px/1.08 var(--alp-font-display); }
 .alp-mcard__btn {
   padding: 11px 24px; border: 1.5px solid var(--alp-bg); border-radius: 999px;
   font: 600 13px/1 var(--alp-font-display); letter-spacing: 0.08em; text-transform: uppercase;
 }
-.alp a.alp-mcard:hover { color: inherit; }
+.alp a.alp-mcard__go:hover { color: inherit; }
 /* Home photo pair buttons: Rides in mist, Bush Map in flare (desktop chip
    and phone button alike). */
 .alp-duo--to-rides .alp-chip, .alp-duo--to-rides .alp-mcard__btn { background: var(--alp-mist); border-color: var(--alp-mist); color: var(--alp-ink); }
