@@ -357,10 +357,14 @@
           <!-- Primary action — kept in peek so it's reachable on first tap. -->
           <p id="detail-happened" class="card__happened for-past">This ride happened.</p>
           <div class="card__cta-row for-upcoming">
-            <!-- Routes: the prominent action is the full write-up page (new tab). -->
+            <!-- Routes: the prominent action. "Open in Strava" (Strava orange)
+                 when the route has a Strava route link — on a phone it opens
+                 the Strava app, where the route can be saved — otherwise the
+                 full write-up page. map.js (fillDetail) switches between them. -->
             <a id="detail-page-cta" class="card__cta card__cta--page only-route" href="#" target="_blank" rel="noopener noreferrer">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h11l5 5v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/><path d="M14 4v6h6M8 14h8M8 18h5"/></svg>
-              Full route page
+              <svg class="card__cta-icon card__cta-icon--page" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h11l5 5v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/><path d="M14 4v6h6M8 14h8M8 18h5"/></svg>
+              <svg class="card__cta-icon card__cta-icon--strava" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>
+              <span id="detail-page-cta-label">Full route page</span>
             </a>
             <a id="detail-cta" class="card__cta" target="_blank" rel="noopener noreferrer"></a>
           </div>

@@ -2655,8 +2655,11 @@ function fillDetail(feature) {
   setCardDescription(p);
   setCredit(p.contributed_by || p.vetted_by, p.contributor_url);
   setText("detail-disclaimer", "A guide only — ride to conditions.");
-  // Prominent action: the full write-up page. Secondary: Download GPX (gated).
-  els.detail.querySelector("#detail-page-cta").href = routePageUrl(p);
+  // Prominent action: "Open in Strava" (Strava orange) when the route has a
+  // Strava route link, otherwise the full write-up page. Secondary: Download
+  // GPX (gated). setPrimaryCTA keeps a text link to the page when Strava
+  // takes the button, so the write-up and reviews never become unreachable.
+  setPrimaryCTA(p);
   setCTA("Download GPX", null, () => requestDownload({ id: p.id, gpx_url: p.gpx_url }));
   drawElevation(feature);
   // Reviews + aggregate rating (async; enhancement only).
@@ -2791,6 +2794,36 @@ function setStart(label, name, navHref) {
     nav.style.display = "";
   } else {
     nav.style.display = "none";
+  }
+}
+
+// The route card's prominent button. A Strava route link is only ever used if
+// it's one of the two shapes the Worker accepts (strava.com/routes/<id> or a
+// strava.app.link share link) — anything else falls back to the route page,
+// so a bad row can never put an arbitrary link behind a Strava-orange button.
+const STRAVA_ROUTE_RE = /^https:\/\/(www\.strava\.com\/routes\/\d+|strava\.app\.link\/[\w-]+)$/;
+function setPrimaryCTA(p) {
+  const btn = els.detail.querySelector("#detail-page-cta");
+  const label = document.getElementById("detail-page-cta-label");
+  const strava = String(p.strava_route_url || "").trim();
+  const useStrava = STRAVA_ROUTE_RE.test(strava);
+  btn.classList.toggle("card__cta--strava", useStrava);
+  btn.href = useStrava ? strava : routePageUrl(p);
+  label.textContent = useStrava ? "Open in Strava" : "Full route page";
+  btn.setAttribute("aria-label", useStrava ? `Open ${p.name || "this route"} in Strava` : `Full route page for ${p.name || "this route"}`);
+  // With Strava on the button, the page needs another way in. A long
+  // write-up already ends in "Continue reading" (setCardDescription); a short
+  // one gets a "Full route page" link in the same place and style.
+  const desc = document.getElementById("detail-description");
+  if (useStrava && desc && !desc.querySelector(".card__desc-more")) {
+    if (desc.textContent) desc.appendChild(document.createTextNode(" "));
+    const a = document.createElement("a");
+    a.className = "card__desc-more";
+    a.href = routePageUrl(p);
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.textContent = "Full route page";
+    desc.appendChild(a);
   }
 }
 

@@ -30,7 +30,7 @@ const STATES = ["QLD", "NSW", "VIC", "TAS", "SA", "WA", "NT", "ACT"];
 // Add columns introduced after the original schema. ALTER fails once the column
 // exists, so each is best-effort — cheap and idempotent.
 async function ensureSubmissionsSchema(env) {
-  for (const col of ["state TEXT", "contributor_url TEXT", "series TEXT", "review_note TEXT", "series_version TEXT"]) {
+  for (const col of ["state TEXT", "contributor_url TEXT", "series TEXT", "review_note TEXT", "series_version TEXT", "strava_route_url TEXT"]) {
     try {
       await env.DB.prepare(`ALTER TABLE submissions ADD COLUMN ${col}`).run();
     } catch (_) {
@@ -223,6 +223,41 @@ function failed(result, request, cors) {
 }
 
 /* ---------------- Public: submit ---------------- */
+/* Optional link to the same route on Strava. Shown on the route card as an
+   "Open in Strava" button, which opens the Strava app on a phone, so a rider
+   can save the route there. It's a plain link: nothing is fetched from
+   Strava and no Strava data is stored, which keeps it clear of the Strava
+   API terms (data from the API can only be shown to the athlete it came
+   from).
+
+   ROUTE links only. Accepted:
+     https://www.strava.com/routes/<id>   (strava.com and www., http or https)
+     https://strava.app.link/<code>       (the app's own share links)
+   The app's share links can't be told apart from activity share links, so
+   they're accepted and flagged in moderation. Activity links are refused
+   with directions: they're often private or followers-only, so the button
+   would fail for most riders, and they expose the rider's start point.
+   Returns the cleaned URL, "" for blank, or { error }. */
+function cleanStravaRouteUrl(raw) {
+  const v = (raw || "").toString().trim().slice(0, 300);
+  if (!v) return "";
+  let u;
+  try { u = new URL(/^https?:\/\//i.test(v) ? v : "https://" + v); } catch (_) {
+    return { error: "That Strava link doesn't look like a web address." };
+  }
+  const host = u.hostname.toLowerCase();
+  if (host === "strava.com" || host === "www.strava.com") {
+    const route = u.pathname.match(/^\/routes\/(\d+)\/?$/);
+    if (route) return `https://www.strava.com/routes/${route[1]}`;
+    if (/^\/activities\//.test(u.pathname)) {
+      return { error: "That's a Strava activity link. Save the ride as a route in Strava first, then share the route's link (strava.com/routes/…)." };
+    }
+    return { error: "Use a Strava route link — it looks like strava.com/routes/…" };
+  }
+  if (host === "strava.app.link") return `https://strava.app.link${u.pathname}`;
+  return { error: "Use a Strava route link — it looks like strava.com/routes/…" };
+}
+
 async function submit(request, env, cors) {
   await ensureSubmissionsSchema(env);
   const form = await request.formData();
@@ -236,9 +271,11 @@ async function submit(request, env, cors) {
   const surface = (form.get("surface") || "").toString().trim().slice(0, 120);
   const description = (form.get("description") || "").toString().trim().slice(0, 4000);
   const series = (form.get("series") || "").toString().trim().slice(0, 80);
+  const strava = cleanStravaRouteUrl(form.get("strava_route_url"));
   const gpxFile = form.get("gpx");
   const photoFile = form.get("photo");
 
+  if (strava && strava.error) return json({ error: strava.error }, 400, cors);
   if (!name) return json({ error: "Route name is required." }, 400, cors);
   if (!region) return json({ error: "Region is required." }, 400, cors);
   if (!STATES.includes(state)) return json({ error: "A valid state is required." }, 400, cors);
@@ -277,13 +314,13 @@ async function submit(request, env, cors) {
     `INSERT INTO submissions
       (id, status, name, region, state, country, difficulty, surface, description, series,
        distance_km, elevation_gain_m, marker_lng, marker_lat, coords,
-       gpx_key, photo_key, contributor, contributor_url, email, created_at)
-     VALUES (?, 'pending', ?, ?, ?, 'Australia', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+       gpx_key, photo_key, contributor, contributor_url, strava_route_url, email, created_at)
+     VALUES (?, 'pending', ?, ?, ?, 'Australia', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   )
     .bind(
       id, name, region, state, difficulty, surface, description, series,
       stats.distance_km, stats.elevation_gain_m, stats.marker[0], stats.marker[1],
-      JSON.stringify(stats.coords), gpxKey, photoKey, contributor, contributorUrl, email,
+      JSON.stringify(stats.coords), gpxKey, photoKey, contributor, contributorUrl, strava, email,
       new Date().toISOString()
     )
     .run();
@@ -321,7 +358,7 @@ async function routes(env, cors) {
   const { results } = await env.DB.prepare(
     `SELECT id, name, region, state, country, difficulty, surface, description, series, series_version,
             distance_km, elevation_gain_m, marker_lng, marker_lat, coords,
-            photo_key, contributor, contributor_url, created_at
+            photo_key, contributor, contributor_url, strava_route_url, created_at
        FROM submissions WHERE status = 'published' ORDER BY created_at DESC`
   ).all();
 
@@ -359,6 +396,8 @@ async function routes(env, cors) {
         // Full contributor name (shown as "Contributed by") + optional profile URL.
         contributed_by: (r.contributor || "").trim() || "Community",
         contributor_url: r.contributor_url || "",
+        // Same route on Strava — the card's "Open in Strava" button. "" if none.
+        strava_route_url: r.strava_route_url || "",
         source: "community",
         status: "published",
       },
@@ -825,8 +864,10 @@ async function adminRouteCreate(request, env) {
   const contributor = (form.get("contributor") || "").toString().trim().slice(0, 120);
   const contributorUrl = (form.get("contributor_url") || "").toString().trim().slice(0, 300);
   const email = (form.get("email") || "").toString().trim().slice(0, 200);
+  const strava = cleanStravaRouteUrl(form.get("strava_route_url"));
   const gpxFile = form.get("gpx");
 
+  if (strava && strava.error) return json({ error: strava.error }, 400, corsHeaders());
   if (!name || !region) return json({ error: "Name and region are required" }, 400, corsHeaders());
   if (!gpxFile || typeof gpxFile.text !== "function") return json({ error: "A GPX file is required" }, 400, corsHeaders());
   if (gpxFile.size > MAX_GPX) return json({ error: "GPX file too large (max 5 MB)" }, 400, corsHeaders());
@@ -853,12 +894,12 @@ async function adminRouteCreate(request, env) {
     `INSERT INTO submissions
       (id, status, name, region, state, country, difficulty, surface, description, series, series_version,
        distance_km, elevation_gain_m, marker_lng, marker_lat, coords,
-       gpx_key, photo_key, contributor, contributor_url, email, created_at)
-     VALUES (?, 'published', ?, ?, ?, 'Australia', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+       gpx_key, photo_key, contributor, contributor_url, strava_route_url, email, created_at)
+     VALUES (?, 'published', ?, ?, ?, 'Australia', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).bind(
     id, name, region, STATES.includes(state) ? state : null, difficulty, surface, description, series, seriesVersion,
     stats.distance_km, stats.elevation_gain_m, stats.marker[0], stats.marker[1],
-    JSON.stringify(stats.coords), gpxKey, photoKey, contributor, contributorUrl, email,
+    JSON.stringify(stats.coords), gpxKey, photoKey, contributor, contributorUrl, strava, email,
     new Date().toISOString()
   ).run();
 
@@ -943,7 +984,7 @@ async function adminPage(request, env) {
   await seedFamousEventsOnce(env); // ensure the known Famous Events exist + tagged
   const { results } = await env.DB.prepare(
     `SELECT id, status, name, region, state, country, difficulty, surface, distance_km,
-            elevation_gain_m, description, series, series_version, contributor, contributor_url, email, coords,
+            elevation_gain_m, description, series, series_version, contributor, contributor_url, strava_route_url, email, coords,
             photo_key, review_note, created_at
        FROM submissions ORDER BY (status='pending') DESC, created_at DESC`
   ).all();
@@ -1042,7 +1083,9 @@ async function adminEdit(request, env) {
   const contributorUrl = (form.get("contributor_url") || "").toString().trim().slice(0, 300);
   const distance = parseFloat(form.get("distance_km"));
   const elevation = parseInt(form.get("elevation_gain_m"), 10);
+  const strava = cleanStravaRouteUrl(form.get("strava_route_url"));
 
+  if (strava && strava.error) return json({ error: strava.error }, 400, corsHeaders());
   if (!name || !region) return json({ error: "Name and region are required" }, 400, corsHeaders());
 
   // Optional photo (hero) upload — lets an image be added or replaced after a
@@ -1061,7 +1104,7 @@ async function adminEdit(request, env) {
   await env.DB.prepare(
     `UPDATE submissions
         SET name=?, region=?, state=?, country=?, difficulty=?, surface=?, description=?, series=?, series_version=?,
-            contributor=?, contributor_url=?, distance_km=?, elevation_gain_m=?, photo_key=?
+            contributor=?, contributor_url=?, strava_route_url=?, distance_km=?, elevation_gain_m=?, photo_key=?
       WHERE id=?`
   )
     .bind(
@@ -1076,6 +1119,7 @@ async function adminEdit(request, env) {
       seriesVersion,
       contributor,
       contributorUrl,
+      strava,
       Number.isFinite(distance) ? distance : null,
       Number.isFinite(elevation) ? elevation : null,
       photoKey,
@@ -1262,6 +1306,7 @@ function adminHtml(rows, events = [], routeOpts = [], famous = [], famousNames =
         <label>Surface<input name="surface" /></label>
         <label>Contributed by<input name="contributor" /></label>
         <label>Contributor link<input name="contributor_url" placeholder="Strava / RWGPS / website" /></label>
+        <label class="full">Strava route link — adds an orange “Open in Strava” button to the card<input name="strava_route_url" placeholder="https://www.strava.com/routes/…" /></label>
         <label class="full">Famous event${seriesSelect("")}</label>
         <label>Edition / year<input name="series_version" placeholder="e.g. 2026 (blank = current)" /></label>
         <label class="full">Description<textarea name="description" rows="6"></textarea></label>
@@ -1320,6 +1365,7 @@ function adminHtml(rows, events = [], routeOpts = [], famous = [], famousNames =
         <p class="sub">${esc(r.region)}${r.state ? ", " + esc(r.state) : ""} · ${esc(r.difficulty)} · ${r.distance_km} km · ${r.elevation_gain_m} m</p>
         <p class="desc">${esc(r.description) || "<em>no description</em>"}</p>
         <p class="by">by ${esc(r.contributor) || "—"}${r.contributor_url ? ` · <a href="${esc(r.contributor_url)}" target="_blank" rel="noopener">link</a>` : ""} · ${esc(r.email)} · ${esc((r.created_at || "").slice(0, 10))}</p>
+        ${r.strava_route_url ? `<p class="by">Strava: <a href="${esc(r.strava_route_url)}" target="_blank" rel="noopener">${esc(r.strava_route_url)}</a>${/strava\.app\.link/.test(r.strava_route_url) ? ` — <strong>app share link: open it and check it's a route, not an activity</strong>` : ""}</p>` : ""}
         <form method="POST" action="/admin/action" class="actions">
           <input type="hidden" name="id" value="${esc(r.id)}" />
           <input name="note" class="note-input" value="${esc(r.review_note)}" placeholder="Note to contributor (shown on rejection)" />
@@ -1353,6 +1399,9 @@ function adminHtml(rows, events = [], routeOpts = [], famous = [], famousNames =
             <label>Elevation (m)<input name="elevation_gain_m" type="number" step="1" value="${r.elevation_gain_m ?? ""}" /></label>
             <label>Contributed by<input name="contributor" value="${esc(r.contributor)}" /></label>
             <label>Contributor link<input name="contributor_url" value="${esc(r.contributor_url)}" placeholder="Strava / RWGPS / website" /></label>
+            <label class="full">Strava route link — the orange “Open in Strava” button on the card (blank = “Full route page”)
+              <input name="strava_route_url" value="${esc(r.strava_route_url)}" placeholder="https://www.strava.com/routes/…" />
+            </label>
             <label class="full">Famous event — group this route under a famous event pin on the map
               ${seriesSelect(r.series || "")}
               <span class="hint">Create famous events in the Famous Events tab first.</span>

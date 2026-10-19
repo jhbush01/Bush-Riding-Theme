@@ -58,6 +58,12 @@
         </label>
 
         <label class="field">
+          <span class="field__label">Strava route link <span class="opt">(optional)</span></span>
+          <input type="text" name="strava_route_url" id="strava-route-url" maxlength="300" inputmode="url" autocomplete="off" spellcheck="false" placeholder="strava.com/routes/…" />
+          <span class="field__hint">Got this route saved on Strava? Paste its link and the route card gets an “Open in Strava” button, so riders can save it straight into the app. In Strava: open the route, tap Share, copy the link. A route, not an activity.</span>
+        </label>
+
+        <label class="field">
           <span class="field__label">Route name *</span>
           <input type="text" name="name" maxlength="80" required placeholder="e.g. Pomona Weekend Gravel" />
         </label>
@@ -199,9 +205,30 @@
 
       let pendingSubmit = false;
 
+      // Strava link: the same rules the Worker enforces (worker/src/index.js,
+      // cleanStravaRouteUrl), checked here too so a wrong link is caught
+      // before the GPX uploads rather than after. Route links only.
+      const stravaInput = document.getElementById("strava-route-url");
+      function stravaProblem(raw) {
+        const v = (raw || "").trim();
+        if (!v) return "";
+        let u;
+        try { u = new URL(/^https?:\/\//i.test(v) ? v : "https://" + v); } catch (_) { return "That Strava link doesn't look like a web address."; }
+        const host = u.hostname.toLowerCase();
+        if (host === "strava.app.link") return "";
+        if (host === "strava.com" || host === "www.strava.com") {
+          if (/^\/routes\/\d+\/?$/.test(u.pathname)) return "";
+          if (/^\/activities\//.test(u.pathname)) return "That's a Strava activity link. Save the ride as a route in Strava first, then share the route's link (strava.com/routes/…).";
+        }
+        return "Use a Strava route link — it looks like strava.com/routes/…";
+      }
+      stravaInput.addEventListener("input", () => stravaInput.setCustomValidity(""));
+      stravaInput.addEventListener("change", () => stravaInput.setCustomValidity(stravaProblem(stravaInput.value)));
+
       form.addEventListener("submit", (e) => {
         e.preventDefault();
         if (!API) return;
+        stravaInput.setCustomValidity(stravaProblem(stravaInput.value));
         if (!form.reportValidity()) return; // native required-field checks first
         const auth = window.brmAuth;
         // Gate: you must have an account, so your submission is tracked under

@@ -186,6 +186,10 @@ function normalize(f) {
     description: (p.description || "").trim(),
     contributor: (p.contributed_by || p.vetted_by || "").trim(),
     contributorUrl: (p.contributor_url || "").trim(),
+    // Same route on Strava ("Open in Strava"). Only the two shapes the Worker
+    // accepts are ever rendered; anything else is dropped.
+    stravaRoute: /^https:\/\/(www\.strava\.com\/routes\/\d+|strava\.app\.link\/[\w-]+)$/.test((p.strava_route_url || "").trim())
+      ? p.strava_route_url.trim() : "",
     startNote: (p.start_note || "").trim(), // not in current data — reserved
     lat: marker ? marker[1] : null,
     lng: marker ? marker[0] : null,
@@ -531,6 +535,7 @@ ${crumbs(crumbItems)}
 
   <div class="rp-actions">
     <a class="button button--primary" id="rp-gpx" href="${esc(r.gpx)}" download data-file="${esc(r.id)}.gpx">Download GPX</a>
+    ${r.stravaRoute ? `<a class="button button--strava" href="${esc(r.stravaRoute)}" target="_blank" rel="noopener">Open in Strava</a>` : ""}
     ${navHref ? `<a class="button" id="rp-nav" href="${esc(navHref)}"${appleHref ? ` data-apple="${esc(appleHref)}"` : ""} target="_blank" rel="noopener">Navigate to start</a>` : ""}
     <a class="button" href="/map#${esc(r.id)}">Open in interactive map</a>
   </div>
@@ -974,6 +979,8 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
 .rp-stat__l{display:block;margin-top:3px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
 .rp-actions{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}
 .rp-actions .button{text-decoration:none}
+.rp-actions .button--strava{background:#fc5200;border-color:#fc5200;color:#fff}
+.rp-actions .button--strava:hover{background:#e04800;border-color:#e04800;color:#fff}
 .rp-start{font-size:14.5px;color:var(--ink-soft);margin:10px 0}
 .wrap h2{font-family:var(--head-font);font-weight:400;font-size:26px;margin:26px 0 8px}
 .rp-desc{font-size:16px;line-height:1.6;color:var(--ink)}

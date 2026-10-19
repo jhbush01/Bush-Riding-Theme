@@ -1790,6 +1790,17 @@ textarea.field-input {
 .card__cta-row .card__cta { margin-top: 0; }
 .card__cta--page { display: flex; align-items: center; justify-content: center; gap: 8px; }
 .card__cta--page svg { flex: none; opacity: 0.9; }
+/* One icon at a time: the page icon normally, the open-externally arrow when
+   the button is "Open in Strava". */
+.card__cta-icon--strava { display: none; }
+.card__cta--strava .card__cta-icon--page { display: none; }
+.card__cta--strava .card__cta-icon--strava { display: block; }
+/* "Open in Strava" — Strava's own orange (#FC5200), so it reads as a way out
+   to Strava rather than one of our buttons. White on it is 3.3:1: Strava's
+   own buttons pair the same, and the label is 15px bold, but it is under
+   the 4.5:1 AA bar for text this size. */
+.card__cta.card__cta--strava { background: #fc5200; color: #fff; }
+.card__cta.card__cta--strava:hover { background: #e04800; }
 /* Route mode: page button grows, Download GPX is the slim secondary. */
 .sheet[data-mode="route"] .card__cta-row #detail-page-cta { flex: 1 1 auto; }
 .sheet[data-mode="route"] .card__cta-row #detail-cta {
