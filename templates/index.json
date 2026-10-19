@@ -30,7 +30,8 @@
         "lifestyle_caption": "Mount Beerwah, QLD",
         "mobile_heading": "The shorts",
         "mobile_button": "View all"
-      }
+      },
+      "disabled": true
     },
     "pair": {
       "type": "alpine-duo",
@@ -107,10 +108,21 @@
         "returns"
       ],
       "settings": {}
+    },
+    "products": {
+      "type": "alpine-home-products",
+      "settings": {
+        "collection": "",
+        "limit": 3,
+        "dots": false,
+        "heading": "",
+        "link_label": "Shop all"
+      }
     }
   },
   "order": [
     "hero",
+    "products",
     "shop",
     "pair",
     "help"

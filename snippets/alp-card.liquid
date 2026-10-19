@@ -10,18 +10,27 @@
   loading  – 'eager' above the fold
   look     – 'centre' for a centred caption (phone home row)
   dots     – true to show the colour swatches under the price
+  look     – 'bare': no card ground or frame — the shot sits on the page,
+             name and price left under it, the second photo on hover
   sizes    – optional image sizes (default: a quarter on desktop, full width on phones)
 {%- endcomment -%}
 {%- liquid
   assign photo = image | default: product.featured_media.preview_image
   assign name = caption | default: product.title
   assign price = product.price | money_without_trailing_zeros
+  assign alt_photo = blank
+  if look == 'bare' and image == blank and product.media.size > 1
+    assign alt_photo = product.media[1].preview_image
+  endif
 -%}
-<div class="alp-card{% if look == 'centre' %} alp-card--centre{% endif %}" data-alp-card>
+<div class="alp-card{% if look == 'centre' %} alp-card--centre{% elsif look == 'bare' %} alp-card--bare{% endif %}" data-alp-card>
   <div class="alp-card__media">
     <a href="{{ product.url }}" class="alp-card__link" tabindex="-1" aria-hidden="true">
       {%- if photo != blank -%}
         {{ photo | image_url: width: 1200 | image_tag: class: 'alp-fill', loading: loading | default: 'lazy', widths: '400, 600, 800, 1200', sizes: sizes | default: '(min-width: 750px) 25vw, 100vw', alt: '' }}
+      {%- endif -%}
+      {%- if alt_photo != blank -%}
+        {{ alt_photo | image_url: width: 1200 | image_tag: class: 'alp-fill alp-card__alt', loading: 'lazy', fetchpriority: 'low', widths: '400, 600, 800, 1200', sizes: sizes | default: '(min-width: 750px) 25vw, 100vw', alt: '' }}
       {%- endif -%}
     </a>
   </div>

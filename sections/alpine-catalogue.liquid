@@ -266,7 +266,7 @@
         {%- for product in in_type -%}
           {%- assign i = i | plus: 1 -%}
           {%- if i <= 4 -%}{%- assign ld = 'eager' -%}{%- else -%}{%- assign ld = 'lazy' -%}{%- endif -%}
-          {%- render 'alp-card', product: product, loading: ld, look: 'centre', dots: true, sizes: card_sizes -%}
+          {%- render 'alp-card', product: product, loading: ld, look: 'bare', dots: true, sizes: card_sizes -%}
         {%- endfor -%}
       {%- endfor -%}
       {%- capture untyped -%}
@@ -278,13 +278,13 @@
         <h2 class="alp-cat__group"><span>More</span></h2>
         {%- for product in collection.products -%}
           {%- if product.type != blank -%}{%- continue -%}{%- endif -%}
-          {%- render 'alp-card', product: product, loading: 'lazy', look: 'centre', dots: true, sizes: card_sizes -%}
+          {%- render 'alp-card', product: product, loading: 'lazy', look: 'bare', dots: true, sizes: card_sizes -%}
         {%- endfor -%}
       {%- endif -%}
     {%- else -%}
       {%- for product in collection.products -%}
         {%- if forloop.index <= 4 -%}{%- assign ld = 'eager' -%}{%- else -%}{%- assign ld = 'lazy' -%}{%- endif -%}
-        {%- render 'alp-card', product: product, loading: ld, look: 'centre', dots: true, sizes: card_sizes -%}
+        {%- render 'alp-card', product: product, loading: ld, look: 'bare', dots: true, sizes: card_sizes -%}
       {%- else -%}
         <p class="alp-cat__empty">Nothing here yet. {% if active > 0 %}<a href="{{ collection.url }}">Clear the filters</a>{% else %}<a href="{{ routes.all_products_collection_url }}">See everything</a>{% endif %}</p>
       {%- endfor -%}

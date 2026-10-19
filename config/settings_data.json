@@ -205,7 +205,8 @@
           "shadow": "#121212"
         }
       }
-    }
+    },
+    "alp_ground": "white"
   },
   "presets": {
     "Dawn": {
