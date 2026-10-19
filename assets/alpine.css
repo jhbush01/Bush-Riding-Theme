@@ -413,7 +413,7 @@ body.alp-hd-over:not(.alp-hd-solid):not(.alp-hd-open):not(.alp-hd-hot) .alp-hd .
   display: flex; align-items: center; justify-content: center;
   background: var(--alp-mist); color: var(--alp-ink); border: 1px solid var(--alp-mist);
   box-shadow: 0 6px 18px rgba(47, 47, 38, 0.28);
-  transition: bottom 0.25s ease-out, background 0.2s;
+  transition: bottom 0.25s ease-out, background-color 0.3s, border-color 0.3s, box-shadow 0.3s;
 }
 .alp-fab[aria-expanded='true'] { background: var(--alp-bg); color: var(--alp-ink); }
 /* Starts bottom right; drag it across and it stays on that side (alpine.js;
@@ -425,6 +425,12 @@ html.alp-fab-left .alp-fab { right: auto; left: 16px; }
 @media (max-width: 749px) {
   html.alp-fab-top body:not(.template-product):not(.template-cart) .alp-fab {
     top: calc(var(--alp-hd) + 8px); bottom: auto; left: auto; right: 16px;
+  }
+  /* Docked on a plain page it's just the icon — the pill fades in as it
+     drops. Where the header sits over a photo it keeps the pill so the icon
+     stays readable. */
+  html.alp-fab-top body:not(.alp-hd-over):not(.template-product):not(.template-cart) .alp-fab {
+    background-color: transparent; border-color: transparent; box-shadow: none;
   }
 }
 @media (max-width: 749px) {
