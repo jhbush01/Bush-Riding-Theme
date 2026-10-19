@@ -551,9 +551,11 @@ div.alp-scrim[hidden] { display: none; }
   font: 600 16px/1.2 var(--alp-font-display); color: var(--alp-bg);
 }
 .alp-duo__chips { position: absolute; left: 24px; bottom: 24px; display: flex; gap: 8px; }
+/* Title and button sit dead centre in each photo (iPad and desktop). */
 .alp-duo__stack {
-  position: absolute; left: 24px; bottom: 24px;
-  display: flex; flex-direction: column; align-items: flex-start; gap: 10px;
+  position: absolute; inset: 24px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+  text-align: center;
 }
 .alp-duo__title { font: 600 28px/1.15 var(--alp-font-display); color: var(--alp-bg); }
 .alp a.alp-duo__panel:hover { color: inherit; }
