@@ -139,6 +139,8 @@
     <button class="alp-hd__burger alp-fab alp-m" type="button" data-alp-toggle="alp-menu" aria-expanded="false" aria-controls="alp-menu" aria-label="Menu">
       <svg class="alp-hd__icon-open" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
       <svg class="alp-hd__icon-close" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      {%- comment -%} Items in the cart: a small count on the pill (alpine.js keeps it current). {%- endcomment -%}
+      <span class="alp-fab__badge" data-alp-cart-badge aria-hidden="true"{% if cart.item_count == 0 %} hidden{% endif %}>{% if cart.item_count > 99 %}99+{% else %}{{ cart.item_count }}{% endif %}</span>
     </button>
   </div>
 
@@ -358,6 +360,7 @@
       {%- if about_url != blank -%}
         <a class="alp-menu__row" href="{{ about_url }}" data-alp-close>About <span aria-hidden="true">→</span></a>
       {%- endif -%}
+      <a class="alp-menu__row" href="{{ routes.cart_url }}" data-alp-open-cart>Cart <span class="alp-menu__count" data-alp-cart-badge{% if cart.item_count == 0 %} hidden{% endif %}>{% if cart.item_count > 99 %}99+{% else %}{{ cart.item_count }}{% endif %}</span></a>
     </nav>
     <div class="alp-menu__foot">
       <p>

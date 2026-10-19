@@ -403,6 +403,8 @@
         if (root) {
           var n = root.getAttribute('data-alp-cart-count-value');
           $$('[data-alp-cart-count]').forEach(function (el) { el.textContent = n; });
+          var c = parseInt(n, 10) || 0;
+          $$('[data-alp-cart-badge]').forEach(function (el) { el.textContent = c > 99 ? '99+' : c; el.hidden = c === 0; });
         }
       } else {
         var target = document.getElementById('shopify-section-' + id);
