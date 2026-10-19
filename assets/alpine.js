@@ -1425,8 +1425,8 @@
     document.addEventListener('pointercancel', drop);
   })();
 
-  /* Phones: at the very top of a page the menu button sits top right, under
-     Cart. Scroll down and it drops to its bottom spot (whichever side it was
+  /* Phones: at the very top of a page the menu button sits in the header row
+     as a small pill beside Cart. Scroll down and it drops to its bottom spot (whichever side it was
      dragged to); scroll back to the top and it snaps up again. The move is
      measured before and after and animated between, with an overshoot. */
   (function () {
@@ -1444,9 +1444,11 @@
       if (anim) anim.cancel();
       root.classList.toggle('alp-fab-top', top);
       var b = fab.getBoundingClientRect();
+      var k = a.width / b.width; /* it's smaller while docked */
       anim = fab.animate(
-        [{ transform: 'translate(' + (a.left - b.left) + 'px, ' + (a.top - b.top) + 'px)' }, { transform: 'none' }],
-        { duration: 520, easing: 'cubic-bezier(0.3, 1.25, 0.5, 1)' }
+        [{ transformOrigin: '0 0', transform: 'translate(' + (a.left - b.left) + 'px, ' + (a.top - b.top) + 'px) scale(' + k + ')' },
+         { transformOrigin: '0 0', transform: 'none' }],
+        { duration: 520, easing: 'cubic-bezier(0.3, 1.18, 0.5, 1)' }
       );
     }
     sync(false);
