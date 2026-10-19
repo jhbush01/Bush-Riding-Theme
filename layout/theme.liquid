@@ -19,6 +19,32 @@
     {%- comment -%} Safari tints the status bar with theme-color: bone, the colour
         the header sits on. {%- endcomment -%}
     <meta name="theme-color" content="#edecc5">
+    {%- comment -%}
+      The page's main photo, asked for first and at top priority — before the
+      fonts, stylesheets and Shopify's own scripts — so it isn't left queuing
+      behind them (Lighthouse's "Largest Contentful Paint": the product photo
+      on a product page, the first product card on a collection). Same sizes
+      as the image tags themselves, so the browser reuses this download.
+    {%- endcomment -%}
+    {%- liquid
+      assign lcp_img = blank
+      if template.name == 'product'
+        assign lcp_img = product.media.first.preview_image
+        assign lcp_widths = '500,700,1000,1400,2000'
+        assign lcp_sizes = '(min-width: 750px) min(60vw, 100vh), 100vw'
+      elsif template.name == 'collection' and collection.products.size > 0
+        assign lcp_img = collection.products.first.featured_media.preview_image
+        assign lcp_widths = '400,600,800,1200'
+        assign lcp_sizes = '(min-width: 750px) 25vw, 50vw'
+      endif
+    -%}
+    {%- if lcp_img != blank -%}
+      {%- capture lcp_srcset -%}
+        {%- assign ws = lcp_widths | split: ',' -%}
+        {%- for w in ws -%}{%- assign wn = w | plus: 0 -%}{{ lcp_img | image_url: width: wn }} {{ w }}w{%- unless forloop.last -%}, {% endunless -%}{%- endfor -%}
+      {%- endcapture -%}
+      <link rel="preload" as="image" imagesrcset="{{ lcp_srcset }}" imagesizes="{{ lcp_sizes }}" fetchpriority="high">
+    {%- endif -%}
     <link rel="canonical" href="{{ canonical_url }}">
 
     {%- if settings.favicon != blank -%}
