@@ -277,7 +277,7 @@ body.alp-hd-away .alp-hd-section { top: calc(-1 * var(--alp-hd) - 2px); }
   opacity: 0;
 }
 body.alp-hd-over .alp-hd-under { margin-top: calc(-1 * var(--alp-hd)); }
-body.alp-hd-over .alp-hd-under .alp-hero { height: 100vh; }
+body.alp-hd-over .alp-hd-under .alp-hero { height: 100vh; height: 100svh; }
 body.alp-hd-over:not(.alp-hd-solid):not(.alp-hd-open):not(.alp-hd-hot) .alp-hd,
 body.alp-hd-over:not(.alp-hd-solid):not(.alp-hd-open):not(.alp-hd-hot) .alp-hd .alp-hd__bar { background-color: transparent; color: var(--alp-bg); }
 body.alp-hd-over:not(.alp-hd-solid):not(.alp-hd-open):not(.alp-hd-hot) .alp-hd .alp-hd__bar::before { opacity: 1; }
@@ -423,42 +423,42 @@ html.alp-fab-left .alp-fab { right: auto; left: 16px; }
    down and it drops back to its bottom spot, left or right. alpine.js
    animates the move with a little overshoot so it snaps into place. */
 @media (max-width: 749px) {
-  html.alp-fab-top body:not(.template-product):not(.template-cart) .alp-fab {
+  html.alp-fab-top body:not(.template-cart) .alp-fab {
     top: calc(var(--alp-hd) + 8px); bottom: auto; left: auto; right: 16px;
-  }
-  /* Docked on a plain page it's just the icon — the pill fades in as it
-     drops. Where the header sits over a photo it keeps the pill so the icon
-     stays readable. */
-  html.alp-fab-top body:not(.alp-hd-over):not(.template-product):not(.template-cart) .alp-fab {
-    background-color: transparent; border-color: transparent; box-shadow: none;
   }
 }
 @media (max-width: 749px) {
   body:not(.template-product):not(.template-cart) .alp-fab { touch-action: none; }
   .alp-fab.is-dragging { transition: none; box-shadow: 0 10px 26px rgba(47, 47, 38, 0.36); }
 }
-/* Product and cart pages: the bottom of the screen belongs to the buy bar and
-   Checkout, so there the button goes back into the bar, top right, and the
-   menu drops from the top as before. */
-body.template-product .alp-fab, body.template-cart .alp-fab {
+/* Cart page: the bottom of the screen belongs to Checkout, so there the
+   button goes back into the bar, top right, and the menu drops from the top. */
+body.template-cart .alp-fab {
   position: static; width: auto; height: auto; padding: 0; border: 0; border-radius: 0;
   background: none; color: inherit; box-shadow: none;
 }
-body.template-product .alp-fab[aria-expanded='true'], body.template-cart .alp-fab[aria-expanded='true'] { background: none; color: inherit; }
+body.template-cart .alp-fab[aria-expanded='true'] { background: none; color: inherit; }
+/* Product page (phones): below the top the pill drops to the right, just
+   above the buy bar once it docks (alpine.js sets --alp-bar), and slides
+   down to the corner while the menu is open. Always right; no drag. */
+@media (max-width: 749px) {
+  body.template-product .alp-fab { left: auto; right: 16px; bottom: max(calc(16px + env(safe-area-inset-bottom)), var(--alp-bar, 0px)); }
+  body.template-product .alp-fab[aria-expanded='true'] { bottom: calc(16px + env(safe-area-inset-bottom)); }
+}
 @media (max-width: 749px) {
   /* Room at the end of every page so the button never covers the last line. */
   body:not(.template-product):not(.template-cart) { padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
-  body:not(.template-product):not(.template-cart) .alp-hd .alp-menu {
+  body:not(.template-cart) .alp-hd .alp-menu {
     position: fixed; top: auto; left: 0; right: 0; bottom: 0;
     max-height: 82svh; padding-bottom: calc(96px + env(safe-area-inset-bottom));
     border-radius: 18px 18px 0 0; border: 1px solid var(--alp-ink); border-bottom: 0;
     transform: translateY(100%); opacity: 1;
     transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
-  body:not(.template-product):not(.template-cart) .alp-hd .alp-menu.is-open { transform: none; }
+  body:not(.template-cart) .alp-hd .alp-menu.is-open { transform: none; }
   .alp-hd .alp-menu.is-dragging { transition: none; }
 }
-body.template-product .alp-menu__grab, body.template-cart .alp-menu__grab { display: none; }
+body.template-cart .alp-menu__grab { display: none; }
 .alp-menu__grab { display: block; width: 40px; height: 4px; margin: 6px auto 4px; border-radius: 2px; background: var(--alp-line); }
 
 .alp-menu {
@@ -516,7 +516,7 @@ div.alp-scrim[hidden] { display: none; }
 
 /* ── Hero (D01 · M02) ────────────────────────────────────────────────────── */
 /* The full screen under the header — no strip of page below it. */
-.alp-hero { position: relative; height: calc(100vh - var(--alp-hd)); min-height: 560px; overflow: hidden; background: var(--alp-olive); }
+.alp-hero { position: relative; height: calc(100vh - var(--alp-hd)); height: calc(100svh - var(--alp-hd)); min-height: 560px; overflow: hidden; background: var(--alp-olive); }
 .alp-hero__media, .alp-hero__media picture { position: absolute; inset: 0; }
 .alp-hero__scrim { position: absolute; inset: 0; background: var(--alp-scrim-hero); pointer-events: none; }
 .alp-hero__centre {
