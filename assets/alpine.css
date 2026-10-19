@@ -138,11 +138,12 @@ html.alp-pointer :focus-visible + * { outline: none !important; }
   text-align: center; cursor: pointer;
   transition: background-color 0.15s, color 0.15s, border-color 0.15s;
 }
-.alp a.alp-btn:hover, .alp-btn:hover { background: var(--alp-accent); border-color: var(--alp-accent); color: #fff; }
+/* Buttons never change colour on hover — only the text softens a touch. */
+.alp a.alp-btn:hover, .alp-btn:hover { color: color-mix(in srgb, #fff 72%, transparent); }
 .alp-btn--line { background: transparent; color: var(--alp-ink); }
-.alp a.alp-btn--line:hover, .alp-btn--line:hover { background: var(--alp-ink); border-color: var(--alp-ink); color: #fff; }
+.alp a.alp-btn--line:hover, .alp-btn--line:hover { color: color-mix(in srgb, var(--alp-ink) 62%, transparent); }
 .alp-btn--flare { background: var(--alp-flare); color: var(--alp-ink); }
-.alp a.alp-btn--flare:hover, .alp-btn--flare:hover { background: var(--alp-ink); border-color: var(--alp-ink); color: var(--alp-flare); }
+.alp a.alp-btn--flare:hover, .alp-btn--flare:hover { color: color-mix(in srgb, var(--alp-ink) 62%, transparent); }
 .alp-btn--block { display: flex; width: 100%; }
 .alp-btn:disabled, .alp-btn[aria-disabled='true'] { opacity: 0.5; cursor: default; }
 .alp-btn.is-busy { opacity: 0.6; pointer-events: none; }
@@ -160,8 +161,9 @@ html.alp-pointer :focus-visible + * { outline: none !important; }
 .alp-chip--flare { background: var(--alp-flare); border-color: var(--alp-ink); font-family: var(--alp-font-display); font-weight: 600; }
 .alp a.alp-chip:hover, button.alp-chip:hover, summary.alp-chip:hover,
 a:hover > .alp-duo__stack .alp-chip, summary:hover > .alp-chip {
-  background: var(--alp-ink); border-color: var(--alp-ink); color: #fff;
+  color: color-mix(in srgb, var(--alp-ink) 62%, transparent);
 }
+.alp a.alp-chip.is-on:hover, button.alp-chip.is-on:hover, summary.alp-chip.is-on:hover { color: color-mix(in srgb, var(--alp-bg) 72%, transparent); }
 .alp-chip.is-on { background: var(--alp-ink); border-color: var(--alp-ink); color: var(--alp-bg); }
 
 .alp-badge {
@@ -196,7 +198,7 @@ a:hover > .alp-duo__stack .alp-chip, summary:hover > .alp-chip {
   border: 1px solid var(--alp-ink); border-radius: 0;
   font: 600 15px/1.2 var(--alp-font-display); cursor: pointer;
 }
-.alp-signup__btn:hover { background: var(--alp-accent); border-color: var(--alp-accent); }
+.alp-signup__btn:hover { color: color-mix(in srgb, #fff 72%, transparent); }
 .alp-signup__ok, .alp-signup__err { flex-basis: 100%; font-size: 14px; }
 .alp-signup__err { margin-top: 8px !important; }
 .alp-signup--sm .alp-signup__input { padding: 12px; font-size: 13px; }
@@ -344,7 +346,7 @@ body.alp-hd-over:not(.alp-hd-solid):not(.alp-hd-open):not(.alp-hd-hot) .alp-hd .
   background: var(--alp-flare); color: var(--alp-ink); border: 1px solid var(--alp-ink); border-radius: 999px;
   font: 600 16px/1 var(--alp-font-display);
 }
-.alp a.alp-pill:hover, .alp-mega a.alp-pill:hover { background: var(--alp-ink); color: var(--alp-flare); text-decoration: none; }
+.alp a.alp-pill:hover, .alp-mega a.alp-pill:hover { color: color-mix(in srgb, var(--alp-ink) 62%, transparent); text-decoration: none; }
 .alp-menu__sub .alp-pill { align-self: flex-start; margin: 4px 0 8px; }
 /* Full-screen photo viewer (product gallery, phones). */
 .alp-zoom { position: fixed; inset: 0; z-index: 80; background: var(--alp-bg); display: flex; flex-direction: column; }
@@ -640,7 +642,7 @@ div.alp-scrim[hidden] { display: none; }
    ™ is cap-height and heavy beside Aktiv Grotesk headings. */
 .alp-tmw { display: inline; }
 .alp-tm { display: inline-block; text-decoration: none; font-size: max(0.42em, 9px); font-weight: 400; line-height: 0; vertical-align: 0.95em; margin-left: 0.06em; letter-spacing: 0; }
-.alp a.alp-hero__btn:hover { background: var(--alp-bg); color: var(--alp-ink); }
+.alp a.alp-hero__btn:hover { color: color-mix(in srgb, var(--alp-bg) 72%, transparent); }
 
 .alp-mhome { padding-top: 64px; }
 .alp-mhome__title { padding: 0 18px 28px; text-align: center; font: 600 36px/1.05 var(--alp-font-display); letter-spacing: -0.01em; }
@@ -879,7 +881,7 @@ body.alp-hd-away .alp-cat__head { top: 0; }
   padding: 15px 0; background: #fff; border: 1px solid var(--alp-ink); border-radius: 3px;
   font: 600 15px/1.2 var(--alp-font-display); cursor: pointer;
 }
-.alp-sheet__size:hover { background: var(--alp-ink); color: #fff; }
+.alp-sheet__size:hover { color: color-mix(in srgb, var(--alp-ink) 62%, transparent); }
 .alp-sheet__size:disabled { border-color: var(--alp-line); color: var(--alp-muted); font-weight: 400; text-decoration: line-through; cursor: default; background: #fff; }
 .alp-sheet__size.is-busy { opacity: 0.5; }
 .alp-sheet__hint { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; }
@@ -966,6 +968,7 @@ body.alp-hd-away .alp-cat__head { top: 0; }
 .alp-buy { display: flex; flex-direction: column; gap: 18px; }
 .alp-buy__slot { display: none; }
 .alp-buy__opt { display: flex; flex-direction: column; gap: 10px; }
+.alp-buy__opt > legend.alp-buy__opthead { margin-bottom: 14px; }
 .alp-buy__opthead { display: flex; justify-content: space-between; align-items: baseline; width: 100%; padding: 0; font: 13px/1.3 var(--alp-font-ui); }
 .alp-buy__optname { font: 600 15px/1.2 var(--alp-font-display); }
 .alp-buy__opthead a { font-size: 12px; text-decoration: underline; text-underline-offset: 3px; }
@@ -983,7 +986,7 @@ body.alp-hd-away .alp-cat__head { top: 0; }
   font: 600 13px/1 var(--alp-font-display);
   transition: background 0.15s, color 0.15s;
 }
-.alp-tile:hover span { background: #3d3c2f; }
+.alp-tile:hover span { color: color-mix(in srgb, var(--alp-bg) 72%, transparent); }
 .alp-tile input:checked + span { background: var(--alp-flare); border-color: var(--alp-ink); color: var(--alp-ink); }
 .alp-tile input:focus-visible + span { outline: 2px solid var(--alp-ink); outline-offset: 2px; }
 .alp-tile.is-out { cursor: default; }
@@ -1144,7 +1147,7 @@ body.alp-hd-away .alp-cat__head { top: 0; }
   .alp-buy__actions { gap: 8px; }
   .alp-buy__actions .alp-btn { padding: 15px; font-size: 15px; }
   .alp-buy__add { background: transparent; color: var(--alp-ink); }
-  .alp-buy__add:hover { background: var(--alp-ink); color: #fff; }
+  .alp-buy__add:hover { color: color-mix(in srgb, var(--alp-ink) 62%, transparent); }
 }
 
 /* ── Cart drawer (D07 · M08) and /cart ───────────────────────────────────── */
@@ -1339,7 +1342,7 @@ body.alp-hd-away .alp-cat__head { top: 0; }
    yellow focus ring on it, tap, click or keyboard. */
 .alp-search__input:focus, .alp-search__input:focus-visible { outline: none !important; box-shadow: none; }
 .alp-search__go { padding: 18px 32px; background: var(--alp-ink); color: #fff; border: 1px solid var(--alp-ink); border-radius: 0; font: 600 16px/1.2 var(--alp-font-display); cursor: pointer; }
-.alp-search__go:hover { background: var(--alp-accent); border-color: var(--alp-accent); }
+.alp-search__go:hover { color: color-mix(in srgb, #fff 72%, transparent); }
 .alp-search__popular { padding: 8px 40px 16px; font-size: 18px; }
 .alp-search__grid { padding: 0 12px 40px; }
 .alp-search__chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 clamp(40px, 14vw, 180px) 6px; }
