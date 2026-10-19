@@ -232,6 +232,24 @@ jobs:
               if (node && !lcp.has(u)) lcp.set(u, '`' + (node.selector || node.nodeLabel || '?') + '`' + (phases ? ' — ' + phases : ''));
             }
             if (lcp.size) { console.log('\n#### Largest Contentful Paint element\n'); for (const [u, v] of lcp) console.log('- ' + u + ': ' + v); }
+            // The product page's biggest downloads, by when they start — what the
+            // main photo is queuing behind on a throttled connection.
+            const prod = lhrs.map((f) => JSON.parse(fs.readFileSync(f, 'utf8'))).find((r) => /\/products\//.test(r.finalDisplayedUrl || r.finalUrl || ''));
+            if (prod) {
+              const reqs = (((prod.audits || {})['network-requests'] || {}).details || {}).items || [];
+              const total = reqs.reduce((n, x) => n + (x.transferSize || 0), 0);
+              console.log('\n#### Product page downloads — ' + reqs.length + ' requests, ' + Math.round(total / 1024) + ' KiB\n');
+              console.log('| Start | KiB | Type | Priority | URL |');
+              console.log('| --- | --- | --- | --- | --- |');
+              reqs.filter((x) => (x.transferSize || 0) > 8 * 1024)
+                .sort((a, b) => (a.networkRequestTime || a.startTime || 0) - (b.networkRequestTime || b.startTime || 0))
+                .slice(0, 25)
+                .forEach((x) => {
+                  const u = String(x.url || '').replace(/^https?:\/\//, '').replace(/\?.*$/, '').slice(0, 90);
+                  const t = Math.round(x.networkRequestTime || x.startTime || 0);
+                  console.log(`| ${t}ms | ${Math.round((x.transferSize || 0) / 1024)} | ${x.resourceType || ''} | ${x.priority || ''} | ${u} |`);
+                });
+            }
             if (fails.size) { console.log('\n#### Failing audits\n'); for (const l of fails) console.log(l); }
           }
           const ar = found.find((f) => /assertion-results/.test(f));
