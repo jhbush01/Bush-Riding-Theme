@@ -437,14 +437,19 @@ html.alp-fab-left .alp-fab { right: auto; left: 16px; }
   body:not(.template-product):not(.template-cart) .alp-fab { touch-action: none; }
   .alp-fab.is-dragging { transition: none; box-shadow: 0 10px 26px rgba(47, 47, 38, 0.36); }
 }
-/* Product and cart pages: the bottom of the screen belongs to the buy bar and
-   Checkout, so there the button goes back into the bar, top right, and the
-   menu drops from the top as before. */
-body.template-product .alp-fab, body.template-cart .alp-fab {
+/* Cart page: the bottom of the screen belongs to Checkout, so there the
+   button goes back into the bar, top right. Product and cart pages keep the
+   menu dropping from the top. */
+body.template-cart .alp-fab {
   position: static; width: auto; height: auto; padding: 0; border: 0; border-radius: 0;
   background: none; color: inherit; box-shadow: none;
 }
-body.template-product .alp-fab[aria-expanded='true'], body.template-cart .alp-fab[aria-expanded='true'] { background: none; color: inherit; }
+body.template-cart .alp-fab[aria-expanded='true'] { background: none; color: inherit; }
+/* Product page (phones): the pill stays pinned top right under Cart all the
+   way down — the bottom of the screen belongs to the buy bar. No drag. */
+@media (max-width: 749px) {
+  body.template-product .alp-fab { top: calc(var(--alp-hd) + 8px); bottom: auto; left: auto; right: 16px; }
+}
 @media (max-width: 749px) {
   /* Room at the end of every page so the button never covers the last line. */
   body:not(.template-product):not(.template-cart) { padding-bottom: calc(84px + env(safe-area-inset-bottom)); }

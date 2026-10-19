@@ -1393,7 +1393,7 @@
     document.addEventListener('pointerdown', function (e) {
       var el = e.target.closest && e.target.closest('.alp-fab');
       if (!el || !floating(el) || (e.pointerType === 'mouse' && e.button !== 0)) return;
-      if (document.documentElement.classList.contains('alp-fab-top')) return; /* docked at the top: no drag */
+      if (document.documentElement.classList.contains('alp-fab-top') || document.body.classList.contains('template-product')) return; /* pinned at the top: no drag */
       fab = el; startX = e.clientX; startY = e.clientY; moved = false;
       base = el.getBoundingClientRect().left;
     });
@@ -1438,7 +1438,7 @@
       var on = root.classList.contains('alp-fab-top'), y = window.scrollY;
       var top = on ? y < 12 : y <= 2;
       if (top === on) return;
-      var floating = !DESKTOP.matches && getComputedStyle(fab).position === 'fixed';
+      var floating = !DESKTOP.matches && getComputedStyle(fab).position === 'fixed' && !document.body.classList.contains('template-product');
       if (!animate || REDUCE || !floating || !fab.animate) { root.classList.toggle('alp-fab-top', top); return; }
       var a = fab.getBoundingClientRect();
       if (anim) anim.cancel();
