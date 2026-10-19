@@ -219,6 +219,19 @@ jobs:
                 }
               }
             }
+            // What each page's Largest Contentful Paint actually is — the thing to
+            // speed up, rather than a guess — and where its time goes.
+            const lcp = new Map();
+            for (const f of lhrs) {
+              const r = JSON.parse(fs.readFileSync(f, 'utf8'));
+              const u = (r.finalDisplayedUrl || r.finalUrl || r.requestedUrl || '').replace(/\?.*$/, '');
+              const el = (r.audits || {})['largest-contentful-paint-element'];
+              let node = null, phases = '';
+              try { node = el.details.items[0].items[0].node; } catch (e) {}
+              try { phases = el.details.items[1].items.map((x) => x.phase + ' ' + Math.round(x.timing) + 'ms').join(', '); } catch (e) {}
+              if (node && !lcp.has(u)) lcp.set(u, '`' + (node.selector || node.nodeLabel || '?') + '`' + (phases ? ' — ' + phases : ''));
+            }
+            if (lcp.size) { console.log('\n#### Largest Contentful Paint element\n'); for (const [u, v] of lcp) console.log('- ' + u + ': ' + v); }
             if (fails.size) { console.log('\n#### Failing audits\n'); for (const l of fails) console.log(l); }
           }
           const ar = found.find((f) => /assertion-results/.test(f));
