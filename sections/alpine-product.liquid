@@ -57,7 +57,7 @@
       <div class="alp-gal" data-alp-scroller>
         <div class="alp-gal__track" data-alp-track>
           {%- for m in product.media limit: hero_n -%}
-            {%- if forloop.first -%}{%- assign eager = 'eager' -%}{%- assign fp = 'high' -%}{%- else -%}{%- assign eager = 'lazy' -%}{%- assign fp = 'auto' -%}{%- endif -%}
+            {%- if forloop.first -%}{%- assign eager = 'eager' -%}{%- assign fp = 'high' -%}{%- else -%}{%- assign eager = 'lazy' -%}{%- assign fp = 'low' -%}{%- endif -%}
             <div class="alp-gal__slide alp-pdp__img">
               {%- assign m_alt = m.alt | default: product.title -%}
               {{ m.preview_image | image_url: width: 2000 | image_tag: class: 'alp-gal__img', loading: eager, fetchpriority: fp, widths: '500, 700, 1000, 1400, 2000', sizes: '(min-width: 750px) min(60vw, 100vh), 100vw', alt: m_alt }}
