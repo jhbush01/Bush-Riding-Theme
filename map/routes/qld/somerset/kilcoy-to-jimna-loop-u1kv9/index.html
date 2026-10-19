@@ -46,6 +46,8 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
 .rp-stat__l{display:block;margin-top:3px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
 .rp-actions{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}
 .rp-actions .button{text-decoration:none}
+.rp-actions .button--strava{background:#fc5200;border-color:#fc5200;color:#fff}
+.rp-actions .button--strava:hover{background:#e04800;border-color:#e04800;color:#fff}
 .rp-start{font-size:14.5px;color:var(--ink-soft);margin:10px 0}
 .wrap h2{font-family:var(--head-font);font-weight:400;font-size:26px;margin:26px 0 8px}
 .rp-desc{font-size:16px;line-height:1.6;color:var(--ink)}
@@ -281,6 +283,7 @@ html,body{height:auto;min-height:100%;overflow:visible;overflow-x:hidden}
 
   <div class="rp-actions">
     <a class="button button--primary" id="rp-gpx" href="https://map-api.bushriding.cc/file/gpx/kilcoy-to-jimna-loop-u1kv9.gpx" download data-file="kilcoy-to-jimna-loop-u1kv9.gpx">Download GPX</a>
+    
     <a class="button" id="rp-nav" href="https://www.google.com/maps/dir/?api=1&amp;destination=-26.94279,152.56404" data-apple="https://maps.apple.com/?daddr=-26.94279,152.56404&amp;dirflg=d" target="_blank" rel="noopener">Navigate to start</a>
     <a class="button" href="/map#kilcoy-to-jimna-loop-u1kv9">Open in interactive map</a>
   </div>
