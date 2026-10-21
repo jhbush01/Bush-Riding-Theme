@@ -370,13 +370,59 @@ async function init() {
   }
 }
 
-/* The loading screen (index.html #map-loader) lifts once the map has actually
-   drawn: the first `idle` after load, i.e. every visible tile painted, so it
-   fades onto a finished map rather than a blank one. 4 s after load at the
-   latest, so one slow tile can't hold the whole page behind it; index.html
-   also lifts it at 15 s from page start whatever happens. */
+/* The loading screen (index.html #map-loader) is there so the map is
+   finished when it lifts: every tile in view drawn — basemap, relief and, in
+   3D, the terrain — and the camera still, including the jump to a shared
+   route. Then the rider lands on a map that's ready, not one filling in.
+
+   Ready means either MapLibre's `idle`, or (because the event pins' pulse
+   restyles the map every few frames, which can hold `idle` off) all tiles
+   loaded with the camera at rest for READY_HOLD_MS straight — the hold stops
+   a gap between one batch of tiles and the next counting as done.
+
+   This used to give up 4 s after the map loaded, which on a phone in 3D was
+   often before the terrain had arrived. The give-up is now READY_CAP_MS, only
+   so a dead tile server can't keep anyone behind the loader for good;
+   index.html lifts it at 25 s from page start whatever happens. */
+const READY_HOLD_MS = 300;
+const READY_CAP_MS = 15000;
+
 function liftLoader() {
   if (window.brmHideLoader) window.brmHideLoader();
+}
+
+function watchReadyToLift() {
+  if (!document.getElementById("map-loader")) return; // already shown this session
+  let done = false;
+  let readySince = 0;
+  const finish = () => {
+    if (done) return;
+    done = true;
+    map.off("idle", finish);
+    map.off("render", check);
+    clearTimeout(cap);
+    liftLoader();
+  };
+  const check = () => {
+    let ready = false;
+    try {
+      ready = map.isStyleLoaded() && map.areTilesLoaded() && !map.isMoving();
+    } catch (_) {
+      /* not ready to ask yet */
+    }
+    if (!ready) {
+      readySince = 0;
+      return;
+    }
+    const now = performance.now();
+    if (!readySince) readySince = now;
+    if (now - readySince >= READY_HOLD_MS) finish();
+    // Nothing else may ask for a frame, so ask for one to finish the hold.
+    else map.triggerRepaint();
+  };
+  const cap = setTimeout(finish, READY_CAP_MS);
+  map.on("idle", finish);
+  map.on("render", check);
 }
 
 async function loadCommunityRoutes() {
@@ -606,10 +652,7 @@ async function initMap() {
   map.touchZoomRotate.disableRotation();
 
   map.on("load", onLoad);
-  map.once("load", () => {
-    map.once("idle", liftLoader);
-    setTimeout(liftLoader, 4000);
-  });
+  map.once("load", watchReadyToLift);
 }
 
 function onLoad() {
