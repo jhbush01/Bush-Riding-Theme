@@ -1,6 +1,7 @@
 // Bush Riding Routes — map init, sources/layers, pins, selection, panel.
 import { setupFilters, applyFilters } from "./filters.js";
 import { setupGate } from "./gate.js";
+import { installTileProtocol, wrapTileUrl, prefetchTiles, clearBackgroundQueue, setBusyCheck, resumePrefetch, prefetchStats, probeTiles, releaseProbe } from "./tile-cache.js";
 
 const CONFIG = window.BRM_CONFIG || {};
 // Single swappable line for the basemap tiles (set in index.html config block).
@@ -384,6 +385,358 @@ async function init() {
    often before the terrain had arrived. The give-up is now READY_CAP_MS, only
    so a dead tile server can't keep anyone behind the loader for good;
    index.html lifts it at 25 s from page start whatever happens. */
+/* ── Tile prefetch (see tile-cache.js) ─────────────────────────────────────
+   Every tile source goes through the cache protocol, and once the map is up
+   we queue, route by route, the tiles each route's zoomed-in view will need —
+   routes on screen first, nearest the middle first — so tapping a pin flies
+   onto a map that's already there. Pressing or hovering a pin moves its route
+   to the front. */
+const tileTemplates = { vec: null, vecMax: 14, dem: null, demMax: 14, sat: null, satMax: 19 };
+
+async function routeTilesThroughCache(style) {
+  try {
+    installTileProtocol(maplibregl);
+  } catch (e) {
+    console.warn("Tile cache unavailable, loading tiles directly:", e.message);
+    return;
+  }
+  const src = style.sources || {};
+  // The vector basemap names its tiles in a TileJSON; read it here so the
+  // tile URLs can be pointed at the cache. If that fails, leave it alone.
+  const vec = src.openmaptiles;
+  if (vec && vec.url && !vec.tiles) {
+    try {
+      const tj = await fetch(vec.url, { signal: AbortSignal.timeout(6000) }).then((r) => r.json());
+      if (Array.isArray(tj.tiles) && tj.tiles.length) {
+        tileTemplates.vec = tj.tiles[0];
+        tileTemplates.vecMax = tj.maxzoom || 14;
+        delete vec.url;
+        vec.tiles = tj.tiles.map(wrapTileUrl);
+        for (const k of ["minzoom", "maxzoom", "bounds", "attribution", "scheme"]) {
+          if (tj[k] !== undefined && vec[k] === undefined) vec[k] = tj[k];
+        }
+      }
+    } catch (_) {
+      /* basemap still loads straight from its server */
+    }
+  }
+  for (const [id, s] of Object.entries(src)) {
+    if (id === "openmaptiles" || !Array.isArray(s.tiles)) continue;
+    if (id === "terrain-dem") {
+      tileTemplates.dem = s.tiles[0];
+      tileTemplates.demMax = s.maxzoom || 14;
+    }
+    if (id === (SAT_PROVIDER === "esri" ? "satellite-esri" : "satellite-s2")) {
+      tileTemplates.sat = s.tiles[0];
+      tileTemplates.satMax = s.maxzoom || 19;
+    }
+    s.tiles = s.tiles.map(wrapTileUrl);
+  }
+}
+
+function tileUrl(tpl, z, x, y) {
+  return tpl.replace("{z}", z).replace("{x}", x).replace("{y}", y);
+}
+
+function lngLatToTile(lng, lat, z) {
+  const n = 2 ** z;
+  const x = Math.floor(((lng + 180) / 360) * n);
+  const r = (Math.max(-85.05, Math.min(85.05, lat)) * Math.PI) / 180;
+  const y = Math.floor(((1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2) * n);
+  return [Math.max(0, Math.min(n - 1, x)), Math.max(0, Math.min(n - 1, y))];
+}
+
+/* The tiles a camera will ask for. Sample a grid of screen points through a
+   copy of the map's own camera (so 3D tilt is honoured) and, at each, work out
+   the detail MapLibre will use there: full zoom up close, less towards the
+   horizon, where one screen pixel covers more ground. The next zoom out is
+   added in the middle of the view, so the flight in has those too. */
+function tilesForCamera(cam) {
+  const out = new Set();
+  let tr;
+  try {
+    tr = map.transform.clone();
+    tr.setCenter(maplibregl.LngLat.convert(cam.center));
+    tr.setZoom(cam.zoom);
+    tr.setPitch(cam.pitch || 0);
+    tr.setBearing(cam.bearing || 0);
+  } catch (_) {
+    return out;
+  }
+  const W = tr.width, H = tr.height;
+  const P = (x, y) => (maplibregl.Point ? new maplibregl.Point(x, y) : { x, y });
+  const at = (x, y) => {
+    try {
+      const ll = tr.screenPointToLocation(P(x, y));
+      return ll && Number.isFinite(ll.lng) && Number.isFinite(ll.lat) ? ll : null;
+    } catch (_) {
+      return null;
+    }
+  };
+  // Ground per pixel measured ACROSS the screen: that grows in step with
+  // distance from the camera, which is how MapLibre lowers detail towards the
+  // horizon (down-screen steps also foreshorten, and would undershoot).
+  const mid = at(W / 2, H / 2), mid2 = at(W / 2 + 4, H / 2);
+  if (!mid || !mid2) return out;
+  const midScale = mid.distanceTo(mid2) || 1;
+  const terrainOn = view3d && cam.zoom >= TERRAIN_MIN_ZOOM;
+  // The terrain mesh reaches the horizon with a few very coarse tiles.
+  if (terrainOn && tileTemplates.dem) {
+    for (const dz of [3, 5]) {
+      const z = Math.max(0, Math.min(tileTemplates.demMax, Math.floor(cam.zoom) - dz));
+      const [tx, ty] = lngLatToTile(mid.lng, mid.lat, z);
+      out.add(tileUrl(tileTemplates.dem, z, tx, ty));
+    }
+  }
+  // A little past every edge: MapLibre loads whole tiles that touch the view,
+  // and the camera settles a touch differently with terrain under it.
+  const GX = 10, GY = 16, M = 0.12;
+  for (let gx = 0; gx <= GX; gx++) {
+    for (let gy = 0; gy <= GY; gy++) {
+      const x = W * (-M + ((1 + 2 * M) * gx) / GX), y = H * (-M + ((1 + 2 * M) * gy) / GY);
+      const ll = at(x, y), ll2 = at(x + 4, y);
+      if (!ll || !ll2) continue;
+      const scale = ll.distanceTo(ll2);
+      // At the horizon the screen stops mapping to ground and the step
+      // collapses; that row has nothing MapLibre would load at detail.
+      if (!(scale > midScale / 16)) continue;
+      const zEff = Math.max(cam.zoom - 6, Math.min(cam.zoom + 1.5, cam.zoom + Math.log2(midScale / scale)));
+      const central = gx >= 3 && gx <= GX - 3 && gy >= 4 && gy <= GY - 4;
+      // Towards the horizon MapLibre keeps more detail than ground-per-pixel
+      // alone suggests (it judges each tile by its nearest edge), so far
+      // points get the next level up as well.
+      const far = zEff < cam.zoom - 0.25;
+      const add = (tpl, z, max) => {
+        if (!tpl) return;
+        const levels = far ? [z, z + 1] : [z];
+        for (const lz of levels) {
+          const zz = Math.max(0, Math.min(max, Math.floor(lz)));
+          const [tx, ty] = lngLatToTile(ll.lng, ll.lat, zz);
+          out.add(tileUrl(tpl, zz, tx, ty));
+        }
+      };
+      add(tileTemplates.vec, zEff, tileTemplates.vecMax);
+      if (central) add(tileTemplates.vec, zEff - 1, tileTemplates.vecMax);
+      // Relief shading is drawn one level finer once it's draped on terrain.
+      if (view3d && !satOn) add(tileTemplates.dem, zEff + (terrainOn ? 1 : 0), tileTemplates.demMax);
+      if (terrainOn) add(tileTemplates.dem, zEff - 1, tileTemplates.demMax); // terrain mesh
+      if (satOn) add(tileTemplates.sat, zEff + 1 + (terrainOn ? 1 : 0), tileTemplates.satMax);
+    }
+  }
+  return out;
+}
+
+// The padding fitToRoutes will use once the route's card is open (it frames
+// the route above the card), worked out before the card exists.
+function selectionPadding() {
+  const saved = [detailOpen, sheetState, detailMode];
+  detailOpen = true;
+  if (!sheetState || sheetState === "closed" || sheetState === "full") sheetState = "peek";
+  detailMode = "route";
+  predictingSelection = true; // the card isn't filled yet: use its usual height
+  try {
+    return fitPadding();
+  } finally {
+    [detailOpen, sheetState, detailMode] = saved;
+    predictingSelection = false;
+  }
+}
+
+// Where a route's card puts the camera: framed like fitToRoutes does.
+function routeCamera(feature) {
+  const bounds = routesBounds([feature]);
+  if (!bounds) return null;
+  try {
+    const cam = map.cameraForBounds(bounds, { padding: selectionPadding(), maxZoom: 13, bearing: 0, pitch: map.getPitch() });
+    return cam && { center: maplibregl.LngLat.convert(cam.center), zoom: cam.zoom, pitch: map.getPitch(), bearing: 0 };
+  } catch (_) {
+    return null;
+  }
+}
+
+/* The tiles for the whole move to a route: where it lands, plus the views it
+   passes through on the way in from where the map is now (the zoom-in is a
+   second or so of frames at every zoom in between, and each asks for tiles). */
+/* The views on the way in. Opening a route is a flyTo, which zooms out a
+   little and back in along a curve (van Wijk & Nuij, the same maths MapLibre
+   uses, sampled here at a few points): each frame of it asks for tiles. */
+function flightCameras(end) {
+  const W = map.getContainer().clientWidth, H = map.getContainer().clientHeight;
+  const z0 = map.getZoom(), z1 = end.zoom;
+  const merc = (ll) => {
+    const r = (Math.max(-85.05, Math.min(85.05, ll.lat)) * Math.PI) / 180;
+    return [(ll.lng + 180) / 360, (1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2];
+  };
+  const unmerc = ([x, y]) => [x * 360 - 180, (Math.atan(Math.sinh(Math.PI * (1 - 2 * y))) * 180) / Math.PI];
+  const from = merc(map.getCenter()), to = merc(maplibregl.LngLat.convert(end.center));
+  const world0 = 512 * 2 ** z0;
+  const u1 = Math.hypot(to[0] - from[0], to[1] - from[1]) * world0;
+  const rho = 1.42, rho2 = rho * rho;
+  const w0 = Math.max(W, H), w1 = w0 / 2 ** (z1 - z0);
+  const r = (i) => {
+    const b = (w1 * w1 - w0 * w0 + (i ? -1 : 1) * rho2 * rho2 * u1 * u1) / (2 * (i ? w1 : w0) * rho2 * u1);
+    return Math.log(Math.sqrt(b * b + 1) - b);
+  };
+  let w, u, S;
+  const r0 = u1 > 1e-6 ? r(0) : 0;
+  if (u1 > 1e-6 && Number.isFinite(r0) && Number.isFinite(r(1))) {
+    w = (s) => Math.cosh(r0) / Math.cosh(r0 + rho * s);
+    u = (s) => (w0 * ((Math.cosh(r0) * Math.tanh(r0 + rho * s) - Math.sinh(r0)) / rho2)) / u1;
+    S = (r(1) - r0) / rho;
+  } else {
+    if (Math.abs(z1 - z0) < 1e-3) return [];
+    const k = w1 < w0 ? -1 : 1;
+    S = Math.abs(Math.log(w1 / w0)) / rho;
+    u = () => 0;
+    w = (s) => Math.exp(k * rho * s);
+  }
+  // Roughly one view per zoom level crossed (the curve's dip counts too).
+  const n = Math.max(0, Math.min(5, Math.ceil(Math.abs(z1 - z0)) - 1));
+  const out = [];
+  for (let i = 1; i <= n; i++) {
+    const s = (i / (n + 1)) * S;
+    const f = Math.max(0, Math.min(1, u(s)));
+    out.push({
+      center: unmerc([from[0] + (to[0] - from[0]) * f, from[1] + (to[1] - from[1]) * f]),
+      zoom: z0 + Math.log2(1 / w(s)),
+      pitch: end.pitch,
+      bearing: 0,
+    });
+  }
+  return out;
+}
+
+const modeKey = () => `${view3d ? 3 : 2}${satOn ? "s" : ""}|${map.getContainer().clientWidth}x${map.getContainer().clientHeight}`;
+const camKey = (c) => {
+  const ll = maplibregl.LngLat.convert(c.center);
+  return `${ll.lng.toFixed(3)},${ll.lat.toFixed(3)},${c.zoom.toFixed(2)},${Math.round(c.pitch)}`;
+};
+const probeCache = new Map(); // modeKey|camKey -> tile URLs
+let probeStyleCache = { key: null, style: null };
+
+// The main style without the route/event layers — the probe only needs the
+// tiled sources and the layers that draw them.
+function probeStyle() {
+  const key = modeKey();
+  if (probeStyleCache.key === key) return probeStyleCache.style;
+  const st = map.getStyle();
+  const drop = new Set(Object.keys(st.sources).filter((id) => !Array.isArray(st.sources[id].tiles)));
+  for (const id of drop) delete st.sources[id];
+  st.layers = st.layers.filter((l) => !l.source || !drop.has(l.source));
+  delete st.sprite;
+  probeStyleCache = { key, style: st };
+  return st;
+}
+
+function terrainFor(cam) {
+  return view3d && cam.zoom >= TERRAIN_MIN_ZOOM ? { source: TERRAIN_SOURCE, exaggeration: TERRAIN_EXAGGERATION } : null;
+}
+
+async function exactTiles(cam) {
+  const key = modeKey() + "|" + camKey(cam);
+  if (probeCache.has(key)) return probeCache.get(key);
+  let urls;
+  try {
+    urls = await probeTiles(map, probeStyle(), cam, terrainFor(cam));
+  } catch (e) {
+    urls = [...tilesForCamera(cam)]; // no hidden map (WebGL refused): estimate
+  }
+  if (probeCache.size > 400) probeCache.clear();
+  probeCache.set(key, urls);
+  return urls;
+}
+
+// Landing view first, then (for the routes nearest the rider) the views on
+// the way in, which change every time the map moves.
+async function exactRouteTiles(feature, withFlight) {
+  const end = routeCamera(feature);
+  if (!end) return [];
+  const set = new Set(await exactTiles(end));
+  if (withFlight) for (const cam of flightCameras(end)) for (const u of await exactTiles(cam)) set.add(u);
+  return [...set];
+}
+
+/* A route someone is reaching for (pin pressed or hovered, picked from the
+   list, opened from a link): fetch its tiles now. If the hidden map has
+   already worked them out, those; otherwise a quick estimate straight away
+   (it can't wait a frame for the probe), with the exact list following. */
+function prefetchRouteNow(id) {
+  if (!mapReady) return;
+  const f = routeById.get(id);
+  const end = f && routeCamera(f);
+  if (!end) return;
+  const known = probeCache.get(modeKey() + "|" + camKey(end));
+  if (known) {
+    prefetchTiles(known, { urgent: true });
+  } else {
+    const quick = tilesForCamera(end);
+    for (const cam of flightCameras(end)) for (const u of tilesForCamera(cam)) quick.add(u);
+    prefetchTiles([...quick], { urgent: true });
+  }
+}
+
+let prefetchStarted = false;
+function startPrefetch() {
+  if (prefetchStarted || !map) return;
+  prefetchStarted = true;
+  setBusyCheck(mapBusy);
+  map.on("idle", resumePrefetch);
+  queueAllRoutes();
+  // Re-order around wherever the rider has moved to, and redo it when 3D or
+  // imagery changes which tiles are needed.
+  let t = null;
+  map.on("moveend", () => {
+    clearTimeout(t);
+    t = setTimeout(queueAllRoutes, 600);
+  });
+  window.brmPrefetchStats = () => ({ ...prefetchStats(), probing: queueRunning });
+}
+
+const mapBusy = () => !map.areTilesLoaded() || map.isMoving();
+const pause = (ms) => new Promise((r) => setTimeout(r, ms));
+
+let queueGen = 0;
+let queueRunning = false;
+async function queueAllRoutes() {
+  if (!map || cinematicsRunning()) return;
+  const gen = ++queueGen;
+  clearBackgroundQueue();
+  const view = map.getBounds();
+  const c = map.getCenter();
+  const items = [];
+  for (const f of routeFeatures) {
+    const start = f.geometry && f.geometry.coordinates && f.geometry.coordinates[0];
+    if (!start) continue;
+    const onScreen = view.contains(start);
+    const d = Math.hypot(start[0] - c.lng, start[1] - c.lat);
+    items.push({ f, rank: (onScreen ? 0 : 1e6) + d });
+  }
+  items.sort((a, b) => a.rank - b.rank);
+  queueRunning = true;
+  try {
+    const FLIGHT_ROUTES = 10;
+    for (const [i, { f }] of items.entries()) {
+      // Work only while the map is quiet, stay a little ahead of the
+      // downloads, and stop once the data budget is spent.
+      for (;;) {
+        if (gen !== queueGen) return;
+        const st = prefetchStats();
+        if (st.backgroundBytes >= st.budget) return;
+        if (!mapBusy() && !cinematicsRunning() && st.queued < 80) break;
+        await pause(300);
+      }
+      const urls = await exactRouteTiles(f, i < FLIGHT_ROUTES);
+      if (gen !== queueGen) return;
+      prefetchTiles(urls);
+    }
+  } finally {
+    if (gen === queueGen) {
+      queueRunning = false;
+      releaseProbe();
+    }
+  }
+}
+
 const READY_HOLD_MS = 300;
 const READY_CAP_MS = 15000;
 
@@ -392,7 +745,11 @@ function liftLoader() {
 }
 
 function watchReadyToLift() {
-  if (!document.getElementById("map-loader")) return; // already shown this session
+  if (!document.getElementById("map-loader")) {
+    // Loader already played this session: nothing to lift, just start warming.
+    map.once("idle", startPrefetch);
+    return;
+  }
   let done = false;
   let readySince = 0;
   const finish = () => {
@@ -402,6 +759,7 @@ function watchReadyToLift() {
     map.off("render", check);
     clearTimeout(cap);
     liftLoader();
+    startPrefetch();
   };
   const check = () => {
     let ready = false;
@@ -591,6 +949,7 @@ async function initMap() {
   // Load the recoloured basemap style: OpenFreeMap (OpenMapTiles schema,
   // whole planet, no key).
   const style = await fetch("styles/bush.json").then((r) => r.json());
+  await routeTilesThroughCache(style);
 
   // Use the deepest DEM level this server is known to serve. Falls back to the
   // value shipped in bush.json until the probe has answered once — and the
@@ -1022,6 +1381,14 @@ function wireInteractions() {
     }
   };
   map.on("click", "routes-hit", openPin);
+  // A finger landing on a pin, or a pointer resting on one, comes a beat
+  // before the tap: start that route's tiles right then.
+  const reachPin = (e) => {
+    const f = e.features && e.features[0];
+    if (!f) return;
+    String(f.properties.ids || f.properties.id).split(",").filter(Boolean).slice(0, 3).forEach(prefetchRouteNow);
+  };
+  for (const ev of ["mouseenter", "touchstart", "mousedown"]) map.on(ev, "routes-hit", reachPin);
 
   for (const layer of ["clusters", "routes-hit", "route-count"]) {
     map.on("mouseenter", layer, () => (map.getCanvas().style.cursor = "pointer"));
@@ -1304,6 +1671,7 @@ function selectRoute(id, fly) {
   const feature = routeById.get(id);
   if (!feature) return;
   preloadPhoto(feature.properties.photo_url);
+  prefetchRouteNow(id); // from the list or a link: no pin press came first
   deck = null; // a directly-picked community route has no sibling deck
   backTarget = null;
   updateDeckNav();
@@ -1874,6 +2242,7 @@ function setSatellite(on) {
   satOn = on;
   applyRelief();
   saveSat();
+  if (prefetchStarted) queueAllRoutes(); // imagery needs its own tiles
 }
 
 /* The basemap's ink-on-cream typography is tuned for a pale vector map. Over
@@ -2468,10 +2837,14 @@ function viewportHeight() {
 // Visible heights (px, measured up from the bottom edge) for each snap state.
 // Peek is measured from the natural height of the drag zone so the primary
 // action is always fully visible; half/full are viewport fractions.
+let lastPeekNatural = 0; // the open card's peek height, for predicting the next
+let predictingSelection = false;
 function snapHeights() {
   const vh = viewportHeight();
   const full = els.detail.offsetHeight || Math.round(vh * 0.9);
-  const peekNatural = (els.drag ? els.drag.offsetHeight : 210) + 8;
+  let peekNatural = (els.drag ? els.drag.offsetHeight : 210) + 8;
+  if (predictingSelection) peekNatural = lastPeekNatural || Math.round(vh * 0.3);
+  else if (detailOpen && els.drag && els.drag.offsetHeight) lastPeekNatural = peekNatural;
   const half = Math.round(vh * 0.6);
   return {
     peek: Math.min(peekNatural, half),
