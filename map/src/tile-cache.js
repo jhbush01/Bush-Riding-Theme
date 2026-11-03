@@ -191,10 +191,18 @@ export function setBusyCheck(fn) {
 }
 
 // Add tile URLs (plain https). `urgent` puts them first and starts them now,
-// even if the map is busy and past the data budget.
-export function prefetchTiles(urls, { urgent = false } = {}) {
+// even if the map is busy and past the data budget. `front` puts them first
+// but still waits for a quiet map and respects the budget.
+export function prefetchTiles(urls, { urgent = false, front = false } = {}) {
   const fresh = urls.filter((u) => !done.has(u) && !mem.has(u));
-  if (urgent) {
+  if (front && !urgent) {
+    const set = new Set(fresh);
+    const lead = [];
+    const rest = [];
+    for (const x of queue) (x.urgent ? lead : set.has(x.u) ? [] : rest).push(x);
+    fresh.forEach((u) => queued.add(u));
+    queue = lead.concat(fresh.map((u) => ({ u, urgent: false, front: true })), rest);
+  } else if (urgent) {
     const set = new Set(fresh);
     queue = queue.filter((x) => !set.has(x.u));
     fresh.forEach((u) => queued.add(u));
@@ -209,10 +217,11 @@ export function prefetchTiles(urls, { urgent = false } = {}) {
   pump();
 }
 
-// Drop queued background work (e.g. the view changed and the order is stale).
+// Drop queued background route work (the view changed and the order is
+// stale). Urgent and zoom-ahead tiles stay.
 export function clearBackgroundQueue() {
   queue = queue.filter((x) => {
-    if (x.urgent) return true;
+    if (x.urgent || x.front) return true;
     queued.delete(x.u);
     return false;
   });
@@ -300,8 +309,25 @@ function installProbeProtocol() {
     const [, kind, n, rest] = m;
     if (+n === probeN && probeSink) probeSink.add("https://" + rest);
     if (kind === "vec") return { data: new ArrayBuffer(0) };
-    // Terrarium encodes 0 m as rgb(128, 0, 0).
-    if (kind === "dem") return { data: (flatDem || (flatDem = await solidPng(512, "128,0,0"))).slice(0) };
+    if (kind === "dem") {
+      // The real elevation when we already hold it, so the probe's camera
+      // sits on the same hills as the real one (in 3D the camera rides the
+      // terrain, which moves what's in view); flat ground otherwise.
+      const url = "https://" + rest;
+      let real = mem.get(url);
+      if (!real) {
+        try {
+          const cache = await openCache();
+          const hit = cache && (await cache.match(url));
+          if (hit) real = await hit.arrayBuffer();
+        } catch (_) {
+          /* flat it is */
+        }
+      }
+      if (real && real.byteLength) return { data: real.slice(0) };
+      // Terrarium encodes 0 m as rgb(128, 0, 0).
+      return { data: (flatDem || (flatDem = await solidPng(512, "128,0,0"))).slice(0) };
+    }
     return { data: (blankImg || (blankImg = await solidPng(1, "0,0,0"))).slice(0) };
   });
 }

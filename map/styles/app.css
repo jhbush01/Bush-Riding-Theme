@@ -412,8 +412,16 @@ body {
 /* ---------- Results list ---------- */
 .results {
   flex: 1;
+  min-height: 0; /* lets the scroll area below shrink inside the sidebar */
+  display: flex;
+  flex-direction: column;
+}
+.results__scroll {
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  padding: 12px 0;
+  overscroll-behavior: contain; /* the list's bounce stays in the list */
+  padding: 4px 0 12px;
 }
 
 /* Search — sits on top of the list it filters, so the routes visibly narrow
@@ -423,8 +431,8 @@ body {
    icon and a roomier 42px height so it reads as THE search, not a stray
    form field.
 
-   Sticky, because .results is the scroll container: scroll down the list
-   and the field stays put rather than scrolling away from what it filters.
+   Fixed above the list's own scroll area (.results__scroll), so it stays put
+   while the routes scroll, and nothing ever passes under it.
 
    Focus is an olive edge, not the global 2px lemon ring. That ring is right
    for buttons and links, but on a text field it sat outside a hairline box
@@ -432,10 +440,8 @@ body {
    a clearly visible focus state (7:1 on white), just in the field's own
    language. */
 .results__search {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  margin: -12px 0 10px; /* cancel .results' top padding so it pins flush */
+  position: relative; /* anchors the icon and clear button */
+  flex: none;
   padding: 14px 20px 10px;
   background: var(--cream-panel);
 }

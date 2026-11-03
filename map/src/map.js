@@ -1,7 +1,7 @@
 // Bush Riding Routes — map init, sources/layers, pins, selection, panel.
 import { setupFilters, applyFilters } from "./filters.js";
 import { setupGate } from "./gate.js";
-import { installTileProtocol, wrapTileUrl, prefetchTiles, clearBackgroundQueue, setBusyCheck, resumePrefetch, prefetchStats, probeTiles, releaseProbe } from "./tile-cache.js";
+import { installTileProtocol, wrapTileUrl, prefetchTiles, clearBackgroundQueue, setBusyCheck, resumePrefetch, prefetchStats, probeTiles } from "./tile-cache.js";
 
 const CONFIG = window.BRM_CONFIG || {};
 // Single swappable line for the basemap tiles (set in index.html config block).
@@ -681,18 +681,64 @@ function startPrefetch() {
   prefetchStarted = true;
   setBusyCheck(mapBusy);
   map.on("idle", resumePrefetch);
-  queueAllRoutes();
-  // Re-order around wherever the rider has moved to, and redo it when 3D or
-  // imagery changes which tiles are needed.
+  zoomAhead().finally(queueAllRoutes);
+  // Whenever the map comes to rest: the next zoom levels of what's on screen
+  // first, then re-order the routes around wherever the rider has moved to
+  // (which also picks up 3D or imagery changing the tiles needed).
   let t = null;
   map.on("moveend", () => {
     clearTimeout(t);
-    t = setTimeout(queueAllRoutes, 600);
+    t = setTimeout(() => zoomAhead().finally(queueAllRoutes), 400);
   });
-  window.brmPrefetchStats = () => ({ ...prefetchStats(), probing: queueRunning });
+  window.brmPrefetchStats = () => ({ ...prefetchStats(), probing: queueRunning || aheadRunning });
 }
 
 const mapBusy = () => !map.areTilesLoaded() || map.isMoving();
+
+/* Zooming in by hand — pinch, scroll, the + button, a double tap — lands on
+   the next zoom level of the view you're looking at. So whenever the map
+   comes to rest, fetch that: the view one level in, centred and pinched
+   towards each quarter of the screen, and the middle two levels in (the +
+   button and double-tap zoom on the centre). Ahead of the route queue, within the same
+   data budget, and only once the map's own tiles are in. */
+let aheadGen = 0;
+let aheadRunning = false;
+async function zoomAhead() {
+  if (!map || cinematicsRunning()) return;
+  const gen = ++aheadGen;
+  aheadRunning = true;
+  try {
+    await zoomAheadRun(gen);
+  } finally {
+    if (gen === aheadGen) aheadRunning = false;
+  }
+}
+async function zoomAheadRun(gen) {
+  while (mapBusy()) {
+    await pause(250);
+    if (gen !== aheadGen) return;
+  }
+  const z = map.getZoom();
+  const c = map.getCenter();
+  const pitch = map.getPitch();
+  const urls = new Set();
+  const take = async (cam) => {
+    for (const u of await exactTiles({ ...cam, pitch, bearing: 0 })) urls.add(u);
+    return gen === aheadGen;
+  };
+  if (z + 1 > map.getMaxZoom()) return;
+  // One level in on the centre, then on the middle of each quarter of the
+  // screen (a pinch keeps the point under the fingers still, so the view
+  // slides towards it), then two levels in on the centre.
+  if (!(await take({ center: c, zoom: z + 1 }))) return;
+  const box = map.getContainer();
+  for (const [fx, fy] of [[0.25, 0.25], [0.75, 0.25], [0.25, 0.75], [0.75, 0.75]]) {
+    const a = map.unproject([box.clientWidth * fx, box.clientHeight * fy]);
+    if (!(await take({ center: [(a.lng + c.lng) / 2, (a.lat + c.lat) / 2], zoom: z + 1 }))) return;
+  }
+  if (z + 2 <= map.getMaxZoom() && !(await take({ center: c, zoom: z + 2 }))) return;
+  prefetchTiles([...urls], { front: true });
+}
 const pause = (ms) => new Promise((r) => setTimeout(r, ms));
 
 let queueGen = 0;
@@ -730,10 +776,8 @@ async function queueAllRoutes() {
       prefetchTiles(urls);
     }
   } finally {
-    if (gen === queueGen) {
-      queueRunning = false;
-      releaseProbe();
-    }
+    // The hidden map stays: zoomAhead needs it every time the map settles.
+    if (gen === queueGen) queueRunning = false;
   }
 }
 
@@ -1031,7 +1075,7 @@ function onLoad() {
   // ambassador-scale data later needs no rework.
   map.addSource("routes-points", {
     type: "geojson",
-    data: pointsFC(routeFeatures),
+    data: pinsFC(routeFeatures),
     cluster: true,
     /* Cluster tightly and give up early.
        At radius 45 / maxZoom 11, pins that were plainly separate on screen
@@ -1117,7 +1161,7 @@ function onLoad() {
     id: "routes-halo",
     type: "circle",
     source: "routes-points",
-    filter: ["!", ["has", "point_count"]],
+    filter: ["all", ["!", ["has", "point_count"]], ["!=", ["get", "kind"], "famous"]],
     paint: {
       "circle-color": CREAM,
       // Pin radius + its stroke + 2. Keep in step with `unclustered` below:
@@ -1135,10 +1179,10 @@ function onLoad() {
     id: "unclustered",
     type: "circle",
     source: "routes-points",
-    filter: ["!", ["has", "point_count"]],
+    filter: ["all", ["!", ["has", "point_count"]], ["!=", ["get", "kind"], "famous"]],
     paint: {
-      // Selected pins, then grouped trailhead pins, then singles. (Famous rides
-      // live in their own source, so these are all ordinary community routes.)
+      // Selected pins, then grouped trailhead pins, then singles. (Famous-ride
+      // pins share the source but draw in their own layers, filtered out here.)
       // Grown from 6/9/8: at the old sizes a single pin was a 12px dot, which
       // is under half a fingertip. The invisible routes-hit layer below carries
       // the rest of the touch target.
@@ -1169,7 +1213,7 @@ function onLoad() {
     id: "routes-hit",
     type: "circle",
     source: "routes-points",
-    filter: ["!", ["has", "point_count"]],
+    filter: ["all", ["!", ["has", "point_count"]], ["!=", ["get", "kind"], "famous"]],
     paint: { "circle-radius": 20, "circle-color": OLIVE, "circle-opacity": 0 },
   });
 
@@ -1178,7 +1222,7 @@ function onLoad() {
     id: "route-count",
     type: "symbol",
     source: "routes-points",
-    filter: ["all", ["!", ["has", "point_count"]], [">", ["get", "count"], 1]],
+    filter: ["all", ["!", ["has", "point_count"]], [">", ["get", "count"], 1], ["!=", ["get", "kind"], "famous"]],
     layout: {
       "text-field": ["to-string", ["get", "count"]],
       "text-font": ["Noto Sans Regular"],
@@ -1299,9 +1343,26 @@ function pointsFC(features) {
   return { type: "FeatureCollection", features: out };
 }
 
+/* Everything that goes in the clustered pin source: community pins (filtered)
+   and famous-ride pins (never filtered), minus any category switched off in
+   the drawer. One source, so they cluster together. */
+const pinCategoryOn = { routes: true, famous: true };
+function pinsFC(filtered) {
+  const routes = pointsFC(filtered).features; // also rebuilds routeToPinId
+  const famous = famousFC(routeFeatures).features.map((f) => ({
+    ...f,
+    properties: { ...f.properties, kind: "famous" },
+  }));
+  return {
+    type: "FeatureCollection",
+    features: [...(pinCategoryOn.routes ? routes : []), ...(pinCategoryOn.famous ? famous : [])],
+  };
+}
+
 // Famous-ride pins: one olive marker per famous ride, at the centre of
-// its routes. Always shown (not clustered, not filtered) so a well-known event
-// stays prominent even zoomed out. Carries its members + event metadata.
+// its routes. Not filtered, so a well-known event never vanishes, but grouped
+// with the community pins (see pinsFC) so the opening view is one tidy set of
+// clusters that splits as you zoom. Carries its members + event metadata.
 function famousFC(features) {
   const groups = new Map(); // lowercased name -> group
   for (const f of features) {
@@ -1416,9 +1477,10 @@ function wireInteractions() {
 // ---- Famous-ride pins (pulsing, own colour) ------------------------------
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-function setupFamousLayers() {
-  map.addSource("famous-rides", { type: "geojson", data: famousFC(routeFeatures) });
+// A famous-ride pin once it has split out of its cluster.
+const FAMOUS_PIN_FILTER = ["all", ["!", ["has", "point_count"]], ["==", ["get", "kind"], "famous"]];
 
+function setupFamousLayers() {
   // No ripple here. The pulse is now reserved as the bush-event signature, so
   // a pulsing pin means "something is happening" rather than just "pin".
   // Famous rides read as an olive core + a route count instead.
@@ -1426,7 +1488,8 @@ function setupFamousLayers() {
   map.addLayer({
     id: "famous-core",
     type: "circle",
-    source: "famous-rides",
+    source: "routes-points",
+    filter: FAMOUS_PIN_FILTER,
     paint: {
       "circle-radius": 11,
       "circle-color": FAMOUS_PIN,
@@ -1440,8 +1503,8 @@ function setupFamousLayers() {
   map.addLayer({
     id: "famous-count",
     type: "symbol",
-    source: "famous-rides",
-    filter: [">", ["get", "count"], 1],
+    source: "routes-points",
+    filter: ["all", FAMOUS_PIN_FILTER, [">", ["get", "count"], 1]],
     layout: {
       "text-field": ["to-string", ["get", "count"]],
       "text-font": ["Noto Sans Regular"],
@@ -1456,7 +1519,8 @@ function setupFamousLayers() {
   map.addLayer({
     id: "famous-hit",
     type: "circle",
-    source: "famous-rides",
+    source: "routes-points",
+    filter: FAMOUS_PIN_FILTER,
     paint: { "circle-radius": 22, "circle-color": FAMOUS_PIN, "circle-opacity": 0 },
   });
 }
@@ -3666,10 +3730,8 @@ function onTransitionEndOnce(el, fn) {
 function refresh() {
   const filtered = applyFilters(routeFeatures);
   if (mapReady) {
-    map.getSource("routes-points").setData(pointsFC(filtered));
-    // Famous rides always show (unfiltered) so a well-known event never vanishes.
-    const fam = map.getSource("famous-rides");
-    if (fam) fam.setData(famousFC(routeFeatures));
+    // Famous rides are added unfiltered, so a well-known event never vanishes.
+    map.getSource("routes-points").setData(pinsFC(filtered));
   }
   renderResults(filtered);
   // If the selected route fell out of the filter, drop the selection and close
@@ -3724,6 +3786,14 @@ const CATEGORY_LAYERS = {
 };
 
 function setCategoryVisible(cat, on) {
+  // Community and famous pins share one clustered source, so hiding a layer
+  // would leave its pins counted in the clusters. Take them out of the data.
+  if (cat in pinCategoryOn) {
+    if (pinCategoryOn[cat] === on) return;
+    pinCategoryOn[cat] = on;
+    if (mapReady) map.getSource("routes-points").setData(pinsFC(applyFilters(routeFeatures)));
+    return;
+  }
   for (const layer of CATEGORY_LAYERS[cat] || []) {
     if (map.getLayer(layer)) map.setLayoutProperty(layer, "visibility", on ? "visible" : "none");
   }

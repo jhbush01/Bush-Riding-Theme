@@ -214,8 +214,13 @@
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
           </button>
         </div>
-        <p id="results-count" class="results__count"></p>
-        <ul id="results-list" class="results__list"></ul>
+        <!-- Only the list scrolls. The search sits above the scroll area, not
+             in it, so a route can never slide under or behind it (iOS's
+             bounce at the top of a list used to drag rows past it). -->
+        <div class="results__scroll">
+          <p id="results-count" class="results__count"></p>
+          <ul id="results-list" class="results__list"></ul>
+        </div>
       </div>
 
       <!-- Legal + contact. The map collects email addresses (GPX gate) and
