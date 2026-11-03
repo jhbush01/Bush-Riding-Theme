@@ -881,7 +881,21 @@ async function loadEvents() {
   }
 }
 
+/* A finished event has nothing left to show on the map. Finished means
+   marked "past" in admin, or its date is over: it stays up through the whole
+   day it runs (by the viewer's own calendar) and is gone the day after. An
+   event with no date stays until it's marked past. */
+function eventIsOver(p) {
+  if (p.status === "past") return true;
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(p.date_iso || "");
+  if (!m) return false;
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  return `${m[1]}-${m[2]}-${m[3]}` < today;
+}
+
 function setEventFeatures(feats) {
+  feats = feats.filter((f) => !eventIsOver(f.properties || {}));
   eventFeatures = feats;
   eventById.clear();
   eventByRouteId.clear();
