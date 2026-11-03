@@ -1,7 +1,7 @@
 // Bush Riding Routes — map init, sources/layers, pins, selection, panel.
 import { setupFilters, applyFilters } from "./filters.js";
 import { setupGate } from "./gate.js";
-import { installTileProtocol, wrapTileUrl, prefetchTiles, clearBackgroundQueue, setBusyCheck, resumePrefetch, prefetchStats, probeTiles } from "./tile-cache.js";
+import { installTileProtocol, wrapTileUrl, prefetchTiles, clearBackgroundQueue, setBusyCheck, resumePrefetch, prefetchStats } from "./tile-cache.js";
 
 const CONFIG = window.BRM_CONFIG || {};
 // Single swappable line for the basemap tiles (set in index.html config block).
@@ -606,73 +606,23 @@ function flightCameras(end) {
   return out;
 }
 
-const modeKey = () => `${view3d ? 3 : 2}${satOn ? "s" : ""}|${map.getContainer().clientWidth}x${map.getContainer().clientHeight}`;
-const camKey = (c) => {
-  const ll = maplibregl.LngLat.convert(c.center);
-  return `${ll.lng.toFixed(3)},${ll.lat.toFixed(3)},${c.zoom.toFixed(2)},${Math.round(c.pitch)}`;
-};
-const probeCache = new Map(); // modeKey|camKey -> tile URLs
-let probeStyleCache = { key: null, style: null };
-
-// The main style without the route/event layers — the probe only needs the
-// tiled sources and the layers that draw them.
-function probeStyle() {
-  const key = modeKey();
-  if (probeStyleCache.key === key) return probeStyleCache.style;
-  const st = map.getStyle();
-  const drop = new Set(Object.keys(st.sources).filter((id) => !Array.isArray(st.sources[id].tiles)));
-  for (const id of drop) delete st.sources[id];
-  st.layers = st.layers.filter((l) => !l.source || !drop.has(l.source));
-  delete st.sprite;
-  probeStyleCache = { key, style: st };
-  return st;
-}
-
-function terrainFor(cam) {
-  return view3d && cam.zoom >= TERRAIN_MIN_ZOOM ? { source: TERRAIN_SOURCE, exaggeration: TERRAIN_EXAGGERATION } : null;
-}
-
-async function exactTiles(cam) {
-  const key = modeKey() + "|" + camKey(cam);
-  if (probeCache.has(key)) return probeCache.get(key);
-  let urls;
-  try {
-    urls = await probeTiles(map, probeStyle(), cam, terrainFor(cam));
-  } catch (e) {
-    urls = [...tilesForCamera(cam)]; // no hidden map (WebGL refused): estimate
-  }
-  if (probeCache.size > 400) probeCache.clear();
-  probeCache.set(key, urls);
-  return urls;
-}
-
 // Landing view first, then (for the routes nearest the rider) the views on
-// the way in, which change every time the map moves.
-async function exactRouteTiles(feature, withFlight) {
+// the way in, which change every time the map moves. Plain sums on a copy of
+// the camera (tilesForCamera): no drawing, a millisecond or two per route.
+function routeTiles(feature, withFlight) {
   const end = routeCamera(feature);
   if (!end) return [];
-  const set = new Set(await exactTiles(end));
-  if (withFlight) for (const cam of flightCameras(end)) for (const u of await exactTiles(cam)) set.add(u);
+  const set = tilesForCamera(end);
+  if (withFlight) for (const cam of flightCameras(end)) for (const u of tilesForCamera(cam)) set.add(u);
   return [...set];
 }
 
-/* A route someone is reaching for (pin pressed or hovered, picked from the
-   list, opened from a link): fetch its tiles now. If the hidden map has
-   already worked them out, those; otherwise a quick estimate straight away
-   (it can't wait a frame for the probe), with the exact list following. */
+// A route someone is reaching for (pin pressed or hovered, picked from the
+// list, opened from a link): fetch its tiles now.
 function prefetchRouteNow(id) {
   if (!mapReady) return;
   const f = routeById.get(id);
-  const end = f && routeCamera(f);
-  if (!end) return;
-  const known = probeCache.get(modeKey() + "|" + camKey(end));
-  if (known) {
-    prefetchTiles(known, { urgent: true });
-  } else {
-    const quick = tilesForCamera(end);
-    for (const cam of flightCameras(end)) for (const u of tilesForCamera(cam)) quick.add(u);
-    prefetchTiles([...quick], { urgent: true });
-  }
+  if (f) prefetchTiles(routeTiles(f, true), { urgent: true });
 }
 
 let prefetchStarted = false;
@@ -681,62 +631,69 @@ function startPrefetch() {
   prefetchStarted = true;
   setBusyCheck(mapBusy);
   map.on("idle", resumePrefetch);
-  zoomAhead().finally(queueAllRoutes);
-  // Whenever the map comes to rest: the next zoom levels of what's on screen
-  // first, then re-order the routes around wherever the rider has moved to
-  // (which also picks up 3D or imagery changing the tiles needed).
+  zoomAhead();
+  queueAllRoutes();
+  // Once the map has been still a moment: the next zoom level of what's on
+  // screen first, then re-order the routes around wherever the rider has
+  // moved to (which also picks up 3D or imagery changing the tiles needed).
+  // The wait keeps a pan with pauses in it from fetching for every pause.
   let t = null;
+  map.on("movestart", () => clearTimeout(t));
   map.on("moveend", () => {
     clearTimeout(t);
-    t = setTimeout(() => zoomAhead().finally(queueAllRoutes), 400);
+    t = setTimeout(() => {
+      zoomAhead();
+      queueAllRoutes();
+    }, 900);
   });
-  window.brmPrefetchStats = () => ({ ...prefetchStats(), probing: queueRunning || aheadRunning });
+  window.brmPrefetchStats = () => ({ ...prefetchStats(), probing: queueRunning });
 }
 
 const mapBusy = () => !map.areTilesLoaded() || map.isMoving();
 
-/* Zooming in by hand — pinch, scroll, the + button, a double tap — lands on
-   the next zoom level of the view you're looking at. So whenever the map
-   comes to rest, fetch that: the view one level in, centred and pinched
-   towards each quarter of the screen, and the middle two levels in (the +
-   button and double-tap zoom on the centre). Ahead of the route queue, within the same
-   data budget, and only once the map's own tiles are in. */
-let aheadGen = 0;
-let aheadRunning = false;
-async function zoomAhead() {
-  if (!map || cinematicsRunning()) return;
-  const gen = ++aheadGen;
-  aheadRunning = true;
-  try {
-    await zoomAheadRun(gen);
-  } finally {
-    if (gen === aheadGen) aheadRunning = false;
-  }
-}
-async function zoomAheadRun(gen) {
-  while (mapBusy()) {
-    await pause(250);
-    if (gen !== aheadGen) return;
-  }
-  const z = map.getZoom();
-  const c = map.getCenter();
-  const pitch = map.getPitch();
+/* Zooming in by hand (pinch, scroll, the + button, a double tap) lands on the
+   next zoom level of what's on screen. Each tile MapLibre is showing now is
+   replaced, one level in, by its four children, so those are what to fetch:
+   exact, and nothing to work out. Read from MapLibre's own list of tiles in
+   view (an internal of the vendored 5.24 build), topped up with the camera
+   estimate one level in. Ahead of the route queue, within the same data
+   budget. */
+const SOURCE_TEMPLATE = {
+  openmaptiles: () => [tileTemplates.vec, tileTemplates.vecMax],
+  "terrain-dem": () => [tileTemplates.dem, tileTemplates.demMax],
+  "terrain-dem-shade": () => [tileTemplates.dem, tileTemplates.demMax],
+  "satellite-esri": () => [tileTemplates.sat, tileTemplates.satMax],
+  "satellite-s2": () => [tileTemplates.sat, tileTemplates.satMax],
+};
+function zoomAhead() {
+  if (!map || cinematicsRunning() || map.getZoom() + 1 > map.getMaxZoom()) return;
   const urls = new Set();
-  const take = async (cam) => {
-    for (const u of await exactTiles({ ...cam, pitch, bearing: 0 })) urls.add(u);
-    return gen === aheadGen;
-  };
-  if (z + 1 > map.getMaxZoom()) return;
-  // One level in on the centre, then on the middle of each quarter of the
-  // screen (a pinch keeps the point under the fingers still, so the view
-  // slides towards it), then two levels in on the centre.
-  if (!(await take({ center: c, zoom: z + 1 }))) return;
-  const box = map.getContainer();
-  for (const [fx, fy] of [[0.25, 0.25], [0.75, 0.25], [0.25, 0.75], [0.75, 0.75]]) {
-    const a = map.unproject([box.clientWidth * fx, box.clientHeight * fy]);
-    if (!(await take({ center: [(a.lng + c.lng) / 2, (a.lat + c.lat) / 2], zoom: z + 1 }))) return;
+  let read = false;
+  try {
+    const managers = map.style.tileManagers || {};
+    for (const [id, tm] of Object.entries(managers)) {
+      const pick = SOURCE_TEMPLATE[id];
+      const tiles = pick && tm._inViewTiles && tm._inViewTiles._tiles;
+      if (!tiles) continue;
+      const [tpl, max] = pick();
+      if (!tpl) continue;
+      read = true;
+      for (const t of Object.values(tiles)) {
+        const c = t.tileID && t.tileID.canonical;
+        if (!c || c.z + 1 > max) continue;
+        for (const [dx, dy] of [[0, 0], [1, 0], [0, 1], [1, 1]]) {
+          urls.add(tileUrl(tpl, c.z + 1, c.x * 2 + dx, c.y * 2 + dy));
+        }
+      }
+    }
+  } catch (_) {
+    read = false;
   }
-  if (z + 2 <= map.getMaxZoom() && !(await take({ center: c, zoom: z + 2 }))) return;
+  // Plus the estimate for one level in: in 3D, zooming moves the near edge of
+  // the view onto ground whose parent tile wasn't on screen. (On its own if
+  // MapLibre's tile list couldn't be read.)
+  for (const u of tilesForCamera({ center: map.getCenter(), zoom: map.getZoom() + 1, pitch: map.getPitch(), bearing: 0 })) urls.add(u);
+  void read;
   prefetchTiles([...urls], { front: true });
 }
 const pause = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -760,7 +717,7 @@ async function queueAllRoutes() {
   items.sort((a, b) => a.rank - b.rank);
   queueRunning = true;
   try {
-    const FLIGHT_ROUTES = 10;
+    const FLIGHT_ROUTES = 5;
     for (const [i, { f }] of items.entries()) {
       // Work only while the map is quiet, stay a little ahead of the
       // downloads, and stop once the data budget is spent.
@@ -771,12 +728,10 @@ async function queueAllRoutes() {
         if (!mapBusy() && !cinematicsRunning() && st.queued < 80) break;
         await pause(300);
       }
-      const urls = await exactRouteTiles(f, i < FLIGHT_ROUTES);
-      if (gen !== queueGen) return;
-      prefetchTiles(urls);
+      prefetchTiles(routeTiles(f, i < FLIGHT_ROUTES));
+      await pause(0); // one route per task, so a long list never blocks a frame
     }
   } finally {
-    // The hidden map stays: zoomAhead needs it every time the map settles.
     if (gen === queueGen) queueRunning = false;
   }
 }
@@ -1713,7 +1668,9 @@ function startPulse() {
     // ~20fps looks identical to 60fps; and during a guided camera move the
     // camera animation is the show, so the pins stop animating entirely.
     const interval = view3d ? PULSE_INTERVAL_3D : PULSE_INTERVAL_2D;
-    if (!document.hidden && !cinematicsRunning() && now - lastPaint >= interval) {
+    // Nothing to animate while the loading screen still covers the map: each
+    // step would cost a full redraw while the map is still getting ready.
+    if (!document.hidden && !cinematicsRunning() && !document.getElementById("map-loader") && now - lastPaint >= interval) {
       lastPaint = now;
       const base = ((now - t0) % PERIOD) / PERIOD;
       for (const r of live) {
