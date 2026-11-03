@@ -1758,7 +1758,10 @@ textarea.field-input {
 
 /* ---- Head: identity + numbers + primary action (the peek) ---- */
 .card__head { padding: 18px 22px 4px; }
-.card__eyebrow-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 19px; }
+/* The close button (32px, 13px in from the right) overlaps the top of the
+   head, so this row stops short of it: the event's "keen" count sits just to
+   the button's left instead of underneath it. */
+.card__eyebrow-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 19px; padding-right: 32px; }
 .card__eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--card-rust); }
 .card__keen { display: flex; align-items: center; gap: 7px; flex: none; }
 .card__avatars { display: flex; }
@@ -1767,6 +1770,11 @@ textarea.field-input {
 .card__avatars i:nth-child(2) { background: #7f8a5c; margin-left: -7px; }
 .card__avatars i:nth-child(3) { background: #8a7d6b; margin-left: -7px; }
 .card__keen-text { font-size: 12px; font-weight: 600; color: var(--card-muted); white-space: nowrap; }
+/* On the narrowest phones the label and the count only fit on one line
+   beside the close button without the decorative avatar dots. */
+@media (max-width: 359px) {
+  .card__avatars { display: none; }
+}
 
 /* The Terrain · Effort pill used to sit at the right of the eyebrow row, where
    it ran under the close button on every card. Removed rather than shuffled:

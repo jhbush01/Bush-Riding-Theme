@@ -148,6 +148,16 @@
       </form>
     </main>
 
+    <!-- Submit errors. A box at the top of the screen rather than a line under
+         the button, which on a phone sat below the fold and was easy to miss.
+         The form underneath is never cleared, so nothing has to be retyped. -->
+    <div id="submit-error" class="submit-error" role="alertdialog" aria-labelledby="submit-error-title" aria-describedby="submit-error-msg" hidden>
+      <h2 id="submit-error-title" class="submit-error__title">We couldn't send your route</h2>
+      <p id="submit-error-msg" class="submit-error__msg"></p>
+      <p class="submit-error__keep">Everything you entered is still here, GPX and photo included. Fix that one thing and submit again.</p>
+      <button type="button" id="submit-error-ok" class="button button--primary submit-error__ok">OK</button>
+    </div>
+
     <!-- ============ Diary: auth modal ============ -->
     <div id="auth-modal" class="modal" aria-hidden="true">
       <div class="modal__backdrop" data-auth-close></div>
@@ -191,6 +201,23 @@
       const form = document.getElementById("route-form");
       const btn = document.getElementById("submit-btn");
       const msg = document.getElementById("form-msg");
+
+      const errBox = document.getElementById("submit-error");
+      const errMsg = document.getElementById("submit-error-msg");
+      const errOk = document.getElementById("submit-error-ok");
+      function showError(text) {
+        errMsg.textContent = text;
+        errBox.hidden = false;
+        errOk.focus();
+      }
+      function hideError() {
+        errBox.hidden = true;
+        btn.focus({ preventScroll: true });
+      }
+      errOk.addEventListener("click", hideError);
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && !errBox.hidden) hideError();
+      });
 
       function show(text, ok) {
         msg.hidden = false;
@@ -261,9 +288,14 @@
           const fd = new FormData(form);
           const user = window.brmAuth && window.brmAuth.user();
           if (user && user.email) fd.set("email", user.email); // link to the account
-          const res = await fetch(API + "/submit", { method: "POST", body: fd });
+          let res;
+          try {
+            res = await fetch(API + "/submit", { method: "POST", body: fd });
+          } catch (_) {
+            throw new Error("We couldn't reach the server. Check your connection and try again.");
+          }
           const data = await res.json().catch(() => ({}));
-          if (!res.ok) throw new Error(data.error || "Submission failed.");
+          if (!res.ok) throw new Error(data.error || `The server turned it down (error ${res.status}) without saying why. Try again in a moment.`);
           form.reset();
           show(
             `Thanks! Got it — ${data.distance_km} km, ${data.elevation_gain_m} m climb. ` +
@@ -271,7 +303,7 @@
             true
           );
         } catch (err) {
-          show(err.message || "Something went wrong — try again.", false);
+          showError(err.message || "Something went wrong. Try again.");
         } finally {
           btn.disabled = false;
           btn.textContent = "Submit route";

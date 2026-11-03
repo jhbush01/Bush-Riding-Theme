@@ -133,3 +133,46 @@ body.submit-page {
   background: #f3ddd8;
   color: #9b3a2f;
 }
+
+/* Submit error box (submit.html). Fixed at the top so it's seen wherever
+   the rider is in the form; the form behind it keeps everything entered. */
+.submit-error {
+  position: fixed;
+  left: 50%;
+  top: max(16px, env(safe-area-inset-top));
+  transform: translateX(-50%);
+  z-index: 70;
+  width: min(480px, calc(100vw - 32px));
+  box-sizing: border-box;
+  padding: 16px 18px;
+  background: var(--cream-panel);
+  border: 1px solid #9b3a2f;
+  border-left-width: 5px;
+  border-radius: 3px;
+  box-shadow: 0 10px 30px rgba(44, 42, 36, 0.22);
+}
+.submit-error[hidden] { display: none; }
+.submit-error__title {
+  margin: 0 0 6px;
+  font-family: var(--ui-font);
+  font-size: 16px;
+  font-weight: 600;
+  color: #9b3a2f;
+}
+.submit-error__msg {
+  margin: 0 0 8px;
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--ink);
+}
+.submit-error__keep {
+  margin: 0 0 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+.submit-error .submit-error__ok {
+  width: auto;
+  min-width: 96px;
+  margin: 0;
+}
