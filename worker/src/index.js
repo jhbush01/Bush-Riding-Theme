@@ -66,20 +66,48 @@ export default {
       if (url.pathname.startsWith("/file/") && request.method === "GET") return serveFile(url, env, cors);
       if (url.pathname.startsWith("/font/") && request.method === "GET") return serveFont(url, request, env);
       if (url.pathname === "/admin" && request.method === "GET") return adminPage(request, env);
-      if (url.pathname === "/admin/action" && request.method === "POST") return adminAction(request, env);
-      if (url.pathname === "/admin/edit" && request.method === "POST") return adminEdit(request, env);
-      if (url.pathname === "/admin/route/create" && request.method === "POST") return adminRouteCreate(request, env);
-      if (url.pathname === "/admin/route/starts" && request.method === "POST") return adminFillStarts(request, env);
-      if (url.pathname === "/admin/event/save" && request.method === "POST") return adminEventSave(request, env);
-      if (url.pathname === "/admin/event/delete" && request.method === "POST") return adminEventDelete(request, env);
-      if (url.pathname === "/admin/famous/save" && request.method === "POST") return adminFamousSave(request, env);
-      if (url.pathname === "/admin/famous/delete" && request.method === "POST") return adminFamousDelete(request, env);
+      const adminPost = ADMIN_POSTS[url.pathname];
+      if (adminPost && request.method === "POST") return adminSubmit(adminPost, request, env);
       return json({ error: "Not found" }, 404, cors);
     } catch (err) {
       return json({ error: err.message || "Server error" }, 500, cors);
     }
   },
 };
+
+/* ---------------- Admin form posts ----------------
+   The admin page sends its forms in the background (see the script at the
+   foot of adminHtml) with X-Admin-Fetch: 1, so a mistake never costs the
+   form: the page stays put with every field and chosen file still filled
+   in, and the reason shows in an error box. For those requests a success
+   redirect comes back as JSON naming where to go, and anything that throws
+   comes back as a readable error rather than a bare 500. A plain form post
+   (no script) still gets the redirect, as before. */
+const ADMIN_POSTS = {
+  "/admin/action": adminAction,
+  "/admin/edit": adminEdit,
+  "/admin/route/create": adminRouteCreate,
+  "/admin/route/starts": adminFillStarts,
+  "/admin/event/save": adminEventSave,
+  "/admin/event/delete": adminEventDelete,
+  "/admin/famous/save": adminFamousSave,
+  "/admin/famous/delete": adminFamousDelete,
+};
+
+async function adminSubmit(handler, request, env) {
+  const viaScript = request.headers.get("X-Admin-Fetch") === "1";
+  let res;
+  try {
+    res = await handler(request, env);
+  } catch (err) {
+    console.error("Admin save failed:", err);
+    return json({ error: "Something went wrong saving that: " + (err && err.message ? err.message : String(err)) }, 500, {});
+  }
+  if (viaScript && res.status >= 300 && res.status < 400) {
+    return json({ ok: true, redirect: res.headers.get("Location") || "/admin" }, 200, { "Cache-Control": "no-store" });
+  }
+  return res;
+}
 
 /* ---------------- Public: Klaviyo subscribe ----------------
    The GPX gate used to call a.klaviyo.com straight from the browser. Two
@@ -1513,6 +1541,15 @@ function adminHtml(rows, events = [], routeOpts = [], famous = [], famousNames =
   return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Bush Riding — Moderation</title><style>
   body{font-family:system-ui,sans-serif;margin:0;background:#f4efe2;color:#2c2a24}
+  /* Save errors (script at the foot of the page). Fixed, so it shows
+     wherever the form was; the form underneath keeps everything typed. */
+  .save-error{position:fixed;left:50%;top:16px;transform:translateX(-50%);z-index:100;width:min(520px,calc(100vw - 32px));box-sizing:border-box;background:#fff;border:1px solid #9b3a2f;border-left:5px solid #9b3a2f;border-radius:4px;box-shadow:0 8px 28px rgba(44,42,36,.22);padding:14px 16px}
+  .save-error[hidden]{display:none}
+  .save-error h2{margin:0 0 6px;font-size:15px;color:#9b3a2f}
+  .save-error p{margin:0 0 6px;font-size:14px;line-height:1.45;white-space:pre-wrap}
+  .save-error .keep{color:#5a5346;font-size:12px}
+  .save-error button{margin-top:6px}
+  button[aria-busy="true"]{opacity:.6;cursor:progress}
   header{padding:18px 24px;border-bottom:1px solid #d8cfb8;background:#fff}
   h1{font-size:18px;margin:0}
   .count{color:#6f7c53;font-size:13px}
@@ -1616,7 +1653,89 @@ function adminHtml(rows, events = [], routeOpts = [], famous = [], famousNames =
   </details>
   ${events.length ? events.map(eventCard).join("") : "<p>No events yet — create one above.</p>"}
 </main>
+<div class="save-error" id="save-error" role="alertdialog" aria-labelledby="save-error-title" aria-describedby="save-error-msg" hidden>
+  <h2 id="save-error-title">Couldn't save that</h2>
+  <p id="save-error-msg"></p>
+  <p class="keep">Everything you entered is still in the form. Fix the problem and save again.</p>
+  <button type="button" id="save-error-ok">OK</button>
+</div>
 <script>
+  /* Every admin form is sent in the background, so an error never throws
+     away what was typed (or the GPX and photo you picked: a browser can't
+     put a chosen file back into a form after the page reloads). Success
+     moves on exactly as a normal post would; an error opens the box above
+     and leaves the form alone. */
+  (function () {
+    var box = document.getElementById("save-error");
+    var msg = document.getElementById("save-error-msg");
+    var ok = document.getElementById("save-error-ok");
+    var lastForm = null;
+    function showError(text) {
+      msg.textContent = text;
+      box.hidden = false;
+      ok.focus();
+    }
+    function hideError() {
+      box.hidden = true;
+      if (lastForm) {
+        var first = lastForm.querySelector("input:not([type=hidden]),select,textarea");
+        if (first) first.scrollIntoView({ block: "center" });
+      }
+    }
+    ok.addEventListener("click", hideError);
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !box.hidden) hideError(); });
+    function go(to) {
+      var u = new URL(to || "/admin", location.href);
+      // Same page with only the #tab changed wouldn't reload by itself.
+      if (u.pathname + u.search === location.pathname + location.search) {
+        history.replaceState(null, "", u.hash || location.hash);
+        location.reload();
+      } else {
+        location.assign(u.href);
+      }
+    }
+    document.addEventListener("submit", function (e) {
+      var form = e.target;
+      // A cancelled confirm() ("Delete permanently?") has already stopped it.
+      // Attributes, not form.action / form.method: a button named "action"
+      // (Approve / Reject / Delete) shadows those properties.
+      var method = (form.getAttribute && form.getAttribute("method")) || "";
+      var target = form.getAttribute && form.getAttribute("action");
+      if (e.defaultPrevented || method.toLowerCase() !== "post" || !target || !window.fetch || !window.FormData) return;
+      e.preventDefault();
+      if (form.dataset.busy) return;
+      var btn = e.submitter || form.querySelector("button:not([type=button])");
+      var data;
+      try { data = new FormData(form, e.submitter || undefined); } catch (_) {
+        data = new FormData(form);
+        if (e.submitter && e.submitter.name) data.append(e.submitter.name, e.submitter.value);
+      }
+      form.dataset.busy = "1";
+      lastForm = form;
+      var label = btn ? btn.textContent : "";
+      if (btn) { btn.setAttribute("aria-busy", "true"); btn.disabled = true; if ((form.getAttribute("enctype") || "") === "multipart/form-data") btn.textContent = "Saving…"; }
+      function done() {
+        delete form.dataset.busy;
+        if (btn) { btn.removeAttribute("aria-busy"); btn.disabled = false; btn.textContent = label; }
+      }
+      fetch(new URL(target, location.href).href, { method: "POST", body: data, credentials: "same-origin", headers: { "X-Admin-Fetch": "1" } })
+        .then(function (res) {
+          var type = res.headers.get("content-type") || "";
+          var body = type.indexOf("json") >= 0 ? res.json().catch(function () { return {}; }) : res.text().then(function (t) { return { text: t }; });
+          return body.then(function (b) {
+            if (res.ok && b && b.ok) return go(b.redirect);
+            done();
+            if (res.status === 401) return showError("You've been signed out of moderation. Copy anything you need from the form, then reload the page to sign in again.");
+            var reason = (b && b.error) || (b && b.text && b.text.trim().slice(0, 400)) || "";
+            showError(reason || "The server said no (error " + res.status + ") without giving a reason.");
+          });
+        })
+        .catch(function () {
+          done();
+          showError("Couldn't reach the server. Check your connection and save again.");
+        });
+    });
+  })();
   (function () {
     var tabs = document.querySelectorAll(".tab");
     var panels = ["routes", "events", "famous"];
