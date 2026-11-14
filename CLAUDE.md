@@ -78,8 +78,18 @@ most of the work — text and icon as support. Show, don't tell.
   About / Bush Map pages, map API, time zone, weather, Strava — is in
   Theme settings → Bush Riding, read through `snippets/alp-link.liquid`.
   The shop menu is built from Shopify itself (`snippets/alp-shop-links`):
-  product Types first (Shorts → its url_for_type page), then collections;
-  products on collection pages are grouped by Type. A coming-soon category
+  product Types first (Shorts → its url_for_type page), then collections.
+  A collection whose handle matches a Type (`shorts` for Shorts) stands in
+  for that Type everywhere — that is how a Type gets Shopify's filters,
+  which don't exist on automatic Type pages.
+  The collection page (`sections/alpine-catalogue.liquid`, Nov 2026, after
+  the Aritzia page the owner chose as the reference): name + count, the
+  categories as photo tiles (`snippets/alp-cat-tiles`), Size / Colour /
+  All filters buttons, then products on the first screen; the first card
+  plays the product's video if it has one; the Story block (photo + words)
+  sits in the grid after the 8th product, or after the last while there
+  are fewer. Nothing tall goes above the products. Type headings only
+  appear where a page mixes two or more Types. A coming-soon category
   is an EMPTY collection (Shopify has no Type without a product): it shows
   as "soon" in the menu and its page is a Notify me signup, tagged
   next-drop + the collection handle. Never show placeholders beside real

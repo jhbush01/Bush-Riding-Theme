@@ -13,6 +13,10 @@
   look     – 'bare': no card ground or frame — the shot sits on the page,
              name and price left under it, the second photo on hover
   sizes    – optional image sizes (default: a quarter on desktop, full width on phones)
+  video    – true to play the product's own video (the first Shopify-hosted
+             video in its media) in place of the photo: silent, looping,
+             with a pause button. Used on the first card of a collection
+             page. Nothing changes for a product without a video.
 {%- endcomment -%}
 {%- liquid
   assign photo = image | default: product.featured_media.preview_image
@@ -21,6 +25,18 @@
   assign alt_photo = blank
   if look == 'bare' and image == blank and product.media.size > 1
     assign alt_photo = product.media[1].preview_image
+  endif
+  assign clip = blank
+  if video
+    for m in product.media
+      if m.media_type == 'video'
+        assign clip = m
+        break
+      endif
+    endfor
+  endif
+  if clip != blank
+    assign alt_photo = blank
   endif
 -%}
 <div class="alp-card{% if look == 'centre' %} alp-card--centre{% elsif look == 'bare' %} alp-card--bare{% endif %}" data-alp-card>
@@ -32,7 +48,16 @@
       {%- if alt_photo != blank -%}
         {{ alt_photo | image_url: width: 1200 | image_tag: class: 'alp-fill alp-card__alt', loading: 'lazy', fetchpriority: 'low', widths: '400, 600, 800, 1200', sizes: sizes | default: '(min-width: 750px) 25vw, 100vw', alt: '' }}
       {%- endif -%}
+      {%- if clip != blank -%}
+        {{ clip | video_tag: class: 'alp-fill alp-card__video', autoplay: true, loop: true, muted: true, playsinline: true, controls: false, preload: 'metadata', image_size: '800x' }}
+      {%- endif -%}
     </a>
+    {%- if clip != blank -%}
+      <button class="alp-card__pause" type="button" data-alp-card-pause aria-pressed="false" aria-label="Pause video">
+        <svg class="alp-card__pause-on" width="12" height="12" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><rect x="2" y="1" width="3" height="10"/><rect x="7" y="1" width="3" height="10"/></svg>
+        <svg class="alp-card__pause-off" width="12" height="12" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path d="M3 1l8 5-8 5z"/></svg>
+      </button>
+    {%- endif -%}
   </div>
   <p class="alp-card__cap">
     <a href="{{ product.url }}" class="alp-card__name">{{ name | escape }}</a>

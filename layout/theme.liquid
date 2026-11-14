@@ -376,7 +376,7 @@
     >
       {{ content_for_layout }}
       {%- comment -%}
-        Does the page open on a full-bleed photo (home hero, a Type's intro)?
+        Does the page open on a full-bleed photo (the home hero)?
         Then the header goes clear over it (alpine.css, "Header over a
         full-bleed opening photo"). Runs here, before the first paint, so
         the header never flashes solid first.
@@ -384,7 +384,7 @@
       <script>
         (function () {
           var m = document.getElementById('MainContent');
-          var h = m && m.querySelector('.alp-hero, .alp-cat > .alp-intro:not(.alp-intro--plain)');
+          var h = m && m.querySelector('.alp-hero');
           if (!h || h.getBoundingClientRect().top - m.getBoundingClientRect().top > 4) return;
           (h.closest('.shopify-section') || h).classList.add('alp-hd-under');
           document.body.classList.add('alp-hd-over');

@@ -1,24 +1,22 @@
 {%- comment -%}
-  Collection intro — a full-bleed photo with the category's name, a short
-  line in capitals and a few sentences over it (or, with no photo, the same
-  words set plainly). Used once, at the top of a Type's or a collection's
-  own page.
+  Collection story — the page's editorial card: a large photo with the
+  category's name, a short line and a few sentences beside it (under it on
+  phones). It sits in the product grid after the second row on desktop (the
+  fourth on phones), or straight after the products while there are only a
+  few, so the products themselves are on the first screen.
 
   title, tagline, text, image (all optional except title)
-  heading    – 'h1' at the top of a page, else h2
-  attrs      – the block's shopify_attributes, so the theme editor can find it
-  loading    – 'eager' for the first intro on the page
+  attrs – the block's shopify_attributes, so the theme editor can find it
 {%- endcomment -%}
-{%- assign tag = heading | default: 'h2' -%}
-<header class="alp-intro{% if image == blank %} alp-intro--plain{% endif %}" {{ attrs }}>
+<aside class="alp-story{% if image == blank %} alp-story--plain{% endif %}" {{ attrs }}>
   {%- if image != blank -%}
-    <div class="alp-intro__media">
-      {{ image | image_url: width: 2400 | image_tag: class: 'alp-fill', loading: loading | default: 'lazy', widths: '600, 900, 1200, 1800, 2400', sizes: '100vw', alt: '' }}
+    <div class="alp-story__media">
+      {{ image | image_url: width: 1600 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '600, 900, 1200, 1600', sizes: '(min-width: 750px) 50vw, 100vw', alt: '' }}
     </div>
   {%- endif -%}
-  <div class="alp-intro__text">
-    <{{ tag }} class="alp-intro__title">{{ title | escape }}</{{ tag }}>
-    {%- if tagline != blank -%}<p class="alp-intro__tag">{{ tagline | escape }}</p>{%- endif -%}
-    {%- if text != blank -%}<p class="alp-intro__body">{{ text | escape | newline_to_br }}</p>{%- endif -%}
+  <div class="alp-story__text">
+    <p class="alp-story__over">{{ title | escape }}</p>
+    {%- if tagline != blank -%}<h2 class="alp-story__title">{{ tagline | escape }}</h2>{%- endif -%}
+    {%- if text != blank -%}<p class="alp-story__body">{{ text | escape | newline_to_br }}</p>{%- endif -%}
   </div>
-</header>
+</aside>
