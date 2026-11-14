@@ -52,7 +52,7 @@
    disappear into the page; type on photos goes white with them. */
 html[data-ground='white'] { --alp-bg: #ffffff; --alp-card: #ffffff; --alp-line: rgba(76, 75, 59, 0.16); }
 /* …but type over photos stays bone, to match the bone wordmark artwork. */
-html[data-ground='white'] :is(.alp-hero, .alp-intro, .alp-duo, .alp-mcards),
+html[data-ground='white'] :is(.alp-hero, .alp-duo, .alp-mcards),
 html[data-ground='white'] body.alp-hd-over:not(.alp-hd-solid):not(.alp-hd-open):not(.alp-hd-hot) .alp-hd { --alp-bg: #edecc5; }
 /* Dawn's .gradient on <body> beats a bare `body` selector, so match it. */
 body,
@@ -508,7 +508,6 @@ body.template-cart .alp-fab__badge { display: none; }
 .alp-cats__item.is-soon { color: var(--alp-muted); }
 .alp-cats__head { font: 600 12px/1.4 var(--alp-font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--alp-muted); }
 .alp-cats__head ~ .alp-cats__head { margin-top: 14px; }
-.alp-cats__rule { width: 1px; height: 20px; background: var(--alp-line); flex: none; }
 .alp-menu .alp-cats__head { font-size: 11px; }
 .alp-cats__item small { font: 400 13px var(--alp-font-ui); }
 .alp-menu .alp-cats__item small { font-size: 12px; }
@@ -609,6 +608,17 @@ div.alp-scrim[hidden] { display: none; }
 .alp-card--bare .alp-card__name:hover { text-decoration: underline; text-underline-offset: 3px; }
 .alp-card--bare .alp-card__price { font: 400 14px/1.4 var(--alp-font-ui); color: var(--alp-muted); }
 .alp-card--bare .alp-card__dots { margin-top: 8px; }
+/* First card on a collection page: the product's own video, silent and
+   looping, with a pause button (alp-card, video: true). */
+.alp-card--bare .alp-card__media .alp-card__video { object-fit: cover; background: var(--alp-haze); }
+.alp-card__pause {
+  position: absolute; top: 10px; right: 10px; z-index: 1;
+  display: grid; place-items: center; width: 28px; height: 28px; padding: 0;
+  background: color-mix(in srgb, var(--alp-bg) 78%, transparent); color: var(--alp-ink);
+  border: 1px solid var(--alp-ink); border-radius: 50%; cursor: pointer;
+}
+.alp-card__pause-off, .alp-card__pause[aria-pressed='true'] .alp-card__pause-on { display: none; }
+.alp-card__pause[aria-pressed='true'] .alp-card__pause-off { display: block; }
 
 /* Home product row */
 .alp-prow { padding: clamp(56px, 7vw, 120px) clamp(16px, 5vw, 80px); }
@@ -756,8 +766,34 @@ div.alp-scrim[hidden] { display: none; }
 .alp-shop__label--bone { color: var(--alp-bg); }
 
 /* ── Collection (D03 · D04 · M04 · M05) ──────────────────────────────────── */
-/* Pinned to the top once reached; drops below the header while it's in
-   view (body.alp-hd-away = header gone). */
+/* Nov 2026 layout: name and category photo tiles at the top, the main
+   filters as buttons, then products on the first screen. */
+.alp-plp__top { padding: 28px 40px 0; }
+.alp-plp__crumbs { display: flex; gap: 8px; margin: 0 0 16px; font: 13px/1.4 var(--alp-font-ui); color: var(--alp-muted); }
+.alp-plp__crumbs a { color: inherit; text-decoration: none; }
+.alp-plp__crumbs a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.alp-plp__crumbs span:last-child { color: var(--alp-ink); }
+.alp-plp__title { margin: 0 0 26px; font: 600 clamp(34px, 3.4vw, 48px)/1.05 var(--alp-font-display) !important; letter-spacing: -0.01em; color: var(--alp-ink); }
+.alp-plp__title sup { position: relative; top: -1.4em; margin-left: 2px; font: 400 13px/1 var(--alp-font-ui); letter-spacing: 0; color: var(--alp-muted); vertical-align: baseline; }
+/* Category tiles: a row of small photos, the one you're on outlined. The
+   row scrolls sideways when there are more than fit. */
+.alp-plp__tiles { display: flex; gap: 10px; margin: 0 -40px; padding: 1px 40px 2px; overflow-x: auto; scrollbar-width: none; }
+.alp-plp__tiles::-webkit-scrollbar { display: none; }
+.alp-plp__tile { flex: none; width: 132px; color: var(--alp-muted); text-decoration: none; }
+.alp-plp__tileimg { position: relative; display: block; aspect-ratio: 3 / 4; border: 1px solid transparent; overflow: hidden; }
+/* A faint ground behind every tile; photos multiply onto it, so a product
+   shot on white still reads as a tile on a white page. */
+.alp-plp__tileimg::before { content: ''; position: absolute; inset: 3px; background: color-mix(in srgb, var(--alp-ink) 7%, var(--alp-bg)); }
+.alp-plp__tileimg .alp-fill { inset: 3px; width: calc(100% - 6px); height: calc(100% - 6px); mix-blend-mode: multiply; }
+.alp-plp__tile.is-on .alp-plp__tileimg { border-color: var(--alp-ink); }
+.alp-plp__tilename { display: block; padding: 8px 4px 0; font: 13px/1.3 var(--alp-font-ui); }
+.alp-plp__tile.is-on .alp-plp__tilename { color: var(--alp-ink); font-weight: 600; }
+.alp a.alp-plp__tile:hover { color: var(--alp-ink); }
+.alp-plp__soon { position: absolute; left: 9px; bottom: 9px; padding: 3px 6px; background: var(--alp-flare); color: var(--alp-ink); font: 600 10px/1.2 var(--alp-font-display); letter-spacing: 0.08em; text-transform: uppercase; }
+
+/* The tools row (filter buttons, Sort by) and the Filters panel: pinned to
+   the top once reached; they drop below the header while it's in view
+   (body.alp-hd-away = header gone). */
 .alp-cat__head {
   position: sticky; top: var(--alp-hd); z-index: 40;
   background: var(--alp-bg); transition: top 0.3s ease-out;
@@ -771,47 +807,39 @@ body.alp-hd-away .alp-cat__head { top: 0; }
 @media (min-width: 750px) {
   .alp-cat__head .alp-filters { max-height: calc(100vh - var(--alp-hd) - 64px); overflow-y: auto; }
 }
-.alp-cat__bar {
-  display: flex; align-items: center; gap: 40px;
-  height: 64px; padding: 0 40px;
-  border-bottom: 1px solid var(--alp-line);
-  font: 16px/1 var(--alp-font-ui);
+.alp-plp__tools { display: flex; align-items: center; gap: 6px; padding: 26px 40px 14px; font: 14px/1 var(--alp-font-ui); }
+.alp-plp__chip {
+  padding: 7px 11px; background: transparent; color: var(--alp-ink);
+  border: 1px solid var(--alp-ink); border-radius: 2px;
+  font: 13px/1.2 var(--alp-font-ui); white-space: nowrap; cursor: pointer;
 }
-.alp-cats--bar { gap: 40px; align-items: center; }
-.alp-cats--bar .alp-cats__item { color: var(--alp-muted); white-space: nowrap; }
-.alp-cats--bar .alp-cats__item.is-on { color: var(--alp-ink); font-family: var(--alp-font-display); font-weight: 600; }
-.alp-cats--bar .alp-cats__item small { font-size: 12px; }
+.alp-plp__chip:hover { color: color-mix(in srgb, var(--alp-ink) 62%, transparent); }
+.alp-plp__chip.is-on { background: var(--alp-ink); color: var(--alp-bg); }
+.alp-plp__chip.is-on:hover { color: color-mix(in srgb, var(--alp-bg) 72%, transparent); }
 .alp-cat__spacer { flex: 1; }
-.alp-cat__count { font-size: 14px; color: var(--alp-muted); }
-.alp-cat__tool { padding: 0; background: none; border: 0; cursor: pointer; font: inherit; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
 .alp-cat__sort select {
   padding: 0 18px 0 0; background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%234c4b3b'/%3E%3C/svg%3E") no-repeat right center;
   border: 0; font: inherit; color: inherit; -webkit-appearance: none; appearance: none; cursor: pointer;
 }
-.alp-cat__countrow { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; font-size: 13px; color: var(--alp-muted); }
-.alp-cat__countrow .alp-chip { color: var(--alp-ink); padding: 7px 11px; font-size: 13px; }
 
-/* Small cards, four across (two on phones). Intros and headings span the
-   row; an intro runs edge to edge. */
-.alp-cat__tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px 12px; padding: 12px 12px 48px; align-content: start; }
-.alp-cat__tiles .alp-card__cap { padding: 14px 10px 18px; font-size: 14px; }
-.alp-cat__tiles > .alp-intro { grid-column: 1 / -1; margin: 0 -12px; }
-.alp-cat__tiles > .alp-intro:not(:first-child) { margin-top: 32px; }
+/* Small cards, four across (two on phones), on the same margin as the name
+   and tiles above. Headings and the story span the row. */
+.alp-cat__tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 40px 8px; padding: 4px 40px 64px; align-content: start; }
+.alp-cat__tiles .alp-card__cap { padding: 12px 2px 0; font-size: 14px; }
 
-/* Collection intro (alp-cat-intro): full-bleed photo, words at the foot. */
-.alp-intro { position: relative; display: grid; color: var(--alp-bg); background: var(--alp-haze); overflow: hidden; }
-.alp-intro__media, .alp-intro__text { grid-area: 1 / 1; }
-.alp-intro__media { position: relative; height: min(78vh, 760px); min-height: 460px; }
-.alp-intro__text {
-  position: relative; z-index: 1; align-self: end; justify-self: start;
-  display: flex; flex-direction: column; align-items: flex-start; gap: 12px;
-  max-width: 680px; padding: 48px clamp(22px, 4vw, 56px) 56px; text-align: left;
+/* The story (alp-cat-intro): the page's editorial card — a large photo with
+   a few sentences beside it — set in the grid among the products. */
+.alp-story {
+  grid-column: 1 / -1; width: 100%; max-width: 1040px; margin: 24px auto;
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center;
 }
-.alp-intro__title { margin: 0; font: 600 clamp(44px, 6vw, 84px)/1 var(--alp-font-display) !important; letter-spacing: -0.02em; }
-.alp-intro__tag { margin: 0; font: 600 13px/1.3 var(--alp-font-display); letter-spacing: 0.16em; text-transform: uppercase; }
-.alp-intro__body { margin: 6px 0 0; font: 17px/1.5 var(--alp-font-ui); }
-.alp-intro--plain { color: var(--alp-ink); background: var(--alp-card); }
-.alp-intro--plain .alp-intro__text { padding: 56px 24px; }
+.alp-story__media { position: relative; aspect-ratio: 4 / 5; background: var(--alp-haze); overflow: hidden; }
+.alp-story__text { display: flex; flex-direction: column; gap: 16px; padding: 40px clamp(32px, 5vw, 72px); }
+.alp-story__over { margin: 0; font: 600 12px/1.3 var(--alp-font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--alp-muted); }
+.alp-story__title { margin: 0; font: 600 clamp(26px, 2.6vw, 38px)/1.1 var(--alp-font-display) !important; letter-spacing: -0.01em; color: var(--alp-ink); }
+.alp-story__body { margin: 0; font: 16px/1.6 var(--alp-font-ui); }
+.alp-story--plain { grid-template-columns: minmax(0, 1fr); max-width: 720px; }
+.alp-story--plain .alp-story__text { padding: 24px 0; }
 .alp-cat__group {
   grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: baseline;
   padding: 12px 2px 0; font-size: 20px;
@@ -822,20 +850,21 @@ body.alp-hd-away .alp-cat__head { top: 0; }
 .alp-cat__empty a { text-decoration: underline; text-underline-offset: 3px; }
 
 @media (max-width: 749px) {
-  .alp-cat__bar { height: 48px; padding: 0 18px; gap: 22px; font-size: 15px; overflow-x: auto; scrollbar-width: none; }
-  .alp-cat__bar::-webkit-scrollbar { display: none; }
-  .alp-cats--bar { gap: 22px; }
-  .alp-cats--bar .alp-cats__item small { font-size: 11px; }
-  .alp-cat__tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 10px; padding: 10px 10px 40px; }
-  .alp-cat__tiles .alp-card__cap { padding: 12px 6px 14px; font-size: 13px; }
-  .alp-cat__tiles > .alp-intro { margin: 0 -10px; }
-  .alp-cat__tiles > .alp-intro:not(:first-child) { margin-top: 24px; }
-  .alp-intro__media { height: min(80svh, 680px); min-height: 420px; }
-  .alp-intro__text { padding: 32px 22px 40px; gap: 10px; }
-  .alp-intro__title { font-size: 48px !important; }
-  .alp-intro__tag { font-size: 12px; }
-  .alp-intro__body { font-size: 16px; }
-  .alp-cat__group, .alp-cat__group ~ .alp-cat__group { padding: 12px 8px 0; }
+  .alp-plp__top { padding: 18px 18px 0; }
+  .alp-plp__crumbs { margin-bottom: 12px; font-size: 12px; }
+  .alp-plp__title { margin-bottom: 18px; font-size: 32px !important; }
+  .alp-plp__title sup { font-size: 12px; }
+  .alp-plp__tiles { gap: 6px; margin: 0 -18px; padding: 1px 18px 2px; }
+  .alp-plp__tile { width: 30vw; max-width: 132px; }
+  .alp-plp__tilename { font-size: 12px; }
+  .alp-plp__tools { padding: 18px 18px 12px; overflow-x: auto; scrollbar-width: none; }
+  .alp-plp__tools::-webkit-scrollbar { display: none; }
+  .alp-cat__tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 8px; padding: 2px 18px 48px; }
+  .alp-cat__tiles .alp-card__cap { padding: 10px 2px 0; font-size: 13px; }
+  .alp-story { grid-template-columns: minmax(0, 1fr); margin: 8px 0; }
+  .alp-story__text { padding: 22px 2px 4px; gap: 12px; }
+  .alp-story__body { font-size: 15px; }
+  .alp-cat__group, .alp-cat__group ~ .alp-cat__group { padding: 12px 0 0; }
 }
 
 /* Filters — desktop: a panel under the bar; phone: a bottom sheet. */

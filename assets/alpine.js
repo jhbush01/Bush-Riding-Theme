@@ -742,6 +742,61 @@
     $$('.alp-filters__group').forEach(function (d) { if (DESKTOP.matches) d.open = true; });
   }
 
+  /* A filter button (Size, Colour) opens Filters at its own group: on a
+     phone that group's accordion alone, scrolled into view. The button's
+     data-alp-toggle has already opened or closed the panel by now. */
+  document.addEventListener('click', function (e) {
+    var chip = e.target.closest('[data-alp-filter-jump]');
+    if (!chip || DESKTOP.matches) return;
+    var groups = $$('.alp-filters__group');
+    var g = groups[parseInt(chip.getAttribute('data-alp-filter-jump'), 10)];
+    if (!g) return;
+    groups.forEach(function (d) { d.open = d === g; });
+    setTimeout(function () { if (g.scrollIntoView) g.scrollIntoView({ block: 'nearest' }); }, 60);
+  });
+
+  /* ── Collection card video ──
+     The first card on a collection page plays the product's video, silent
+     and looping. It only runs while it's on screen, never for visitors who
+     ask for reduced motion, and the pause button stops it for good. */
+  var cardIo = null;
+  function setCardVideo(v, play) {
+    var btn = $('[data-alp-card-pause]', v.closest('[data-alp-card]') || document);
+    if (play) { var p = v.play(); if (p && p.catch) p.catch(function () {}); } else v.pause();
+    if (btn) {
+      btn.setAttribute('aria-pressed', play ? 'false' : 'true');
+      btn.setAttribute('aria-label', play ? 'Pause video' : 'Play video');
+    }
+  }
+  function initCardVideos() {
+    var vids = $$('.alp-card__video');
+    if (!vids.length) return;
+    vids.forEach(function (v) {
+      if (v._alp) return;
+      v._alp = true;
+      v.muted = true;
+      if (REDUCE) { v._alpStopped = true; v.removeAttribute('autoplay'); setCardVideo(v, false); }
+    });
+    if (!('IntersectionObserver' in window)) return;
+    if (!cardIo) {
+      cardIo = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (en.target._alpStopped) return;
+          setCardVideo(en.target, en.isIntersecting);
+        });
+      }, { threshold: 0.25 });
+    }
+    vids.forEach(function (v) { cardIo.observe(v); });
+  }
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-alp-card-pause]');
+    if (!btn) return;
+    var v = $('.alp-card__video', btn.closest('[data-alp-card]') || document);
+    if (!v) return;
+    v._alpStopped = !v.paused;
+    setCardVideo(v, v.paused);
+  });
+
   var countT = null;
   document.addEventListener('change', function (e) {
     var auto = e.target.closest('[data-alp-autosubmit]');
@@ -1607,7 +1662,7 @@
   function init() {
     /* One failing block mustn't stop the rest of the page's script. */
     [function () { trademark(document.body); }, initArticleVideos, initSignups, initScrollers, initRecs, tickClock, initGeo, initWeather, initVideos, initPdp, initRideTiles,
-     openFilterGroups, initRides, initRoutesPage, initSearch].forEach(function (fn) {
+     openFilterGroups, initCardVideos, initRides, initRoutesPage, initSearch].forEach(function (fn) {
       try { fn(); } catch (err) { if (window.console) console.error('[alp] ' + (fn.name || 'init') + ' failed:', err); }
     });
   }

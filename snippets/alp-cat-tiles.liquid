@@ -1,0 +1,118 @@
+{%- comment -%}
+  Collection page category tiles — the shop's categories as a row of small
+  photos with the name under each, the one you're on outlined. Same sources
+  and order as the menus (alp-shop-links): View all, each product Type,
+  coming-soon collections, then the collections.
+
+  Photos come from Shopify, nothing to keep in sync:
+    View all    – the section's "View all photo", else the first product's
+                  second photo, else its first
+    a Type      – the first product of that Type
+    collection  – the collection's image, else its first product's photo
+    coming soon – the collection's image, else a plain tile marked "soon"
+
+  A collection whose handle matches a Type (shorts for "Shorts") stands in
+  for that Type: the tile links to the collection, where Shopify's filters
+  work, and the collection isn't listed a second time.
+
+  all_image – optional photo for the View all tile
+{%- endcomment -%}
+{%- liquid
+  assign all_url = routes.all_products_collection_url
+  assign here_type = collection.current_type
+  assign here_handle = collection.handle
+  assign everything = collections.all.products
+  assign tile_sizes = '(min-width: 750px) 132px, 30vw'
+
+  assign all_photo = all_image
+  if all_photo == blank
+    assign lead = everything.first
+    if lead.media.size > 1
+      assign all_photo = lead.media[1].preview_image
+    else
+      assign all_photo = lead.featured_media.preview_image
+    endif
+  endif
+  assign all_on = false
+  if here_handle == 'all' and here_type == blank
+    assign all_on = true
+  endif
+
+  assign type_handles = '|'
+  for t in shop.types
+    if t != blank
+      assign th = t | handleize
+      assign type_handles = type_handles | append: th | append: '|'
+    endif
+  endfor
+-%}
+<a class="alp-plp__tile{% if all_on %} is-on{% endif %}" href="{{ all_url }}"{% if all_on %} aria-current="page"{% endif %}>
+  <span class="alp-plp__tileimg">
+    {%- if all_photo != blank -%}
+      {{ all_photo | image_url: width: 400 | image_tag: class: 'alp-fill', loading: 'eager', widths: '200, 300, 400', sizes: tile_sizes, alt: '' }}
+    {%- endif -%}
+  </span>
+  <span class="alp-plp__tilename">View all</span>
+</a>
+
+{%- for t in shop.types -%}
+  {%- if t == blank -%}{%- continue -%}{%- endif -%}
+  {%- liquid
+    assign of_type = everything | where: 'type', t
+    assign photo = of_type.first.featured_media.preview_image
+    assign th = t | handleize
+    assign t_url = t | url_for_type
+    assign twin = collections[th]
+    if twin.products_count > 0
+      assign t_url = twin.url
+    endif
+    assign on = false
+    if here_type == t
+      assign on = true
+    elsif here_type == blank and here_handle == th
+      assign on = true
+    endif
+  -%}
+  <a class="alp-plp__tile{% if on %} is-on{% endif %}" href="{{ t_url }}"{% if on %} aria-current="page"{% endif %}>
+    <span class="alp-plp__tileimg">
+      {%- if photo != blank -%}
+        {{ photo | image_url: width: 400 | image_tag: class: 'alp-fill', loading: 'eager', widths: '200, 300, 400', sizes: tile_sizes, alt: '' }}
+      {%- endif -%}
+    </span>
+    <span class="alp-plp__tilename">{{ t | escape }}</span>
+  </a>
+{%- endfor -%}
+
+{%- for c in collections -%}
+  {%- if c.handle == 'all' or c.handle == 'frontpage' or c.products_count > 0 -%}{%- continue -%}{%- endif -%}
+  {%- assign key = '|' | append: c.handle | append: '|' -%}
+  {%- if type_handles contains key -%}{%- continue -%}{%- endif -%}
+  {%- assign on = false -%}
+  {%- if here_handle == c.handle -%}{%- assign on = true -%}{%- endif -%}
+  <a class="alp-plp__tile is-soon{% if on %} is-on{% endif %}" href="{{ c.url }}"{% if on %} aria-current="page"{% endif %}>
+    <span class="alp-plp__tileimg">
+      {%- if c.image != blank -%}
+        {{ c.image | image_url: width: 400 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '200, 300, 400', sizes: tile_sizes, alt: '' }}
+      {%- endif -%}
+      <span class="alp-plp__soon">Soon</span>
+    </span>
+    <span class="alp-plp__tilename">{{ c.title | escape }}</span>
+  </a>
+{%- endfor -%}
+
+{%- for c in collections -%}
+  {%- if c.handle == 'all' or c.handle == 'frontpage' or c.products_count == 0 -%}{%- continue -%}{%- endif -%}
+  {%- assign key = '|' | append: c.handle | append: '|' -%}
+  {%- if type_handles contains key -%}{%- continue -%}{%- endif -%}
+  {%- assign on = false -%}
+  {%- if here_handle == c.handle and here_type == blank -%}{%- assign on = true -%}{%- endif -%}
+  {%- assign photo = c.image | default: c.products.first.featured_media.preview_image -%}
+  <a class="alp-plp__tile{% if on %} is-on{% endif %}" href="{{ c.url }}"{% if on %} aria-current="page"{% endif %}>
+    <span class="alp-plp__tileimg">
+      {%- if photo != blank -%}
+        {{ photo | image_url: width: 400 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '200, 300, 400', sizes: tile_sizes, alt: '' }}
+      {%- endif -%}
+    </span>
+    <span class="alp-plp__tilename">{{ c.title | escape }}</span>
+  </a>
+{%- endfor -%}

@@ -10,58 +10,58 @@
     an ordinary collection by itself.
   • Collections — every collection with products (Launch Collection, …).
 
+  A collection whose handle matches a Type (shorts for "Shorts") stands in
+  for that Type: the Type's link goes to the collection — where Shopify's
+  filters work — and the collection isn't listed a second time.
+
   variant:
     list – the phone menu: Types, then Collections
     drop – Collections, then Types, in one list
     collections / types – one column each, for the desktop mega menu
-    bar  – the collection page's category bar; marks where you are
 {%- endcomment -%}
 {%- liquid
   assign all_url = routes.all_products_collection_url
-  assign here_type = ''
-  assign here_handle = ''
-  if collection != blank
-    assign here_type = collection.current_type
-    assign here_handle = collection.handle
-  endif
+  assign type_handles = '|'
+  for t in shop.types
+    if t != blank
+      assign th = t | handleize
+      assign type_handles = type_handles | append: th | append: '|'
+    endif
+  endfor
 -%}
 
 {%- capture soon_links -%}
   {%- for c in collections -%}
     {%- if c.handle == 'all' or c.handle == 'frontpage' or c.products_count > 0 -%}{%- continue -%}{%- endif -%}
-    {%- assign on = false -%}
-    {%- if variant == 'bar' and here_handle == c.handle -%}{%- assign on = true -%}{%- endif -%}
-    <a class="alp-cats__item is-soon{% if on %} is-on{% endif %}" href="{{ c.url }}"{% if on %} aria-current="page"{% endif %}{% if menu_link %} data-alp-close{% endif %}>{{ c.title | escape }} <small>{% if variant == 'bar' %}soon{% else %}· next drop{% endif %}</small></a>
+  {%- assign key = '|' | append: c.handle | append: '|' -%}
+  {%- if type_handles contains key -%}{%- continue -%}{%- endif -%}
+    <a class="alp-cats__item is-soon" href="{{ c.url }}"{% if menu_link %} data-alp-close{% endif %}>{{ c.title | escape }} <small>· next drop</small></a>
   {%- endfor -%}
 {%- endcapture -%}
 
 {%- capture collection_links -%}
   {%- for c in collections -%}
     {%- if c.handle == 'all' or c.handle == 'frontpage' or c.products_count == 0 -%}{%- continue -%}{%- endif -%}
-    {%- assign on = false -%}
-    {%- if variant == 'bar' and here_handle == c.handle and here_type == blank -%}{%- assign on = true -%}{%- endif -%}
-    <a class="alp-cats__item{% if on %} is-on{% endif %}" href="{{ c.url }}"{% if on %} aria-current="page"{% endif %}{% if menu_link %} data-alp-close{% endif %}>{{ c.title | escape }}</a>
+    {%- assign key = '|' | append: c.handle | append: '|' -%}
+    {%- if type_handles contains key -%}{%- continue -%}{%- endif -%}
+    <a class="alp-cats__item" href="{{ c.url }}"{% if menu_link %} data-alp-close{% endif %}>{{ c.title | escape }}</a>
   {%- endfor -%}
 {%- endcapture -%}
 
-{%- if variant == 'bar' -%}
-  <a class="alp-cats__item{% if here_handle == 'all' and here_type == blank %} is-on{% endif %}" href="{{ all_url }}">View all</a>
-  {%- for t in shop.types -%}
-    {%- if t != blank -%}
-      <a class="alp-cats__item{% if here_type == t %} is-on{% endif %}" href="{{ t | url_for_type }}"{% if here_type == t %} aria-current="page"{% endif %}>{{ t | escape }}</a>
-    {%- endif -%}
-  {%- endfor -%}
-  {{ soon_links }}
-  {%- if collection_links != blank -%}
-    <span class="alp-cats__rule" aria-hidden="true"></span>
-    {{ collection_links }}
-  {%- endif -%}
-{%- elsif variant == 'collections' -%}
+{%- if variant == 'collections' -%}
   {{ collection_links }}
 {%- elsif variant == 'types' -%}
   {%- for t in shop.types -%}
     {%- if t != blank -%}
-      <a class="alp-cats__item" href="{{ t | url_for_type }}">{{ t | escape }}</a>
+      {%- liquid
+        assign th = t | handleize
+        assign t_url = t | url_for_type
+        assign twin = collections[th]
+        if twin.products_count > 0
+          assign t_url = twin.url
+        endif
+      -%}
+      <a class="alp-cats__item" href="{{ t_url }}">{{ t | escape }}</a>
     {%- endif -%}
   {%- endfor -%}
   {{ soon_links }}
@@ -73,7 +73,15 @@
   <p class="alp-cats__head">Types</p>
   {%- for t in shop.types -%}
     {%- if t != blank -%}
-      <a class="alp-cats__item" href="{{ t | url_for_type }}">{{ t | escape }}</a>
+      {%- liquid
+        assign th = t | handleize
+        assign t_url = t | url_for_type
+        assign twin = collections[th]
+        if twin.products_count > 0
+          assign t_url = twin.url
+        endif
+      -%}
+      <a class="alp-cats__item" href="{{ t_url }}">{{ t | escape }}</a>
     {%- endif -%}
   {%- endfor -%}
   {{ soon_links }}
@@ -82,7 +90,15 @@
   <a class="alp-cats__item" href="{{ all_url }}"{% if menu_link %} data-alp-close{% endif %}>View all</a>
   {%- for t in shop.types -%}
     {%- if t != blank -%}
-      <a class="alp-cats__item" href="{{ t | url_for_type }}"{% if menu_link %} data-alp-close{% endif %}>{{ t | escape }}</a>
+      {%- liquid
+        assign th = t | handleize
+        assign t_url = t | url_for_type
+        assign twin = collections[th]
+        if twin.products_count > 0
+          assign t_url = twin.url
+        endif
+      -%}
+      <a class="alp-cats__item" href="{{ t_url }}"{% if menu_link %} data-alp-close{% endif %}>{{ t | escape }}</a>
     {%- endif -%}
   {%- endfor -%}
   {{ soon_links }}
