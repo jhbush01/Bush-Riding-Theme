@@ -1114,26 +1114,43 @@ body.alp-hd-away .alp-cat__head { top: 0; }
 
 /* Temperature range and weather conditions */
 /* Ride-tested on — a Bush Map route card in the buy column. */
-.alp-ridetile { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; padding: 18px 18px 14px; background: var(--alp-surface); border-radius: 16px; box-shadow: 0 1px 0 var(--alp-line), 0 6px 18px rgba(76, 75, 59, .08); }
-.alp-ridetile[hidden] { display: none; }
+/* "Ride-tested on" — the Bush Map route card (map/styles/app.css .card__*),
+   same ground, insets, type sizes and rust elevation line, so a route reads
+   the same in the shop as on the map. */
+.alp-ridetile { display: flex; flex-direction: column; gap: 16px; padding: 18px 20px 20px; background: var(--alp-card); color: var(--alp-ink); border-radius: 22px; box-shadow: 0 1px 0 var(--alp-line), 0 8px 24px rgba(76, 75, 59, .1); }
+.alp-ridetile[hidden], .alp-ridetile [hidden] { display: none !important; }
 .alp-ridetile__top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-.alp-ridetile__eyebrow { font: 600 10px/1.2 var(--alp-font-display); letter-spacing: .14em; text-transform: uppercase; color: var(--alp-muted); }
-.alp-ridetile__brand { font: 600 10px/1.2 var(--alp-font-display); letter-spacing: .04em; text-transform: uppercase; }
-.alp-ridetile__name { margin-top: 6px; font: 600 19px/1.2 var(--alp-font-display); }
-.alp-ridetile__meta { font-size: 12px; line-height: 1.5; color: var(--alp-muted); }
-.alp-ridetile__elev { height: 64px; margin-top: 8px; }
-.alp-ridetile__elev:empty { display: none; }
-.alp-ridetile__elev svg { display: block; width: 100%; height: 100%; }
-.alp-ridetile__area { fill: var(--alp-bg); opacity: .7; }
-.alp-ridetile__line { fill: none; stroke: var(--alp-ink); stroke-width: 1.6; stroke-linejoin: round; }
-.alp-ridetile__stats { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; margin: 0; background: color-mix(in srgb, var(--alp-bg) 55%, var(--alp-surface)); border-radius: 10px; }
-.alp-ridetile__stats > div { display: flex; flex-direction: column-reverse; gap: 4px; padding: 10px 12px; }
-.alp-ridetile__stats > div + div { border-left: 1px solid var(--alp-line); }
-.alp-ridetile__stats dd { margin: 0; font: 600 14px/1.2 var(--alp-font-display); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.alp-ridetile__stats dt { font-size: 11px; color: var(--alp-muted); }
-.alp-ridetile__foot { display: flex; justify-content: space-between; margin-top: 6px; padding-top: 10px; border-top: 1px solid var(--alp-line); font-size: 12px; font-family: var(--alp-font-display); font-weight: 600; }
-.alp-ridetile__foot a { color: var(--alp-ink); text-decoration: none; }
-.alp-ridetile__foot a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.alp-ridetile__eyebrow { font: 600 11px/1.2 var(--alp-font-display); letter-spacing: .14em; text-transform: uppercase; }
+.alp-ridetile__brand { font: 600 10px/1.2 var(--alp-font-display); letter-spacing: .04em; text-transform: uppercase; color: var(--alp-muted); }
+.alp-ridetile__name { margin: -7px 0 0; font: 400 28px/1.07 var(--alp-font-display); letter-spacing: .005em; }
+.alp-ridetile__stats { display: flex; background: #f4f3dc; border: 1px solid rgba(76, 75, 59, .18); border-radius: 15px; overflow: hidden; }
+.alp-ridetile__stat { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 13px 6px; text-align: center; }
+.alp-ridetile__stat + .alp-ridetile__stat { border-left: 1px solid rgba(76, 75, 59, .18); }
+.alp-ridetile__val { font: 400 21px/1 var(--alp-font-display); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.alp-ridetile__unit { font-size: 12px; }
+.alp-ridetile__lab, .alp-ridetile__mini { font: 600 9.5px/1.2 var(--alp-font-display); letter-spacing: .1em; text-transform: uppercase; }
+.alp-ridetile__mini { display: block; font-size: 10px; }
+.alp-ridetile__ctas { display: flex; gap: 10px; }
+.alp-ridetile__cta { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 12px; border-radius: 13px; background: var(--alp-ink); color: #f4eddc; font: 600 15px/1.1 var(--alp-font-display); letter-spacing: .01em; text-decoration: none; text-align: center; }
+.alp-ridetile__cta:hover { background: #2f2e24; }
+.alp-ridetile__cta--ghost { flex: 0 0 auto; min-width: 40%; padding: 0 10px; white-space: nowrap; background: transparent; color: var(--alp-ink); border: 1.5px solid rgba(76, 75, 59, .28); }
+.alp-ridetile__cta--ghost:hover { background: transparent; border-color: var(--alp-ink); }
+.alp-ridetile__elev { padding: 11px 13px 9px; background: #f4f3dc; border: 1px solid rgba(76, 75, 59, .18); border-radius: 14px; }
+.alp-ridetile__elevhead { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.alp-ridetile__elevnote { font: 400 11px/1.2 var(--alp-font-ui); white-space: nowrap; }
+.alp-ridetile__elevsvg { height: 46px; margin-top: 6px; }
+.alp-ridetile__elevsvg svg { display: block; width: 100%; height: 100%; }
+.alp-ridetile__start { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 12px; }
+.alp-ridetile__startinfo { flex: 999 1 170px; display: flex; align-items: center; gap: 9px; min-width: 0; }
+.alp-ridetile__pin { flex: none; color: #93916c; }
+.alp-ridetile__startname { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; margin-top: 2px; font: 600 13.5px/1.3 var(--alp-font-display); }
+.alp-ridetile__nav { flex: 1 0 auto; display: flex; align-items: center; justify-content: center; gap: 7px; min-height: 40px; padding: 0 15px; border: 1.5px solid rgba(76, 75, 59, .28); border-radius: 999px; color: var(--alp-ink); font: 600 13px/1 var(--alp-font-display); text-decoration: none; }
+.alp-ridetile__nav svg { color: #93916c; }
+.alp-ridetile__nav:hover { border-color: #93916c; }
+.alp-ridetile__photo { position: relative; margin: 0; aspect-ratio: 16 / 10; overflow: hidden; border-radius: 16px; background: var(--alp-haze); }
+.alp-ridetile__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.alp-ridetile__photo::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 58%, rgba(20, 24, 14, .46)); pointer-events: none; }
+.alp-ridetile__chip { position: absolute; z-index: 1; left: 14px; bottom: 12px; padding: 6px 11px; border-radius: 999px; background: rgba(28, 30, 20, .5); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); color: #fdf8ec; font: 600 11px/1.2 var(--alp-font-display); letter-spacing: .05em; text-transform: uppercase; }
 
 /* Field notes (snippets/alp-field-notes) — the spec set like an entry in an
    old outdoor guide: double rule on top, dotted leaders, a pad profile drawn
