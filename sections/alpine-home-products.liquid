@@ -3,6 +3,11 @@
   ground, no frame, name and price left underneath, the second photo on
   hover (desktop). Three or four across on desktop, two on phones. Only real
   products; coming-soon categories live on their own pages.
+
+  One product: a feature instead of a row — the photo (sized to fit the
+  screen) with the name, price, colours, the product's statement and two
+  buttons beside it on desktop, under it on phones. Shop now opens the
+  product page (size, then Buy now); Explore more opens the collection.
 {%- endcomment -%}
 {%- liquid
   assign source = section.settings.collection | default: collections.all
@@ -10,6 +15,61 @@
   assign n = source.products.size | at_most: limit
   assign cols = n | at_most: 4 | at_least: 2
 -%}
+{%- if n == 1 -%}
+  {%- liquid
+    assign p = source.products.first
+    assign photo = p.featured_media.preview_image
+    assign alt_photo = blank
+    if p.media.size > 1
+      assign alt_photo = p.media[1].preview_image
+    endif
+    assign explore_url = routes.all_products_collection_url
+    if section.settings.collection != blank
+      assign explore_url = section.settings.collection.url
+    elsif p.type != blank
+      assign th = p.type | handleize
+      assign twin = collections[th]
+      if twin.products_count > 0
+        assign explore_url = twin.url
+      else
+        assign explore_url = p.type | url_for_type
+      endif
+    endif
+    assign statement = p.metafields.custom.statement.value | default: p.metafields.custom.statement
+  -%}
+  <section class="alp alp-prow alp-prow--one">
+    <div class="alp-feat">
+      <a class="alp-feat__media" href="{{ p.url }}" tabindex="-1" aria-hidden="true">
+        {%- if photo != blank -%}
+          {{ photo | image_url: width: 1600 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '600, 900, 1200, 1600', sizes: '(min-width: 750px) 45vw, 100vw', alt: '' }}
+        {%- endif -%}
+        {%- if alt_photo != blank -%}
+          {{ alt_photo | image_url: width: 1600 | image_tag: class: 'alp-fill alp-feat__alt', loading: 'lazy', fetchpriority: 'low', widths: '600, 900, 1200, 1600', sizes: '(min-width: 750px) 45vw, 100vw', alt: '' }}
+        {%- endif -%}
+      </a>
+      <div class="alp-feat__text">
+        {%- if p.type != blank -%}<p class="alp-feat__over">{{ p.type | escape }}</p>{%- endif -%}
+        <h2 class="alp-feat__name"><a href="{{ p.url }}">{{ p.title | escape }}</a></h2>
+        <p class="alp-feat__price">{% if p.available %}{{ p.price | money_without_trailing_zeros }}{% else %}Sold out{% endif %}</p>
+        {%- for o in p.options_with_values -%}
+          {%- assign oname = o.name | downcase -%}
+          {%- if oname contains 'colour' or oname contains 'color' -%}
+            <span class="alp-card__dots alp-feat__dots" aria-label="{{ o.values.size }} colours">
+              {%- for value in o.values -%}
+                <span class="alp-card__dot" title="{{ value | escape }}"{% if value.swatch.color != blank %} style="--sw: {{ value.swatch.color }}"{% elsif value.swatch.image != blank %} style="--sw-img: url({{ value.swatch.image | image_url: width: 40 }})"{% endif %}></span>
+              {%- endfor -%}
+            </span>
+          {%- endif -%}
+        {%- endfor -%}
+        {%- if statement != blank -%}<p class="alp-feat__line">{{ statement | escape | newline_to_br }}</p>{%- endif -%}
+        <div class="alp-feat__actions">
+          <a class="alp-btn" href="{{ p.url }}">{{ section.settings.shop_label | default: 'Shop now' | escape }}</a>
+          <a class="alp-btn alp-btn--line" href="{{ explore_url }}">{{ section.settings.explore_label | default: 'Explore more' | escape }}</a>
+        </div>
+      </div>
+    </div>
+  </section>
+{%- else -%}
 <section class="alp alp-prow" style="--cols: {{ cols }}">
   {%- if section.settings.heading != blank -%}
     <div class="alp-prow__head">
@@ -25,6 +85,7 @@
     {%- endfor -%}
   </div>
 </section>
+{%- endif -%}
 
 {% schema %}
 {
@@ -35,7 +96,11 @@
     { "type": "range", "id": "limit", "label": "Products", "min": 2, "max": 8, "step": 1, "default": 3 },
     { "type": "checkbox", "id": "dots", "label": "Show colour dots", "default": false },
     { "type": "text", "id": "heading", "label": "Heading", "info": "Optional — the row works without one." },
-    { "type": "text", "id": "link_label", "label": "Link beside the heading", "default": "Shop all" }
+    { "type": "text", "id": "link_label", "label": "Link beside the heading", "default": "Shop all" },
+    { "type": "header", "content": "With one product" },
+    { "type": "paragraph", "content": "A single product shows as a feature: the photo with its name, price and two buttons beside it. The line under the price is the product's statement (custom.statement metafield)." },
+    { "type": "text", "id": "shop_label", "label": "Product button", "default": "Shop now" },
+    { "type": "text", "id": "explore_label", "label": "Second button", "default": "Explore more", "info": "Opens the collection above, or the product's own category." }
   ],
   "presets": [{ "name": "Product row" }]
 }
