@@ -1227,8 +1227,9 @@
     $$('[data-alp-unit]', box).forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
     $$('[data-c]', box).forEach(function (t) {
       var c = Number(t.getAttribute('data-c'));
-      t.textContent = f ? Math.round(c * 9 / 5 + 32) + '°F' : c + '°C';
+      t.textContent = f ? Math.round(c * 9 / 5 + 32) : c;
     });
+    $$('[data-alp-u]', box).forEach(function (u) { u.textContent = f ? '°F' : '°C'; });
   });
 
   /* "Ride-tested on" tile (product page). custom.route may hold the route id
