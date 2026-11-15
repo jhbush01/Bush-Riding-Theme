@@ -1,0 +1,192 @@
+{%- comment -%}
+  Field notes — the product's spec, set like an entry in an old outdoor
+  guide. Replaces the Satisfy-style spec pills, temperature bar and
+  four weather-condition bars (Nov 2026).
+
+  Every part reads a product metafield in the "custom" namespace and hides
+  while it is empty; the whole card hides when all of them are:
+    style_code    single-line text — "BR-M-DGCS-001", top right like an entry no.
+    spec_pills    list of single-line text — one row each. "Label: value"
+                  sets a dotted leader between the two ("Shell: Washed nylon
+                  ripstop, 104 gsm"); a row with no colon runs full width.
+    pad_profile   single-line text — pad thickness in mm, rear to front,
+                  comma-separated ("15, 13, 3"). Drawn like a ride profile.
+    pad_note      single-line text — one line under the pad profile.
+    temp_min/max  integer (°C) — "Wear it": the range in words, then on a
+                  ruler of frosty / cold / crisp / mild / warm / hot.
+    conditions    list of single-line text — "Made for". "Scrub: the grid
+                  stops a snag becoming a tear" sets the word, then the note;
+                  a bare word ("rain") still works.
+    not_for       single-line text — the honest line: what it isn't for.
+
+  Usage: {% render 'alp-field-notes', mf: product.metafields.custom %}
+{%- endcomment -%}
+{%- liquid
+  assign specs = mf.spec_pills.value
+  assign pad = mf.pad_profile.value | strip
+  assign conds = mf.conditions.value
+  assign not_for = mf.not_for.value | strip
+  assign has_temp = false
+  if mf.temp_min != blank and mf.temp_max != blank
+    assign has_temp = true
+  endif
+-%}
+{%- if specs != blank or pad != blank or conds != blank or not_for != blank or has_temp -%}
+<section class="alp-notes" aria-labelledby="AlpNotesTitle">
+  <header class="alp-notes__head">
+    <h2 class="alp-notes__title" id="AlpNotesTitle">Field notes</h2>
+    {%- if mf.style_code != blank -%}<p class="alp-notes__no">{{ mf.style_code.value | escape }}</p>{%- endif -%}
+  </header>
+
+  {%- if specs != blank -%}
+    <ul class="alp-notes__specs" role="list">
+      {%- for s in specs -%}
+        {%- assign parts = s | split: ':' -%}
+        {%- if parts.size > 1 -%}
+          {%- assign label = parts.first | strip -%}
+          {%- assign val = s | remove_first: parts.first | remove_first: ':' | strip -%}
+          <li><span class="alp-notes__label">{{ label | escape }}</span><span class="alp-notes__dots" aria-hidden="true"></span><span class="alp-notes__val">{{ val | escape }}</span></li>
+        {%- else -%}
+          <li class="alp-notes__solo">{{ s | escape }}</li>
+        {%- endif -%}
+      {%- endfor -%}
+    </ul>
+  {%- endif -%}
+
+  {%- comment -%} Pad profile: thickness rear → front, drawn like the ride tile's elevation. {%- endcomment -%}
+  {%- if pad != blank -%}
+    {%- liquid
+      assign mm = pad | split: ','
+      assign n = mm.size
+      assign top = 1
+      for v in mm
+        assign vn = v | strip | plus: 0
+        if vn > top
+          assign top = vn
+        endif
+      endfor
+      assign last = n | minus: 1 | at_least: 1
+      capture pts
+        for v in mm
+          assign vn = v | strip | plus: 0
+          assign x = forloop.index0 | times: 300.0 | divided_by: last | round: 1
+          if n == 1
+            assign x = 0
+          endif
+          assign y = vn | times: 50.0 | divided_by: top | minus: 56 | times: -1 | round: 1
+          echo ' L' | append: x | append: ',' | append: y
+        endfor
+        if n == 1
+          echo ' L300,' | append: y
+        endif
+      endcapture
+      assign line = pts | strip | remove_first: 'L' | prepend: 'M'
+    -%}
+    <figure class="alp-notes__part alp-notes__pad">
+      <figcaption class="alp-notes__k">Pad profile</figcaption>
+      <svg class="alp-notes__padsvg" viewBox="0 0 300 60" preserveAspectRatio="none" role="img" aria-label="Pad thickness from rear to front: {{ pad | remove: ' ' | replace: ',', ', ' }} mm">
+        <path class="alp-notes__padarea" d="M0,60{{ pts }} L300,60 Z"/>
+        <path class="alp-notes__padline" d="{{ line }}" vector-effect="non-scaling-stroke"/>
+      </svg>
+      <ol class="alp-notes__padmm" aria-hidden="true">
+        {%- for v in mm -%}
+          {%- liquid
+            assign where = ''
+            if forloop.first
+              assign where = 'rear'
+            elsif forloop.last
+              assign where = 'front'
+            elsif n == 3
+              assign where = 'centre'
+            endif
+          -%}
+          <li><b>{{ v | strip }}&nbsp;mm</b>{% if where != '' %} {{ where }}{% endif %}</li>
+        {%- endfor -%}
+      </ol>
+      {%- if mf.pad_note != blank -%}<p class="alp-notes__note">{{ mf.pad_note.value | escape }}</p>{%- endif -%}
+    </figure>
+  {%- endif -%}
+
+  {%- comment -%}
+    Wear it: the range in words first, numbers second, then a ruler from
+    −5 to 35 °C split into six feels. The words are the bands the ends fall in.
+  {%- endcomment -%}
+  {%- if has_temp -%}
+    {%- liquid
+      assign t1 = mf.temp_min.value | at_least: -5 | at_most: 35
+      assign t2 = mf.temp_max.value | at_least: -5 | at_most: 35
+      if t2 < t1
+        assign tt = t1
+        assign t1 = t2
+        assign t2 = tt
+      endif
+      assign zones = 'frosty,cold,crisp,mild,warm,hot' | split: ','
+      assign edges = '-5,0,8,14,20,27,35' | split: ','
+      assign w1 = 'frosty'
+      assign w2 = 'frosty'
+      for z in zones
+        assign lo = edges[forloop.index0] | plus: 0
+        if t1 >= lo
+          assign w1 = z
+        endif
+        if t2 >= lo
+          assign w2 = z
+        endif
+      endfor
+      if w1 == w2
+        assign feel = 'Made for ' | append: w1 | append: ' days.'
+      else
+        assign feel = w1 | capitalize | append: ' starts to ' | append: w2 | append: ' afternoons.'
+      endif
+      assign b_left = t1 | plus: 5 | times: 2.5
+      assign b_width = t2 | minus: t1 | times: 2.5
+    -%}
+    <div class="alp-notes__part alp-notes__wear" data-alp-temp>
+      <div class="alp-notes__wearhead">
+        <p class="alp-notes__k">Wear it</p>
+        <p class="alp-notes__units">
+          <button type="button" data-alp-unit="c" aria-pressed="true">°C</button>
+          <button type="button" data-alp-unit="f" aria-pressed="false">°F</button>
+        </p>
+      </div>
+      <p class="alp-notes__feel">{{ feel }} <span class="alp-notes__deg"><span data-c="{{ mf.temp_min.value }}">{{ mf.temp_min.value }}</span>–<span data-c="{{ mf.temp_max.value }}">{{ mf.temp_max.value }}</span>&nbsp;<span data-alp-u>°C</span></span></p>
+      <div class="alp-notes__ruler" aria-hidden="true">
+        <span class="alp-notes__range" style="left: {{ b_left }}%; width: {{ b_width }}%"></span>
+        {%- for z in zones -%}
+          {%- liquid
+            assign lo = edges[forloop.index0] | plus: 0
+            assign hi = edges[forloop.index] | plus: 0
+            assign zw = hi | minus: lo | times: 2.5
+            assign on = false
+            if hi > t1 and lo <= t2
+              assign on = true
+            endif
+          -%}
+          <span class="alp-notes__zone{% if on %} is-on{% endif %}" style="width: {{ zw }}%">{{ z }}</span>
+        {%- endfor -%}
+      </div>
+    </div>
+  {%- endif -%}
+
+  {%- if conds != blank or not_for != blank -%}
+    <div class="alp-notes__part alp-notes__for">
+      {%- if conds != blank -%}
+        <p class="alp-notes__k">Made for</p>
+        <ul class="alp-notes__fors" role="list">
+          {%- for c in conds -%}
+            {%- assign parts = c | split: ':' -%}
+            {%- assign word = parts.first | strip -%}
+            {%- assign word_rest = word | slice: 1, 200 -%}
+            {%- assign word = word | slice: 0 | upcase | append: word_rest -%}
+            {%- assign note = c | remove_first: parts.first | remove_first: ':' | strip -%}
+            <li><b>{{ word | escape }}</b>{% if note != blank %} <span>{{ note | escape }}</span>{% endif %}</li>
+          {%- endfor -%}
+        </ul>
+      {%- endif -%}
+      {%- if not_for != blank -%}
+        <p class="alp-notes__not"><b>Not made for</b> {{ not_for | escape }}</p>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+</section>
+{%- endif -%}

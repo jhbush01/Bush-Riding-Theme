@@ -7,8 +7,8 @@
   a big statement line, the remaining photos two-up, the model caption with
   "Shop the silhouette" — then the detail accordions (Usage, Technology,
   Features, Composition & Care, Warranty). Right (one-third, sticky): name,
-  price, spec pills, colour swatches, size, Add to cart, temperature range,
-  weather conditions, and the side accordions (Need help?, Shipping &
+  price, colour swatches, size, Add to cart, the Field notes card (spec,
+  pad profile, wear range, made for), Ride-tested on, and the side accordions (Need help?, Shipping &
   returns). Below both: More colours and styles; Create your outfit.
   Phone: the same content stacked — carousel, details, story, accordions,
   rows — with size and the buttons in the fixed bottom bar.
@@ -17,9 +17,14 @@
   description, and product metafields in the "custom" namespace (Settings →
   Custom data → Products). Each block hides itself while its field is empty:
     custom.statement        multi-line text   — the big line under the carousel
-    custom.spec_pills       list of single-line text — 124g · FLATLOCK SEAMS…
-    custom.temp_min / _max  integer (°C)      — temperature range
-    custom.conditions       list of single-line text — hot, cold, rain, low light
+    Field notes card (snippets/alp-field-notes.liquid — the formats are there):
+    custom.style_code       single-line text  — entry no., top right
+    custom.spec_pills       list of single-line text — "Shell: Washed nylon ripstop"
+    custom.pad_profile      single-line text  — pad mm rear → front, "15, 13, 3"
+    custom.pad_note         single-line text  — the line under the pad profile
+    custom.temp_min / _max  integer (°C)      — "Wear it" range
+    custom.conditions       list of single-line text — "Made for": "Scrub: note"
+    custom.not_for          single-line text  — "Not made for"
     custom.story_lines      list of multi-line text — a line after each photo row
     custom.model_note       single-line text  — "Jarrod is 180cm and wears M."
     custom.silhouette       collection        — what "Shop the silhouette" opens
@@ -47,7 +52,6 @@
   if statement == blank and section.settings.description_as_statement
     assign statement = product.description | strip_html | strip
   endif
-  assign cond_names = section.settings.conditions_list | split: ','
 -%}
 <section class="alp alp-pdp" data-alp-pdp>
   <div class="alp-pdp__grid">
@@ -145,13 +149,6 @@
       <h1 class="alp-pdp__title">{{ product.title | escape }}</h1>
       <p class="alp-pdp__price"><span data-alp-price>{{ current.price | money_without_trailing_zeros }}</span> {{ cart.currency.iso_code }}</p>
 
-      {%- assign pills = mf.spec_pills.value -%}
-      {%- if pills != blank -%}
-        <ul class="alp-pills" role="list">
-          {%- for pill in pills -%}<li>{{ pill | escape }}</li>{%- endfor -%}
-        </ul>
-      {%- endif -%}
-
       <div class="alp-buy__slot" data-alp-buy-slot aria-hidden="true"></div>
       {%- form 'product', product, class: 'alp-buy', data-alp-buy: '', novalidate: 'novalidate' -%}
         {%- comment -%}
@@ -247,49 +244,8 @@
         <div class="alp-pdp__desc">{{ product.description }}</div>
       {%- endif -%}
 
-      {%- comment -%} Temperature range: a dark band from min to max on a −10…30 °C scale. {%- endcomment -%}
-      {%- if mf.temp_min != blank and mf.temp_max != blank -%}
-        {%- liquid
-          assign tmin = mf.temp_min.value | at_least: -10 | at_most: 30
-          assign tmax = mf.temp_max.value | at_least: -10 | at_most: 30
-          assign band_left = tmin | plus: 10 | times: 100.0 | divided_by: 40
-          assign band_width = tmax | minus: tmin | times: 100.0 | divided_by: 40
-        -%}
-        <div class="alp-temp" data-alp-temp>
-          <div class="alp-temp__head">
-            <p class="alp-temp__title">Temperature range</p>
-            <p class="alp-temp__units">
-              <button type="button" data-alp-unit="c" aria-pressed="true">°C</button>
-              <button type="button" data-alp-unit="f" aria-pressed="false">°F</button>
-            </p>
-          </div>
-          <div class="alp-temp__bar" role="img" aria-label="Made for {{ tmin }} to {{ tmax }} °C">
-            <span class="alp-temp__band" style="left: {{ band_left }}%; width: {{ band_width }}%"></span>
-          </div>
-          <div class="alp-temp__ticks" aria-hidden="true">
-            {%- for c in (0..4) -%}
-              {%- assign deg = c | times: 10 | minus: 10 -%}
-              <span data-c="{{ deg }}">{{ deg }}°C</span>
-            {%- endfor -%}
-          </div>
-        </div>
-      {%- endif -%}
-
-      {%- comment -%} Weather conditions: the four, filled where the product is made for them. {%- endcomment -%}
-      {%- assign conds = mf.conditions.value -%}
-      {%- if conds != blank -%}
-        {%- assign have = conds | join: '|' | downcase | split: '|' -%}
-        <div class="alp-wxc">
-          <p class="alp-temp__title">Weather conditions</p>
-          <ul class="alp-wxc__row" role="list">
-            {%- for name in cond_names -%}
-              {%- assign n = name | strip -%}
-              {%- assign key = n | downcase -%}
-              <li class="alp-wxc__item{% if have contains key %} is-on{% endif %}"><span class="alp-wxc__bar" aria-hidden="true"></span>{{ n }}<span class="alp-vh">{% if have contains key %}: yes{% else %}: no{% endif %}</span></li>
-            {%- endfor -%}
-          </ul>
-        </div>
-      {%- endif -%}
+      {%- comment -%} Field notes: spec, pad profile, wear range, made for — see the snippet. {%- endcomment -%}
+      {%- render 'alp-field-notes', mf: mf -%}
 
       {%- comment -%}
         Ride-tested on: one Bush Map route the product was ridden on. The
@@ -368,7 +324,7 @@
     { "type": "range", "id": "carousel_count", "label": "Photos in the carousel", "min": 1, "max": 6, "step": 1, "default": 2, "info": "The first photos (front, rear…) go in the big carousel; the rest sit two-up further down." },
     { "type": "checkbox", "id": "alt_captions", "label": "Show each photo's alt text under it", "default": true, "info": "Applies to the photos after the carousel. Edit the text on the photo in the product's admin page (Add alt text). A photo with no alt text (Shopify then uses the product's name) gets no caption." },
     { "type": "checkbox", "id": "description_as_statement", "label": "Use the description as the statement", "default": false, "info": "When the product has no custom.statement metafield. Off: the description sits under Add to cart instead." },
-    { "type": "text", "id": "conditions_list", "label": "Weather conditions shown", "default": "Hot, Cold, Rain, Low light" },
+    { "type": "text", "id": "conditions_list", "label": "Retired: weather conditions list", "default": "Hot, Cold, Rain, Low light", "info": "No longer used. Field notes → Made for lists what's in the product's custom.conditions field." },
     { "type": "text", "id": "more_heading", "label": "Same-type row heading", "default": "More colours and styles" },
     { "type": "text", "id": "outfit_heading", "label": "Complementary row heading", "default": "Create your outfit" }
   ],
