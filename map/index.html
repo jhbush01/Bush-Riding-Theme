@@ -240,12 +240,14 @@
       </nav>
     </aside>
 
-    <!-- Phones and tablets: the routes-and-filters sheet opens from this round
-         button, bottom right in the thumb zone (drag it to the other side and
-         it stays there). Same idea as the store's phone menu. -->
-    <button id="filters-fab" class="filters-fab" type="button" aria-controls="sidebar" aria-expanded="false" aria-label="Open routes and filters">
-      <svg class="filters-fab__open" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-      <svg class="filters-fab__close" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    <!-- Phones and tablets: the routes-and-filters sheet grows out of this
+         lemon pill at the bottom centre (the Shopify app's "Quick sale" pill
+         was the reference). Open, it shrinks to a round × in a row of its own
+         at the foot of the sheet, clear of the list. -->
+    <button id="filters-fab" class="filters-fab" type="button" aria-controls="sidebar" aria-expanded="false" aria-label="Explore routes and filters">
+      <svg class="filters-fab__open" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
+      <span class="filters-fab__label">Explore routes</span>
+      <svg class="filters-fab__close" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
     </button>
 
     <!-- Top-left cluster, stuck to the filter drawer: hamburger toggle + the

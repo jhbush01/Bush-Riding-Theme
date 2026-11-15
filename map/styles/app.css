@@ -2342,41 +2342,58 @@ textarea.field-input {
 }
 
 /* ---------- Routes & filters as a bottom sheet (phones + tablets) ----------
-   Up to 1024px the panel no longer slides in from the left: it rises from
-   the bottom like the route cards, opened by a round button in the thumb
-   zone, the same pattern as the store's phone menu. One height (82% of the
-   screen), grab handle on top: drag it down, tap the map, or press the
-   button again (now a ×) to close. Desktop keeps the docked left panel. */
+   Up to 1024px the panel no longer slides in from the left: it grows out of
+   a lemon pill at the bottom centre ("Explore routes"), the same idea as the
+   Shopify app's bottom pill. Open, the pill becomes a round × that sits in
+   its own row at the foot of the sheet, so it never covers the list. Grab
+   handle on top: drag it down, tap the map, or tap the × to close. Desktop
+   keeps the docked left panel.
+
+   Closed, the sheet is hidden outright (visibility), not just parked below
+   the screen: iOS Safari's floating toolbar shows page content underneath
+   it, and a sheet parked a few pixels below the edge showed there on load. */
 .filters-fab,
 .sidebar__grab { display: none; }
 
+/* Height of the pill/× row at the foot of the open sheet. */
+:root { --fab-h: 52px; --fab-gap: 16px; }
+
 @media (max-width: 1024px) {
   .map-brand .sidebar-toggle { display: none; }
+  /* The pill's × closes the sheet; a second × at the top was one too many. */
+  .sidebar__close { display: none; }
 
-  .sidebar {
+  .sidebar,
+  .sidebar.is-closed {
     top: auto;
     left: 0;
     right: 0;
     bottom: 0;
     width: auto;
     max-width: none;
-    height: 82vh;
-    height: 82svh;
+    height: 84vh;
+    height: 84svh;
     z-index: 10;
     border-right: 0;
     border-top: 1px solid var(--line);
     border-radius: 18px 18px 0 0;
     box-shadow: 0 -8px 30px rgba(28, 26, 21, 0.18);
-    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-    /* The round button stays on top as the close control, bottom right; the
-       legal links underneath are on the left, so they need no room for it. */
-    padding-bottom: env(safe-area-inset-bottom);
+    /* Room at the foot for the × row. */
+    padding-bottom: calc(var(--fab-h) + var(--fab-gap) * 2 + env(safe-area-inset-bottom));
+    /* Grows out of the pill: from its spot, small and faded, to full size. */
+    transform-origin: 50% 100%;
+    transform: translateY(24px) scale(0.94);
+    opacity: 0;
+    visibility: hidden;
+    transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease, visibility 0s linear 0.32s;
   }
-  .sidebar,
-  .sidebar.is-closed { transform: translateY(calc(100% + 24px)); }
-  .sidebar.is-open { transform: none; }
+  .sidebar.is-open {
+    transform: none;
+    opacity: 1;
+    visibility: visible;
+    transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.16s ease, visibility 0s;
+  }
   .sidebar.is-dragging { transition: none; }
-  .sidebar__legal { padding-right: 96px; }
 
   /* The brand cluster no longer sits over the panel, so the head loses the
      room it kept for it; the handle takes the top instead. */
@@ -2397,43 +2414,48 @@ textarea.field-input {
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 9px;
     position: fixed;
-    right: 16px;
-    /* Above the map credits (the "i"), which own the very corner. */
-    bottom: calc(40px + env(safe-area-inset-bottom));
+    left: 50%;
+    bottom: calc(var(--fab-gap) + env(safe-area-inset-bottom));
+    transform: translateX(-50%);
     z-index: 11;
-    width: 58px;
-    height: 58px;
-    padding: 0;
-    border-radius: 50%;
-    background: var(--mist);
+    height: var(--fab-h);
+    min-width: var(--fab-h);
+    padding: 0 22px 0 18px;
+    border-radius: 999px;
+    background: var(--lemon);
     color: var(--ink);
-    border: 1px solid var(--mist);
-    box-shadow: 0 6px 18px rgba(47, 47, 38, 0.28);
+    border: 1px solid rgba(76, 75, 59, 0.22);
+    box-shadow: 0 6px 18px rgba(47, 47, 38, 0.3);
+    font: 600 15px/1 var(--ui-font);
+    letter-spacing: 0.01em;
+    white-space: nowrap;
     cursor: pointer;
-    touch-action: none;
     -webkit-tap-highlight-color: transparent;
-    transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s;
+    transition: padding 0.25s ease, background-color 0.25s ease, bottom 0.25s ease;
   }
-  html.brm-fab-left .filters-fab { right: auto; left: 16px; }
-  .filters-fab.is-dragging { transition: none; box-shadow: 0 10px 26px rgba(47, 47, 38, 0.36); }
+  .filters-fab:active { filter: brightness(0.96); }
   .filters-fab__close { display: none; }
-  .filters-fab[aria-expanded="true"] { background: var(--cream-panel); border-color: var(--line); }
-  .filters-fab[aria-expanded="true"] .filters-fab__open { display: none; }
+  /* Open: just the ×, a circle in its own row under the sheet's content. */
+  .filters-fab[aria-expanded="true"] { padding: 0; width: var(--fab-h); }
+  .filters-fab[aria-expanded="true"] .filters-fab__open,
+  .filters-fab[aria-expanded="true"] .filters-fab__label { display: none; }
   .filters-fab[aria-expanded="true"] .filters-fab__close { display: block; }
 
-  /* A route card owns the bottom of the screen while it's up; the button
-     steps aside until it's closed. The tablet route bar is shorter, so there
-     the button just lifts above it. */
+  /* A route card owns the bottom of the screen while it's up; the pill
+     steps aside until it's closed. The tablet route bar is shorter and also
+     centred, so there the pill lifts above it. */
   body:has(#detail:not([data-state="closed"])) .filters-fab { display: none; }
-  body:has(#stage:not([hidden])) .filters-fab { bottom: calc(100px + env(safe-area-inset-bottom)); }
+  body:has(#stage:not([hidden])) .filters-fab { bottom: calc(96px + env(safe-area-inset-bottom)); }
 }
 
-/* Tablets: a sheet the width of a phone, from the lower left, so most of
-   the map stays in view beside it. */
+/* Tablets: a phone-width sheet, centred over the pill, so most of the map
+   stays in view either side. */
 @media (min-width: 721px) and (max-width: 1024px) {
-  .sidebar {
-    left: 24px;
+  .sidebar,
+  .sidebar.is-closed {
+    left: calc(50% - 220px);
     right: auto;
     width: 440px;
     max-width: calc(100vw - 48px);

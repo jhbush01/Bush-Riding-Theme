@@ -3817,10 +3817,9 @@ function setupCategoryFilters() {
 let setSidebarOpen = () => {}; // assigned in setupSidebarToggle
 
 // Up to 1024px the routes-and-filters panel is a bottom sheet opened by a
-// round button (styles: "Routes & filters as a bottom sheet" in app.css).
+// lemon pill (styles: "Routes & filters as a bottom sheet" in app.css).
 // Above that it is the docked left panel, open by default.
 const SHEET_FILTERS_MQ = window.matchMedia("(max-width: 1024px)");
-const FAB_SIDE_KEY = "brm.fabLeft";
 
 function setupSidebarToggle() {
   const sidebar = document.getElementById("sidebar");
@@ -3837,7 +3836,7 @@ function setupSidebarToggle() {
     toggle.setAttribute("aria-expanded", String(open));
     if (fab) {
       fab.setAttribute("aria-expanded", String(open));
-      fab.setAttribute("aria-label", open ? "Close routes and filters" : "Open routes and filters");
+      fab.setAttribute("aria-label", open ? "Close routes and filters" : "Explore routes and filters");
     }
     document.body.classList.toggle("sidebar-open", open);
   };
@@ -3863,50 +3862,9 @@ function setupSidebarToggle() {
   }
 }
 
-/* The round button: a tap toggles the sheet; a sideways drag moves it to the
-   other side of the screen, where it stays (remembered per browser). */
+// The lemon pill: a tap opens the sheet (the pill becomes its ×) or closes it.
 function setupFiltersFab(fab, onTap) {
-  try {
-    if (localStorage.getItem(FAB_SIDE_KEY) === "1") document.documentElement.classList.add("brm-fab-left");
-  } catch (_) {}
-  let start = null;
-  let dragged = false;
-  fab.addEventListener("pointerdown", (e) => {
-    start = { x: e.clientX, y: e.clientY, left: fab.getBoundingClientRect().left };
-    dragged = false;
-    fab.setPointerCapture(e.pointerId);
-  });
-  fab.addEventListener("pointermove", (e) => {
-    if (!start) return;
-    const dx = e.clientX - start.x;
-    if (!dragged && Math.abs(dx) < 12) return;
-    dragged = true;
-    fab.classList.add("is-dragging");
-    fab.style.transform = `translateX(${dx}px)`;
-  });
-  const end = (e) => {
-    if (!start) return;
-    const wasDrag = dragged;
-    start = null;
-    fab.classList.remove("is-dragging");
-    fab.style.transform = "";
-    if (!wasDrag) return;
-    const left = e.clientX < window.innerWidth / 2;
-    document.documentElement.classList.toggle("brm-fab-left", left);
-    try {
-      localStorage.setItem(FAB_SIDE_KEY, left ? "1" : "0");
-    } catch (_) {}
-  };
-  fab.addEventListener("pointerup", end);
-  fab.addEventListener("pointercancel", end);
-  fab.addEventListener("click", (e) => {
-    if (dragged) {
-      dragged = false;
-      e.preventDefault();
-      return;
-    }
-    onTap();
-  });
+  fab.addEventListener("click", onTap);
 }
 
 /* Drag the sheet down by its head (handle, title, buttons) to close it. It
