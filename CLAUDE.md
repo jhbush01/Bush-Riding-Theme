@@ -101,11 +101,12 @@ most of the work — text and icon as support. Show, don't tell.
   works before a rides page exists.
   The product page (`sections/alpine-product.liquid`, Satisfy reference
   layout) reads product metafields in the `custom` namespace — statement,
-  spec_pills, temp_min/temp_max, conditions, story_lines, model_note,
-  silhouette, and the
+  spec_pills, story_lines, model_note, silhouette, and the
   accordion fields usage/technology/features/composition_care/warranty —
   and hides each block while its field is empty. The list is in the
-  section's header comment.
+  section's header comment. The info column is kept simple on purpose
+  (owner, Nov 2026): name, price, spec pills, colour, size, buttons, help
+  accordions — no temperature, weather, route or "Field notes" blocks.
   Checkout stays short: product → size → Buy now (phones) or Add to cart →
   Checkout in the drawer (desktop). Quick add on product cards was removed
   in Oct 2026 at the owner's request (too glitchy) — cards link to the

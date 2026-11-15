@@ -7,9 +7,9 @@
   a big statement line, the remaining photos two-up, the model caption with
   "Shop the silhouette" — then the detail accordions (Usage, Technology,
   Features, Composition & Care, Warranty). Right (one-third, sticky): name,
-  price, spec pills, colour swatches, size, Add to cart, temperature range,
-  weather conditions, and the side accordions (Need help?, Shipping &
-  returns). Below both: More colours and styles; Create your outfit.
+  price, spec pills, colour swatches, size, Add to cart, and the side
+  accordions (Need help?, Shipping & returns). Kept simple on purpose
+  (owner, Nov 2026): no temperature, weather or route blocks. Below both: More colours and styles; Create your outfit.
   Phone: the same content stacked — carousel, details, story, accordions,
   rows — with size and the buttons in the fixed bottom bar.
 
@@ -18,13 +18,9 @@
   Custom data → Products). Each block hides itself while its field is empty:
     custom.statement        multi-line text   — the big line under the carousel
     custom.spec_pills       list of single-line text — 124g · FLATLOCK SEAMS…
-    custom.temp_min / _max  integer (°C)      — temperature range
-    custom.conditions       list of single-line text — hot, cold, rain, low light
     custom.story_lines      list of multi-line text — a line after each photo row
     custom.model_note       single-line text  — "Jarrod is 180cm and wears M."
     custom.silhouette       collection        — what "Shop the silhouette" opens
-    custom.route            single-line text  — Bush Map route id (or a link to
-                                                it) for the "Ride-tested on" tile
     custom.usage, custom.technology, custom.features,
     custom.composition_care, custom.warranty  rich text — accordions
 
@@ -47,7 +43,6 @@
   if statement == blank and section.settings.description_as_statement
     assign statement = product.description | strip_html | strip
   endif
-  assign cond_names = section.settings.conditions_list | split: ','
 -%}
 <section class="alp alp-pdp" data-alp-pdp>
   <div class="alp-pdp__grid">
@@ -247,80 +242,6 @@
         <div class="alp-pdp__desc">{{ product.description }}</div>
       {%- endif -%}
 
-      {%- comment -%} Temperature range: a dark band from min to max on a −10…30 °C scale. {%- endcomment -%}
-      {%- if mf.temp_min != blank and mf.temp_max != blank -%}
-        {%- liquid
-          assign tmin = mf.temp_min.value | at_least: -10 | at_most: 30
-          assign tmax = mf.temp_max.value | at_least: -10 | at_most: 30
-          assign band_left = tmin | plus: 10 | times: 100.0 | divided_by: 40
-          assign band_width = tmax | minus: tmin | times: 100.0 | divided_by: 40
-        -%}
-        <div class="alp-temp" data-alp-temp>
-          <div class="alp-temp__head">
-            <p class="alp-temp__title">Temperature range</p>
-            <p class="alp-temp__units">
-              <button type="button" data-alp-unit="c" aria-pressed="true">°C</button>
-              <button type="button" data-alp-unit="f" aria-pressed="false">°F</button>
-            </p>
-          </div>
-          <div class="alp-temp__bar" role="img" aria-label="Made for {{ tmin }} to {{ tmax }} °C">
-            <span class="alp-temp__band" style="left: {{ band_left }}%; width: {{ band_width }}%"></span>
-          </div>
-          <div class="alp-temp__ticks" aria-hidden="true">
-            {%- for c in (0..4) -%}
-              {%- assign deg = c | times: 10 | minus: 10 -%}
-              <span data-c="{{ deg }}">{{ deg }}°C</span>
-            {%- endfor -%}
-          </div>
-        </div>
-      {%- endif -%}
-
-      {%- comment -%} Weather conditions: the four, filled where the product is made for them. {%- endcomment -%}
-      {%- assign conds = mf.conditions.value -%}
-      {%- if conds != blank -%}
-        {%- assign have = conds | join: '|' | downcase | split: '|' -%}
-        <div class="alp-wxc">
-          <p class="alp-temp__title">Weather conditions</p>
-          <ul class="alp-wxc__row" role="list">
-            {%- for name in cond_names -%}
-              {%- assign n = name | strip -%}
-              {%- assign key = n | downcase -%}
-              <li class="alp-wxc__item{% if have contains key %} is-on{% endif %}"><span class="alp-wxc__bar" aria-hidden="true"></span>{{ n }}<span class="alp-vh">{% if have contains key %}: yes{% else %}: no{% endif %}</span></li>
-            {%- endfor -%}
-          </ul>
-        </div>
-      {%- endif -%}
-
-      {%- comment -%}
-        Ride-tested on: one Bush Map route the product was ridden on. The
-        route comes from custom.route (its id, or any map / route-page link
-        to it); alpine.js fills the name, region, effort, profile and stats
-        from the map API, and the tile stays hidden until that answers.
-      {%- endcomment -%}
-      {%- assign route_ref = mf.route.value | strip -%}
-      {%- if route_ref != blank -%}
-        <div class="alp-ridetile" data-alp-ridetile="{{ route_ref | escape }}" hidden>
-          <div class="alp-ridetile__top">
-            <p class="alp-ridetile__eyebrow">Ride-tested on</p>
-            <p class="alp-ridetile__brand">Bush Map&trade;</p>
-          </div>
-          <p class="alp-ridetile__name" data-alp-rt-name></p>
-          <p class="alp-ridetile__meta" data-alp-rt-meta></p>
-          <div class="alp-ridetile__elev" data-alp-rt-elev aria-hidden="true"></div>
-          <dl class="alp-ridetile__stats">
-            <div data-alp-rt-dist-box><dt>distance</dt><dd data-alp-rt-dist></dd></div>
-            <div data-alp-rt-climb-box><dt>climb</dt><dd data-alp-rt-climb></dd></div>
-            {%- if mf.temp_min != blank and mf.temp_max != blank -%}
-              <div><dt>wear range</dt><dd>{{ mf.temp_min.value }}–{{ mf.temp_max.value }}&nbsp;°C</dd></div>
-            {%- endif -%}
-          </dl>
-          <p class="alp-ridetile__foot">
-            <a href="{% render 'alp-link', to: 'map' %}" data-alp-rt-link target="_blank" rel="noopener">Get the route</a>
-            <a href="{% render 'alp-link', to: 'map' %}" data-alp-rt-gpx target="_blank" rel="noopener">GPX&nbsp;↓</a>
-          </p>
-        </div>
-      {%- endif -%}
-
       {%- capture side_acc -%}{%- render 'alp-pdp-acc', blocks: section.blocks, place: 'side', product: product -%}{%- endcapture -%}
       {%- if side_acc != blank -%}
         <div class="alp-acc">{{ side_acc }}</div>
@@ -367,8 +288,8 @@
   "settings": [
     { "type": "range", "id": "carousel_count", "label": "Photos in the carousel", "min": 1, "max": 6, "step": 1, "default": 2, "info": "The first photos (front, rear…) go in the big carousel; the rest sit two-up further down." },
     { "type": "checkbox", "id": "alt_captions", "label": "Show each photo's alt text under it", "default": true, "info": "Applies to the photos after the carousel. Edit the text on the photo in the product's admin page (Add alt text). A photo with no alt text (Shopify then uses the product's name) gets no caption." },
+    { "type": "text", "id": "conditions_list", "label": "Weather conditions (not shown)", "default": "Hot, Cold, Rain, Low light", "info": "Unused since the info column was simplified (Nov 2026). Kept so saved templates stay valid." },
     { "type": "checkbox", "id": "description_as_statement", "label": "Use the description as the statement", "default": false, "info": "When the product has no custom.statement metafield. Off: the description sits under Add to cart instead." },
-    { "type": "text", "id": "conditions_list", "label": "Weather conditions shown", "default": "Hot, Cold, Rain, Low light" },
     { "type": "text", "id": "more_heading", "label": "Same-type row heading", "default": "More colours and styles" },
     { "type": "text", "id": "outfit_heading", "label": "Complementary row heading", "default": "Create your outfit" }
   ],
