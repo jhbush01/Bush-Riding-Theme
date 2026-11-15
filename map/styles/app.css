@@ -1053,22 +1053,6 @@ body {
     transform: translateX(0);
   }
 
-  /* The map tools sit above the drawer (z-index 8 against its 5), and on a
-     390px screen the Satellite button lands at x≈235 while the drawer's close
-     button spans 256–290. They were stacked on top of each other, so the ×
-     could not be pressed.
-
-     Hidden rather than moved. The drawer covers ~77% of the screen while it is
-     open, so Satellite and 2D/3D have almost no map left to act on — and the
-     alternatives are worse: the × can't go left because the hamburger and
-     wordmark already own that corner, and narrowing the drawer would spend
-     content width on every phone to dodge a control that shouldn't be there
-     anyway. The zoom buttons stay: they sit at x≈344+, clear of the drawer.
-
-     `~` works because .map-tools follows #sidebar in the markup. */
-  .sidebar.is-open ~ .map-tools {
-    display: none;
-  }
 }
 
 /* ===================== Ride diary ===================== */
@@ -2355,4 +2339,105 @@ textarea.field-input {
 }
 .gate__privacy a {
   color: var(--card-rust, var(--terracotta));
+}
+
+/* ---------- Routes & filters as a bottom sheet (phones + tablets) ----------
+   Up to 1024px the panel no longer slides in from the left: it rises from
+   the bottom like the route cards, opened by a round button in the thumb
+   zone, the same pattern as the store's phone menu. One height (82% of the
+   screen), grab handle on top: drag it down, tap the map, or press the
+   button again (now a ×) to close. Desktop keeps the docked left panel. */
+.filters-fab,
+.sidebar__grab { display: none; }
+
+@media (max-width: 1024px) {
+  .map-brand .sidebar-toggle { display: none; }
+
+  .sidebar {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    max-width: none;
+    height: 82vh;
+    height: 82svh;
+    z-index: 10;
+    border-right: 0;
+    border-top: 1px solid var(--line);
+    border-radius: 18px 18px 0 0;
+    box-shadow: 0 -8px 30px rgba(28, 26, 21, 0.18);
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    /* The round button stays on top as the close control, bottom right; the
+       legal links underneath are on the left, so they need no room for it. */
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .sidebar,
+  .sidebar.is-closed { transform: translateY(calc(100% + 24px)); }
+  .sidebar.is-open { transform: none; }
+  .sidebar.is-dragging { transition: none; }
+  .sidebar__legal { padding-right: 96px; }
+
+  /* The brand cluster no longer sits over the panel, so the head loses the
+     room it kept for it; the handle takes the top instead. */
+  .sidebar__head { padding-top: 26px; touch-action: none; }
+  .sidebar__grab {
+    display: block;
+    position: absolute;
+    top: 9px;
+    left: 50%;
+    width: 40px;
+    height: 4px;
+    margin-left: -20px;
+    border-radius: 2px;
+    background: var(--line);
+  }
+
+  .filters-fab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    right: 16px;
+    /* Above the map credits (the "i"), which own the very corner. */
+    bottom: calc(40px + env(safe-area-inset-bottom));
+    z-index: 11;
+    width: 58px;
+    height: 58px;
+    padding: 0;
+    border-radius: 50%;
+    background: var(--mist);
+    color: var(--ink);
+    border: 1px solid var(--mist);
+    box-shadow: 0 6px 18px rgba(47, 47, 38, 0.28);
+    cursor: pointer;
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s;
+  }
+  html.brm-fab-left .filters-fab { right: auto; left: 16px; }
+  .filters-fab.is-dragging { transition: none; box-shadow: 0 10px 26px rgba(47, 47, 38, 0.36); }
+  .filters-fab__close { display: none; }
+  .filters-fab[aria-expanded="true"] { background: var(--cream-panel); border-color: var(--line); }
+  .filters-fab[aria-expanded="true"] .filters-fab__open { display: none; }
+  .filters-fab[aria-expanded="true"] .filters-fab__close { display: block; }
+
+  /* A route card owns the bottom of the screen while it's up; the button
+     steps aside until it's closed. The tablet route bar is shorter, so there
+     the button just lifts above it. */
+  body:has(#detail:not([data-state="closed"])) .filters-fab { display: none; }
+  body:has(#stage:not([hidden])) .filters-fab { bottom: calc(100px + env(safe-area-inset-bottom)); }
+}
+
+/* Tablets: a sheet the width of a phone, from the lower left, so most of
+   the map stays in view beside it. */
+@media (min-width: 721px) and (max-width: 1024px) {
+  .sidebar {
+    left: 24px;
+    right: auto;
+    width: 440px;
+    max-width: calc(100vw - 48px);
+    height: 78vh;
+    height: 78svh;
+  }
 }

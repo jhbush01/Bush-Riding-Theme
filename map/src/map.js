@@ -2209,12 +2209,12 @@ function fitPadding() {
 }
 
 // Whether the filters sidebar is currently taking up horizontal space. It is
-// docked (not overlaid) from 721px up, and setSidebarOpen marks it .is-closed
-// when collapsed.
+// docked (not overlaid) on desktop only: up to 1024px it's a bottom sheet
+// over the map. setSidebarOpen marks it .is-closed when collapsed.
 function sidebarDocked() {
   const el = document.getElementById("sidebar");
   if (!el) return false;
-  return !el.classList.contains("is-closed") && window.matchMedia("(min-width: 721px)").matches;
+  return !el.classList.contains("is-closed") && !SHEET_FILTERS_MQ.matches;
 }
 
 // Compensate the padding above for a pitched camera.
@@ -3816,28 +3816,130 @@ function setupCategoryFilters() {
 // ---- Sidebar toggle (mobile) --------------------------------------------
 let setSidebarOpen = () => {}; // assigned in setupSidebarToggle
 
+// Up to 1024px the routes-and-filters panel is a bottom sheet opened by a
+// round button (styles: "Routes & filters as a bottom sheet" in app.css).
+// Above that it is the docked left panel, open by default.
+const SHEET_FILTERS_MQ = window.matchMedia("(max-width: 1024px)");
+const FAB_SIDE_KEY = "brm.fabLeft";
+
 function setupSidebarToggle() {
   const sidebar = document.getElementById("sidebar");
   const toggle = document.getElementById("sidebar-toggle");
   const close = document.getElementById("sidebar-close");
-  // is-open drives the mobile drawer; is-closed collapses the docked panel on
-  // tablet/desktop. They're mutually exclusive. body.sidebar-open lets the map
-  // nav hide while the mobile drawer is up.
+  const fab = document.getElementById("filters-fab");
+  // is-open shows the panel (sheet or drawer); is-closed collapses the docked
+  // desktop panel. They're mutually exclusive. body.sidebar-open lets the map
+  // nav hide while it's up.
   setSidebarOpen = (open) => {
     sidebar.classList.toggle("is-open", open);
     sidebar.classList.toggle("is-closed", !open);
+    sidebar.style.transform = "";
     toggle.setAttribute("aria-expanded", String(open));
+    if (fab) {
+      fab.setAttribute("aria-expanded", String(open));
+      fab.setAttribute("aria-label", open ? "Close routes and filters" : "Open routes and filters");
+    }
     document.body.classList.toggle("sidebar-open", open);
   };
-  const isOpen = () => sidebar.classList.contains("is-open") || (!sidebar.classList.contains("is-closed") && window.matchMedia("(min-width: 721px)").matches);
+  const isOpen = () => sidebar.classList.contains("is-open") || (!sidebar.classList.contains("is-closed") && !SHEET_FILTERS_MQ.matches);
   toggle.addEventListener("click", () => setSidebarOpen(!isOpen()));
   if (close) close.addEventListener("click", () => setSidebarOpen(false));
 
-  // Docked open on tablet/desktop; closed on phones so the map shows first.
-  // no-anim during init avoids a slide on load.
+  // Docked open on desktop; closed on phones and tablets so the map shows
+  // first. no-anim during init avoids a slide on load.
   sidebar.classList.add("no-anim");
-  setSidebarOpen(window.matchMedia("(min-width: 721px)").matches);
+  setSidebarOpen(!SHEET_FILTERS_MQ.matches);
   requestAnimationFrame(() => sidebar.classList.remove("no-anim"));
+
+  if (fab) setupFiltersFab(fab, () => setSidebarOpen(!isOpen()));
+  setupSheetDragClose(sidebar);
+
+  // Tapping the map above the sheet closes it, as tapping outside a card does.
+  const mapEl = document.getElementById("map");
+  if (mapEl) {
+    mapEl.addEventListener("pointerdown", () => {
+      if (SHEET_FILTERS_MQ.matches && sidebar.classList.contains("is-open")) setSidebarOpen(false);
+    });
+  }
+}
+
+/* The round button: a tap toggles the sheet; a sideways drag moves it to the
+   other side of the screen, where it stays (remembered per browser). */
+function setupFiltersFab(fab, onTap) {
+  try {
+    if (localStorage.getItem(FAB_SIDE_KEY) === "1") document.documentElement.classList.add("brm-fab-left");
+  } catch (_) {}
+  let start = null;
+  let dragged = false;
+  fab.addEventListener("pointerdown", (e) => {
+    start = { x: e.clientX, y: e.clientY, left: fab.getBoundingClientRect().left };
+    dragged = false;
+    fab.setPointerCapture(e.pointerId);
+  });
+  fab.addEventListener("pointermove", (e) => {
+    if (!start) return;
+    const dx = e.clientX - start.x;
+    if (!dragged && Math.abs(dx) < 12) return;
+    dragged = true;
+    fab.classList.add("is-dragging");
+    fab.style.transform = `translateX(${dx}px)`;
+  });
+  const end = (e) => {
+    if (!start) return;
+    const wasDrag = dragged;
+    start = null;
+    fab.classList.remove("is-dragging");
+    fab.style.transform = "";
+    if (!wasDrag) return;
+    const left = e.clientX < window.innerWidth / 2;
+    document.documentElement.classList.toggle("brm-fab-left", left);
+    try {
+      localStorage.setItem(FAB_SIDE_KEY, left ? "1" : "0");
+    } catch (_) {}
+  };
+  fab.addEventListener("pointerup", end);
+  fab.addEventListener("pointercancel", end);
+  fab.addEventListener("click", (e) => {
+    if (dragged) {
+      dragged = false;
+      e.preventDefault();
+      return;
+    }
+    onTap();
+  });
+}
+
+/* Drag the sheet down by its head (handle, title, buttons) to close it. It
+   follows the finger; let go past a quarter of its height, or with a quick
+   flick, and it closes, otherwise it springs back. The list below scrolls as
+   normal: only the head drags. */
+function setupSheetDragClose(sidebar) {
+  const head = sidebar.querySelector(".sidebar__head");
+  if (!head) return;
+  let drag = null;
+  head.addEventListener("pointerdown", (e) => {
+    if (!SHEET_FILTERS_MQ.matches || !sidebar.classList.contains("is-open")) return;
+    if (e.target.closest("a, button, input, select, textarea, summary")) return;
+    drag = { y: e.clientY, t: performance.now(), dy: 0, id: e.pointerId };
+    head.setPointerCapture(e.pointerId);
+    sidebar.classList.add("is-dragging");
+  });
+  head.addEventListener("pointermove", (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    drag.dy = Math.max(0, e.clientY - drag.y);
+    sidebar.style.transform = `translateY(${drag.dy}px)`;
+  });
+  const end = () => {
+    if (!drag) return;
+    const { dy, t } = drag;
+    drag = null;
+    sidebar.classList.remove("is-dragging");
+    const fast = dy / Math.max(1, performance.now() - t) > 0.6;
+    if (dy > sidebar.offsetHeight * 0.25 || (fast && dy > 30)) setSidebarOpen(false);
+    else sidebar.style.transform = "";
+  };
+  head.addEventListener("pointerup", end);
+  head.addEventListener("pointercancel", end);
 }
 
 // Collapse the filters drawer when a route is picked, at every width.

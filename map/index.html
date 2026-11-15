@@ -136,6 +136,9 @@
     <!-- Filter / list panel -->
     <aside id="sidebar" class="sidebar" role="main" aria-label="Route filters and list">
       <header class="sidebar__head">
+        <!-- Phones and tablets: the panel is a sheet that rises from the
+             bottom; this is its grab handle (drag down to close). -->
+        <span class="sidebar__grab" aria-hidden="true"></span>
         <button type="button" id="sidebar-close" class="sidebar__close" aria-label="Close filters">&times;</button>
         <h1 class="sidebar__title"><a href="/" class="sidebar__home">Bush Map</a></h1>
         <p class="sidebar__sub">Explore more with our curated gravel routes and events</p>
@@ -236,6 +239,14 @@
         <a href="mailto:jh@bushriding.au">Contact</a>
       </nav>
     </aside>
+
+    <!-- Phones and tablets: the routes-and-filters sheet opens from this round
+         button, bottom right in the thumb zone (drag it to the other side and
+         it stays there). Same idea as the store's phone menu. -->
+    <button id="filters-fab" class="filters-fab" type="button" aria-controls="sidebar" aria-expanded="false" aria-label="Open routes and filters">
+      <svg class="filters-fab__open" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      <svg class="filters-fab__close" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
 
     <!-- Top-left cluster, stuck to the filter drawer: hamburger toggle + the
          Bush Riding wordmark (links back to the online store home). -->
