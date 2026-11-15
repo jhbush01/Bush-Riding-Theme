@@ -1227,9 +1227,8 @@
     $$('[data-alp-unit]', box).forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
     $$('[data-c]', box).forEach(function (t) {
       var c = Number(t.getAttribute('data-c'));
-      t.textContent = f ? Math.round(c * 9 / 5 + 32) : c;
+      t.textContent = f ? Math.round(c * 9 / 5 + 32) + '°F' : c + '°C';
     });
-    $$('[data-alp-u]', box).forEach(function (u) { u.textContent = f ? '°F' : '°C'; });
   });
 
   /* "Ride-tested on" tile (product page). custom.route may hold the route id
@@ -1237,6 +1236,7 @@
      a pasted URL works as well as a typed id. Labels match the map and the
      generated route pages (scripts/generate-route-pages.js). */
   var STATE_FULL = { QLD: 'Queensland', NSW: 'New South Wales', VIC: 'Victoria', TAS: 'Tasmania', SA: 'South Australia', WA: 'Western Australia', NT: 'Northern Territory', ACT: 'Australian Capital Territory' };
+  var TERRAIN = { groomed: 'Groomed', rocky: 'Rocky', 'proper-mud': 'Proper Mud', easy: 'Groomed', moderate: 'Rocky', hard: 'Proper Mud' };
   function slugify(s) {
     return String(s || '').toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
   }
@@ -1246,6 +1246,12 @@
     if (h) return decodeURIComponent(h[1]);
     var parts = ref.replace(/[?#].*$/, '').split('/').filter(Boolean);
     return parts.length ? decodeURIComponent(parts[parts.length - 1]) : '';
+  }
+  function effortOf(d, e) {
+    d = Number(d); e = Number(e);
+    if (d > 120 && e > 750) return 'Character building';
+    if (d >= 75 || e > 750) return 'Big day out';
+    return 'Cruisy';
   }
   /* Elevation profile from the route's GPX: distance along the track against
      elevation, as a filled line. Drawn only when the file carries <ele>. */
@@ -1277,12 +1283,9 @@
     var seq = prof.map(function (q) {
       return (q.d / dMax * W).toFixed(1) + ',' + (H - (q.e - lo) / (hi - lo) * (H - top)).toFixed(1);
     });
-    /* The map card's colours (map/src/map.js renderElevation): rust line over
-       a rust wash that fades to nothing. */
     return '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none">' +
-      '<defs><linearGradient id="alpElevGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c9673f" stop-opacity=".34"/><stop offset="1" stop-color="#c9673f" stop-opacity=".04"/></linearGradient></defs>' +
-      '<path fill="url(#alpElevGrad)" d="M0,' + H + ' L' + seq.join(' L') + ' L' + W + ',' + H + ' Z"/>' +
-      '<path fill="none" stroke="#bd5730" stroke-width="1.6" stroke-linejoin="round" d="M' + seq.join(' L') + '" vector-effect="non-scaling-stroke"/></svg>';
+      '<path class="alp-ridetile__area" d="M0,' + H + ' L' + seq.join(' L') + ' L' + W + ',' + H + ' Z"/>' +
+      '<path class="alp-ridetile__line" d="M' + seq.join(' L') + '" vector-effect="non-scaling-stroke"/></svg>';
   }
   function initRideTiles() {
     $$('[data-alp-ridetile]').forEach(function (tile) {
@@ -1302,7 +1305,7 @@
              editor the tile says why, so a typo isn't a silent failure. */
           if (window.console) console.warn('[alp] Ride-tested tile: no published Bush Map route matches "' + ref + '" (' + (list || []).length + ' routes loaded).');
           if (window.Shopify && Shopify.designMode) {
-            tile.innerHTML = '<p class="alp-ridetile__eyebrow">Ride-tested on</p><p class="alp-ridetile__startname">No published Bush Map route matches \u201c' + String(ref).replace(/[<&]/g, '') + '\u201d' + ((list || []).length ? '' : ' (the routes feed returned nothing)') + '. Use the id at the end of the route page link. Shoppers see nothing here until it matches.</p>';
+            tile.innerHTML = '<p class="alp-ridetile__eyebrow">Ride-tested on</p><p class="alp-ridetile__meta">No published Bush Map route matches \u201c' + String(ref).replace(/[<&]/g, '') + '\u201d' + ((list || []).length ? '' : ' (the routes feed returned nothing)') + '. Use the id at the end of the route page link. Shoppers see nothing here until it matches.</p>';
             tile.hidden = false;
           }
           return;
@@ -1310,58 +1313,25 @@
         var state = String(p.state || '').trim().toUpperCase(), region = String(p.region || '').trim();
         var sm = !state && region.match(/,\s*([A-Za-z]{2,3})\s*$/);
         if (sm) { state = sm[1].toUpperCase(); region = region.replace(/,\s*[A-Za-z]{2,3}\s*$/, ''); }
-        var fmt = function (n) { return Math.round(+n).toLocaleString('en-AU'); };
-        var has = function (v) { return v != null && v !== ''; };
+        var place = [region, STATE_FULL[state] || state].filter(Boolean).join(', ');
+        var terrain = TERRAIN[String(p.terrain_difficulty || '').toLowerCase()] || '';
+        var meta = [place, effortOf(p.distance_km, p.elevation_gain_m), terrain].filter(Boolean).join(' · ');
         $('[data-alp-rt-name]', tile).textContent = p.name || '';
-        /* Stat strip, as on the map card: big number, small unit. */
-        [['dist', p.distance_km, 'km'], ['climb', p.elevation_gain_m, 'm']].forEach(function (s) {
-          if (!has(s[1])) { $('[data-alp-rt-' + s[0] + '-box]', tile).remove(); return; }
-          $('[data-alp-rt-' + s[0] + ']', tile).innerHTML = fmt(s[1]) + ' <span class="alp-ridetile__unit">' + s[2] + '</span>';
-        });
-        /* Full route page = the route's write-up; Download GPX = the same
-           page's download button, behind the map's email gate as usual. */
-        var page = mapUrl() + '/routes/' + (slugify(state) || 'au') + '/' + (slugify(region) || 'other') + '/' + encodeURIComponent(id) + '/';
-        $('[data-alp-rt-link]', tile).href = page;
-        $('[data-alp-rt-gpx]', tile).href = page + '#rp-gpx';
-        /* Start + Navigate to start: the street the map looked up when the
-           route was added (start_place), else the area — as the map does. */
-        var start = String(p.start_place || '').trim();
-        var startText = start || [region, STATE_FULL[state] || state].filter(Boolean).join(', ');
-        if (startText) {
-          $('[data-alp-rt-startlabel]', tile).textContent = start ? 'Start' : 'Start area';
-          $('[data-alp-rt-start]', tile).textContent = startText;
-          $('[data-alp-rt-startbox]', tile).hidden = false;
-          var mk = p.marker;
-          if (mk && isFinite(mk[0]) && isFinite(mk[1])) {
-            var ios = /iP(hone|ad|od)/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
-            var nav = $('[data-alp-rt-nav]', tile);
-            nav.href = ios ? 'https://maps.apple.com/?daddr=' + mk[1] + ',' + mk[0] + '&dirflg=d'
-                           : 'https://www.google.com/maps/dir/?api=1&destination=' + mk[1] + ',' + mk[0];
-            nav.hidden = false;
-          }
-        }
-        /* Photo with its surface chip ("Gravel"), as the map card. */
-        if (p.photo_url) {
-          var img = $('[data-alp-rt-photo]', tile);
-          img.alt = p.name || '';
-          img.onerror = function () { $('[data-alp-rt-photobox]', tile).hidden = true; };
-          img.src = p.photo_url;
-          $('[data-alp-rt-photobox]', tile).hidden = false;
-          var surf = String(p.surface || '').match(/[a-zA-Z]+/);
-          if (surf) {
-            var chip = $('[data-alp-rt-chip]', tile);
-            chip.textContent = surf[0].charAt(0).toUpperCase() + surf[0].slice(1).toLowerCase();
-            chip.hidden = false;
-          }
-        }
+        $('[data-alp-rt-meta]', tile).textContent = meta;
+        var dist = $('[data-alp-rt-dist]', tile), climb = $('[data-alp-rt-climb]', tile);
+        if (p.distance_km != null && p.distance_km !== '') dist.textContent = Math.round(+p.distance_km).toLocaleString('en-AU') + ' km';
+        else $('[data-alp-rt-dist-box]', tile).remove();
+        if (p.elevation_gain_m != null && p.elevation_gain_m !== '') climb.textContent = Math.round(+p.elevation_gain_m).toLocaleString('en-AU') + ' m';
+        else $('[data-alp-rt-climb-box]', tile).remove();
+        // "Get the route" opens it on the map; GPX goes to its route page,
+        // where the download sits behind the map's email gate as usual.
+        $('[data-alp-rt-link]', tile).href = routeHref(id);
+        $('[data-alp-rt-gpx]', tile).href = mapUrl() + '/routes/' + (slugify(state) || 'au') + '/' + (slugify(region) || 'other') + '/' + encodeURIComponent(id) + '/';
         tile.hidden = false;
         if (p.gpx_url) {
           fetch(p.gpx_url).then(function (r) { return r.ok ? r.text() : ''; }).then(function (xml) {
             var svg = xml && elevSvg(xml);
-            if (!svg) return;
-            $('[data-alp-rt-elev]', tile).innerHTML = svg;
-            if (has(p.elevation_gain_m) && has(p.distance_km)) $('[data-alp-rt-elevnote]', tile).textContent = '↑ ' + fmt(p.elevation_gain_m) + ' m over ' + fmt(p.distance_km) + ' km';
-            $('[data-alp-rt-elevbox]', tile).hidden = false;
+            if (svg) $('[data-alp-rt-elev]', tile).innerHTML = svg;
           }).catch(function () {});
         }
       });

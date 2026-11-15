@@ -7,9 +7,9 @@
   a big statement line, the remaining photos two-up, the model caption with
   "Shop the silhouette" — then the detail accordions (Usage, Technology,
   Features, Composition & Care, Warranty). Right (one-third, sticky): name,
-  price, colour swatches, size, Add to cart, the Field notes card (spec,
-  pad profile, wear range, made for), Ride-tested on, and the side accordions (Need help?, Shipping &
-  returns). Below both: More colours and styles; Create your outfit.
+  price, spec pills, colour swatches, size, Add to cart, and the side
+  accordions (Need help?, Shipping & returns). Kept simple on purpose
+  (owner, Nov 2026): no temperature, weather or route blocks. Below both: More colours and styles; Create your outfit.
   Phone: the same content stacked — carousel, details, story, accordions,
   rows — with size and the buttons in the fixed bottom bar.
 
@@ -17,19 +17,10 @@
   description, and product metafields in the "custom" namespace (Settings →
   Custom data → Products). Each block hides itself while its field is empty:
     custom.statement        multi-line text   — the big line under the carousel
-    Field notes card (snippets/alp-field-notes.liquid — the formats are there):
-    custom.style_code       single-line text  — entry no., top right
-    custom.spec_pills       list of single-line text — "Shell: Washed nylon ripstop"
-    custom.pad_profile      single-line text  — pad mm rear → front, "15, 13, 3"
-    custom.pad_note         single-line text  — the line under the pad profile
-    custom.temp_min / _max  integer (°C)      — "Wear it" range
-    custom.conditions       list of single-line text — "Made for": "Scrub: note"
-    custom.not_for          single-line text  — "Not made for"
+    custom.spec_pills       list of single-line text — 124g · FLATLOCK SEAMS…
     custom.story_lines      list of multi-line text — a line after each photo row
     custom.model_note       single-line text  — "Jarrod is 180cm and wears M."
     custom.silhouette       collection        — what "Shop the silhouette" opens
-    custom.route            single-line text  — Bush Map route id (or a link to
-                                                it) for the "Ride-tested on" tile
     custom.usage, custom.technology, custom.features,
     custom.composition_care, custom.warranty  rich text — accordions
 
@@ -149,6 +140,13 @@
       <h1 class="alp-pdp__title">{{ product.title | escape }}</h1>
       <p class="alp-pdp__price"><span data-alp-price>{{ current.price | money_without_trailing_zeros }}</span> {{ cart.currency.iso_code }}</p>
 
+      {%- assign pills = mf.spec_pills.value -%}
+      {%- if pills != blank -%}
+        <ul class="alp-pills" role="list">
+          {%- for pill in pills -%}<li>{{ pill | escape }}</li>{%- endfor -%}
+        </ul>
+      {%- endif -%}
+
       <div class="alp-buy__slot" data-alp-buy-slot aria-hidden="true"></div>
       {%- form 'product', product, class: 'alp-buy', data-alp-buy: '', novalidate: 'novalidate' -%}
         {%- comment -%}
@@ -244,65 +242,6 @@
         <div class="alp-pdp__desc">{{ product.description }}</div>
       {%- endif -%}
 
-      {%- comment -%} Field notes: spec, pad profile, wear range, made for — see the snippet. {%- endcomment -%}
-      {%- render 'alp-field-notes', mf: mf -%}
-
-      {%- comment -%}
-        Ride-tested on: one Bush Map route the product was ridden on, drawn as
-        the map's own route card (map/index.html #detail, map/styles/app.css
-        .card__*): eyebrow, name, Distance | Climb strip, Full route page +
-        Download GPX, elevation profile, start + Navigate to start, photo with
-        its surface chip. The route comes from custom.route (its id, or any
-        map / route-page link to it); alpine.js fills everything from the map
-        API, and the tile stays hidden until that answers. Each part with no
-        data (no GPX, no start, no photo) stays hidden.
-      {%- endcomment -%}
-      {%- assign route_ref = mf.route.value | strip -%}
-      {%- if route_ref != blank -%}
-        <div class="alp-ridetile" data-alp-ridetile="{{ route_ref | escape }}" hidden>
-          <div class="alp-ridetile__top">
-            <p class="alp-ridetile__eyebrow">Ride-tested on</p>
-            <p class="alp-ridetile__brand">Bush Map&trade;</p>
-          </div>
-          <h2 class="alp-ridetile__name" data-alp-rt-name></h2>
-          <div class="alp-ridetile__stats">
-            <div class="alp-ridetile__stat" data-alp-rt-dist-box><span class="alp-ridetile__val" data-alp-rt-dist></span><span class="alp-ridetile__lab">Distance</span></div>
-            <div class="alp-ridetile__stat" data-alp-rt-climb-box><span class="alp-ridetile__val" data-alp-rt-climb></span><span class="alp-ridetile__lab">Climb</span></div>
-          </div>
-          <div class="alp-ridetile__ctas">
-            <a class="alp-ridetile__cta" href="{% render 'alp-link', to: 'map' %}" data-alp-rt-link target="_blank" rel="noopener">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h11l5 5v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/><path d="M14 4v6h6M8 14h8M8 18h5"/></svg>
-              Full route page
-            </a>
-            <a class="alp-ridetile__cta alp-ridetile__cta--ghost" href="{% render 'alp-link', to: 'map' %}" data-alp-rt-gpx target="_blank" rel="noopener">Download GPX</a>
-          </div>
-          <div class="alp-ridetile__elev" data-alp-rt-elevbox hidden>
-            <div class="alp-ridetile__elevhead">
-              <span class="alp-ridetile__mini">Elevation profile</span>
-              <span class="alp-ridetile__elevnote" data-alp-rt-elevnote></span>
-            </div>
-            <div class="alp-ridetile__elevsvg" data-alp-rt-elev aria-hidden="true"></div>
-          </div>
-          <div class="alp-ridetile__start" data-alp-rt-startbox hidden>
-            <div class="alp-ridetile__startinfo">
-              <svg class="alp-ridetile__pin" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-6.3-7-11a7 7 0 0 1 14 0c0 4.7-7 11-7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>
-              <div>
-                <span class="alp-ridetile__mini" data-alp-rt-startlabel>Start</span>
-                <span class="alp-ridetile__startname" data-alp-rt-start></span>
-              </div>
-            </div>
-            <a class="alp-ridetile__nav" data-alp-rt-nav target="_blank" rel="noopener" hidden>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l18-8-8 18-2-8-8-2z"/></svg>
-              Navigate to start
-            </a>
-          </div>
-          <figure class="alp-ridetile__photo" data-alp-rt-photobox hidden>
-            <img class="alp-ridetile__img" data-alp-rt-photo alt="" loading="lazy" decoding="async">
-            <span class="alp-ridetile__chip" data-alp-rt-chip hidden></span>
-          </figure>
-        </div>
-      {%- endif -%}
-
       {%- capture side_acc -%}{%- render 'alp-pdp-acc', blocks: section.blocks, place: 'side', product: product -%}{%- endcapture -%}
       {%- if side_acc != blank -%}
         <div class="alp-acc">{{ side_acc }}</div>
@@ -349,8 +288,8 @@
   "settings": [
     { "type": "range", "id": "carousel_count", "label": "Photos in the carousel", "min": 1, "max": 6, "step": 1, "default": 2, "info": "The first photos (front, rear…) go in the big carousel; the rest sit two-up further down." },
     { "type": "checkbox", "id": "alt_captions", "label": "Show each photo's alt text under it", "default": true, "info": "Applies to the photos after the carousel. Edit the text on the photo in the product's admin page (Add alt text). A photo with no alt text (Shopify then uses the product's name) gets no caption." },
+    { "type": "text", "id": "conditions_list", "label": "Weather conditions (not shown)", "default": "Hot, Cold, Rain, Low light", "info": "Unused since the info column was simplified (Nov 2026). Kept so saved templates stay valid." },
     { "type": "checkbox", "id": "description_as_statement", "label": "Use the description as the statement", "default": false, "info": "When the product has no custom.statement metafield. Off: the description sits under Add to cart instead." },
-    { "type": "text", "id": "conditions_list", "label": "Retired: weather conditions list", "default": "Hot, Cold, Rain, Low light", "info": "No longer used. Field notes → Made for lists what's in the product's custom.conditions field." },
     { "type": "text", "id": "more_heading", "label": "Same-type row heading", "default": "More colours and styles" },
     { "type": "text", "id": "outfit_heading", "label": "Complementary row heading", "default": "Create your outfit" }
   ],

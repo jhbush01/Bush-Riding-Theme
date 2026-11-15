@@ -8,8 +8,7 @@
   loads from whichever of these is set in Theme settings → Bush Riding:
     • an Adobe Fonts web project id (family "aktiv-grotesk"), or
     • the URL of a licensed .woff2 uploaded to Content → Files.
-  Until one is set, Archivo 600 stands in (the documented substitute), plus
-  400 for the Bush Map route card titles on the product page.
+  Until one is set, Archivo 600 stands in (the documented substitute).
 
   inter_only – true on the password page, which needs no Archivo request
                when Aktiv is supplied
@@ -22,7 +21,7 @@
   if settings.alp_font_aktiv != blank or settings.alp_font_kit != blank
     assign gf = 'https://fonts.googleapis.com/css2?family=Inter:wght@400&display=swap'
   else
-    assign gf = 'https://fonts.googleapis.com/css2?family=Archivo:wght@400;600&family=Inter:wght@400&display=swap'
+    assign gf = 'https://fonts.googleapis.com/css2?family=Archivo:wght@600&family=Inter:wght@400&display=swap'
   endif
 -%}
 <link rel="preconnect" href="https://fonts.googleapis.com">
