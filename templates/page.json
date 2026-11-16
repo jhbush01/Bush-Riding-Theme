@@ -37,10 +37,16 @@
         "limit": 6
       }
     },
+    "contact": {
+      "type": "alpine-contact",
+      "settings": {
+        "only_handle": "contact"
+      }
+    },
     "main": {
       "type": "alpine-page",
       "settings": {
-        "skip_handles": "about, rides, bush-map"
+        "skip_handles": "about, rides, bush-map, contact"
       }
     }
   },
@@ -48,6 +54,7 @@
     "about",
     "rides",
     "bush_map",
+    "contact",
     "main"
   ]
 }

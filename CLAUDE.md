@@ -96,8 +96,11 @@ most of the work — text and icon as support. Show, don't tell.
   products. There is no shop landing
   page — the header's Shop dropdown is it.
   Pages need no template choice: the default `page.json` carries the About,
-  Rides and Bush Map layouts, each shown only for its page handle (`about`,
-  `rides`, `bush-map`). The blog template is the Rides layout too, so Rides
+  Rides, Bush Map and Contact layouts, each shown only for its page handle
+  (`about`, `rides`, `bush-map`, `contact`). About and Contact (Nov 2026)
+  tell the brand story in full colour bands (olive, mist, bone, flare) from
+  its roots — the drovers' stock routes, "same dirt, a different steed" —
+  and every word is a section setting. The blog template is the Rides layout too, so Rides
   works before a rides page exists.
   The product page (`sections/alpine-product.liquid`, Satisfy reference
   layout) reads product metafields in the `custom` namespace — statement,
@@ -111,7 +114,7 @@ most of the work — text and icon as support. Show, don't tell.
   Checkout in the drawer (desktop). Quick add on product cards was removed
   in Oct 2026 at the owner's request (too glitchy) — cards link to the
   product page. Don't add steps to the product-page path. Dawn's own sections remain
-  only for accounts, policies, contact and the password page (`main-waitlist`
+  only for accounts, policies and the password page (`main-waitlist`
   + `assets/waitlist.css`).
 - **`map/`** — bushridingmap.com… now **map.bushriding.cc**: static MapLibre
   routes map deployed by Cloudflare Pages (output dir `map`), plus Pages

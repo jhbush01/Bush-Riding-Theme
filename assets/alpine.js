@@ -1378,7 +1378,7 @@
   /* ── Header over the opening photo: clear until the photo has gone up
      behind it, then the bone bar (body.alp-hd-solid). The clear look itself
      is CSS (alpine.css), so there's no flash before this runs. */
-  var HERO_SEL = '.alp-hero, .alp-cat > .alp-intro:not(.alp-intro--plain)';
+  var HERO_SEL = '.alp-hero, .alp-about__hero';
   var heroTick = false;
   /* Same test as the script at the end of <main> (layout/theme.liquid), run
      again when the theme editor adds, moves or removes a section. */

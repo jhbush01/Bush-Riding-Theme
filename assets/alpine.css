@@ -52,7 +52,7 @@
    disappear into the page; type on photos goes white with them. */
 html[data-ground='white'] { --alp-bg: #ffffff; --alp-card: #ffffff; --alp-line: rgba(76, 75, 59, 0.16); }
 /* …but type over photos stays bone, to match the bone wordmark artwork. */
-html[data-ground='white'] :is(.alp-hero, .alp-duo, .alp-mcards),
+html[data-ground='white'] :is(.alp-hero, .alp-duo, .alp-mcards, .alp-about__hero),
 html[data-ground='white'] body.alp-hd-over:not(.alp-hd-solid):not(.alp-hd-open):not(.alp-hd-hot) .alp-hd { --alp-bg: #edecc5; }
 /* Dawn's .gradient on <body> beats a bare `body` selector, so match it. */
 body,
@@ -1404,34 +1404,140 @@ body.alp-hd-away .alp-cat__head { top: 0; }
 }
 
 /* ── About (D10 · M11) ───────────────────────────────────────────────────── */
-.alp-about__split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); min-height: 720px; }
-.alp-about__photo { position: relative; overflow: hidden; background: var(--alp-card); }
-.alp-about__text { display: flex; flex-direction: column; gap: 20px; padding: 72px 64px; }
-.alp-about__title { font-size: 40px; line-height: 1.1; }
-.alp-about__body { display: flex; flex-direction: column; gap: 20px; font: 17px/1.65 var(--alp-font-ui); }
-.alp-about__body p { margin: 0; }
-.alp-about__fill { flex: 1; }
-.alp-about__facts { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding-top: 24px; border-top: 1px solid var(--alp-line); }
-.alp-about__facts dt { font: 600 16px/1.3 var(--alp-font-display); }
-.alp-about__facts dd { margin-top: 4px; font-size: 15px; }
-.alp-about__facts a { text-decoration: underline; text-underline-offset: 3px; }
-.alp-about__statement { padding: 96px 120px; text-align: center; font: 600 56px/1.1 var(--alp-font-display); }
-.alp-about__trio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; height: 420px; padding: 0 12px 12px; }
-.alp-about__tri { position: relative; overflow: hidden; background: var(--alp-card); }
+/* About (D10 / M11) — Nov 2026: the story in full colour, one band per
+   chapter. Bands keep their own colours whatever the page colour setting
+   is, so bone here is always bone. Phones stack. */
+.alp-about, .alp-contact { --ab-bone: #edecc5; --ab-olive: #4c4b3b; --ab-line-dark: rgba(237, 236, 197, 0.28); background: var(--ab-bone); color: var(--ab-olive); }
+.alp-about__hero { position: relative; display: flex; align-items: flex-end; height: 92svh; min-height: 560px; overflow: hidden; background: var(--alp-olive); color: var(--ab-bone); }
+.alp-about__hero::after { content: ''; position: absolute; inset: 40% 0 0; background: linear-gradient(180deg, rgba(47, 47, 38, 0), rgba(47, 47, 38, 0.62)); pointer-events: none; }
+.alp-about__herotext { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 14px; max-width: 900px; padding: 0 clamp(22px, 5vw, 80px) clamp(40px, 7vh, 80px); }
+.alp-about__eyebrow { margin: 0; font: 600 12px/1.3 var(--alp-font-display); letter-spacing: 0.16em; text-transform: uppercase; opacity: 0.9; }
+.alp-about__title { margin: 0; font: 600 clamp(44px, 6.4vw, 96px)/0.98 var(--alp-font-display) !important; letter-spacing: -0.02em; color: inherit; }
+.alp-about__sub { margin: 0; max-width: 34em; font: 18px/1.5 var(--alp-font-ui); }
+
+.alp-about__band { padding: clamp(64px, 9vw, 140px) clamp(22px, 5vw, 80px); }
+.alp-about__band--olive { background: var(--ab-olive); color: var(--ab-bone); }
+.alp-about__band--mist { background: var(--alp-mist); color: var(--ab-olive); }
+.alp-about__band--bone { background: var(--ab-bone); color: var(--ab-olive); }
+.alp-about__band--flare { background: var(--alp-flare); color: var(--ab-olive); }
+.alp-about__chapter { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+.alp-about__chapter--wide { max-width: 1180px; }
+.alp-about__num { margin: 0; font: 600 12px/1.3 var(--alp-font-display); letter-spacing: 0.16em; text-transform: uppercase; opacity: 0.75; }
+.alp-about__band--olive .alp-about__num { color: var(--alp-flare); opacity: 1; }
+.alp-about__head { margin: 0; font: 600 clamp(30px, 3.6vw, 52px)/1.08 var(--alp-font-display) !important; letter-spacing: -0.015em; color: inherit; white-space: pre-line; }
+.alp-about__copy { display: flex; flex-direction: column; gap: 18px; font: 18px/1.65 var(--alp-font-ui); }
+.alp-about__copy p { margin: 0; }
+.alp-about__band--olive .alp-about__copy { color: color-mix(in srgb, var(--ab-bone) 86%, transparent); }
+
+/* 02: the story beside a photo, the band running edge to edge. */
+.alp-about__band--split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); padding: 0; }
+.alp-about__band--split .alp-about__chapter { justify-content: center; margin: 0; max-width: none; padding: clamp(64px, 8vw, 120px) clamp(22px, 5vw, 88px); }
+.alp-about__side { position: relative; min-height: 640px; overflow: hidden; background: var(--alp-haze); }
+
+.alp-about__pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0; }
+.alp-about__pic { position: relative; aspect-ratio: 4 / 5; overflow: hidden; background: var(--alp-haze); }
+.alp-about__pair .alp-about__pic:only-child { grid-column: 1 / -1; aspect-ratio: 16 / 9; }
+
+/* 03: six kinds of country, a numbered ledger in two columns. */
+.alp-about__land { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 clamp(32px, 5vw, 80px); margin: 18px 0 0; padding: 0; list-style: none; }
+.alp-about__place { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 6px 14px; padding: 24px 0; border-top: 1px solid var(--ab-line-dark); }
+.alp-about__placenum { grid-row: span 2; font: 600 14px/1.5 var(--alp-font-display); color: var(--alp-flare); }
+.alp-about__placename { font: 600 18px/1.3 var(--alp-font-display); }
+.alp-about__placeline { font: 16px/1.6 var(--alp-font-ui); color: color-mix(in srgb, var(--ab-bone) 80%, transparent); }
+
+/* 04: what we make, the facts beside it. */
+.alp-about__make { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: clamp(40px, 6vw, 112px); align-items: end; }
+.alp-about__make > div { display: flex; flex-direction: column; gap: 22px; }
+.alp-about__facts { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; margin: 0; }
+.alp-about__facts > div { padding: 18px 0; border-top: 1px solid var(--alp-line); }
+.alp-about__facts dt { font: 600 12px/1.3 var(--alp-font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--alp-muted); }
+.alp-about__facts dd { margin: 6px 0 0; font: 600 22px/1.2 var(--alp-font-display); }
+.alp-about__facts a { color: inherit; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+
+/* Close: flare, the three ways in. */
+.alp-about__close { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 18px; text-align: center; }
+.alp-about__closeline { margin: 0; font: 18px/1.5 var(--alp-font-ui); }
+.alp-about__go { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 14px; }
+.alp-about__go .alp-btn { min-width: 180px; border-radius: 0; }
+.alp-about__band--flare .alp-btn--line { border-color: var(--ab-olive); }
+
 @media (max-width: 749px) {
-  .alp-about__split { display: block; min-height: 0; }
-  .alp-about__photo { height: 460px; }
-  .alp-about__text { gap: 16px; padding: 28px 18px; }
-  .alp-about__title { font-size: 30px; }
-  .alp-about__body { gap: 16px; font-size: 16px; line-height: 1.6; }
-  .alp-about__fill { display: none; }
-  .alp-about__facts { gap: 16px; padding-top: 18px; margin-top: 6px; }
-  .alp-about__facts dt { font-size: 15px; }
-  .alp-about__facts dd { margin-top: 3px; font-size: 14px; }
-  .alp-about__statement { padding: 48px 18px; font-size: 34px; }
-  .alp-about__trio { display: block; height: auto; padding: 0; }
-  .alp-about__tri { height: 320px; }
-  .alp-about__tri + .alp-about__tri { margin-top: 6px; }
+  .alp-about__hero { height: 86svh; min-height: 480px; }
+  .alp-about__herotext { gap: 10px; padding: 0 18px 36px; }
+  .alp-about__sub { font-size: 16px; }
+  .alp-about__band { padding: 56px 18px; }
+  .alp-about__chapter { gap: 16px; }
+  .alp-about__head { font-size: 28px !important; white-space: normal; }
+  .alp-about__copy { gap: 14px; font-size: 16px; }
+  .alp-about__band--split { grid-template-columns: minmax(0, 1fr); padding: 0; }
+  .alp-about__band--split .alp-about__chapter { padding: 56px 18px; }
+  .alp-about__side { min-height: 0; aspect-ratio: 4 / 5; }
+  .alp-about__pair { grid-template-columns: minmax(0, 1fr); }
+  .alp-about__land { grid-template-columns: minmax(0, 1fr); margin-top: 8px; }
+  .alp-about__place { grid-template-columns: 34px minmax(0, 1fr); padding: 18px 0; }
+  .alp-about__placename { font-size: 16px; }
+  .alp-about__placeline { font-size: 15px; }
+  .alp-about__make { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  .alp-about__facts dd { font-size: 18px; }
+  .alp-about__closeline { font-size: 16px; }
+  .alp-about__go { flex-direction: column; align-self: stretch; }
+  .alp-about__go .alp-btn { width: 100%; }
+}
+
+/* Contact — Nov 2026, in the About colours: olive panel beside the form on
+   bone, then the "Before you write" answers on mist. */
+.alp-contact__split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); min-height: 680px; }
+.alp-contact__panel { display: flex; flex-direction: column; gap: 22px; padding: clamp(56px, 7vw, 112px) clamp(22px, 5vw, 80px); background: var(--ab-olive); color: var(--ab-bone); }
+.alp-contact__title { margin: 0; font: 600 clamp(44px, 5.6vw, 84px)/0.98 var(--alp-font-display) !important; letter-spacing: -0.02em; color: inherit; }
+.alp-contact__intro { display: flex; flex-direction: column; gap: 14px; max-width: 30em; font: 18px/1.6 var(--alp-font-ui); color: color-mix(in srgb, var(--ab-bone) 88%, transparent); }
+.alp-contact__intro p { margin: 0; }
+.alp-contact__ways { margin: auto 0 0; padding: 24px 0 0; list-style: none; display: flex; flex-direction: column; gap: 0; }
+.alp-contact__ways li { display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: 12px; padding: 14px 0; border-top: 1px solid var(--ab-line-dark); font: 16px/1.4 var(--alp-font-ui); }
+.alp-contact__ways span { font: 600 12px/1.9 var(--alp-font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--alp-flare); }
+.alp-contact__ways a { color: var(--ab-bone); text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; overflow-wrap: anywhere; }
+.alp-contact__formwrap { display: flex; align-items: center; padding: clamp(48px, 6vw, 96px) clamp(22px, 5vw, 88px); }
+.alp-contact__form { display: flex; flex-direction: column; gap: 18px; width: 100%; max-width: 620px; }
+.alp-contact__formtitle { margin: 0 0 4px; font: 600 24px/1.2 var(--alp-font-display) !important; color: inherit; }
+.alp-contact__row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
+.alp-field { display: flex; flex-direction: column; gap: 8px; font: 600 13px/1.3 var(--alp-font-display); }
+.alp-field em { font-style: normal; color: var(--alp-muted); }
+.alp-field input, .alp-field select, .alp-field textarea {
+  width: 100%; padding: 14px; background: #fff; color: var(--ab-olive);
+  border: 1px solid var(--ab-olive); border-radius: 0; font: 16px/1.4 var(--alp-font-ui);
+}
+.alp-field textarea { resize: vertical; min-height: 160px; }
+.alp-field select { -webkit-appearance: none; appearance: none; padding-right: 40px; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%234c4b3b'/%3E%3C/svg%3E") no-repeat right 16px center; }
+.alp-field input:focus-visible, .alp-field select:focus-visible, .alp-field textarea:focus-visible { outline: 2px solid var(--ab-olive); outline-offset: 2px; }
+.alp-field [aria-invalid='true'] { border-color: #8a3b2e; }
+.alp-contact__send { align-self: flex-start; min-width: 200px; border-radius: 0; }
+.alp-contact__err { padding: 14px 16px; border: 1px solid #8a3b2e; background: #fff; font: 15px/1.5 var(--alp-font-ui); }
+.alp-contact__err p, .alp-contact__err ul { margin: 0; }
+.alp-contact__err ul { padding-left: 18px; margin-top: 6px; }
+.alp-contact__ok { display: flex; flex-direction: column; gap: 10px; padding: 32px; background: var(--alp-flare); font: 17px/1.5 var(--alp-font-ui); }
+.alp-contact__ok p { margin: 0; }
+.alp-contact__oktitle { font: 600 26px/1.15 var(--alp-font-display); }
+.alp-about__band.alp-contact__first { padding-top: clamp(48px, 6vw, 88px); padding-bottom: clamp(48px, 6vw, 88px); }
+.alp-contact__firsttitle { margin: 0; font: 600 clamp(26px, 2.6vw, 36px)/1.1 var(--alp-font-display) !important; color: inherit; }
+.alp-contact__answers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 clamp(24px, 3vw, 48px); margin: 8px 0 0; padding: 0; list-style: none; }
+.alp-contact__answers a { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; padding: 22px 0; border-top: 1px solid var(--ab-olive); color: inherit; text-decoration: none; }
+.alp-contact__answers b { font: 600 18px/1.3 var(--alp-font-display); }
+.alp-contact__answers span { grid-column: 1; font: 15px/1.5 var(--alp-font-ui); }
+.alp-contact__answers i { grid-column: 2; grid-row: 1 / span 2; align-self: center; font-style: normal; font-size: 20px; }
+.alp-contact__answers a:hover b { text-decoration: underline; text-underline-offset: 4px; }
+.alp-contact__photo { position: relative; height: min(70vh, 640px); overflow: hidden; background: var(--alp-olive); }
+.alp-contact__photo::after { content: ''; position: absolute; inset: 50% 0 0; background: linear-gradient(180deg, rgba(47, 47, 38, 0), rgba(47, 47, 38, 0.55)); }
+.alp-contact__photoline { position: absolute; left: clamp(22px, 5vw, 80px); bottom: clamp(28px, 5vw, 64px); z-index: 1; margin: 0; font: 600 clamp(30px, 3.6vw, 52px)/1.05 var(--alp-font-display); color: var(--ab-bone); }
+@media (max-width: 749px) {
+  .alp-contact__split { grid-template-columns: minmax(0, 1fr); min-height: 0; }
+  .alp-contact__panel { gap: 16px; padding: 40px 18px 32px; }
+  .alp-contact__intro { font-size: 16px; }
+  .alp-contact__ways { margin-top: 8px; padding-top: 8px; }
+  .alp-contact__ways li { grid-template-columns: 110px minmax(0, 1fr); font-size: 15px; }
+  .alp-contact__formwrap { padding: 36px 18px 48px; }
+  .alp-contact__row { grid-template-columns: minmax(0, 1fr); }
+  .alp-contact__send { align-self: stretch; }
+  .alp-contact__answers { grid-template-columns: minmax(0, 1fr); }
+  .alp-contact__photo { height: 60svh; }
 }
 
 /* ── Search (D06 · M07) ──────────────────────────────────────────────────── */

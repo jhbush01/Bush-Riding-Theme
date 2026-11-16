@@ -1,0 +1,153 @@
+{%- comment -%}
+  Contact — Nov 2026, in the About page's colours. Phones and desktop.
+
+    1. Split: olive panel (title, a few lines, email / Instagram / Strava)
+       beside the form on bone (name, email, what it's about, message).
+       Phones: the panel, then the form.
+    2. Mist band: "Before you write", three answers people often need
+       first: sizing, shipping & returns, rides & routes.
+    3. Optional photo, edge to edge, with a closing line.
+
+  The form is Shopify's contact form: messages land in the store's
+  notification email (Settings → Notifications), the topic included. The
+  page's own content in Online Store → Pages isn't shown.
+{%- endcomment -%}
+{%- liquid
+  assign show = true
+  if section.settings.only_handle != blank and template.name == 'page' and page.handle != section.settings.only_handle
+    assign show = false
+  endif
+  capture rides_url
+    render 'alp-link', to: 'rides'
+  endcapture
+  capture size_url
+    render 'alp-link', to: 'size_guide'
+  endcapture
+  assign size_url = size_url | strip
+  if size_url == blank
+    assign size_url = collections.all.products.first.url
+  endif
+  assign ship_url = shop.shipping_policy.url | default: shop.refund_policy.url
+  assign s = section.settings
+  assign topics = s.topics | newline_to_br | split: '<br />'
+-%}
+{%- if show -%}
+<div class="alp alp-contact">
+  <div class="alp-contact__split">
+    <div class="alp-contact__panel">
+      {%- if s.eyebrow != blank -%}<p class="alp-about__eyebrow">{{ s.eyebrow | escape }}</p>{%- endif -%}
+      <h1 class="alp-contact__title">{{ s.heading | default: page.title | escape }}</h1>
+      <div class="alp-contact__intro">{{ s.intro }}</div>
+      <ul class="alp-contact__ways" role="list">
+        {%- if shop.email != blank -%}
+          <li><span>Email</span><a href="mailto:{{ shop.email }}">{{ shop.email }}</a></li>
+        {%- endif -%}
+        {%- if settings.alp_instagram_url != blank -%}
+          {%- assign ig_parts = settings.alp_instagram_url | split: '?' | first | split: '/' -%}
+          {%- assign ig_name = '' -%}
+          {%- for part in ig_parts -%}{%- if part != blank -%}{%- assign ig_name = part -%}{%- endif -%}{%- endfor -%}
+          <li><span>Instagram</span><a href="{{ settings.alp_instagram_url }}" target="_blank" rel="noopener">@{{ ig_name | escape }}</a></li>
+        {%- endif -%}
+        {%- if settings.alp_strava_url != blank -%}
+          <li><span>Ride with us</span><a href="{{ settings.alp_strava_url }}" target="_blank" rel="noopener">Strava club</a></li>
+        {%- endif -%}
+      </ul>
+    </div>
+
+    <div class="alp-contact__formwrap">
+      {%- form 'contact', id: 'AlpContactForm', class: 'alp-contact__form' -%}
+        {%- if form.posted_successfully? -%}
+          <div class="alp-contact__ok" role="status" tabindex="-1" autofocus>
+            <p class="alp-contact__oktitle">{{ s.thanks_title | escape }}</p>
+            <p>{{ s.thanks_line | escape }}</p>
+          </div>
+        {%- else -%}
+          <h2 class="alp-contact__formtitle">{{ s.form_title | escape }}</h2>
+          {%- if form.errors -%}
+            <div class="alp-contact__err" role="alert">
+              <p>That didn't send. Check the fields marked below and try again.</p>
+              {{ form.errors | default_errors }}
+            </div>
+          {%- endif -%}
+          <div class="alp-contact__row">
+            <label class="alp-field">
+              <span>Name</span>
+              <input type="text" name="contact[name]" autocomplete="name" value="{% if form.name %}{{ form.name }}{% elsif customer %}{{ customer.name }}{% endif %}">
+            </label>
+            <label class="alp-field">
+              <span>Email <em aria-hidden="true">*</em></span>
+              <input type="email" name="contact[email]" autocomplete="email" required spellcheck="false" autocapitalize="off" value="{% if form.email %}{{ form.email }}{% elsif customer %}{{ customer.email }}{% endif %}"{% if form.errors contains 'email' %} aria-invalid="true"{% endif %}>
+            </label>
+          </div>
+          {%- if topics.size > 0 -%}
+            <label class="alp-field">
+              <span>What's it about?</span>
+              <select name="contact[Topic]">
+                {%- for t in topics -%}
+                  {%- assign tt = t | strip -%}
+                  {%- if tt != blank -%}<option value="{{ tt | escape }}">{{ tt | escape }}</option>{%- endif -%}
+                {%- endfor -%}
+              </select>
+            </label>
+          {%- endif -%}
+          <label class="alp-field">
+            <span>Message <em aria-hidden="true">*</em></span>
+            <textarea name="contact[body]" rows="6" required placeholder="{{ s.placeholder | escape }}">{{ form.body }}</textarea>
+          </label>
+          <button class="alp-btn alp-contact__send" type="submit">{{ s.send_label | escape }}</button>
+        {%- endif -%}
+      {%- endform -%}
+    </div>
+  </div>
+
+  <section class="alp-about__band alp-about__band--mist alp-contact__first">
+    <div class="alp-about__chapter alp-about__chapter--wide">
+      <h2 class="alp-contact__firsttitle">{{ s.first_title | escape }}</h2>
+      <ul class="alp-contact__answers" role="list">
+        {%- if size_url != blank -%}
+          <li><a href="{{ size_url }}"><b>Sizing</b><span>{{ s.ans_size | escape }}</span><i aria-hidden="true">→</i></a></li>
+        {%- endif -%}
+        {%- if ship_url != blank -%}
+          <li><a href="{{ ship_url }}"><b>Shipping &amp; returns</b><span>{{ s.ans_ship | escape }}</span><i aria-hidden="true">→</i></a></li>
+        {%- endif -%}
+        <li><a href="{{ rides_url | strip }}"><b>Rides &amp; routes</b><span>{{ s.ans_rides | escape }}</span><i aria-hidden="true">→</i></a></li>
+      </ul>
+    </div>
+  </section>
+
+  {%- if s.image != blank -%}
+    <div class="alp-contact__photo">
+      {{ s.image | image_url: width: 2400 | image_tag: class: 'alp-fill', loading: 'lazy', widths: '750, 1100, 1500, 1900, 2400', sizes: '100vw', alt: '' }}
+      {%- if s.photo_line != blank -%}<p class="alp-contact__photoline">{{ s.photo_line | escape }}</p>{%- endif -%}
+    </div>
+  {%- endif -%}
+</div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Contact",
+  "tag": "div",
+  "settings": [
+    { "type": "text", "id": "only_handle", "label": "Only on the page with handle", "info": "Used on the default page template. Leave empty to always show." },
+    { "type": "text", "id": "eyebrow", "label": "Small line", "default": "Contact" },
+    { "type": "text", "id": "heading", "label": "Title", "default": "Say g'day." },
+    { "type": "richtext", "id": "intro", "label": "Intro", "default": "<p>A sizing question, an order taking the long way round, a route we should ride, or a ride you'd like us at. Send it through.</p><p>A real person reads every message, usually within a couple of days.</p>" },
+    { "type": "text", "id": "form_title", "label": "Form heading", "default": "Send us a message" },
+    { "type": "textarea", "id": "topics", "label": "Topics", "default": "An order\nSizing and fit\nRides and routes\nCollabs and wholesale\nSomething else", "info": "One per line. Leave empty to hide the topic list." },
+    { "type": "text", "id": "placeholder", "label": "Message placeholder", "default": "Where you're riding, what you're after…" },
+    { "type": "text", "id": "send_label", "label": "Send button", "default": "Send it" },
+    { "type": "text", "id": "thanks_title", "label": "After sending: title", "default": "Got it. Thanks for writing." },
+    { "type": "text", "id": "thanks_line", "label": "After sending: line", "default": "We'll reply to the email you gave us, usually within a couple of days." },
+    { "type": "header", "content": "Before you write (mist)" },
+    { "type": "text", "id": "first_title", "label": "Heading", "default": "Before you write" },
+    { "type": "text", "id": "ans_size", "label": "Sizing", "default": "Find your fit before you order." },
+    { "type": "text", "id": "ans_ship", "label": "Shipping & returns", "default": "Where your order's at, and how to send it back." },
+    { "type": "text", "id": "ans_rides", "label": "Rides & routes", "default": "Upcoming group rides, and where we're headed next." },
+    { "type": "header", "content": "Closing photo" },
+    { "type": "image_picker", "id": "image", "label": "Photo", "info": "Optional. Edge to edge under the answers." },
+    { "type": "text", "id": "photo_line", "label": "Line on the photo", "default": "See you out there." }
+  ],
+  "presets": [{ "name": "Contact" }]
+}
+{% endschema %}
